@@ -1,6 +1,6 @@
 # Web Widgets
 
-Amazing library for implementing a web interface for a Java application
+Amazing library for implementing a web interface for a Java application  
 Version 1.0
 
 ## Goal
