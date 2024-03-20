@@ -1,6 +1,5 @@
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 
