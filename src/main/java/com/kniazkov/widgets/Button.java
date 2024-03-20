@@ -3,12 +3,26 @@
  */
 package com.kniazkov.widgets;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Button widget.
  */
-public class Button implements Widget, Clickable {
-    @Override
-    public void onClick(Controller ctrl) {
+public final class Button implements Widget, Clickable {
+    /**
+     * Controller that determines the behavior when the button is clicked.
+     */
+    private Controller clickCtrl;
 
+    /**
+     * Constructor.
+     */
+    public Button() {
+        this.clickCtrl = StubController.INSTANCE;
+    }
+
+    @Override
+    public void onClick(@NotNull Controller ctrl) {
+        this.clickCtrl = ctrl;
     }
 }

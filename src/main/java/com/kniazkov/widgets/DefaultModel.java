@@ -29,13 +29,13 @@ public abstract class DefaultModel<T> implements Model<T> {
      * Constructor.
      */
     public DefaultModel() {
-        data = getDefaultData();
-        listeners = new HashSet<>();
+        this.data = this.getDefaultData();
+        this.listeners = new HashSet<>();
     }
 
     @Override
     public @NotNull T getData() {
-        return data;
+        return this.data;
     }
 
     @Override
@@ -44,7 +44,7 @@ public abstract class DefaultModel<T> implements Model<T> {
         final boolean notify = !data.equals(this.data);
         this.data = data;
         if (notify) {
-            for (ModelListener<T> listener : listeners) {
+            for (ModelListener<T> listener : this.listeners) {
                 listener.dataChanged(data);
             }
         }
@@ -57,12 +57,12 @@ public abstract class DefaultModel<T> implements Model<T> {
 
     @Override
     public void addListener(final @NotNull ModelListener<T> listener) {
-        listeners.add(listener);
+        this.listeners.add(listener);
     }
 
     @Override
     public void removeListener(final @NotNull ModelListener<T> listener) {
-        listeners.remove(listener);
+        this.listeners.remove(listener);
     }
 
     /**
