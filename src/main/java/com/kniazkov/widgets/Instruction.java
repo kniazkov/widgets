@@ -3,22 +3,57 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An instruction that is sent from server to client to display changes in widgets.
+ * Instruction that is sent from server to client to display changes.
  */
-interface Instruction {
+abstract class Instruction {
     /**
-     * Returns unique identifier of the instruction.
-     * @return Unique identifier of the instruction
+     * Instruction unique identifier.
      */
-    @NotNull UId getId();
+    private final UId instrId;
+
+    /**
+     * Identifier of the widgetIdget the instruction is working with.
+     */
+    private final UId widgetId;
+
+    /**
+     * Constructor.
+     * @param widgetId Identifier of the widgetIdget the instruction is working with
+     */
+    Instruction(final @NotNull UId widgetId) {
+        this.instrId = UId.create();
+        this.widgetId = widgetId;
+    }
+
+    /**
+     * Serialization of an instruction, i.e., transforming it into a JSON object
+     *  for further transmission to a client.
+     * @param array JSON array in which to put instructions
+     */
+    void serialize(final @NotNull JsonArray array) {
+        JsonObject obj = array.createObject();
+        obj.addString("instrId", this.instrId.toString());
+        obj.addString("widgetId", this.widgetId.toString());
+        obj.addString("action", this.getAction());
+        this.fillJsonObject(obj);
+    }
+
+    /**
+     * Returns an action, that is, a description of what the instruction should do.
+     * @return An action as a string
+     */
+    protected abstract @NotNull String getAction();
 
     /**
      * Fills a JSON object with the data needed to execute the instruction on the client side.
      * @param json JSON object to be filled
      */
-    void fillJsonObject(final @NotNull JsonObject json);
+    protected void fillJsonObject(final @NotNull JsonObject json) {
+        // do nothing; this method is expected to be overridden
+    }
 }
