@@ -17,13 +17,13 @@ abstract class Instruction {
     private final UId instrId;
 
     /**
-     * Identifier of the widgetIdget the instruction is working with.
+     * Identifier of the widget the instruction is working with.
      */
     private final UId widgetId;
 
     /**
      * Constructor.
-     * @param widgetId Identifier of the widgetIdget the instruction is working with
+     * @param widgetId Identifier of the widget the instruction is working with
      */
     Instruction(final @NotNull UId widgetId) {
         this.instrId = UId.create();
