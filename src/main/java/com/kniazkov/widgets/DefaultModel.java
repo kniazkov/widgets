@@ -3,9 +3,7 @@
  */
 package com.kniazkov.widgets;
 
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,23 +12,17 @@ import org.jetbrains.annotations.NotNull;
  * It simply stores data of the specified type and notifies listeners when that data changes.
  * @param <T> Type of model data
  */
-public abstract class DefaultModel<T> implements Model<T> {
+public abstract class DefaultModel<T> extends Model<T> {
     /**
      * Data.
      */
     private T data;
 
     /**
-     * Set of listeners.
-     */
-    private final Set<ModelListener<T>> listeners;
-
-    /**
      * Constructor.
      */
     public DefaultModel() {
         this.data = this.getDefaultData();
-        this.listeners = new HashSet<>();
     }
 
     @Override
@@ -39,30 +31,15 @@ public abstract class DefaultModel<T> implements Model<T> {
     }
 
     @Override
-    public void setData(final @NotNull T data) {
+    protected boolean writeData(final @NotNull T data) {
         Objects.requireNonNull(data);
-        final boolean notify = !data.equals(this.data);
         this.data = data;
-        if (notify) {
-            for (ModelListener<T> listener : this.listeners) {
-                listener.dataChanged(data);
-            }
-        }
+        return true;
     }
 
     @Override
     public boolean isValid() {
         return true;
-    }
-
-    @Override
-    public void addListener(final @NotNull ModelListener<T> listener) {
-        this.listeners.add(listener);
-    }
-
-    @Override
-    public void removeListener(final @NotNull ModelListener<T> listener) {
-        this.listeners.remove(listener);
     }
 
     /**
