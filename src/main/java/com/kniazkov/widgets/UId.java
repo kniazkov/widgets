@@ -64,7 +64,7 @@ public final class UId implements Comparable<UId> {
     }
 
     /**
-     * Compares an identifier to other one
+     * Compares an identifier to other one for order
      *  (this needed for {@link java.util.TreeSet} and {@link java.util.TreeMap} classes).
      * @param other Other identifier.
      * @return Comparison result

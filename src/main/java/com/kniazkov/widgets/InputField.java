@@ -10,6 +10,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public final class InputField implements Widget, HasText, Clickable {
     /**
+     * Identifier.
+     */
+    private final UId id;
+
+    /**
      * Model that stores and processes the text of this widget.
      */
     private Model<String> textModel;
@@ -23,8 +28,14 @@ public final class InputField implements Widget, HasText, Clickable {
      * Constructor.
      */
     public InputField() {
+        this.id = UId.create();
         this.textModel = new DefaultStringModel();
         this.clickCtrl = StubController.INSTANCE;
+    }
+
+    @Override
+    public UId getId() {
+        return this.id;
     }
 
     @Override
