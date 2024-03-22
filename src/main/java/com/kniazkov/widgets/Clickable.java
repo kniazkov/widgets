@@ -14,9 +14,4 @@ public interface Clickable {
      * @param ctrl Controller
      */
     void onClick(@NotNull Controller ctrl);
-
-    /**
-     * Reports that the entity has been clicked.
-     */
-    void clicked();
 }

@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,6 +29,13 @@ public final class InputField extends Widget implements HasText, Clickable {
     }
 
     @Override
+    void handleEvent(final JsonObject json, final String type) {
+        if (type.equals("click")) {
+            this.clickCtrl.handleEvent();
+        }
+    }
+
+    @Override
     public @NotNull Model<String> getTextModel() {
         return this.textModel;
     }
@@ -40,10 +48,5 @@ public final class InputField extends Widget implements HasText, Clickable {
     @Override
     public void onClick(@NotNull Controller ctrl) {
         this.clickCtrl = ctrl;
-    }
-
-    @Override
-    public void clicked() {
-        this.clickCtrl.handleEvent();
     }
 }
