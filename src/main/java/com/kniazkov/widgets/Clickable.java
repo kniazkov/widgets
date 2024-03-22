@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface Clickable {
     /**
-     * Sets the controller that determines the behavior when an entity is clicked.
+     * Sets a controller that determines the behavior when an entity is clicked.
      * @param ctrl Controller
      */
     void onClick(@NotNull Controller ctrl);

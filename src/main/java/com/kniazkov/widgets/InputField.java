@@ -3,17 +3,23 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Input field widget.
  */
-public final class InputField extends Widget implements HasText, Clickable {
+public final class InputField extends Widget implements HasTextInput, Clickable {
     /**
      * Model that stores and processes the text of this widget.
      */
     private Model<String> textModel;
+
+    /**
+     * Controller that determines the behavior when the field is clicked.
+     */
+    private TypedController<String> textInputCtrl;
 
     /**
      * Controller that determines the behavior when the field is clicked.
@@ -25,12 +31,20 @@ public final class InputField extends Widget implements HasText, Clickable {
      */
     public InputField() {
         this.textModel = new DefaultStringModel();
+        this.textInputCtrl = data -> { };
         this.clickCtrl = StubController.INSTANCE;
     }
 
     @Override
     void handleEvent(final JsonObject json, final String type) {
-        if (type.equals("click")) {
+        if (type.equals("text input")) {
+            final JsonElement element = json.getElement("text");
+            if (element.isString()) {
+                final String text = element.getStringValue();
+                this.textModel.setData(text);
+                this.textInputCtrl.handleEvent(text);
+            }
+        } else if (type.equals("click")) {
             this.clickCtrl.handleEvent();
         }
     }
@@ -43,6 +57,11 @@ public final class InputField extends Widget implements HasText, Clickable {
     @Override
     public void setTextModel(@NotNull Model<String> model) {
         this.textModel = model;
+    }
+
+    @Override
+    public void onTextInput(@NotNull TypedController<String> ctrl) {
+        this.textInputCtrl = ctrl;
     }
 
     @Override
