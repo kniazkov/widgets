@@ -5,6 +5,8 @@ package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A widget, that is, a user interface element.
@@ -16,10 +18,16 @@ public abstract class Widget {
     private final UId widgetId;
 
     /**
+     * Set of updates to be sent to a client.
+     */
+    private final List<Instruction> updates;
+
+    /**
      * Constructor.
      */
     public Widget() {
         this.widgetId = UId.create();
+        this.updates = new ArrayList<>();
     }
 
     /**
@@ -46,5 +54,13 @@ public abstract class Widget {
             json,
             json.getOrDefault("type", JsonNull.INSTANCE).getStringValue()
         );
+    }
+
+    /**
+     * Adds an instruction (update) to the list of instructions to be sent to a client.
+     * @param instruction Instruction
+     */
+    void sendToClient(final Instruction instruction) {
+        this.updates.add(instruction);
     }
 }

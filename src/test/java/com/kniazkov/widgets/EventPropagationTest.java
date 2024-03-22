@@ -1,7 +1,6 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Test;
 

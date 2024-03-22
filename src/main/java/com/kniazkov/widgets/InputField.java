@@ -16,6 +16,8 @@ public final class InputField extends Widget implements HasTextInput, Clickable 
      */
     private Model<String> textModel;
 
+    private final ModelListener<String> textModelListener;
+
     /**
      * Controller that determines the behavior when the field is clicked.
      */
@@ -31,6 +33,8 @@ public final class InputField extends Widget implements HasTextInput, Clickable 
      */
     public InputField() {
         this.textModel = new DefaultStringModel();
+        this.textModelListener = new HasText.TextModelListener(this);
+        this.textModel.addListener(this.textModelListener);
         this.textInputCtrl = data -> { };
         this.clickCtrl = StubController.INSTANCE;
     }
@@ -56,7 +60,9 @@ public final class InputField extends Widget implements HasTextInput, Clickable 
 
     @Override
     public void setTextModel(@NotNull Model<String> model) {
+        this.textModel.removeListener(this.textModelListener);
         this.textModel = model;
+        this.textModel.addListener(this.textModelListener);
     }
 
     @Override
