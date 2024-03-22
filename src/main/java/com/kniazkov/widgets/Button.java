@@ -25,4 +25,9 @@ public final class Button extends Widget implements Clickable {
     public void onClick(@NotNull Controller ctrl) {
         this.clickCtrl = ctrl;
     }
+
+    @Override
+    public void clicked() {
+        this.clickCtrl.handleEvent();
+    }
 }

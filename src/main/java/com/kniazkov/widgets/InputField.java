@@ -41,4 +41,9 @@ public final class InputField extends Widget implements HasText, Clickable {
     public void onClick(@NotNull Controller ctrl) {
         this.clickCtrl = ctrl;
     }
+
+    @Override
+    public void clicked() {
+        this.clickCtrl.handleEvent();
+    }
 }
