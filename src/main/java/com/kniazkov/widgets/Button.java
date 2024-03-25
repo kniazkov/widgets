@@ -38,7 +38,7 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     }
 
     @Override
-    void handleEvent(final JsonObject json, final @NotNull String type) {
+    void handleEvent(final @NotNull JsonObject json, final @NotNull String type) {
         if (type.equals("click")) {
             this.clickCtrl.handleEvent();
         }

@@ -5,6 +5,8 @@ package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +36,7 @@ public abstract class Widget {
      * Returns the unique identifier of the widget.
      * @return Identifier
      */
-    UId getWidgetId() {
+    @NotNull UId getWidgetId() {
         return this.widgetId;
     }
 
@@ -43,13 +45,13 @@ public abstract class Widget {
      * @param json JSON object containing event type and data
      * @param type Event type extracted from JSON object
      */
-    abstract void handleEvent(final JsonObject json, final String type);
+    abstract void handleEvent(final @NotNull JsonObject json, final @NotNull String type);
 
     /**
      * Handles event that was sent by a client.
      * @param json JSON object containing event type and data
      */
-    void handleEvent(final JsonObject json) {
+    void handleEvent(final @NotNull JsonObject json) {
         this.handleEvent(
             json,
             json.getOrDefault("type", JsonNull.INSTANCE).getStringValue()
@@ -60,7 +62,7 @@ public abstract class Widget {
      * Adds an instruction (update) to the list of instructions to be sent to a client.
      * @param instruction Instruction
      */
-    void sendToClient(final Instruction instruction) {
+    void sendToClient(final @NotNull Instruction instruction) {
         this.updates.add(instruction);
     }
 }

@@ -39,7 +39,7 @@ public final class TextWidget extends InlineWidget implements HasText {
     }
 
     @Override
-    void handleEvent(JsonObject json, String type) {
+    void handleEvent(@NotNull JsonObject json, @NotNull String type) {
         // no events supported
     }
 

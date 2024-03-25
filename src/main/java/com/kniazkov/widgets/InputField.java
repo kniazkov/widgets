@@ -43,7 +43,7 @@ public final class InputField extends InlineWidget implements HasTextInput, Clic
     }
 
     @Override
-    void handleEvent(final JsonObject json, final String type) {
+    void handleEvent(final @NotNull JsonObject json, final @NotNull String type) {
         if (type.equals("text input")) {
             final JsonElement element = json.getElement("text");
             if (element.isString()) {
