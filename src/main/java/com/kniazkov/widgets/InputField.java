@@ -16,6 +16,9 @@ public final class InputField extends Widget implements HasTextInput, Clickable 
      */
     private Model<String> textModel;
 
+    /**
+     * Listener to follow text model data updates and send instructions to clients.
+     */
     private final ModelListener<String> textModelListener;
 
     /**

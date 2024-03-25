@@ -9,7 +9,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Button widget.
  */
-public final class Button extends Widget implements Clickable {
+public final class Button extends Decorator implements Clickable {
+    /**
+     * Child widget.
+     */
+    private Widget child;
+
     /**
      * Controller that determines the behavior when the button is clicked.
      */
@@ -19,7 +24,13 @@ public final class Button extends Widget implements Clickable {
      * Constructor.
      */
     public Button() {
+        this.child = new Label();
         this.clickCtrl = StubController.INSTANCE;
+    }
+
+    @Override
+    public Widget getChild() {
+        return this.child;
     }
 
     @Override
