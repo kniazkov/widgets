@@ -9,11 +9,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Button widget.
  */
-public final class Button extends Decorator implements Clickable {
+public final class Button extends InlineWidget implements Decorator<InlineWidget>, Clickable {
     /**
      * Child widget.
      */
-    private Widget child;
+    private InlineWidget child;
 
     /**
      * Controller that determines the behavior when the button is clicked.
@@ -24,17 +24,21 @@ public final class Button extends Decorator implements Clickable {
      * Constructor.
      */
     public Button() {
-        this.child = new Label();
+        this.child = new TextWidget();
         this.clickCtrl = StubController.INSTANCE;
     }
 
     @Override
-    public Widget getChild() {
+    public InlineWidget getChild() {
         return this.child;
     }
 
+    public void setChild(@NotNull InlineWidget child) {
+        this.child = child;
+    }
+
     @Override
-    void handleEvent(final JsonObject json, final String type) {
+    void handleEvent(final JsonObject json, final @NotNull String type) {
         if (type.equals("click")) {
             this.clickCtrl.handleEvent();
         }

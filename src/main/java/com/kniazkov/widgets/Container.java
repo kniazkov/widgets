@@ -6,19 +6,20 @@ package com.kniazkov.widgets;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A widget that contains other widgets.
+ * An entity that contains other entities of a specific type.
+ * @param <T> Type of child entities
  */
-public abstract class Container extends Widget {
+public interface Container<T> {
     /**
-     * Returns the number of child widgets.
-     * @return Number of child widgets
+     * Returns the number of child entities.
+     * @return Number of child entities
      */
-    public abstract int getChildCount();
+    int getChildCount();
 
     /**
-     * Returns the child widget by its index.
+     * Returns the child entity by its index.
      * @param index Index
-     * @return Child widget
+     * @return Child entity
      */
-    public abstract @NotNull Widget getChild(final int index) throws IndexOutOfBoundsException;
+    @NotNull T getChild(final int index) throws IndexOutOfBoundsException;
 }

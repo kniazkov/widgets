@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Input field widget.
  */
-public final class InputField extends Widget implements HasTextInput, Clickable {
+public final class InputField extends InlineWidget implements HasTextInput, Clickable {
     /**
      * Model that stores and processes the text of this widget.
      */

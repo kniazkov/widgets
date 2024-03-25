@@ -7,9 +7,9 @@ import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A label, that is, a widget that contains plain text.
+ * Widget that contains plain text.
  */
-public final class Label extends Widget implements HasText {
+public final class TextWidget extends InlineWidget implements HasText {
     /**
      * Model that stores and processes the text of this widget.
      */
@@ -23,17 +23,17 @@ public final class Label extends Widget implements HasText {
     /**
      * Constructor.
      */
-    public Label() {
+    public TextWidget() {
         this.textModel = new DefaultStringModel();
         this.textModelListener = new TextModelListener(this);
         this.textModel.addListener(this.textModelListener);
     }
 
     /**
-     * Сonstructor that creates a label with text.
+     * Constructor that creates a widget with text.
      * @param text Text
      */
-    public Label(final @NotNull String text) {
+    public TextWidget(final @NotNull String text) {
         this();
         this.textModel.setData(text);
     }
