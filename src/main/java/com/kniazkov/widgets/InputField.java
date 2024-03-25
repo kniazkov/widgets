@@ -33,7 +33,7 @@ public final class InputField extends Widget implements HasTextInput, Clickable 
      */
     public InputField() {
         this.textModel = new DefaultStringModel();
-        this.textModelListener = new HasText.TextModelListener(this);
+        this.textModelListener = new TextModelListener(this);
         this.textModel.addListener(this.textModelListener);
         this.textInputCtrl = data -> { };
         this.clickCtrl = StubController.INSTANCE;
