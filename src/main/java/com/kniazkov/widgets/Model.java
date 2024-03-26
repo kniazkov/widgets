@@ -46,11 +46,8 @@ public abstract class Model<T> {
      */
     public void setData(@NotNull T data) {
         if (!this.getData().equals(data)) {
-            boolean notify = writeData(data);
-            if (notify) {
-                for (final ModelListener<T> listener : listeners) {
-                    listener.dataChanged(data);
-                }
+            if (writeData(data)) {
+               this.notify(data);
             }
         }
     }
@@ -76,5 +73,15 @@ public abstract class Model<T> {
      */
     public void removeListener(@NotNull ModelListener<T> listener) {
         this.listeners.remove(listener);
+    }
+
+    /**
+     * Notifies listeners that the data has changed.
+     * @param data New data
+     */
+    protected void notify(final @NotNull T data) {
+        for (final ModelListener<T> listener : listeners) {
+            listener.dataChanged(data);
+        }
     }
 }

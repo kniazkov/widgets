@@ -14,7 +14,7 @@ public class UIdTest {
         Assert.assertNotEquals(id0, id1);
         Assert.assertEquals(1, id1.compareTo(id0));
         final String str = id0.toString();
-        Assert.assertTrue(str.startsWith("id_"));
+        Assert.assertTrue(str.startsWith("#"));
         final UId id2 = UId.parse(str);
         Assert.assertEquals(id0, id2);
         Assert.assertEquals(0, id2.compareTo(id0));

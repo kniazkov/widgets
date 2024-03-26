@@ -44,9 +44,9 @@ public final class UId implements Comparable<UId> {
      * @return Parsed identifier
      */
     public static @NotNull UId parse(final @NotNull String str) {
-        if (str.startsWith("id_")) {
+        if (str.startsWith("#")) {
             try {
-                final long id = Long.parseLong(str.substring(3));
+                final long id = Long.parseLong(str.substring(1));
                 return new UId(id);
             } catch (NumberFormatException ignored) {
             }
@@ -60,7 +60,7 @@ public final class UId implements Comparable<UId> {
      */
     @Override
     public String toString() {
-        return "id_" + (this.id > 0 ? this.id : "?");
+        return "#" + (this.id > 0 ? this.id : "?");
     }
 
     /**
