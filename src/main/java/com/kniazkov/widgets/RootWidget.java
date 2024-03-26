@@ -58,6 +58,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
      */
     public void appendChild(final @NotNull BlockWidget widget) {
         this.children.add(widget);
+        this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
     }
 
     /**

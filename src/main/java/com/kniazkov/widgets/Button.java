@@ -24,7 +24,16 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
      * Constructor.
      */
     public Button() {
-        this.child = new TextWidget();
+        this.setChild(new TextWidget());
+        this.clickCtrl = StubController.INSTANCE;
+    }
+
+    /**
+     * Constructor that creates a button with text.
+     * @param text Text
+     */
+    public Button(final String text) {
+        this.setChild(new TextWidget(text));
         this.clickCtrl = StubController.INSTANCE;
     }
 
@@ -49,6 +58,7 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
      */
     public void setChild(@NotNull InlineWidget child) {
         this.child = child;
+        this.sendToClient(new SetChild(this.getWidgetId(), child.getWidgetId()));
     }
 
     @Override

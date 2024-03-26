@@ -36,8 +36,8 @@ abstract class Instruction {
      * @param obj Resulting JSON object
      */
     void serialize(final JsonObject obj) {
-        obj.addString("instrId", this.instrId.toString());
-        obj.addString("widgetId", this.widgetId.toString());
+        obj.addString("id", this.instrId.toString());
+        obj.addString("widget", this.widgetId.toString());
         obj.addString("action", this.getAction());
         this.fillJsonObject(obj);
     }

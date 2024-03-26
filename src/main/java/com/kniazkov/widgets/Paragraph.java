@@ -56,5 +56,6 @@ public final class Paragraph extends BlockWidget implements TypedContainer<Inlin
      */
     public void appendChild(final @NotNull InlineWidget widget) {
         this.children.add(widget);
+        this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
     }
 }

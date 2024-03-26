@@ -25,8 +25,7 @@ public class InstructionPropagationTest {
         final IntegerModel model = new IntegerModel();
         input.setTextModel(model);
         model.setIntValue(13);
-        final Button button = new Button();
-        button.setChild(new TextWidget("Submit"));
+        final Button button = new Button("Submit");
         paragraph.appendChild(button);
         final List<Instruction> updates = root.collectUpdates();
         Assert.assertFalse(updates.isEmpty());
