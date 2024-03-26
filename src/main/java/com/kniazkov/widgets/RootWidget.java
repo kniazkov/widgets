@@ -54,4 +54,17 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     public void appendChild(final @NotNull BlockWidget widget) {
         this.children.add(widget);
     }
+
+    /**
+     * Collects updates from all widgets to send to the client.
+     * @return List of instruction
+     */
+    List<Instruction> collectUpdates() {
+        final List<Instruction> list = new ArrayList<>();
+        DeepFirst.traverse(this, widget -> {
+            widget.getUpdates(list);
+            return true;
+        });
+        return list;
+    }
 }

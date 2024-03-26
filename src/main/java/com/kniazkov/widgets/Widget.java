@@ -72,4 +72,13 @@ public abstract class Widget {
     void sendToClient(final @NotNull Instruction instruction) {
         this.updates.add(instruction);
     }
+
+    /**
+     * Takes the list of updates and clears it from the widget itself
+     * @param allUpdates A list containing all updates from all widgets
+     */
+    void getUpdates(final @NotNull List<Instruction> allUpdates) {
+        allUpdates.addAll(this.updates);
+        this.updates.clear();
+    }
 }
