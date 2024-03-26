@@ -28,6 +28,15 @@ public interface WidgetVisitor {
     }
 
     /**
+     * Performs some operation with a widget of {@link Paragraph} type.
+     * @param widget A widget
+     * @return Result of the operation
+     */
+    default boolean visit(@NotNull Paragraph widget) {
+        return this.byDefault(widget);
+    }
+
+    /**
      * Performs some operation with a widget of {@link RootWidget} type.
      * @param widget A widget
      * @return Result of the operation

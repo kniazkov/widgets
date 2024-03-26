@@ -33,10 +33,9 @@ abstract class Instruction {
     /**
      * Serialization of an instruction, i.e., transforming it into a JSON object
      *  for further transmission to a client.
-     * @param array JSON array in which to put instructions
+     * @param obj Resulting JSON object
      */
-    void serialize(final @NotNull JsonArray array) {
-        JsonObject obj = array.createObject();
+    void serialize(final JsonObject obj) {
         obj.addString("instrId", this.instrId.toString());
         obj.addString("widgetId", this.widgetId.toString());
         obj.addString("action", this.getAction());
@@ -55,5 +54,12 @@ abstract class Instruction {
      */
     protected void fillJsonObject(final @NotNull JsonObject json) {
         // do nothing; this method is expected to be overridden
+    }
+
+    @Override
+    public String toString() {
+        final JsonObject obj = new JsonObject();
+        this.serialize(obj);
+        return obj.toString();
     }
 }

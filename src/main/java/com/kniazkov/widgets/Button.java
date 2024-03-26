@@ -34,6 +34,11 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     }
 
     @Override
+    @NotNull String getType() {
+        return "button";
+    }
+
+    @Override
     public InlineWidget getChild() {
         return this.child;
     }

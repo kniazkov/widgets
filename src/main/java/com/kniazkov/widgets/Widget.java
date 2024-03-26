@@ -30,6 +30,7 @@ public abstract class Widget {
     public Widget() {
         this.widgetId = UId.create();
         this.updates = new ArrayList<>();
+        this.updates.add(new Create(this.widgetId, this.getType()));
     }
 
     /**
@@ -46,6 +47,12 @@ public abstract class Widget {
     @NotNull UId getWidgetId() {
         return this.widgetId;
     }
+
+    /**
+     * Returns type of the widget.
+     * @return Type of widget represented as a string
+     */
+    abstract @NotNull String getType();
 
     /**
      * Handles event that was sent by a client.

@@ -29,11 +29,6 @@ public final class TextWidget extends InlineWidget implements HasText {
         this.textModel.addListener(this.textModelListener);
     }
 
-    @Override
-    public boolean accept(final @NotNull WidgetVisitor visitor) {
-        return visitor.visit(this);
-    }
-
     /**
      * Constructor that creates a widget with text.
      * @param text Text
@@ -41,6 +36,16 @@ public final class TextWidget extends InlineWidget implements HasText {
     public TextWidget(final @NotNull String text) {
         this();
         this.textModel.setData(text);
+    }
+
+    @Override
+    public boolean accept(final @NotNull WidgetVisitor visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    @NotNull String getType() {
+        return "text";
     }
 
     @Override

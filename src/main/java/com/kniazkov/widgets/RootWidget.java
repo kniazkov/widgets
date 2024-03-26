@@ -33,6 +33,11 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     }
 
     @Override
+    @NotNull String getType() {
+        return "root";
+    }
+
+    @Override
     void handleEvent(@NotNull JsonObject json, @NotNull String type) {
         // do nothing for now
     }
