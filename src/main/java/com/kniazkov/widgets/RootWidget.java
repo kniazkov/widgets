@@ -28,7 +28,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     }
 
     @Override
-    public boolean accept(@NotNull WidgetVisitor visitor) {
+    public boolean accept(final @NotNull WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 

@@ -43,7 +43,7 @@ public final class InputField extends InlineWidget implements HasTextInput, Clic
     }
 
     @Override
-    public boolean accept(@NotNull WidgetVisitor visitor) {
+    public boolean accept(final @NotNull WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 

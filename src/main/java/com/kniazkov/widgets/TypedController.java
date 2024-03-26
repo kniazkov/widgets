@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 public interface TypedController<T> {
     /**
      * Method called when some event occurs.
+     * @param data Data that is transmitted with the event
      */
     void handleEvent(@NotNull T data);
 }

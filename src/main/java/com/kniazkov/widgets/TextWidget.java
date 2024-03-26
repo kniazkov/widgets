@@ -30,7 +30,7 @@ public final class TextWidget extends InlineWidget implements HasText {
     }
 
     @Override
-    public boolean accept(@NotNull WidgetVisitor visitor) {
+    public boolean accept(final @NotNull WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 

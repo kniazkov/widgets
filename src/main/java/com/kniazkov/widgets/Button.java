@@ -29,7 +29,7 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     }
 
     @Override
-    public boolean accept(@NotNull WidgetVisitor visitor) {
+    public boolean accept(final @NotNull WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 
@@ -38,6 +38,10 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
         return this.child;
     }
 
+    /**
+     * Sets the child widget
+     * @param child Child widget
+     */
     public void setChild(@NotNull InlineWidget child) {
         this.child = child;
     }
