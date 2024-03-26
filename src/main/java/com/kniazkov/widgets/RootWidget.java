@@ -14,7 +14,7 @@ import java.util.List;
  * The root widget has no public constructor and is created by the library when the client requests
  * a new page instance.
  */
-public final class RootWidget extends Widget implements Container<BlockWidget> {
+public final class RootWidget extends Widget implements TypedContainer<BlockWidget> {
     /**
      * Child widgets.
      */
@@ -25,6 +25,11 @@ public final class RootWidget extends Widget implements Container<BlockWidget> {
      */
     RootWidget() {
         this.children = new ArrayList<>();
+    }
+
+    @Override
+    public boolean accept(@NotNull WidgetVisitor visitor) {
+        return visitor.visit(this);
     }
 
     @Override

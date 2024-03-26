@@ -33,6 +33,13 @@ public abstract class Widget {
     }
 
     /**
+     * Receives a visitor, that is a class that performs some operation with widgets.
+     * @param visitor A visitor
+     * @return Result of operation
+     */
+    public abstract boolean accept(final @NotNull WidgetVisitor visitor);
+
+    /**
      * Returns the unique identifier of the widget.
      * @return Identifier
      */

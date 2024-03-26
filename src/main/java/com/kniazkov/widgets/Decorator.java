@@ -6,10 +6,10 @@ package com.kniazkov.widgets;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A container that can contain only one entity, and can give that child some properties.
- * @param <T> Type of child entities
+ * A container that can contain only one widget, and can give that child some properties.
+ * @param <T> Type of widget
  */
-public interface Decorator<T> extends Container<T> {
+public interface Decorator<T extends Widget> extends TypedContainer<T> {
     /**
      * Returns the widget that is being decorated.
      * @return Widget

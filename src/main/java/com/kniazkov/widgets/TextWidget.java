@@ -29,6 +29,11 @@ public final class TextWidget extends InlineWidget implements HasText {
         this.textModel.addListener(this.textModelListener);
     }
 
+    @Override
+    public boolean accept(@NotNull WidgetVisitor visitor) {
+        return visitor.visit(this);
+    }
+
     /**
      * Constructor that creates a widget with text.
      * @param text Text
