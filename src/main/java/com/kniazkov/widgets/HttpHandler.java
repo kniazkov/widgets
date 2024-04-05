@@ -3,6 +3,7 @@ package com.kniazkov.widgets;
 import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
+import java.io.ByteArrayOutputStream;
 
 /**
  * Handler of HTTP requests from clients.
@@ -13,15 +14,16 @@ final class HttpHandler implements Handler {
         final String address = request.address.equals("/") ? "/index.html" : request.address;
         final byte[] data = VirtualFileSystem.get(address);
         if (data != null) {
+            final String type = HttpHandler.getContentTypeByExtension(address);
             return new Response() {
                 @Override
                 public String getContentType() {
-                    return HttpHandler.getContentTypeByExtension(address);
+                    return type;
                 }
 
                 @Override
                 public byte[] getData() {
-                    return data;
+                    return type.startsWith("text") ? HttpHandler.unpack(data) : data;
                 }
             };
         }
@@ -66,5 +68,26 @@ final class HttpHandler implements Handler {
             }
         }
         return type;
+    }
+
+    /**
+     * Decompresses data packed using RLE compression.
+     * @param data Compressed data
+     * @return Unpacked data
+     */
+    private static byte[] unpack(final byte[] data) {
+        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        int count = 1;
+        for (final byte b : data) {
+            if (b < 0) {
+                count = -b;
+                continue;
+            }
+            for (int index = 0; index < count; index++) {
+                stream.write(b);
+            }
+            count = 1;
+        }
+        return stream.toByteArray();
     }
 }

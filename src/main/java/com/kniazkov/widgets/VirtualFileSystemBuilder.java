@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -94,15 +95,30 @@ public class VirtualFileSystemBuilder {
             final Map<String, String> mapping = new TreeMap<>();
             for (Map.Entry<String, byte[]> file : files.entrySet()) {
                 final String path = file.getKey();
-                final boolean isTextFile = path.endsWith(".hmtl") || path.endsWith(".js");
+                final String ext = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
+                final boolean isTextFile;
+                switch (ext) {
+                    case "txt":
+                    case "htm":
+                    case "html":
+                    case "css":
+                    case "js":
+                        isTextFile = true;
+                        break;
+                    default:
+                        isTextFile = false;
+                }
+                final byte[] data;
+                if (isTextFile) {
+                    data = pack(file.getValue());
+                } else {
+                    data = file.getValue();
+                }
                 final String name = "data" + index;
                 mapping.put(path, name);
                 writer.write("    private static final byte[] " + name + " = {\n");
                 String line = "        ";
-                for (byte b : file.getValue()) {
-                    if (isTextFile && b == 13) {
-                        continue;
-                    }
+                for (byte b : data) {
                     line = line + String.valueOf(b) + ", ";
                     if (line.length() > 90) {
                         writer.write(line + "\n");
@@ -136,5 +152,53 @@ public class VirtualFileSystemBuilder {
         } catch (IOException ignored) {
             System.err.println("Can't write " + CLASS_FILE);
         }
+    }
+
+    /**
+     * Data packing by RLE compression algorithm.
+     * @param data Not packed data
+     * @return Packed data
+     */
+    private static byte[] pack(final byte[] data) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        byte p = -1;
+        int count = 0;
+        for (byte b : data) {
+            if (b == 13) {
+                continue;
+            }
+            if (b < 0) {
+                b = '?';
+            }
+            if (b != p) {
+                if (count < 3) {
+                    for (int i = 0; i < count; i++) {
+                        stream.write(p);
+                    }
+                } else {
+                    do {
+                        stream.write(count > 127 ? -127 : -count);
+                        stream.write(p);
+                        count -= 127;
+                    } while(count > 127);
+                }
+                p = b;
+                count = 1;
+            } else {
+                count++;
+            }
+        }
+        if (count < 3) {
+            for (int i = 0; i < count; i++) {
+                stream.write(p);
+            }
+        } else {
+            do {
+                stream.write(count > 127 ? -127 : -count);
+                stream.write(p);
+                count -= 127;
+            } while(count > 127);
+        }
+        return stream.toByteArray();
     }
 }
