@@ -93,11 +93,16 @@ public class VirtualFileSystemBuilder {
             int index = 0;
             final Map<String, String> mapping = new TreeMap<>();
             for (Map.Entry<String, byte[]> file : files.entrySet()) {
+                final String path = file.getKey();
+                final boolean isTextFile = path.endsWith(".hmtl") || path.endsWith(".js");
                 final String name = "data" + index;
-                mapping.put(file.getKey(), name);
+                mapping.put(path, name);
                 writer.write("    private static final byte[] " + name + " = {\n");
                 String line = "        ";
                 for (byte b : file.getValue()) {
+                    if (isTextFile && b == 13) {
+                        continue;
+                    }
                     line = line + String.valueOf(b) + ", ";
                     if (line.length() > 90) {
                         writer.write(line + "\n");
