@@ -3,15 +3,41 @@ package com.kniazkov.widgets;
 import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
+import com.kniazkov.webserver.ResponseJson;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.ByteArrayOutputStream;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Handler of HTTP requests from clients.
  */
 final class HttpHandler implements Handler {
+    /**
+     * Handlers for actions that are requested by clients.
+     */
+    private final Map<String, ActionHandler> actionHandlers;
+
+    HttpHandler(final @NotNull Application application) {
+        this.actionHandlers = new TreeMap<>();
+        this.actionHandlers.put("new instance", new NewInstance(application));
+    }
+
     @Override
     public Response handle(Request request) {
-        final String address = request.address.equals("/") ? "/index.html" : request.address;
+        final String address;
+        if (request.address.startsWith("/?")) {
+            final ActionHandler actionHandler = this.actionHandlers.get(request.formData.get("action"));
+            if (actionHandler != null) {
+                return new ResponseJson(actionHandler.process(request.formData));
+            }
+            return null;
+        } else if (request.address.equals("/")) {
+            address = "/index.html";
+        } else {
+            address = request.address;
+        }
         final byte[] data = VirtualFileSystem.get(address);
         if (data != null) {
             final String type = HttpHandler.getContentTypeByExtension(address);
@@ -41,7 +67,7 @@ final class HttpHandler implements Handler {
         if (index > 0)
             extension = path.substring(index + 1).toLowerCase();
         String type = "application/unknown";
-        if (extension.length() > 0) {
+        if (!extension.isEmpty()) {
             switch(extension)
             {
                 case "txt":
