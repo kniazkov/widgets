@@ -19,9 +19,14 @@ final class HttpHandler implements Handler {
      */
     private final Map<String, ActionHandler> actionHandlers;
 
-    HttpHandler(final @NotNull Application application) {
+    /**
+     * Constructor.
+     * @param application Web application to be run
+     * @param options Various options
+     */
+    HttpHandler(final @NotNull Application application, final @NotNull Options options) {
         this.actionHandlers = new TreeMap<>();
-        this.actionHandlers.put("new instance", new NewInstance(application));
+        this.actionHandlers.put("new instance", new NewInstance(application, options.logger));
     }
 
     @Override

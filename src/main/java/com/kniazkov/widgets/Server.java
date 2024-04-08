@@ -4,7 +4,6 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.webserver.Handler;
-import com.kniazkov.webserver.Options;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -17,8 +16,16 @@ public final class Server {
      */
     public static void start(final @NotNull Application application) {
         Options options = new Options();
-        Handler handler = new HttpHandler(application);
+        Handler handler = new HttpHandler(application, options);
 
-        com.kniazkov.webserver.Server.start(options, handler);
+        com.kniazkov.webserver.Server.start(getWebServerOptions(), handler);
+    }
+
+    /**
+     * Fills in the web server options
+     * @return Web server options
+     */
+    private static com.kniazkov.webserver.Options getWebServerOptions() {
+        return new com.kniazkov.webserver.Options();
     }
 }

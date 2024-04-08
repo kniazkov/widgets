@@ -15,16 +15,18 @@ final class NewInstance extends ActionHandler {
     /**
      * Constructor.
      * @param application Application
+     * @param logger Logger
      */
-    NewInstance(final @NotNull Application application) {
-        super(application);
+    NewInstance(final @NotNull Application application, final @NotNull Logger logger) {
+        super(application, logger);
     }
 
     @Override
     @NotNull JsonObject process(final @NotNull Map<String, String> data) {
-        UId id = this.application.createClient();
-        JsonObject obj = new JsonObject();
-        obj.addString("id", id.toString());
+        final String id = this.application.createClient().toString();
+        final JsonObject obj = new JsonObject();
+        obj.addString("id", id);
+        logger.write("New client instance, id: " + id);
         return obj;
     }
 }

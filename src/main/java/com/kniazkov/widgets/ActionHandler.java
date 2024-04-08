@@ -18,11 +18,18 @@ abstract class ActionHandler {
     protected final Application application;
 
     /**
+     * Logger.
+     */
+    protected final Logger logger;
+
+    /**
      * Constructor.
      * @param application Application
+     * @param logger Logger
      */
-    ActionHandler(final @NotNull Application application) {
+    ActionHandler(final @NotNull Application application, final @NotNull Logger logger) {
         this.application = application;
+        this.logger = logger;
     }
 
     /**
