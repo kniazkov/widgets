@@ -6,6 +6,7 @@ package com.kniazkov.widgets;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Input field widget.
@@ -53,9 +54,9 @@ public final class InputField extends InlineWidget implements HasTextInput, Clic
     }
 
     @Override
-    void handleEvent(final @NotNull JsonObject json, final @NotNull String type) {
-        if (type.equals("text input")) {
-            final JsonElement element = json.getElement("text");
+    void handleEvent(final @NotNull String type, final @Nullable JsonObject data) {
+        if (type.equals("text input") && data != null) {
+            final JsonElement element = data.getElement("text");
             if (element.isString()) {
                 final String text = element.getStringValue();
                 this.textModel.setData(text);

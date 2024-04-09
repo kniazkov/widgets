@@ -6,6 +6,7 @@ package com.kniazkov.widgets;
 import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,21 +57,10 @@ public abstract class Widget {
 
     /**
      * Handles event that was sent by a client.
-     * @param json JSON object containing event type and data
-     * @param type Event type extracted from JSON object
+     * @param type Event type
+     * @param data Event-related data
      */
-    abstract void handleEvent(final @NotNull JsonObject json, final @NotNull String type);
-
-    /**
-     * Handles event that was sent by a client.
-     * @param json JSON object containing event type and data
-     */
-    void handleEvent(final @NotNull JsonObject json) {
-        this.handleEvent(
-            json,
-            json.getOrDefault("type", JsonNull.INSTANCE).getStringValue()
-        );
-    }
+    abstract void handleEvent(final @NotNull String type, final @Nullable JsonObject data);
 
     /**
      * Adds an instruction (update) to the list of instructions to be sent to a client.

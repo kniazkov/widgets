@@ -5,7 +5,10 @@ package com.kniazkov.widgets;
 
 import java.util.Collections;
 import java.util.List;
+
+import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -97,7 +100,23 @@ public final class Application {
             return Collections.emptyList();
         }
         client.timer = this.options.clientLifetime;
-        return client.getUpdates();
+        return client.getRootWidget().collectUpdates();
+    }
+
+    /**
+     * Handles event that was sent by web page.
+     * @param clientId Client id
+     * @param widgetId Widget id
+     * @param type Event type
+     * @param data Event-related data
+     */
+    void handleEvent(final UId clientId, final UId widgetId, final @NotNull String type,
+                     final @Nullable JsonObject data) {
+        final Client client = this.clients.get(clientId);
+        if (client != null) {
+            client.timer = this.options.clientLifetime;
+            client.handleEvent(widgetId, type, data);
+        }
     }
 
     /**

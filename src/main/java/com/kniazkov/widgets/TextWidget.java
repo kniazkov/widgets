@@ -5,6 +5,7 @@ package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Widget that contains plain text.
@@ -49,7 +50,7 @@ public final class TextWidget extends InlineWidget implements HasText {
     }
 
     @Override
-    void handleEvent(@NotNull JsonObject json, @NotNull String type) {
+    void handleEvent(final @NotNull String type, final @Nullable JsonObject data) {
         // no events supported
     }
 

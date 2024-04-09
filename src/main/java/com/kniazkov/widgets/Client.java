@@ -4,7 +4,10 @@
 package com.kniazkov.widgets;
 
 import java.util.List;
+
+import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Class describing a client instance.
@@ -42,19 +45,27 @@ final class Client implements Comparable<Client> {
     }
 
     /**
-     * Collects updates from all widgets to send to the web page.
-     * @return List of instruction
-     */
-    @NotNull List<Instruction> getUpdates() {
-        return root.collectUpdates();
-    }
-
-    /**
      * Returns root widget.
      * @return Root widget
      */
     RootWidget getRootWidget() {
         return this.root;
+    }
+
+    /**
+     * Handles event that was sent by web page.
+     * @param widgetId Widget id
+     * @param type Event type
+     * @param data Event-related data
+     */
+    void handleEvent(final UId widgetId, final @NotNull String type, final @Nullable JsonObject data) {
+        DeepFirst.traverse(this.root, widget -> {
+            if (widget.getWidgetId().equals(widgetId)) {
+                widget.handleEvent(type, data);
+                return false;
+            }
+            return true;
+        });
     }
 
     @Override

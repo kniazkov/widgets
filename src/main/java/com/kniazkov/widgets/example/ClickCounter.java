@@ -3,15 +3,7 @@
  */
 package com.kniazkov.widgets.example;
 
-import com.kniazkov.widgets.Application;
-import com.kniazkov.widgets.Button;
-import com.kniazkov.widgets.IntegerModel;
-import com.kniazkov.widgets.Options;
-import com.kniazkov.widgets.Page;
-import com.kniazkov.widgets.Paragraph;
-import com.kniazkov.widgets.RootWidget;
-import com.kniazkov.widgets.Server;
-import com.kniazkov.widgets.TextWidget;
+import com.kniazkov.widgets.*;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Text;
 
@@ -34,21 +26,26 @@ public class ClickCounter {
 
             @Override
             public void create(@NotNull RootWidget root) {
-                Paragraph firstLine = new Paragraph();
+                final Paragraph firstLine = new Paragraph();
                 root.appendChild(firstLine);
 
-                Button button = new Button();
+                final Paragraph secondLine = new Paragraph();
+                root.appendChild(secondLine);
+
+                final Button button = new Button();
                 firstLine.appendChild(button);
                 button.setChild(new TextWidget("Click me"));
 
-                Paragraph secondLine = new Paragraph();
-                root.appendChild(secondLine);
                 secondLine.appendChild(new TextWidget("Click counter: "));
-
-                TextWidget counter = new TextWidget();
+                final TextWidget counter = new TextWidget();
                 secondLine.appendChild(counter);
-                IntegerModel model = new IntegerModel();
+                final IntegerModel model = new IntegerModel();
                 counter.setTextModel(model);
+
+                button.onClick(() -> {
+                    count++;
+                    model.setIntValue(count);
+                });
             }
         };
 

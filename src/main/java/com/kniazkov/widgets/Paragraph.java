@@ -5,6 +5,7 @@ package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ public final class Paragraph extends BlockWidget implements TypedContainer<Inlin
     }
 
     @Override
-    void handleEvent(final @NotNull JsonObject json, final @NotNull String type) {
+    void handleEvent(final @NotNull String type, final @Nullable JsonObject data) {
         // do nothing for now
     }
 

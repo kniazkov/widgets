@@ -61,3 +61,16 @@ var actionHandlers = {
     "append child" : appendChildWidget,
     "set text" : setText
 };
+
+var sendEventToServer = function(widget, type, data) {
+    var request = {
+        action : "process event",
+        client : clientId,
+        widget : widget._id,
+        type   : type
+    };
+    if (data) {
+        request.data = data;
+    }
+    sendRequest(request);
+};

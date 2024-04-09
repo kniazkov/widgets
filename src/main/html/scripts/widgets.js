@@ -18,7 +18,9 @@ var widgetsLibrary = {
         return document.createElement("input");
     },
     "button" : function() {
-        return document.createElement("button");
+        var widget = document.createElement("button");
+        handleClickEvent(widget);
+        return widget;
     }
 };
 
@@ -27,6 +29,7 @@ var createWidget = function(data) {
     var id = data.widget;
     if (ctor && id) {
         var widget = ctor();
+        widget._id = id;
         widgets[id] = widget;
         console.log("Widget '" + data.type + "' created, id: " + id + '.');
         return true;
@@ -65,4 +68,10 @@ var setText = function(data) {
         return true;
     }
     return false;
+};
+
+var handleClickEvent = function(widget) {
+    addEvent(widget, "click", function() {
+        sendEventToServer(widget, "click");
+    });
 };
