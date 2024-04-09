@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets;
 
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -62,22 +64,38 @@ public final class Application {
     }
 
     /**
+     * Collects updates from all widgets of the specified client to send to the web page.
+     * Also, it updates the timer so that another bite from the watchdog doesn't kill the client.
+     * @param clientId Client identifier
+     * @return List of instruction
+     */
+    @NotNull List<Instruction> getUpdates(final @NotNull UId clientId) {
+        final Client client = this.clients.get(clientId);
+        if (client == null) {
+            // TODO: send an instruction that will reboot the client
+            return Collections.emptyList();
+        }
+        client.timer = this.options.clientLifetime;
+        return client.getUpdates();
+    }
+
+    /**
      * Watchdog that periodically walks through customers and bites them.
      */
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
-            final Set<UId> destroy = new TreeSet<>();
+            final Set<UId> kill = new TreeSet<>();
             for (Map.Entry<UId, Client> entry: clients.entrySet()) {
                 final Client client = entry.getValue();
                 client.timer -= watchdogPeriod;
                 if (client.timer <= 0) {
-                    destroy.add(entry.getKey());
+                    kill.add(entry.getKey());
                 }
             }
-            for (final UId id : destroy) {
+            for (final UId id : kill) {
                 clients.remove(id);
-                options.logger.write("Client " + id.toString() + " destroyed.");
+                options.logger.write("Client " + id.toString() + " was killed.");
             }
             return true;
         }

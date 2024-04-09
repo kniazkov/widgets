@@ -13,7 +13,8 @@ var startClient = function() {
         function(data) {
             var json = JSON.parse(data);
             clientId = json.id;
-            console.log(clientId);
+            console.log("Client " + clientId + "created.");
+            setInterval(mainCycle, period);
         }
     );
     setTimeout(function() {
@@ -21,4 +22,17 @@ var startClient = function() {
             startClient();
         }
     }, 1000);
+}
+
+var mainCycle = function() {
+    sendRequest(
+        {
+            action : "synchronize",
+            client : clientId
+        },
+        function(data) {
+            var json = JSON.parse(data);
+            console.log(json);
+        }
+    );
 }

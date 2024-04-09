@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * The logger that is used by default. It writes all logs to the system standard output.
  */
-public class DefaultLogger implements Logger {
+public final class DefaultLogger implements Logger {
     /**
      * Instance.
      */

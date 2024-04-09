@@ -89,7 +89,7 @@ public class VirtualFileSystemBuilder {
                 " * A virtual file system that contains the code that runs on the client browser\n" +
                 " * as well as some data. This file is generated, no need to edit it.\n" +
                 " */\n");
-            writer.write("class " + CLASS_NAME + " {\n");
+            writer.write("final class " + CLASS_NAME + " {\n");
 
             int index = 0;
             final Map<String, String> mapping = new TreeMap<>();

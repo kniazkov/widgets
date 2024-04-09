@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets;
 
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -20,10 +21,16 @@ final class Client implements Comparable<Client> {
     long timer;
 
     /**
+     * Root widget.
+     */
+    private final RootWidget root;
+
+    /**
      * Constructor.
      */
     Client() {
         this.id = UId.create();
+        this.root = new RootWidget();
     }
 
     /**
@@ -32,6 +39,14 @@ final class Client implements Comparable<Client> {
      */
     UId getId() {
         return this.id;
+    }
+
+    /**
+     * Collects updates from all widgets to send to the web page.
+     * @return List of instruction
+     */
+    @NotNull List<Instruction> getUpdates() {
+        return root.collectUpdates();
     }
 
     @Override
