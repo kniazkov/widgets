@@ -23,10 +23,10 @@ public class HelloWorld {
      */
     public static void main(String[] args) {
         final Page page = root -> {
-            Paragraph paragraph = new Paragraph();
+            final Paragraph paragraph = new Paragraph();
             root.appendChild(paragraph);
 
-            TextWidget text = new TextWidget();
+            final TextWidget text = new TextWidget();
             paragraph.appendChild(text);
             text.setText("It works.");
         };

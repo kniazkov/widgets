@@ -49,7 +49,7 @@ public final class IntegerModel extends Model<String> {
     public void setIntValue(final int newValue) {
         if (this.value != newValue) {
             this.value = newValue;
-            this.notify(String.valueOf(newValue));
+            this.notifyListeners(String.valueOf(newValue));
         }
     }
 }

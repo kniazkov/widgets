@@ -63,5 +63,6 @@ public final class TextWidget extends InlineWidget implements HasText {
         this.textModel.removeListener(this.textModelListener);
         this.textModel = model;
         this.textModel.addListener(this.textModelListener);
+        this.textModel.notifyListeners();
     }
 }

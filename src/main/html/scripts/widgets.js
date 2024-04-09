@@ -34,6 +34,18 @@ var createWidget = function(data) {
     return false;
 };
 
+var setChildWidget = function(data) {
+    var widget = widgets[data.widget];
+    var child = widgets[data.child];
+    if (widget && child) {
+        widget.innerHTML = "";
+        widget.appendChild(child);
+        console.log("Widget " + data.child + " is set as a child of widget " + data.widget + '.');
+        return true;
+    }
+    return false;
+};
+
 var appendChildWidget = function(data) {
     var widget = widgets[data.widget];
     var child = widgets[data.child];

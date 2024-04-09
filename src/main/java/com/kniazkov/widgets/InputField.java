@@ -76,6 +76,7 @@ public final class InputField extends InlineWidget implements HasTextInput, Clic
         this.textModel.removeListener(this.textModelListener);
         this.textModel = model;
         this.textModel.addListener(this.textModelListener);
+        this.textModel.notifyListeners();
     }
 
     @Override
