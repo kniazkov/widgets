@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets;
 
-import com.kniazkov.json.JsonObject;
+import com.kniazkov.json.JsonElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -37,5 +37,5 @@ abstract class ActionHandler {
      * @param data Data transmitted by the client
      * @return Result of request processing in JSON format
      */
-    abstract @NotNull JsonObject process(final @NotNull Map<String, String> data);
+    abstract @NotNull JsonElement process(final @NotNull Map<String, String> data);
 }

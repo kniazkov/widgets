@@ -3,7 +3,11 @@
  */
 package com.kniazkov.widgets;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -12,15 +16,36 @@ import java.util.TreeSet;
  */
 public final class Application {
     /**
+     * The interval of time in which a watchdog walks over clients and bites them.
+     */
+    private static final long watchdogPeriod = 100;
+
+    /**
+     * Options.
+     */
+    private Options options;
+
+    /**
      * Set of clients.
      */
-    private final Set<Client> clients;
+    private final Map<UId, Client> clients;
 
     /**
      * Constructor.
      */
     public Application() {
-        this.clients = new TreeSet<>();
+        this.clients = new TreeMap<>();
+
+        Watchdog watchdog = new Watchdog();
+        watchdog.start(watchdogPeriod);
+    }
+
+    /**
+     * Sets options.
+     * @param options Options
+     */
+    void setOptions(final @NotNull Options options) {
+        this.options = options;
     }
 
     /**
@@ -29,7 +54,32 @@ public final class Application {
      */
     UId createClient() {
         final Client client = new Client();
-        this.clients.add(client);
-        return client.getId();
+        assert this.options.clientLifetime > 0;
+        client.timer = this.options.clientLifetime;
+        final UId id = client.getId();
+        this.clients.put(id, client);
+        return id;
+    }
+
+    /**
+     * Watchdog that periodically walks through customers and bites them.
+     */
+    private class Watchdog extends Periodic {
+        @Override
+        protected boolean tick() {
+            final Set<UId> destroy = new TreeSet<>();
+            for (Map.Entry<UId, Client> entry: clients.entrySet()) {
+                final Client client = entry.getValue();
+                client.timer -= watchdogPeriod;
+                if (client.timer <= 0) {
+                    destroy.add(entry.getKey());
+                }
+            }
+            for (final UId id : destroy) {
+                clients.remove(id);
+                options.logger.write("Client " + id.toString() + " destroyed.");
+            }
+            return true;
+        }
     }
 }

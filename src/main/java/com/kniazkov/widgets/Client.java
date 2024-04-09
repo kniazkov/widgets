@@ -15,6 +15,11 @@ final class Client implements Comparable<Client> {
     private final UId id;
 
     /**
+     * Timer (in ms). When it expires, the client will be destroyed.
+     */
+    long timer;
+
+    /**
      * Constructor.
      */
     Client() {

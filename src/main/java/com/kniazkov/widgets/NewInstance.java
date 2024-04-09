@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,11 +23,11 @@ final class NewInstance extends ActionHandler {
     }
 
     @Override
-    @NotNull JsonObject process(final @NotNull Map<String, String> data) {
+    @NotNull JsonElement process(final @NotNull Map<String, String> data) {
         final String id = this.application.createClient().toString();
         final JsonObject obj = new JsonObject();
         obj.addString("id", id);
-        logger.write("New client instance, id: " + id);
+        logger.write("Client " + id + " created.");
         return obj;
     }
 }

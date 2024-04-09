@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.example;
 
 import com.kniazkov.widgets.Application;
+import com.kniazkov.widgets.Options;
 import com.kniazkov.widgets.Server;
 
 /**
@@ -19,6 +20,7 @@ public class HelloWorld {
      */
     public static void main(String[] args) {
         Application application = new Application();
-        Server.start(application);
+        Options options = new Options();
+        Server.start(application, options);
     }
 }

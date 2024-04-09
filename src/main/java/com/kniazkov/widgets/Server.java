@@ -13,10 +13,12 @@ public final class Server {
     /**
      * Starts the web server and the application on it.
      * @param application Application
+     * @param options Options
      */
-    public static void start(final @NotNull Application application) {
-        Options options = new Options();
-        Handler handler = new HttpHandler(application, options);
+    public static void start(final @NotNull Application application, final @NotNull Options options) {
+        final Options cOpt = options.clone();
+        Handler handler = new HttpHandler(application, cOpt);
+        application.setOptions(cOpt);
 
         com.kniazkov.webserver.Server.start(getWebServerOptions(), handler);
     }
