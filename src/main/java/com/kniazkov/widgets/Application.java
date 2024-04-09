@@ -33,10 +33,19 @@ public final class Application {
     private final Map<UId, Client> clients;
 
     /**
-     * Constructor.
+     * Set of pages.
      */
-    public Application() {
+    private final Map<String, Page> pages;
+
+    /**
+     * Constructor.
+     * @param index Index (main) page.
+     */
+    public Application(final @NotNull Page index) {
         this.clients = new TreeMap<>();
+
+        this.pages = new TreeMap<>();
+        this.pages.put("/", index);
 
         Watchdog watchdog = new Watchdog();
         watchdog.start(watchdogPeriod);
@@ -60,6 +69,8 @@ public final class Application {
         client.timer = this.options.clientLifetime;
         final UId id = client.getId();
         this.clients.put(id, client);
+        final RootWidget root = client.getRootWidget();
+        this.pages.get("/").create(root);
         return id;
     }
 

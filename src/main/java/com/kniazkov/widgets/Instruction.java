@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets;
 
-import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 

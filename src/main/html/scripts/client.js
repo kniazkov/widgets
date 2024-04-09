@@ -56,5 +56,7 @@ var mainCycle = function() {
 };
 
 var actionHandlers = {
-    "create" : createWidget
+    "create" : createWidget,
+    "append child" : appendChildWidget,
+    "set text" : setText
 };

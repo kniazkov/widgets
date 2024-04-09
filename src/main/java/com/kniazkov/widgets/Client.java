@@ -49,6 +49,14 @@ final class Client implements Comparable<Client> {
         return root.collectUpdates();
     }
 
+    /**
+     * Returns root widget.
+     * @return Root widget
+     */
+    RootWidget getRootWidget() {
+        return this.root;
+    }
+
     @Override
     public int compareTo(@NotNull Client other) {
         return this.id.compareTo(other.id);

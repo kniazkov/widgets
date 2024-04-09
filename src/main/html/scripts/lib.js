@@ -80,3 +80,12 @@ var addEvent = function(object, type, callback) {
         object["on" + type] = callback;
     }
 };
+
+var escapeHtml = function(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+};
