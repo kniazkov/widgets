@@ -13,7 +13,7 @@ var startClient = function() {
         function(data) {
             var json = JSON.parse(data);
             clientId = json.id;
-            console.log("Client " + clientId + "created.");
+            console.log("Client created, id: " + clientId + '.');
             setInterval(mainCycle, period);
             window.addEventListener("beforeunload", function() {
                 sendRequest(
@@ -39,8 +39,22 @@ var mainCycle = function() {
             client : clientId
         },
         function(data) {
+            var i;
             var json = JSON.parse(data);
-            console.log(json);
+            if (json.updates) {
+                for (var i = 0; i < json.updates.length; i++) {
+                    var result = false;
+                    var update = json.updates[i];
+                    var handler = actionHandlers[update.action];
+                    if (handler) {
+                        result = handler(update);
+                    }
+                }
+            }
         }
     );
-}
+};
+
+var actionHandlers = {
+    "create" : createWidget
+};
