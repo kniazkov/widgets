@@ -27,7 +27,7 @@ final class NewInstance extends ActionHandler {
         final String id = this.application.createClient().toString();
         final JsonObject obj = new JsonObject();
         obj.addString("id", id);
-        logger.write("Client " + id + " created.");
+        logger.write("Client " + id + " has been created.");
         return obj;
     }
 }

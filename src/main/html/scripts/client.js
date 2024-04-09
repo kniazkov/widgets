@@ -15,6 +15,14 @@ var startClient = function() {
             clientId = json.id;
             console.log("Client " + clientId + "created.");
             setInterval(mainCycle, period);
+            window.addEventListener("beforeunload", function() {
+                sendRequest(
+                    {
+                        action : "kill",
+                        client : clientId
+                    }
+                );
+            });
         }
     );
     setTimeout(function() {

@@ -64,6 +64,16 @@ public final class Application {
     }
 
     /**
+     * Kills the client (usually at the client's own request when the web page is closed).
+     * @param clientId Client identified
+     * @return Operation result, {@code true} if client was killed
+     */
+    boolean killClient(final @NotNull UId clientId) {
+        final Client removed = this.clients.remove(clientId);
+        return removed != null;
+    }
+
+    /**
      * Collects updates from all widgets of the specified client to send to the web page.
      * Also, it updates the timer so that another bite from the watchdog doesn't kill the client.
      * @param clientId Client identifier
@@ -95,7 +105,7 @@ public final class Application {
             }
             for (final UId id : kill) {
                 clients.remove(id);
-                options.logger.write("Client " + id.toString() + " was killed.");
+                options.logger.write("Client " + id.toString() + " is killed by the watchdog.");
             }
             return true;
         }

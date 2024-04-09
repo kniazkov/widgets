@@ -12,7 +12,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * An action handler that synchronizes the client and server states
+ * Action handler that synchronizes the client and server states
  */
 final class Synchronize extends ActionHandler {
     /**

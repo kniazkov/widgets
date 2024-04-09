@@ -61,3 +61,22 @@ var sendRequest = function(query, callback, method) {
     };
     req.send(form);
 };
+
+var addEvent = function(object, type, callback) {
+    if (typeof(object) == "string") {
+        object = document.getElementById(object);
+    }
+    if (object == null || typeof(object) == "undefined") {
+        return;
+    }
+
+    if (object.addEventListener) {
+        object.addEventListener(type, callback, false);
+    }
+    else if (object.attachEvent) {
+        object.attachEvent("on" + type, callback);
+    }
+    else {
+        object["on" + type] = callback;
+    }
+};
