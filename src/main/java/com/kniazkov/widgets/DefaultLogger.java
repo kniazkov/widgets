@@ -3,6 +3,9 @@
  */
 package com.kniazkov.widgets;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,6 +18,11 @@ public final class DefaultLogger implements Logger {
     public static final Logger INSTANCE = new DefaultLogger();
 
     /**
+     * Date format.
+     */
+    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
+    /**
      * Constructor.
      */
     private DefaultLogger() {
@@ -22,6 +30,6 @@ public final class DefaultLogger implements Logger {
 
     @Override
     public void write(final @NotNull String message) {
-        System.out.println(message);
+        System.out.println(dateFormat.format(new Date()) + " > " + message);
     }
 }

@@ -41,6 +41,11 @@ public final class Application {
     private final Map<String, Page> pages;
 
     /**
+     * Counter of processed actions.
+     */
+    private int counter;
+
+    /**
      * Constructor.
      * @param index Index (main) page.
      */
@@ -49,6 +54,8 @@ public final class Application {
 
         this.pages = new TreeMap<>();
         this.pages.put("/", index);
+
+        this.counter = 0;
 
         Watchdog watchdog = new Watchdog();
         watchdog.start(watchdogPeriod);
@@ -67,6 +74,7 @@ public final class Application {
      * @return Unique identifier of the created client
      */
     UId createClient() {
+        counter++;
         final Client client = new Client();
         assert this.options.clientLifetime > 0;
         client.timer = this.options.clientLifetime;
@@ -83,6 +91,7 @@ public final class Application {
      * @return Operation result, {@code true} if client was killed
      */
     boolean killClient(final @NotNull UId clientId) {
+        counter++;
         final Client removed = this.clients.remove(clientId);
         return removed != null;
     }
@@ -94,6 +103,7 @@ public final class Application {
      * @return List of instruction
      */
     @NotNull List<Instruction> getUpdates(final @NotNull UId clientId) {
+        counter++;
         final Client client = this.clients.get(clientId);
         if (client == null) {
             // TODO: send an instruction that will reboot the client
@@ -112,6 +122,7 @@ public final class Application {
      */
     void handleEvent(final UId clientId, final UId widgetId, final @NotNull String type,
                      final @Nullable JsonObject data) {
+        counter++;
         final Client client = this.clients.get(clientId);
         if (client != null) {
             client.timer = this.options.clientLifetime;
@@ -136,6 +147,18 @@ public final class Application {
             for (final UId id : kill) {
                 clients.remove(id);
                 options.logger.write("Client " + id.toString() + " is killed by the watchdog.");
+            }
+            if (getTotalTime() % 60000 == 0) {
+                if (counter > 0) {
+                    options.logger.write(
+                            "Server processed " + counter + " action" +
+                                    (counter != 1 ? "s" : "") + " in one minute (~ " + (counter / 60) +
+                                    " per second)."
+                    );
+                    counter = 0;
+                } else {
+                    options.logger.write("Server processed no actions.");
+                }
             }
             return true;
         }

@@ -14,6 +14,11 @@ abstract class Periodic {
     private Task task;
 
     /**
+     * Total time during which the specified function has been performed periodically.
+     */
+    private long totalTime = 0;
+
+    /**
      * Payload (should be defined in inherited class).
      * @return Whether the periodic execution should continue, if {@code false}, it will terminate
      */
@@ -38,6 +43,14 @@ abstract class Periodic {
     }
 
     /**
+     * Returns total time during which the specified function has been performed periodically.
+     * @return Time in ms
+     */
+    public long getTotalTime() {
+        return totalTime;
+    }
+
+    /**
      * Periodic task.
      */
     private static class Task extends TimerTask  {
@@ -52,12 +65,18 @@ abstract class Periodic {
         private final Periodic owner;
 
         /**
+         * Period.
+         */
+        private long period;
+
+        /**
          * Constructor.
          * @param owner Owner (parent class)
          * @param period Period in ms
          */
         public Task(Periodic owner, long period) {
             this.owner = owner;
+            this.period = period;
             this.timer = new Timer();
             this.timer.scheduleAtFixedRate(this, 0, period);
         }
@@ -75,6 +94,7 @@ abstract class Periodic {
          */
         @Override
         public void run() {
+            owner.totalTime += period;
             if (!owner.tick()) {
                 stop();
             }

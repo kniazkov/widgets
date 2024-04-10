@@ -3,7 +3,7 @@
  */
 
 var clientId = null;
-var period = 20;
+var period = 100;
 
 var startClient = function() {
     sendRequest(

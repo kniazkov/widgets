@@ -18,7 +18,7 @@ public final class Options implements Cloneable {
      * a more stable data exchange process (since it all depends on the reliability of the Internet connection),
      * but a large number of zombie clients wastes memory.
      */
-    public long clientLifetime = 10000;
+    public long clientLifetime = 3 * 60 * 1000;
 
     @Override
     public Options clone() {
