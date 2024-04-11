@@ -49,14 +49,11 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     }
 
     @Override
-    public InlineWidget getChild() {
+    public @NotNull InlineWidget getChild() {
         return this.child;
     }
 
-    /**
-     * Sets the child widget
-     * @param child Child widget
-     */
+    @Override
     public void setChild(@NotNull InlineWidget child) {
         this.child = child;
         this.sendToClient(new SetChild(this.getWidgetId(), child.getWidgetId()));

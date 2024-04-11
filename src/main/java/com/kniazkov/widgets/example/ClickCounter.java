@@ -23,17 +23,15 @@ public class ClickCounter {
         final Page page = root -> {
             final Paragraph firstLine = new Paragraph();
             root.appendChild(firstLine);
-
-            final Paragraph secondLine = new Paragraph();
-            root.appendChild(secondLine);
-
             final Button button = new Button();
             firstLine.appendChild(button);
             button.setChild(new TextWidget("Click me"));
 
-            secondLine.appendChild(new TextWidget("Click counter: "));
+            final Paragraph secondLine = new Paragraph();
+            root.appendChild(secondLine);
             final TextWidget counter = new TextWidget();
-            secondLine.appendChild(counter);
+            secondLine.appendChild(new TextWidget("Click counter: "))
+                .appendChild(counter);
             final IntegerModel model = new IntegerModel();
             counter.setTextModel(model);
 

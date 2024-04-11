@@ -43,11 +43,11 @@ public class ClickCounterExt {
 
                 final Paragraph secondLine = new Paragraph();
                 root.appendChild(secondLine);
-                secondLine.appendChild(new TextWidget("Click counter: "));
-                secondLine.appendChild(localCounter);
-                secondLine.appendChild(new TextWidget(" ("));
-                secondLine.appendChild(globalCounter);
-                secondLine.appendChild(new TextWidget(")"));
+                secondLine.appendChild(new TextWidget("Click counter: "))
+                    .appendChild(localCounter)
+                    .appendChild(new TextWidget(" ("))
+                    .appendChild(globalCounter)
+                    .appendChild(new TextWidget(")"));
 
                 button.onClick(() -> {
                     localCounterModel.setIntValue(localCounterModel.getIntValue() + 1);

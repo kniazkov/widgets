@@ -51,12 +51,9 @@ public final class Paragraph extends BlockWidget implements TypedContainer<Inlin
         return this.children.get(index);
     }
 
-    /**
-     * Adds a widget as the last widget to the paragraph widget.
-     * @param widget Widget
-     */
-    public void appendChild(final @NotNull InlineWidget widget) {
+    public Paragraph appendChild(final @NotNull InlineWidget widget) {
         this.children.add(widget);
         this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
+        return this;
     }
 }

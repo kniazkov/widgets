@@ -53,13 +53,11 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
         return this.children.get(index);
     }
 
-    /**
-     * Adds a widget as the last widget to the root widget.
-     * @param widget Widget
-     */
-    public void appendChild(final @NotNull BlockWidget widget) {
+    @Override
+    public RootWidget appendChild(final @NotNull BlockWidget widget) {
         this.children.add(widget);
         this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
+        return this;
     }
 
     /**

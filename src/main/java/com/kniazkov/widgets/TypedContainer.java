@@ -17,4 +17,11 @@ public interface TypedContainer<T extends Widget> extends Container {
      */
     @Override
     @NotNull T getChild(final int index) throws IndexOutOfBoundsException;
+
+    /**
+     * Adds a widget as the last widget to the container.
+     * @param widget Widget
+     * @return Container itself
+     */
+    TypedContainer<T> appendChild(final @NotNull T widget);
 }
