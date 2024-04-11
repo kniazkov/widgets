@@ -1,5 +1,6 @@
 package com.kniazkov.widgets;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -9,12 +10,12 @@ public final class UId implements Comparable<UId> {
     /**
      * Next identifier.
      */
-    private static long next = 0;
+    private static final AtomicLong next = new AtomicLong(0);
 
     /**
      * Invalid unique identifier.
      */
-    private static final UId INVALID_UID = new UId(0);
+    public static final UId INVALID = new UId(0);
 
     /**
      * Identifier.
@@ -34,7 +35,7 @@ public final class UId implements Comparable<UId> {
      * @return An identifier that did not previously exist within this session
      */
     public static @NotNull UId create() {
-        return new UId(++next);
+        return new UId(next.incrementAndGet());
     }
 
     /**
@@ -51,7 +52,7 @@ public final class UId implements Comparable<UId> {
             } catch (NumberFormatException ignored) {
             }
         }
-        return INVALID_UID;
+        return INVALID;
     }
 
     /**
@@ -87,5 +88,15 @@ public final class UId implements Comparable<UId> {
             return this.id == other.id;
         }
         return false;
+    }
+
+    /**
+     * Returns a hash code for the identifier
+     *  (this needed for {@link java.util.HashSet} and {@link java.util.HashMap} classes).
+     * @return Hash code
+     */
+    @Override
+    public int hashCode() {
+        return Long.hashCode(this.id);
     }
 }

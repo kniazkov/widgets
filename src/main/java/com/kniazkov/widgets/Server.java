@@ -21,6 +21,7 @@ public final class Server {
         application.setOptions(cOpt);
 
         com.kniazkov.webserver.Server.start(getWebServerOptions(), handler);
+        options.logger.write("Server started.");
     }
 
     /**

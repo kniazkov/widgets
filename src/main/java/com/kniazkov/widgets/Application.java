@@ -3,17 +3,16 @@
  */
 package com.kniazkov.widgets;
 
-import java.util.Collections;
-import java.util.List;
-
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Web application that is executed by the {@link Server}.
@@ -50,7 +49,7 @@ public final class Application {
      * @param index Index (main) page.
      */
     public Application(final @NotNull Page index) {
-        this.clients = new TreeMap<>();
+        this.clients = new ConcurrentHashMap<>();
 
         this.pages = new TreeMap<>();
         this.pages.put("/", index);
@@ -106,8 +105,7 @@ public final class Application {
         counter++;
         final Client client = this.clients.get(clientId);
         if (client == null) {
-            // TODO: send an instruction that will reboot the client
-            return Collections.emptyList();
+            return Collections.singletonList(new ResetClient());
         }
         client.timer = this.options.clientLifetime;
         return client.getRootWidget().collectUpdates();

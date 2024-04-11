@@ -41,7 +41,7 @@ public class TextInput {
             p1.appendChild(greetings);
 
             input.onTextInput(
-                data -> greetings.setText(data.isEmpty() ? "" : "Hello, " + data + '!')
+                data -> greetings.setText(data.isEmpty() ? "" : "Hello, " + data.trim() + '!')
             );
         };
 

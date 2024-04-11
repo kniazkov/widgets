@@ -4,6 +4,21 @@
 
 var clientId = null;
 var period = 100;
+var mainCycleTask = null;
+
+var initClient = function() {
+    window.addEventListener("beforeunload", function() {
+        if (clientId != null) {
+            sendRequest(
+                {
+                    action : "kill",
+                    client : clientId
+                }
+            );
+        }
+    });
+    startClient();
+};
 
 var startClient = function() {
     sendRequest(
@@ -14,15 +29,7 @@ var startClient = function() {
             var json = JSON.parse(data);
             clientId = json.id;
             console.log("Client created, id: " + clientId + '.');
-            setInterval(mainCycle, period);
-            window.addEventListener("beforeunload", function() {
-                sendRequest(
-                    {
-                        action : "kill",
-                        client : clientId
-                    }
-                );
-            });
+            mainCycleTask = setInterval(mainCycle, period);
         }
     );
     setTimeout(function() {
@@ -55,8 +62,17 @@ var mainCycle = function() {
     );
 };
 
+var reset = function() {
+    console.log("The server initiated the client reset.");
+    clientId = null;
+    clearInterval(mainCycleTask);
+    document.body.innerHTML = "";
+    startClient();
+};
+
 var actionHandlers = {
     "create" : createWidget,
+    "reset" : reset,
     "set child" : setChildWidget,
     "append child" : appendChildWidget,
     "set text" : setText
