@@ -31,9 +31,9 @@ public class ClickCounterExt {
                 final Button button = new Button();
                 button.setChild(new TextWidget("Click me"));
 
-                final Paragraph firstLine = new Paragraph();
-                root.appendChild(firstLine);
-                firstLine.appendChild(button);
+                final Paragraph p0 = new Paragraph();
+                root.appendChild(p0);
+                p0.appendChild(button);
 
                 final TextWidget localCounter = new TextWidget();
                 final IntegerModel localCounterModel = new IntegerModel();
@@ -41,9 +41,9 @@ public class ClickCounterExt {
                 final TextWidget globalCounter = new TextWidget();
                 globalCounter.setTextModel(globalCounterModel);
 
-                final Paragraph secondLine = new Paragraph();
-                root.appendChild(secondLine);
-                secondLine.appendChild(new TextWidget("Click counter: "))
+                final Paragraph p1 = new Paragraph();
+                root.appendChild(p1);
+                p1.appendChild(new TextWidget("Click counter: "))
                     .appendChild(localCounter)
                     .appendChild(new TextWidget(" ("))
                     .appendChild(globalCounter)

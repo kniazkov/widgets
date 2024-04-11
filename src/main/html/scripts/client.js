@@ -72,5 +72,6 @@ var sendEventToServer = function(widget, type, data) {
     if (data) {
         request.data = data;
     }
+    console.log("The widget " + widget._id + " triggered the event '" + type + "'.");
     sendRequest(request);
 };

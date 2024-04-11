@@ -34,6 +34,9 @@ var sendRequest = function(query, callback, method) {
         form = new FormData();
         for (var key in query) {
             var value = query[key];
+            if (typeof value == "object") {
+                value = JSON.stringify(value);
+            }
             form.append(key, value);
         }
         req.open("POST", server, true);
@@ -42,6 +45,9 @@ var sendRequest = function(query, callback, method) {
         var count = 0;
         for (var key in query) {
             var value = query[key];
+            if (typeof value == "object") {
+                value = JSON.stringify(value);
+            }
             if (count) {
                 queryString += '&';
             }

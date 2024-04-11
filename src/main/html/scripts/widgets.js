@@ -15,7 +15,18 @@ var widgetsLibrary = {
         return document.createElement("span");
     },
     "input field" : function() {
-        return document.createElement("input");
+        var widget = document.createElement("input");
+        widget.setText = function(text) {
+            if (widget.value != text) {
+                widget.value = text;
+                return true;
+            }
+            return false;
+        }
+        addEvent(widget, "input", function() {
+            sendEventToServer(widget, "text input", { text : widget.value });
+        });
+        return widget;
     },
     "button" : function() {
         var widget = document.createElement("button");
@@ -63,8 +74,15 @@ var appendChildWidget = function(data) {
 var setText = function(data) {
     var widget = widgets[data.widget];
     if (widget && typeof data.text == "string") {
-        widget.innerHTML = escapeHtml(data.text);
-        console.log("The text \"" + data.text + "\" has been set to the widget " + data.widget + '.');
+        var flag = true;
+        if (widget.setText) {
+            flag = widget.setText(data.text);
+        } else {
+            widget.innerHTML = escapeHtml(data.text);
+        }
+        if (flag) {
+            console.log("The text \"" + data.text + "\" has been set to the widget " + data.widget + '.');
+        }
         return true;
     }
     return false;

@@ -21,16 +21,16 @@ public class ClickCounter {
      */
     public static void main(String[] args) {
         final Page page = root -> {
-            final Paragraph firstLine = new Paragraph();
-            root.appendChild(firstLine);
+            final Paragraph p0 = new Paragraph();
+            root.appendChild(p0);
             final Button button = new Button();
-            firstLine.appendChild(button);
+            p0.appendChild(button);
             button.setChild(new TextWidget("Click me"));
 
-            final Paragraph secondLine = new Paragraph();
-            root.appendChild(secondLine);
+            final Paragraph p1 = new Paragraph();
+            root.appendChild(p1);
             final TextWidget counter = new TextWidget();
-            secondLine.appendChild(new TextWidget("Click counter: "))
+            p1.appendChild(new TextWidget("Click counter: "))
                 .appendChild(counter);
             final IntegerModel model = new IntegerModel();
             counter.setTextModel(model);
