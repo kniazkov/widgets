@@ -4,6 +4,11 @@ import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseJson;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
@@ -46,20 +51,24 @@ final class HttpHandler implements Handler {
         } else {
             address = request.address;
         }
-        final byte[] data = VirtualFileSystem.get(address);
-        if (data != null) {
-            final String type = HttpHandler.getContentTypeByExtension(address);
-            return new Response() {
-                @Override
-                public String getContentType() {
-                    return type;
-                }
+        final URL url = getClass().getResource(address);
+        if (url != null) {
+            try {
+                final byte[] data = Files.readAllBytes(Paths.get(url.toURI()));
+                final String type = HttpHandler.getContentTypeByExtension(address);
+                return new Response() {
+                    @Override
+                    public String getContentType() {
+                        return type;
+                    }
 
-                @Override
-                public byte[] getData() {
-                    return type.startsWith("text") ? HttpHandler.unpack(data) : data;
-                }
-            };
+                    @Override
+                    public byte[] getData() {
+                        return type.startsWith("text") ? HttpHandler.unpack(data) : data;
+                    }
+                };
+            } catch (IOException | URISyntaxException ignored) {
+            }
         }
         return null;
     }
