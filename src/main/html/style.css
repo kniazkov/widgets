@@ -6,6 +6,13 @@ body {
     background: white;
 }
 
+span {
+    font-family: 'Open Sans';
+    font-size: 12pt;
+    font-weight: 400;
+    color: black;
+}
+
 input {
     font-family: 'Open Sans';
     font-size: 12pt;
@@ -18,8 +25,22 @@ input {
 }
 
 input:focus {
-    border-style: solid;
-    border-width: 1px;
     border-color: black;
     outline: none;
+}
+
+button {
+    padding: 5px;
+    background: #EEE;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #999;
+}
+
+button:active {
+    border-color: black;
+}
+
+button:hover {
+    background: white;
 }
