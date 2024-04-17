@@ -1,7 +1,25 @@
 body {
-    font-family: 'Sofia Sans Extra Condensed';
-    font-size: 16pt;
+    font-family: 'Open Sans';
+    font-size: 12pt;
     font-weight: 400;
     color: black;
     background: white;
+}
+
+input {
+    font-family: 'Open Sans';
+    font-size: 12pt;
+    font-weight: 400;
+    color: black;
+    background: #EEE;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #999;
+}
+
+input:focus {
+    border-style: solid;
+    border-width: 1px;
+    border-color: black;
+    outline: none;
 }
