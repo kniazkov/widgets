@@ -12,26 +12,40 @@ public final class IntegerModel extends Model<String> {
     /**
      * Integer value.
      */
-    private int value = 0;
+    private int value;
+
+    /**
+     * Whether the value is valid.
+     */
+    private boolean valid;
+
+    /**
+     * Constructor.
+     */
+    public IntegerModel() {
+        this.value = 0;
+        this.valid = true;
+    }
 
     @Override
     public @NotNull String getData() {
-        return String.valueOf(this.value);
+        return String.valueOf(this.getIntValue());
     }
 
     @Override
     protected boolean writeData(@NotNull String data) {
         try {
             this.value = Integer.parseInt(data);
-            return true;
+            this.valid = true;
         } catch (NumberFormatException ignored) {
-            return false;
+            this.valid = false;
         }
+        return this.valid;
     }
 
     @Override
     public boolean isValid() {
-        return true;
+        return this.valid;
     }
 
     /**
@@ -39,7 +53,7 @@ public final class IntegerModel extends Model<String> {
      * @return Integer value
      */
     public int getIntValue() {
-        return this.value;
+        return this.valid ? this.value : 0;
     }
 
     /**
@@ -47,7 +61,7 @@ public final class IntegerModel extends Model<String> {
      * @param newValue New integer value
      */
     public void setIntValue(final int newValue) {
-        if (this.value != newValue) {
+        if (this.value != newValue || !this.valid) {
             this.value = newValue;
             this.notifyListeners(String.valueOf(newValue));
         }
