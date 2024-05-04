@@ -3,8 +3,6 @@
  */
 package com.kniazkov.widgets;
 
-import java.util.List;
-
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +31,7 @@ final class Client implements Comparable<Client> {
      */
     Client() {
         this.id = UId.create();
-        this.root = new RootWidget();
+        this.root = new RootWidget(this);
     }
 
     /**

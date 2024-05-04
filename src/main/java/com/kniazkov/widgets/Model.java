@@ -17,7 +17,7 @@ public abstract class Model<T> {
     /**
      * Set of listeners.
      */
-    private final Set<ModelListener<T>> listeners;
+    private final Set<Listener<T>> listeners;
 
     /**
      * Constructor.
@@ -63,7 +63,7 @@ public abstract class Model<T> {
      * Adds a listener to the model. Listeners are notified each time model data is updated.
      * @param listener Listener
      */
-    public void addListener(@NotNull ModelListener<T> listener) {
+    public void addListener(@NotNull Listener<T> listener) {
         this.listeners.add(listener);
     }
 
@@ -71,7 +71,7 @@ public abstract class Model<T> {
      * Removes the listener from the model.
      * @param listener Listener
      */
-    public void removeListener(@NotNull ModelListener<T> listener) {
+    public void removeListener(@NotNull Listener<T> listener) {
         this.listeners.remove(listener);
     }
 
@@ -87,7 +87,7 @@ public abstract class Model<T> {
      * @param data New data
      */
     protected void notifyListeners(final @NotNull T data) {
-        for (final ModelListener<T> listener : listeners) {
+        for (final Listener<T> listener : listeners) {
             listener.dataChanged(data);
         }
     }

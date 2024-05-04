@@ -23,9 +23,11 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
 
     /**
      * Constructor.
+     * @param client Client that owns this widget
      */
-    RootWidget() {
+    RootWidget(final @NotNull Client client) {
         this.children = new ArrayList<>();
+        this.client.setData(client);
     }
 
     @Override
@@ -56,6 +58,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     @Override
     public RootWidget appendChild(final @NotNull BlockWidget widget) {
         this.children.add(widget);
+        widget.setParent(this);
         this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
         return this;
     }

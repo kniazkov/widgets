@@ -20,7 +20,7 @@ public final class InputField extends InlineWidget implements HasTextInput, Clic
     /**
      * Listener to follow text model data updates and send instructions to clients.
      */
-    private final ModelListener<String> textModelListener;
+    private final Listener<String> textModelListener;
 
     /**
      * Controller that determines the behavior when the field is clicked.

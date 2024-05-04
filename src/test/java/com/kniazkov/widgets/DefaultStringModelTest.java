@@ -13,7 +13,7 @@ public class DefaultStringModelTest {
         Assert.assertNotNull(model.getData());
         Assert.assertTrue(model.isValid());
         final boolean[] changed = new boolean[1];
-        final ModelListener<String> listener = data -> changed[0] = true;
+        final Listener<String> listener = data -> changed[0] = true;
         model.addListener(listener);
         model.setData("");
         Assert.assertFalse(changed[0]);

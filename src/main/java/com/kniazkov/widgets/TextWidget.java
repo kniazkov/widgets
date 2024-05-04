@@ -19,7 +19,7 @@ public final class TextWidget extends InlineWidget implements HasText {
     /**
      * Listener to follow text model data updates and send instructions to clients.
      */
-    private final ModelListener<String> textModelListener;
+    private final Listener<String> textModelListener;
 
     /**
      * Constructor.
