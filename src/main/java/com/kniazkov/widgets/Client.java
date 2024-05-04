@@ -7,6 +7,9 @@ import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 /**
  * Class describing a client instance.
  */
@@ -22,6 +25,11 @@ final class Client implements Comparable<Client> {
     long timer;
 
     /**
+     * All widgets by identifiers.
+     */
+    final Map<UId, Widget> widgets;
+
+    /**
      * Root widget.
      */
     private final RootWidget root;
@@ -31,6 +39,7 @@ final class Client implements Comparable<Client> {
      */
     Client() {
         this.id = UId.create();
+        this.widgets = new TreeMap<>();
         this.root = new RootWidget(this);
     }
 
@@ -57,13 +66,10 @@ final class Client implements Comparable<Client> {
      * @param data Event-related data
      */
     void handleEvent(final UId widgetId, final @NotNull String type, final @Nullable JsonObject data) {
-        DeepFirst.traverse(this.root, widget -> {
-            if (widget.getWidgetId().equals(widgetId)) {
-                widget.handleEvent(type, data);
-                return false;
-            }
-            return true;
-        });
+        final Widget widget = this.widgets.get(widgetId);
+        if (widget != null) {
+            widget.handleEvent(type, data);
+        }
     }
 
     @Override

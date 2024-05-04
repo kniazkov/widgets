@@ -53,7 +53,10 @@ public abstract class Widget {
     void setParent(final @NotNull Widget parent) {
         assert this.parent == null;
         this.parent = parent;
-        parent.client.addListener(client::setData);
+        parent.client.addListener(client -> {
+            Widget.this.client.setData(client);
+            client.widgets.put(Widget.this.getWidgetId(), Widget.this);
+        });
     }
 
     /**
