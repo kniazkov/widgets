@@ -12,7 +12,7 @@ import java.util.Set;
  * Data, inaccessible now, but which will probably be available it the future.
  * @param <T> Type of data
  */
-public class Future<T> {
+public final class Future<T> {
     /**
      * Set of listeners.
      */
