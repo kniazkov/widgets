@@ -1,6 +1,6 @@
 body {
     font-family: 'Open Sans';
-    font-size: 12pt;
+    font-size: 11pt;
     font-weight: 400;
     color: black;
     background: white;
@@ -8,14 +8,14 @@ body {
 
 span {
     font-family: 'Open Sans';
-    font-size: 12pt;
+    font-size: 11pt;
     font-weight: 400;
     color: black;
 }
 
 input {
     font-family: 'Open Sans';
-    font-size: 12pt;
+    font-size: 11pt;
     font-weight: 400;
     color: black;
     background: #EEE;
