@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets;
 
-import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,6 +20,17 @@ public abstract class Widget {
     private final UId widgetId;
 
     /**
+     * Parent (owner) of this widget.
+     */
+    private Widget parent;
+
+    /**
+     * Client (owner of hierarchical tree of widgets which includes this widget).
+     * The reference of it appears as soon as the widget is added to hierarchical tree of widgets.
+     */
+    final Future<Client> client;
+
+    /**
      * Set of updates to be sent to a client.
      */
     private final List<Instruction> updates;
@@ -30,8 +40,31 @@ public abstract class Widget {
      */
     public Widget() {
         this.widgetId = UId.create();
+        this.parent = null;
+        this.client = new Future<>();
         this.updates = new ArrayList<>();
         this.updates.add(new Create(this.widgetId, this.getType()));
+    }
+
+    /**
+     * Sets the parent. This can be done only once.
+     * @param parent Parent widget
+     */
+    void setParent(final @NotNull Widget parent) {
+        assert this.parent == null;
+        this.parent = parent;
+        parent.client.addListener(client -> {
+            Widget.this.client.setData(client);
+            client.widgets.put(Widget.this.getWidgetId(), Widget.this);
+        });
+    }
+
+    /**
+     * Returns the parent, that is, the owner of this widget.
+     * @return Parent widget
+     */
+    public Widget getParent() {
+        return this.parent;
     }
 
     /**

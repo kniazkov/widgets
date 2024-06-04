@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Listener to follow text model data updates and send instructions to clients.
  */
-final class TextModelListener implements ModelListener<String> {
+final class TextModelListener implements Listener<String> {
     /**
      * Widget containing model.
      */

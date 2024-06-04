@@ -15,7 +15,8 @@ public class InstructionPropagationTest {
      */
     @Test
     public void test() {
-        final RootWidget root = new RootWidget();
+        final Client client = new Client();
+        final RootWidget root = client.getRootWidget();
         final Paragraph paragraph = new Paragraph();
         root.appendChild(paragraph);
         final TextWidget label = new TextWidget("Enter value:");

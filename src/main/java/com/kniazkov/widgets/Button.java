@@ -56,6 +56,7 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     @Override
     public void setChild(@NotNull InlineWidget child) {
         this.child = child;
+        child.setParent(this);
         this.sendToClient(new SetChild(this.getWidgetId(), child.getWidgetId()));
     }
 
