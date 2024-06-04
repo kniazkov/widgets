@@ -76,7 +76,7 @@ public final class UId implements Comparable<UId> {
     }
 
     /**
-     * Compares an identifier to other object
+     * Compares identifier to other object
      * @param obj Another object
      * @return Comparison result ({@code true} if other object is unique identifier and has
      *  the same number)
