@@ -88,6 +88,24 @@ var setText = function(data) {
     return false;
 };
 
+var setColor = function(data) {
+    var widget = widgets[data.widget];
+    if (widget && typeof data.color == "object") {
+        var color = "rgb(" + data.color.r + ',' + data.color.g + ',' + data.color.b + ')';
+        var flag = true;
+        if (widget.setColor) {
+            flag = widget.setColor(color);
+        } else {
+            widget.style.color = color;
+        }
+        if (flag) {
+            console.log("The color \"" + color + "\" has been set to the widget " + data.widget + '.');
+        }
+        return true;
+    }
+    return false;
+};
+
 var handleClickEvent = function(widget) {
     addEvent(widget, "click", function() {
         sendEventToServer(widget, "click");

@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.example;
 
 import com.kniazkov.widgets.*;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A web application that demonstrates the processing of integer values entered into a text field.

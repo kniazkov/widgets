@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Widget that contains plain text.
  */
-public final class TextWidget extends InlineWidget implements HasText {
+public final class TextWidget extends InlineWidget implements HasText, HasColor {
     /**
      * Model that stores and processes the text of this widget.
      */
@@ -22,12 +22,26 @@ public final class TextWidget extends InlineWidget implements HasText {
     private final Listener<String> textModelListener;
 
     /**
+     * Model that stores and processes the color of this widget.
+     */
+    private Model<Color> colorModel;
+
+    /**
+     * Listener to follow color model data updates and send instructions to clients.
+     */
+    private final Listener<Color> colorModelListener;
+
+    /**
      * Constructor.
      */
     public TextWidget() {
         this.textModel = new DefaultStringModel();
         this.textModelListener = new TextModelListener(this);
         this.textModel.addListener(this.textModelListener);
+
+        this.colorModel = new DefaultColorModel();
+        this.colorModelListener = new ColorModelListener(this);
+        this.colorModel.addListener(this.colorModelListener);
     }
 
     /**
@@ -65,5 +79,18 @@ public final class TextWidget extends InlineWidget implements HasText {
         this.textModel = model;
         this.textModel.addListener(this.textModelListener);
         this.textModel.notifyListeners();
+    }
+
+    @Override
+    public @NotNull Model<Color> getColorModel() {
+        return this.colorModel;
+    }
+
+    @Override
+    public void setColorModel(@NotNull Model<Color> model) {
+        this.colorModel.removeListener(this.colorModelListener);
+        this.colorModel = model;
+        this.colorModel.addListener(this.colorModelListener);
+        this.colorModel.notifyListeners();
     }
 }

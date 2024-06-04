@@ -75,7 +75,8 @@ var actionHandlers = {
     "reset" : reset,
     "set child" : setChildWidget,
     "append child" : appendChildWidget,
-    "set text" : setText
+    "set text" : setText,
+    "set color" : setColor
 };
 
 var sendEventToServer = function(widget, type, data) {

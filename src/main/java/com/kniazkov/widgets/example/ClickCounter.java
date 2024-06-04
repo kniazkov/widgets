@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.example;
 
 import com.kniazkov.widgets.*;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A web application that contains a button that can be clicked by the user,

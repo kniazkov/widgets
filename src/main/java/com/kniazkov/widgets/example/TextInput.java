@@ -4,16 +4,12 @@
 package com.kniazkov.widgets.example;
 
 import com.kniazkov.widgets.Application;
-import com.kniazkov.widgets.Button;
 import com.kniazkov.widgets.InputField;
-import com.kniazkov.widgets.IntegerModel;
 import com.kniazkov.widgets.Options;
 import com.kniazkov.widgets.Page;
 import com.kniazkov.widgets.Paragraph;
 import com.kniazkov.widgets.Server;
 import com.kniazkov.widgets.TextWidget;
-import com.kniazkov.widgets.TypedController;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A web application that demonstrates the processing of text entered into a text field.
