@@ -108,7 +108,7 @@ public final class Application {
             return Collections.singletonList(new ResetClient());
         }
         client.timer = this.options.clientLifetime;
-        return client.getRootWidget().collectUpdates();
+        return client.collectUpdates();
     }
 
     /**

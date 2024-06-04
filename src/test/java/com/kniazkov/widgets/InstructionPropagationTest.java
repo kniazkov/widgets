@@ -28,7 +28,7 @@ public class InstructionPropagationTest {
         model.setIntValue(13);
         final Button button = new Button("Submit");
         paragraph.appendChild(button);
-        final List<Instruction> updates = root.collectUpdates();
+        final List<Instruction> updates = client.collectUpdates();
         Assert.assertFalse(updates.isEmpty());
     }
 }

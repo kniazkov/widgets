@@ -4,6 +4,10 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +61,18 @@ final class Client implements Comparable<Client> {
      */
     RootWidget getRootWidget() {
         return this.root;
+    }
+
+    /**
+     * Collects updates from all widgets to send to the web page.
+     * @return Sorted list of instructions
+     */
+    @NotNull List<Instruction> collectUpdates() {
+        final Set<Instruction> set = new TreeSet<>();
+        for (final Widget widget : widgets.values()) {
+            widget.getUpdates(set);
+        }
+        return new ArrayList<>(set);
     }
 
     /**

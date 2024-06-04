@@ -7,8 +7,8 @@ import com.kniazkov.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.TreeSet;
+import java.util.Set;
 
 /**
  * A widget, that is, a user interface element.
@@ -33,7 +33,7 @@ public abstract class Widget {
     /**
      * Set of updates to be sent to a client.
      */
-    private final List<Instruction> updates;
+    private final Set<Instruction> updates;
 
     /**
      * Constructor.
@@ -42,7 +42,7 @@ public abstract class Widget {
         this.widgetId = UId.create();
         this.parent = null;
         this.client = new Future<>();
-        this.updates = new ArrayList<>();
+        this.updates = new TreeSet<>();
         this.updates.add(new Create(this.widgetId, this.getType()));
     }
 
@@ -105,9 +105,9 @@ public abstract class Widget {
 
     /**
      * Takes the list of updates and clears it from the widget itself
-     * @param allUpdates A list containing all updates from all widgets
+     * @param allUpdates A set containing all updates from all widgets
      */
-    void getUpdates(final @NotNull List<Instruction> allUpdates) {
+    void getUpdates(final @NotNull Set<Instruction> allUpdates) {
         allUpdates.addAll(this.updates);
         this.updates.clear();
     }

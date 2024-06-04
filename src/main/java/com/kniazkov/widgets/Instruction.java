@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Instruction that is sent from server to client to display changes.
  */
-abstract class Instruction {
+abstract class Instruction implements Comparable<Instruction> {
     /**
      * Instruction unique identifier.
      */
@@ -60,5 +60,16 @@ abstract class Instruction {
         final JsonObject obj = new JsonObject();
         this.serialize(obj);
         return obj.toString();
+    }
+
+    /**
+     * Compares an identifier to other one for order
+     *  (this needed for {@link java.util.TreeSet} and {@link java.util.TreeMap} classes).
+     * @param other Other identifier.
+     * @return Comparison result
+     */
+    @Override
+    public int compareTo(final @NotNull Instruction other) {
+        return this.instrId.compareTo(other.instrId);
     }
 }

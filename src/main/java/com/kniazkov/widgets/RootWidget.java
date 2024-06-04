@@ -63,17 +63,4 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
         this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
         return this;
     }
-
-    /**
-     * Collects updates from all widgets to send to the web page.
-     * @return List of instruction
-     */
-    @NotNull List<Instruction> collectUpdates() {
-        final List<Instruction> list = new ArrayList<>();
-        DeepFirst.traverse(this, widget -> {
-            widget.getUpdates(list);
-            return true;
-        });
-        return list;
-    }
 }
