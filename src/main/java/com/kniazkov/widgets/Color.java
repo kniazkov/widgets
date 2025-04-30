@@ -1,51 +1,73 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
 
 /**
- * Class representing a color.
+ * Immutable RGB color representation.
+ * <p>
+ *     This class encapsulates a color using three integer components: red, green, and blue,
+ *     each in the range [0, 255]. Values outside this range are clamped automatically.
+ * </p>
+ *
+ * <p>
+ *     Instances of this class are immutable and comparable by value. That is,
+ *     two {@code Color} objects are considered equal if all three of their components match.
+ *     Accordingly, {@link #equals(Object)} and {@link #hashCode()} are properly overridden.
+ * </p>
+ *
+ * <p>
+ *     The class also includes a few commonly used predefined colors as constants,
+ *     such as {@link #BLACK}, {@link #RED}, {@link #GREEN}, and {@link #BLUE}.
+ * </p>
+ *
+ * <p>
+ *     For interoperability with clients the {@link #toJsonObject()}
+ *     method can be used to export a JSON-compatible object with "r", "g", and "b" fields.
+ * </p>
  */
 public final class Color {
     /**
-     * Black color.
+     * Black color (0, 0, 0).
      */
-    public static final Color BLACK = new Color(0,0,0);
+    public static final Color BLACK = new Color(0, 0, 0);
 
     /**
-     * Red color.
+     * Red color (255, 0, 0).
      */
-    public static final Color RED = new Color(255,0,0);
+    public static final Color RED = new Color(255, 0, 0);
 
     /**
-     * Green color.
+     * Green color (0, 255, 0).
      */
-    public static final Color GREEN = new Color(0,255,0);
+    public static final Color GREEN = new Color(0, 255, 0);
 
     /**
-     * Blue color.
+     * Blue color (0, 0, 255).
      */
-    public static final Color BLUE = new Color(0,0,255);
+    public static final Color BLUE = new Color(0, 0, 255);
 
     /**
-     * Red component.
+     * Red component in range [0, 255].
      */
     private final int red;
 
     /**
-     * Green component.
+     * Green component in range [0, 255].
      */
     private final int green;
 
     /**
-     * Blue component.
+     * Blue component in range [0, 255].
      */
     private final int blue;
 
     /**
-     * Constructor.
+     * Constructs a new color with the specified RGB components.
+     * Any component outside the range [0, 255] is clamped automatically.
+     *
      * @param red Red component
      * @param green Green component
      * @param blue Blue component
@@ -57,8 +79,12 @@ public final class Color {
     }
 
     /**
-     * Transforms the color into an object suitable for use on a client.
-     * @return JSON object containing color components
+     * Converts this color to a JSON object with fields {@code "r"}, {@code "g"}, and {@code "b"}.
+     * <p>
+     *     This format is suitable for client-side rendering or serialization.
+     * </p>
+     *
+     * @return a {@link JsonObject} representing this color
      */
     public JsonObject toJsonObject() {
         JsonObject obj = new JsonObject();
@@ -69,8 +95,9 @@ public final class Color {
     }
 
     /**
-     * Returns a string representation of the color.
-     * @return String representation of the color
+     * Returns a string representation of the color in CSS-style {@code rgb(r,g,b)} format.
+     *
+     * @return Human-readable string representation
      */
     @Override
     public String toString() {
@@ -78,10 +105,12 @@ public final class Color {
     }
 
     /**
-     * Compares color to other object
-     * @param obj Another object
-     * @return Comparison result ({@code true} if other object is a color and has
-     *  the same component values)
+     * Compares this color to another object.
+     * Returns {@code true} if the other object is a {@code Color}
+     * and has the same RGB component values.
+     *
+     * @param obj The object to compare
+     * @return {@code true} If equal, {@code false} otherwise
      */
     @Override
     public boolean equals(final Object obj) {
@@ -93,12 +122,26 @@ public final class Color {
     }
 
     /**
-     * Checks the value of the color component. If it is incorrect, fixes it.
-     * @param value Value of the color component
-     * @return Fixed value
+     * Computes a hash code consistent with {@link #equals(Object)}.
+     *
+     * @return hash code of this color
+     */
+    @Override
+    public int hashCode() {
+        int result = red;
+        result = 31 * result + green;
+        result = 31 * result + blue;
+        return result;
+    }
+
+    /**
+     * Ensures that a color component is within the valid range [0, 255].
+     *
+     * @param value The input component value
+     * @return Clamped value
      */
     private static int fixColor(final int value) {
-        if (value < 0) return  0;
+        if (value < 0) return 0;
         if (value > 255) return 255;
         return value;
     }

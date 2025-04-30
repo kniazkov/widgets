@@ -7,12 +7,25 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Standard model, which is used by default and is suitable for most cases.
- * It does not contain any logic to validate the data, any data is considered valid.
- * It simply stores data of the specified type and notifies listeners when that data changes.
- * @param <T> Type of model data
+ * A standard, general-purpose implementation of {@link Model} that stores data directly and
+ * applies no validation logic.
+ *
+ * <p>
+ *     This model is suitable for the vast majority of use cases where the data is either
+ *     inherently valid or validation is unnecessary. It accepts any non-null value as valid
+ *     and provides simple storage and retrieval.
+ * </p>
+ *
+ * @param <T> the type of data held by the model
  */
 public abstract class DefaultModel<T> extends Model<T> {
+    /**
+     * The current value held by this model instance.
+     * <p>
+     *     This field serves as the internal storage for the model's data.
+     *     It is considered valid if non-null, as determined by {@link #isValid()}.
+     * </p>
+     */
     private T data;
 
     @Override

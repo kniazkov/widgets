@@ -6,21 +6,44 @@ package com.kniazkov.widgets;
 import java.util.Optional;
 
 /**
- * Model that processes text data as an integer.
+ * A model that stores an integer value internally but exposes it as a {@link String}.
+ * <p>
+ *     This model is useful when working with text-based input fields (e.g., text boxes)
+ *     that represent numeric data.
+ *     It handles parsing and validation internally: only syntactically valid integer strings
+ *     are accepted.
+ * </p>
+ *
+ * <p>
+ *     Internally, the model stores an {@code int} value along with a validity flag.
+ *     The string representation is dynamically derived from the integer value via
+ *     {@link #readData()}.
+ * </p>
+ *
+ * <p>
+ *     If an invalid string is provided (e.g., non-numeric input), the value is not updated
+ *     and the model remains invalid. The default value returned by {@link #getDefaultData()}
+ *     is {@code "0"}, representing the integer zero.
+ * </p>
+ *
+ * <p>
+ *     For convenience, {@link #getIntValue()} and {@link #setIntValue(int)} provide direct access
+ *     to the numeric value.
+ * </p>
  */
 public final class IntegerModel extends Model<String> {
     /**
-     * Integer value.
+     * Parsed integer value stored internally.
      */
     private int value;
 
     /**
-     * Whether the value is valid.
+     * Flag indicating whether the current value is valid (i.e., successfully parsed).
      */
     private boolean valid;
 
     /**
-     * Constructor.
+     * Constructs an initially invalid integer model with value set to 0.
      */
     public IntegerModel() {
         this.value = 0;
@@ -61,10 +84,24 @@ public final class IntegerModel extends Model<String> {
         return "0";
     }
 
+    /**
+     * Returns the current integer value. If the model is invalid, returns {@code 0}.
+     *
+     * @return the internal integer value or 0 if invalid
+     */
     public int getIntValue() {
         return this.valid ? this.value : 0;
     }
 
+    /**
+     * Sets the model's value directly as an integer.
+     * <p>
+     *     This bypasses string parsing and marks the model as valid. It also detaches the model
+     *     from its prototype, if any, as this is considered an authoritative local modification.
+     * </p>
+     *
+     * @param value The integer to set
+     */
     public void setIntValue(final int value) {
         this.detach();
         this.value = value;
