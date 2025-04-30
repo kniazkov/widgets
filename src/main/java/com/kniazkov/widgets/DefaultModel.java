@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
+import java.util.Optional;
 
 /**
  * Standard model, which is used by default and is suitable for most cases.
@@ -13,38 +13,21 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> Type of model data
  */
 public abstract class DefaultModel<T> extends Model<T> {
-    /**
-     * Data.
-     */
     private T data;
-
-    /**
-     * Constructor.
-     */
-    public DefaultModel() {
-        this.data = this.getDefaultData();
-    }
-
-    @Override
-    public @NotNull T getData() {
-        return this.data;
-    }
-
-    @Override
-    protected boolean writeData(final @NotNull T data) {
-        Objects.requireNonNull(data);
-        this.data = data;
-        return true;
-    }
 
     @Override
     public boolean isValid() {
-        return true;
+        return data != null;
     }
 
-    /**
-     * Returns the default data that the model contains after creation and before any changes.
-     * @return Default data.
-     */
-    public abstract @NotNull T getDefaultData();
+    @Override
+    protected Optional<T> readData() {
+        return Optional.ofNullable(this.data);
+    }
+
+    @Override
+    protected boolean writeData(final T data) {
+        this.data = Objects.requireNonNull(data);
+        return true;
+    }
 }

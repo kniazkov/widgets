@@ -1,20 +1,19 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
+
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashSet;
-
 /**
- * A listener that is called when data has been changed.
- * @param <T> Type of data
+ * Listener interface for receiving notifications when data changes.
+ *  Classes that are interested in processing data change events
+ *  should implement this interface and register themselves where necessary.
+ * @param <T> The type of the data being observed
  */
 public interface Listener<T> {
     /**
-     * Method that is called when the data has been changed.
-     * @param data New data
+     * Invoked when the observed data has changed.
+     * @param data the updated data
      */
-    void dataChanged(@NotNull T data);
+    void dataChanged(T data);
 }

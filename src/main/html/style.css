@@ -1,5 +1,5 @@
 body {
-    font-family: 'Open Sans';
+    font-family: 'Inter';
     font-size: 11pt;
     font-weight: 400;
     color: black;
@@ -7,16 +7,16 @@ body {
 }
 
 span {
-    font-family: 'Open Sans';
+    font-family: 'Inter';
     font-size: 11pt;
     font-weight: 400;
     color: black;
 }
 
 input {
-    font-family: 'Open Sans';
+    font-family: 'Inter';
     font-size: 11pt;
-    font-weight: 400;
+    font-weight: 700;
     color: black;
     background: #EEE;
     border-style: solid;

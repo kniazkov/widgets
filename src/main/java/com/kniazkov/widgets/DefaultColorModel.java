@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Standard model containing a color.
  */
 public final class DefaultColorModel extends DefaultModel<Color> {
     @Override
-    public @NotNull Color getDefaultData() {
+    protected Model<Color> createInstance() {
+        return new DefaultColorModel();
+    }
+
+    @Override
+    public Color getDefaultData() {
         return Color.BLACK;
     }
 }

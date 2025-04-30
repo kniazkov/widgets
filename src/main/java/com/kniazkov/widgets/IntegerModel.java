@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Optional;
 
 /**
  * Model that processes text data as an integer.
@@ -24,23 +24,12 @@ public final class IntegerModel extends Model<String> {
      */
     public IntegerModel() {
         this.value = 0;
-        this.valid = true;
+        this.valid = false;
     }
 
     @Override
-    public @NotNull String getData() {
-        return String.valueOf(this.getIntValue());
-    }
-
-    @Override
-    protected boolean writeData(@NotNull String data) {
-        try {
-            this.value = Integer.parseInt(data);
-            this.valid = true;
-        } catch (NumberFormatException ignored) {
-            this.valid = false;
-        }
-        return this.valid;
+    protected Model<String> createInstance() {
+        return new IntegerModel();
     }
 
     @Override
@@ -48,22 +37,37 @@ public final class IntegerModel extends Model<String> {
         return this.valid;
     }
 
-    /**
-     * Returns the integer value that contains the model.
-     * @return Integer value
-     */
+    @Override
+    protected Optional<String> readData() {
+        if (this.valid) {
+            return Optional.of(String.valueOf(this.value));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    protected boolean writeData(final String data) {
+        try {
+            this.value = Integer.parseInt(data);
+            this.valid = true;
+        } catch (final NumberFormatException ignored) {
+            this.valid = false;
+        }
+        return this.valid;
+    }
+
+    @Override
+    protected String getDefaultData() {
+        return "0";
+    }
+
     public int getIntValue() {
         return this.valid ? this.value : 0;
     }
 
-    /**
-     * Sets the new integer value.
-     * @param newValue New integer value
-     */
-    public void setIntValue(final int newValue) {
-        if (this.value != newValue || !this.valid) {
-            this.value = newValue;
-            this.notifyListeners(String.valueOf(newValue));
-        }
+    public void setIntValue(final int value) {
+        this.detach();
+        this.value = value;
+        this.valid = true;
     }
 }

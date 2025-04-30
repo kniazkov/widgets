@@ -1,94 +1,125 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
+
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
 
-import java.util.HashSet;
-import java.util.Set;
-
-/**
- * An object that stores and processes data.
- * The first component of the Model-View-Controller triad.
- * @param <T> Type of model data
- */
 public abstract class Model<T> {
-    /**
-     * Set of listeners.
-     */
-    private final Set<Listener<T>> listeners;
+    private Prototype<T> prototype;
+    private final List<WeakReference<Listener<T>>> listeners;
 
-    /**
-     * Constructor.
-     */
-    public Model() {
-        this.listeners = new HashSet<>();
+    protected Model() {
+        this.listeners = new LinkedList<>();
     }
 
-    /**
-     * Returns the data that the model stores.
-     * @return Data
-     */
-    public abstract @NotNull T getData();
+    protected abstract Model<T> createInstance();
 
-    /**
-     * Checks the new data. If the data is correct, writes it.
-     * @param data New data
-     * @return Validation result
-     */
-    protected abstract boolean writeData(@NotNull T data);
+    public abstract boolean isValid();
 
-    /**
-     * Sets up new data. If the new data is valid and different from the old data,
-     * all model listeners are notified.
-     * @param data New data
-     */
-    public void setData(@NotNull T data) {
-        if (!this.getData().equals(data)) {
-            if (writeData(data)) {
-               this.notifyListeners(data);
+    protected abstract Optional<T> readData();
+
+    protected abstract T getDefaultData();
+
+    protected abstract boolean writeData(T data);
+
+    public Model<T> fork() {
+        final Model<T> fork = this.createInstance();
+        final Listener<T> listener = fork::notifyListeners;
+        fork.prototype = new Prototype<>();
+        fork.prototype.model = this;
+        fork.prototype.listener = listener;
+        this.addListener(listener);
+        return fork;
+    }
+
+    public T getData() {
+        if (this.isValid()) {
+            Optional<T> data = this.readData();
+            if (data.isPresent()) {
+                return data.get();
+            }
+        }
+        if (this.prototype != null) {
+            return this.prototype.model.getData();
+        }
+        return this.getDefaultData();
+    }
+
+    public void setData(final T newData) {
+        final Optional<T> oldData = this.readData();
+        if (oldData.isPresent()) {
+            if (!oldData.get().equals(newData)) {
+                if (writeData(newData)) {
+                    this.notifyListeners(newData);
+                }
+            }
+        } else if (this.prototype != null) {
+            if (writeData(newData)) {
+                if (!this.prototype.model.getData().equals(newData)) {
+                    this.notifyListeners(newData);
+                }
+            }
+            this.prototype.model.removeListener(this.prototype.listener);
+            this.prototype = null;
+        } else {
+            if (!getDefaultData().equals(newData)) {
+                if (writeData(newData)) {
+                    this.notifyListeners(newData);
+                }
             }
         }
     }
 
-    /**
-     * Checks whether the model is in a valid state
-     * (i.e., contains correct data relative to the model logic).
-     * @return Checking result
-     */
-    public abstract boolean isValid();
-
-    /**
-     * Adds a listener to the model. Listeners are notified each time model data is updated.
-     * @param listener Listener
-     */
-    public void addListener(@NotNull Listener<T> listener) {
-        this.listeners.add(listener);
+    public void addListener(final Listener<T> listener) {
+        this.listeners.add(new WeakReference<>(listener));
     }
 
-    /**
-     * Removes the listener from the model.
-     * @param listener Listener
-     */
-    public void removeListener(@NotNull Listener<T> listener) {
-        this.listeners.remove(listener);
+    public void removeListener(final Listener<T> listener) {
+        final Iterator<WeakReference<Listener<T>>> iterator = this.listeners.iterator();
+        while (iterator.hasNext()) {
+            final WeakReference<Listener<T>> reference = iterator.next();
+            final Listener<T> existing = reference.get();
+            if (existing == listener) {
+                iterator.remove();
+                break;
+            } else if (existing == null) {
+                iterator.remove();
+            }
+        }
     }
 
-    /**
-     * Forcefully notifies listeners by sending them current data.
-     */
     public void notifyListeners() {
         this.notifyListeners(this.getData());
     }
 
-    /**
-     * Notifies listeners that the data has changed.
-     * @param data New data
-     */
-    protected void notifyListeners(final @NotNull T data) {
-        for (final Listener<T> listener : listeners) {
-            listener.dataChanged(data);
+    protected void notifyListeners(final T data) {
+        final Iterator<WeakReference<Listener<T>>> iterator = this.listeners.iterator();
+        while (iterator.hasNext()) {
+            final WeakReference<Listener<T>> reference = iterator.next();
+            final Listener<T> listener = reference.get();
+            if (listener == null) {
+                iterator.remove();
+            } else {
+                listener.dataChanged(data);
+            }
         }
+    }
+
+    protected void detach() {
+        if (this.prototype != null) {
+            this.prototype.model.removeListener(this.prototype.listener);
+            this.prototype = null;
+        }
+    }
+
+    private static class Prototype<T> {
+        Model<T> model;
+        Listener<T> listener;
     }
 }

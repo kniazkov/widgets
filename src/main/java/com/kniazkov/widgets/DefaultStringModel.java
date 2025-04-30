@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Standard model containing a string.
  */
 public final class DefaultStringModel extends DefaultModel<String> {
     @Override
-    public @NotNull String getDefaultData() {
+    protected Model<String> createInstance() {
+        return new DefaultStringModel();
+    }
+
+    @Override
+    public String getDefaultData() {
         return "";
     }
 }

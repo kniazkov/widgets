@@ -11,7 +11,7 @@ public class DefaultStringModelTest {
     public void test() {
         final Model<String> model = new DefaultStringModel();
         Assert.assertNotNull(model.getData());
-        Assert.assertTrue(model.isValid());
+        Assert.assertFalse(model.isValid());
         final boolean[] changed = new boolean[1];
         final Listener<String> listener = data -> changed[0] = true;
         model.addListener(listener);
