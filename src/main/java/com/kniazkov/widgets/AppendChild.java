@@ -1,38 +1,41 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * 'Append child' instruction.
+ * Instruction that appends a child widget to a container.
+ * <p>
+ *     This instruction is used for containers that support multiple children
+ *     (e.g., paragraphs, blocks). The specified widget is added as the last child of the container.
+ * </p>
  */
 final class AppendChild extends Instruction {
     /**
-     * Widget id to be append.
+     * ID of the widget to append.
      */
     private final UId childId;
 
     /**
-     * Constructor.
+     * Constructs a new 'append child' instruction.
      *
-     * @param widgetId Identifier of the widget the instruction is working with
-     * @param childId Widget id to be append
+     * @param widgetId The ID of the container widget
+     * @param childId The ID of the widget to append
      */
-    AppendChild(final @NotNull UId widgetId, final @NotNull UId childId) {
+    AppendChild(final UId widgetId, final UId childId) {
         super(widgetId);
         this.childId = childId;
     }
 
     @Override
-    protected @NotNull String getAction() {
+    protected String getAction() {
         return "append child";
     }
 
     @Override
-    protected void fillJsonObject(final @NotNull JsonObject json) {
+    protected void fillJsonObject(final JsonObject json) {
         json.addString("child", this.childId.toString());
     }
 }

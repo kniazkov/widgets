@@ -1,38 +1,41 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Instructions for creating widgets.
+ * Instruction for creating a widget on the client side.
+ * <p>
+ *     This instruction tells the client to instantiate a new widget of a specified type,
+ *     associated with a given widget ID.
+ * </p>
  */
 final class Create extends Instruction {
     /**
-     * Type of widget to create.
+     * Type of widget to create (e.g., "text", "button", "input field").
      */
     private final String type;
 
     /**
-     * Constructor.
+     * Constructs a new creation instruction for a widget of the given type.
      *
-     * @param widgetId Identifier of the widget the instruction is working with
-     * @param type Type of widget to create
+     * @param widgetId The identifier of the widget to be created
+     * @param type The type of widget to create
      */
-    Create(final @NotNull UId widgetId, final @NotNull String type) {
+    Create(final UId widgetId, final String type) {
         super(widgetId);
         this.type = type;
     }
 
     @Override
-    protected @NotNull String getAction() {
+    protected String getAction() {
         return "create";
     }
 
     @Override
-    protected void fillJsonObject(final @NotNull JsonObject json) {
+    protected void fillJsonObject(final JsonObject json) {
         json.addString("type", this.type);
     }
 }

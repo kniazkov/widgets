@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets;
 
 import com.kniazkov.webserver.Handler;
@@ -9,27 +12,28 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.ByteArrayOutputStream;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Handler of HTTP requests from clients.
+ * HTTP handler that routes incoming requests to appropriate action handlers
+ * or serves static resources (HTML, JS, CSS, images).
  */
 final class HttpHandler implements Handler {
     /**
-     * Handlers for actions that are requested by clients.
+     * Registered action handlers (e.g. "new instance", "synchronize", etc.).
      */
     private final Map<String, ActionHandler> actionHandlers;
 
     /**
-     * Constructor.
-     * @param application Web application to be run
-     * @param options Various options
+     * Constructs an HTTP handler that binds application-specific logic to supported actions.
+     *
+     * @param application The web application
+     * @param options Configuration options (e.g. logger)
      */
-    HttpHandler(final @NotNull Application application, final @NotNull Options options) {
+    HttpHandler(final Application application, final Options options) {
         this.actionHandlers = new TreeMap<>();
         this.actionHandlers.put("new instance", new NewInstance(application, options.logger));
         this.actionHandlers.put("synchronize", new Synchronize(application, options.logger));
@@ -39,98 +43,93 @@ final class HttpHandler implements Handler {
 
     @Override
     public Response handle(Request request) {
-        final String address;
+        // Handle action requests: /?action=...
         if (request.address.startsWith("/?")) {
-            final ActionHandler actionHandler = this.actionHandlers.get(request.formData.get("action"));
-            if (actionHandler != null) {
-                return new ResponseJson(actionHandler.process(request.formData));
+            String action = request.formData.get("action");
+            ActionHandler handler = actionHandlers.get(action);
+            if (handler != null) {
+                return new ResponseJson(handler.process(request.formData));
             }
             return null;
-        } else if (request.address.equals("/")) {
-            address = "/index.html";
-        } else {
-            address = request.address;
         }
-        final URL url = getClass().getResource(address);
+
+        // Normalize root path
+        String address = request.address.equals("/") ? "/index.html" : request.address;
+
+        // Attempt to load static resource
+        URL url = getClass().getResource(address);
         if (url != null) {
             try {
-                final byte[] data = Files.readAllBytes(Paths.get(url.toURI()));
-                final String type = HttpHandler.getContentTypeByExtension(address);
+                byte[] rawData = Files.readAllBytes(Paths.get(url.toURI()));
+                String contentType = getContentTypeByExtension(address);
+                byte[] data = contentType.startsWith("text") ? unpack(rawData) : rawData;
+
                 return new Response() {
                     @Override
                     public String getContentType() {
-                        return type;
+                        return contentType;
                     }
 
                     @Override
                     public byte[] getData() {
-                        return type.startsWith("text") ? HttpHandler.unpack(data) : data;
+                        return data;
                     }
                 };
             } catch (IOException | URISyntaxException ignored) {
+                // Log failure to load resource if needed
             }
         }
+
+        // Resource not found
         return null;
     }
 
     /**
-     * Returns HTTP content type by file extension.
-     * @param path File path
-     * @return HTTP content type
+     * Infers HTTP content type based on file extension.
+     *
+     * @param path Resource file path
+     * @return MIME Type string
      */
-    private static String getContentTypeByExtension(final String path) {
-        String extension = "";
+    private static String getContentTypeByExtension(String path) {
         int index = path.lastIndexOf('.');
-        if (index > 0)
-            extension = path.substring(index + 1).toLowerCase();
-        String type = "application/unknown";
-        if (!extension.isEmpty()) {
-            switch(extension)
-            {
-                case "txt":
-                    type = "text/plain";
-                    break;
-                case "htm":
-                case "html":
-                    type = "text/html";
-                    break;
-                case "css":
-                    type = "text/css";
-                    break;
-                case "js":
-                    type = "text/javascript";
-                    break;
-                case "jpg":
-                case "jpeg":
-                case "png":
-                case "gif":
-                    type = "image/" + extension;
-                    break;
-                default:
-                    type = "application/" + extension;
-            }
+        if (index < 0) return "application/unknown";
+
+        String ext = path.substring(index + 1).toLowerCase(Locale.ROOT);
+        switch (ext) {
+            case "txt":  return "text/plain";
+            case "htm":
+            case "html": return "text/html";
+            case "css":  return "text/css";
+            case "js":   return "text/javascript";
+            case "jpg":
+            case "jpeg":
+            case "png":
+            case "gif":  return "image/" + ext;
+            default:     return "application/" + ext;
         }
-        return type;
     }
 
     /**
-     * Decompresses data packed using RLE compression.
-     * @param data Compressed data
-     * @return Unpacked data
+     * Decompresses RLE-encoded data (used for text resource compression).
+     *
+     * @param data RLE-compressed byte array
+     * @return Decompressed byte array
      */
-    private static byte[] unpack(final byte[] data) {
-        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+    private static byte[] unpack(byte[] data) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         int count = 1;
-        for (final byte b : data) {
+
+        for (byte b : data) {
             if (b < 0) {
                 count = -b;
-                continue;
+            } else {
+                for (int i = 0; i < count; i++) {
+                    out.write(b);
+                }
+                count = 1;
             }
-            for (int index = 0; index < count; index++) {
-                stream.write(b);
-            }
-            count = 1;
         }
-        return stream.toByteArray();
+
+        return out.toByteArray();
     }
 }

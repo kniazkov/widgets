@@ -1,27 +1,36 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 /**
- * Options used when starting the server.
+ * Configuration options used when starting the server.
+ * <p>
+ *     These options control logging behavior and client lifetime.
+ *     Instances of this class are mutable and can be cloned.
+ * </p>
  */
 public final class Options implements Cloneable {
+
     /**
-     * Logger for logging server messages.
+     * Logger for recording server messages.
+     * By default, uses {@link DefaultLogger}.
      */
     public Logger logger = DefaultLogger.INSTANCE;
 
     /**
-     * Maximum client lifetime without upgrading (in ms). If there are no requests from a client
-     * (i.e. a web page) during this time, it is considered closed and the watchdog will destroy
-     * the client. A longer time means a more stable data exchange process (since it all depends
-     * on the reliability of the Internet connection), but a large number of zombie clients
-     * wastes memory.
-     * Some popular browsers practically stop JavaScript program execution if a tab is in an
-     * inactive state. Thus, a minimized web page will make refresh requests rarely - usually
-     * no more than 1 request per minute. Thus, by testing, it has been determined that it is
-     * reasonable to make the client's lifetime without updates more than one minute.
+     * Maximum lifetime of a client without updates, in milliseconds.
+     * <p>
+     *     If no requests are received from a client (i.e., the browser tab) within this time,
+     *     the client is considered disconnected and will be removed by the server watchdog.
+     * </p>
+     *
+     * <p>
+     *     This value should be long enough to account for tabs running in the background,
+     *     where JavaScript timers are throttled by the browser (often to 1 update per minute).
+     *     A default of 3 minutes provides a balance between connection reliability and
+     *     timely cleanup of zombie sessions.
+     * </p>
      */
     public long clientLifetime = 3 * 60 * 1000;
 

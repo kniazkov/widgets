@@ -1,23 +1,30 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
- * Instruction that initiates a client reset.
+ * Instruction that initiates a full client reset.
+ * <p>
+ *     This instruction is used to clear the current client-side state and reinitialize
+ *     everything from scratch. It is typically sent when the server determines that the UI
+ *     must be rebuilt entirely.
+ * </p>
  */
 class ResetClient extends Instruction {
     /**
-     * Constructor.
+     * Constructs a new reset instruction.
+     * <p>
+     *     The widget ID is set to {@link UId#INVALID}, since this instruction is not tied
+     *     to a specific widget.
+     * </p>
      */
     ResetClient() {
         super(UId.INVALID);
     }
 
     @Override
-    protected @NotNull String getAction() {
+    protected String getAction() {
         return "reset";
     }
 }

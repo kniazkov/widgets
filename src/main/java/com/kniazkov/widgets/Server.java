@@ -1,32 +1,47 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.webserver.Handler;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * The web server that runs web applications, the starting point of the library.
+ * The entry point for running a web application.
+ * <p>
+ *     This class starts the HTTP server and binds the provided application to it.
+ *     It acts as a bridge between the widget-based UI framework and the low-level HTTP layer.
+ * </p>
  */
 public final class Server {
-    /**
-     * Starts the web server and the application on it.
-     * @param application Application
-     * @param options Options
-     */
-    public static void start(final @NotNull Application application, final @NotNull Options options) {
-        final Options cOpt = options.clone();
-        Handler handler = new HttpHandler(application, cOpt);
-        application.setOptions(cOpt);
 
+    private Server() {
+        // Static-only class
+    }
+
+    /**
+     * Starts the web server and runs the given application.
+     *
+     * @param application The application instance to launch
+     * @param options Configuration options (logger, timeouts, etc.)
+     */
+    public static void start(final Application application, final Options options) {
+        // Clone options so the application can modify them safely
+        final Options cloned = options.clone();
+        final Handler handler = new HttpHandler(application, cloned);
+        application.setOptions(cloned);
+
+        // Start the underlying HTTP server
         com.kniazkov.webserver.Server.start(getWebServerOptions(), handler);
+
+        // Log startup
         options.logger.write("Server started.");
     }
 
     /**
-     * Fills in the web server options
-     * @return Web server options
+     * Returns configuration options for the underlying web server.
+     * This method may be extended in the future.
+     *
+     * @return Default web server options
      */
     private static com.kniazkov.webserver.Options getWebServerOptions() {
         return new com.kniazkov.webserver.Options();

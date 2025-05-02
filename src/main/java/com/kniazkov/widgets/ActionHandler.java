@@ -1,41 +1,51 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonElement;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 /**
- * Handler for actions that are requested by clients.
+ * Base class for handling actions requested by the client.
+ * <p>
+ *     Each {@code ActionHandler} processes a specific kind of client-side request,
+ *     such as sending events, or handling commands.
+ * </p>
+ *
+ * <p>
+ *     The {@link #process(Map)} method must be implemented to handle incoming request data
+ *     and return a response in JSON format.
+ * </p>
  */
 abstract class ActionHandler {
     /**
-     * Application.
+     * Reference to the application instance.
      */
     protected final Application application;
 
     /**
-     * Logger.
+     * Logger used for diagnostics and error reporting.
      */
     protected final Logger logger;
 
     /**
-     * Constructor.
-     * @param application Application
-     * @param logger Logger
+     * Constructs a new action handler.
+     *
+     * @param application The application instance
+     * @param logger The logger for diagnostic output
      */
-    ActionHandler(final @NotNull Application application, final @NotNull Logger logger) {
+    ActionHandler(final Application application, final Logger logger) {
         this.application = application;
         this.logger = logger;
     }
 
     /**
-     * Processes the action requested by the client.
-     * @param data Data transmitted by the client
-     * @return Result of request processing in JSON format
+     * Processes a request from the client.
+     *
+     * @param data Key-value data received from the client
+     * @return A JSON element representing the response to send back
      */
-    abstract @NotNull JsonElement process(final @NotNull Map<String, String> data);
+    abstract JsonElement process(Map<String, String> data);
 }

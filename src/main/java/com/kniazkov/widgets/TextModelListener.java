@@ -1,35 +1,40 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Listener to follow text model data updates and send instructions to clients.
+ * Listener that tracks changes in a text model and sends an instruction
+ * to the client to update the text of the associated widget.
  */
 final class TextModelListener implements Listener<String> {
     /**
-     * Widget containing model.
+     * Widget associated with the text model.
      */
     private final Widget widget;
 
     /**
-     * Constructor.
-     * @param widget Widget containing model
+     * Constructs a listener for a given widget.
+     *
+     * @param widget The widget whose text will be updated on the client
      */
     TextModelListener(final Widget widget) {
         this.widget = widget;
     }
 
     @Override
-    public void dataChanged(final @NotNull String data) {
-        final Instruction instruction = new Instruction(this.widget.getWidgetId()) {
+    public void dataChanged(final String data) {
+        // Build and send 'set text' instruction
+        Instruction instruction = new Instruction(this.widget.getWidgetId()) {
             @Override
-            protected @NotNull String getAction() {
+            protected String getAction() {
                 return "set text";
             }
 
             @Override
-            protected void fillJsonObject(final @NotNull JsonObject json) {
+            protected void fillJsonObject(JsonObject json) {
                 json.addString("text", data);
             }
         };
