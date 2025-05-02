@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 
 var widgets = { };
@@ -101,6 +101,20 @@ var setColor = function(data) {
         if (flag) {
             console.log("The color \"" + color + "\" has been set to the widget " + data.widget + '.');
         }
+        return true;
+    }
+    return false;
+};
+
+var setFontFace = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["font face"];
+    if (widget && typeof value == "string") {
+        if (value == "default") {
+            value = DEFAULT_FONT_FACE;
+        }
+        widget.style.fontFamily = value;
+        console.log("The font face \"" + value + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;

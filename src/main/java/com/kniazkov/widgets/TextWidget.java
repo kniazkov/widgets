@@ -9,7 +9,7 @@ import java.util.Optional;
 /**
  * A widget that displays plain inline text.
  */
-public final class TextWidget extends InlineWidget implements HasText, HasColor {
+public final class TextWidget extends InlineWidget implements HasStyledText, HasColor {
     /**
      * Text model binding — handles model and listener for text changes.
      */
@@ -19,6 +19,11 @@ public final class TextWidget extends InlineWidget implements HasText, HasColor 
      * Color model binding — handles model and listener for color changes.
      */
     private final ModelBinding<Color> color;
+
+    /**
+     * Font face model binding — handles model and listener for font face changes.
+     */
+    private final ModelBinding<FontFace> fontFace;
 
     /**
      * Constructs a new {@code TextWidget} with default text and color models.
@@ -35,6 +40,10 @@ public final class TextWidget extends InlineWidget implements HasText, HasColor 
         this.color = new ModelBinding<>(
             new DefaultColorModel(),
             new ColorModelListener(this)
+        );
+        this.fontFace = new ModelBinding<>(
+            new DefaultFontFaceModel(),
+            new FontFaceModelListener(this)
         );
     }
 
@@ -83,5 +92,15 @@ public final class TextWidget extends InlineWidget implements HasText, HasColor 
     @Override
     public void setColorModel(final Model<Color> model) {
         this.color.setModel(model);
+    }
+
+    @Override
+    public Model<FontFace> getFontFaceModel() {
+        return this.fontFace.getModel();
+    }
+
+    @Override
+    public void setFontFaceModel(Model<FontFace> model) {
+        this.fontFace.setModel(model);
     }
 }

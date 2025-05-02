@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 
 var clientId = null;
@@ -76,7 +76,8 @@ var actionHandlers = {
     "set child" : setChildWidget,
     "append child" : appendChildWidget,
     "set text" : setText,
-    "set color" : setColor
+    "set color" : setColor,
+    "set font face": setFontFace
 };
 
 var sendEventToServer = function(widget, type, data) {
