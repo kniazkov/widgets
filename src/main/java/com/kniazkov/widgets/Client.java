@@ -6,40 +6,56 @@ package com.kniazkov.widgets;
 import com.kniazkov.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Class describing a client instance.
+ * Represents a single connected client in the system.
+ * <p>
+ *     An instance of this class corresponds to one active web page or browser tab.
+ *     Each client is uniquely identified by a {@link UId} and contains its own widget tree,
+ *     managed by a {@link RootWidget}. The client tracks all registered widgets, handles
+ *     incoming events from the front end, and collects outgoing updates for transmission.
+ * </p>
  */
-final class Client implements Comparable<Client> {
+public final class Client implements Comparable<Client> {
     /**
-     * Identifier.
+     * Unique identifier for this client instance.
      */
     private final UId id;
 
     /**
-     * Timer (in ms). When it expires, the client will be destroyed.
+     * Client expiration timer in milliseconds.
+     * <p>
+     *     When this value reaches zero, the client is considered expired and should be removed.
+     *     It is the responsibility of external code (e.g., a scheduler) to decrement this timer
+     *     and act accordingly.
+     * </p>
      */
     long timer;
 
     /**
-     * All widgets by identifiers.
+     * Mapping of all widgets associated with this client, indexed by their unique identifiers.
+     * <p>
+     *     This collection serves as a registry for event routing and state updates.
+     *     Widgets are stored in a sorted map for predictable iteration order.
+     * </p>
      */
     final Map<UId, Widget> widgets;
 
     /**
-     * Root widget.
+     * The root widget of the client, representing the entry point to the widget hierarchy.
      */
     private final RootWidget root;
 
     /**
-     * Constructor.
+     * Constructs a new client with a unique ID and an empty widget registry.
+     * <p>
+     *     A new {@link RootWidget} is created and associated with this client.
+     * </p>
      */
     Client() {
         this.id = UId.create();
@@ -48,26 +64,33 @@ final class Client implements Comparable<Client> {
     }
 
     /**
-     * Returns client's unique identifier.
-     * @return Client's identifier.
+     * Returns the unique identifier assigned to this client.
+     *
+     * @return Client ID
      */
     UId getId() {
         return this.id;
     }
 
     /**
-     * Returns root widget.
-     * @return Root widget
+     * Returns the root widget of the client.
+     *
+     * @return The root widget
      */
     RootWidget getRootWidget() {
         return this.root;
     }
 
     /**
-     * Collects updates from all widgets to send to the web page.
-     * @return Sorted list of instructions
+     * Collects update instructions from all widgets in this client.
+     * <p>
+     *     These instructions represent state changes to be pushed to the front end.
+     *     The result is a sorted list of unique instructions (duplicates removed).
+     * </p>
+     *
+     * @return Sorted list of instructions to be sent to the client
      */
-    @NotNull List<Instruction> collectUpdates() {
+    List<Instruction> collectUpdates() {
         final Set<Instruction> set = new TreeSet<>();
         for (final Widget widget : widgets.values()) {
             widget.getUpdates(set);
@@ -76,20 +99,59 @@ final class Client implements Comparable<Client> {
     }
 
     /**
-     * Handles event that was sent by web page.
-     * @param widgetId Widget id
-     * @param type Event type
-     * @param data Event-related data
+     * Dispatches an event received from the front end to the appropriate widget.
+     * <p>
+     *     If no matching widget is found for the given ID, the event is ignored.
+     * </p>
+     *
+     * @param widgetId The identifier of the widget that the event targets
+     * @param type The type of the event (e.g., "click", "input")
+     * @param data Optional JSON payload associated with the event
      */
-    void handleEvent(final UId widgetId, final @NotNull String type, final @Nullable JsonObject data) {
+    void handleEvent(final UId widgetId, final String type, final Optional<JsonObject> data) {
         final Widget widget = this.widgets.get(widgetId);
         if (widget != null) {
             widget.handleEvent(type, data);
         }
     }
 
+    /**
+     * Cleans up client state before destruction.
+     * <p>
+     *     Removes all widgets and performs any additional teardown logic.
+     *     This method should be called when the client session expires or is explicitly terminated.
+     * </p>
+     */
+    void destroy() {
+        this.widgets.clear();
+        //...
+    }
+
+    /**
+     * Compares this client to another by their unique ID.
+     */
     @Override
-    public int compareTo(@NotNull Client other) {
+    public int compareTo(final Client other) {
         return this.id.compareTo(other.id);
+    }
+
+    /**
+     * Returns {@code true} if this client has the same ID as another.
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if (obj instanceof Client) {
+            final Client other = (Client) obj;
+            return this.id.equals(other.id);
+        }
+        return false;
+    }
+
+    /**
+     * Returns hash code based on client ID.
+     */
+    @Override
+    public int hashCode() {
+        return this.id.hashCode();
     }
 }

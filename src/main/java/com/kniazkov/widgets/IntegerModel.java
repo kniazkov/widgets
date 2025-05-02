@@ -104,7 +104,10 @@ public final class IntegerModel extends Model<String> {
      */
     public void setIntValue(final int value) {
         this.detach();
-        this.value = value;
         this.valid = true;
+        if (this.value != value) {
+            this.value = value;
+            this.notifyListeners();
+        }
     }
 }

@@ -4,6 +4,7 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
+import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import java.util.Collections;
@@ -124,7 +125,7 @@ public final class Application {
         final Client client = this.clients.get(clientId);
         if (client != null) {
             client.timer = this.options.clientLifetime;
-            client.handleEvent(widgetId, type, data);
+            client.handleEvent(widgetId, type, Optional.ofNullable(data));
         }
     }
 

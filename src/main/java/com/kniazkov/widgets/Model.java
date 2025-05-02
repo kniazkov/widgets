@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-
 package com.kniazkov.widgets;
 
 import java.lang.ref.WeakReference;

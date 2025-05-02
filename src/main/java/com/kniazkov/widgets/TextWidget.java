@@ -4,93 +4,84 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.Optional;
 
 /**
- * Widget that contains plain text.
+ * A widget that displays plain inline text.
  */
 public final class TextWidget extends InlineWidget implements HasText, HasColor {
     /**
-     * Model that stores and processes the text of this widget.
+     * Text model binding — handles model and listener for text changes.
      */
-    private Model<String> textModel;
+    private final ModelBinding<String> text;
 
     /**
-     * Listener to follow text model data updates and send instructions to clients.
+     * Color model binding — handles model and listener for color changes.
      */
-    private final Listener<String> textModelListener;
+    private final ModelBinding<Color> color;
 
     /**
-     * Model that stores and processes the color of this widget.
+     * Constructs a new {@code TextWidget} with default text and color models.
+     *
+     * @param client The owning client instance
+     * @param parent The parent container (nullable for root)
      */
-    private Model<Color> colorModel;
-
-    /**
-     * Listener to follow color model data updates and send instructions to clients.
-     */
-    private final Listener<Color> colorModelListener;
-
-    /**
-     * Constructor.
-     */
-    public TextWidget() {
-        this.textModel = new DefaultStringModel();
-        this.textModelListener = new TextModelListener(this);
-        this.textModel.addListener(this.textModelListener);
-
-        this.colorModel = new DefaultColorModel();
-        this.colorModelListener = new ColorModelListener(this);
-        this.colorModel.addListener(this.colorModelListener);
+    TextWidget(final Client client, final Container parent) {
+        super(client, parent);
+        this.text = new ModelBinding<>(
+            new DefaultStringModel(),
+            new TextModelListener(this)
+        );
+        this.color = new ModelBinding<>(
+            new DefaultColorModel(),
+            new ColorModelListener(this)
+        );
     }
 
     /**
-     * Constructor that creates a widget with text.
-     * @param text Text
+     * Constructs a new {@code TextWidget} with initial text.
+     *
+     * @param client The owning client instance
+     * @param parent The parent container (nullable for root)
+     * @param text Initial text to display
      */
-    public TextWidget(final @NotNull String text) {
-        this();
-        this.textModel.setData(text);
+    public TextWidget(final Client client, final Container parent, final String text) {
+        this(client, parent);
+        this.text.getModel().setData(text);
     }
 
     @Override
-    public boolean accept(final @NotNull WidgetVisitor visitor) {
+    public boolean accept(final WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 
     @Override
-    @NotNull String getType() {
+    String getType() {
         return "text";
     }
 
     @Override
-    void handleEvent(final @NotNull String type, final @Nullable JsonObject data) {
-        // no events supported
+    void handleEvent(final String type, final Optional<JsonObject> data) {
+        // This widget does not handle events
     }
 
     @Override
-    public @NotNull Model<String> getTextModel() {
-        return this.textModel;
+    public Model<String> getTextModel() {
+        return this.text.getModel();
     }
 
     @Override
-    public void setTextModel(@NotNull Model<String> model) {
-        this.textModel.removeListener(this.textModelListener);
-        this.textModel = model;
-        this.textModel.addListener(this.textModelListener);
-        this.textModel.notifyListeners();
+    public void setTextModel(final Model<String> model) {
+        this.text.setModel(model);
     }
 
     @Override
-    public @NotNull Model<Color> getColorModel() {
-        return this.colorModel;
+    public Model<Color> getColorModel() {
+        return this.color.getModel();
     }
 
     @Override
-    public void setColorModel(@NotNull Model<Color> model) {
-        this.colorModel.removeListener(this.colorModelListener);
-        this.colorModel = model;
-        this.colorModel.addListener(this.colorModelListener);
-        this.colorModel.notifyListeners();
+    public void setColorModel(final Model<Color> model) {
+        this.color.setModel(model);
     }
 }

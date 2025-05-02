@@ -1,50 +1,81 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
+
 package com.kniazkov.widgets;
 
 import java.util.concurrent.atomic.AtomicLong;
-import org.jetbrains.annotations.NotNull;
 
 /**
- * Unique identifier. It is never repeated within the same session.
+ * A session-unique identifier.
+ * <p>
+ *     Instances of this class represent unique, monotonically increasing identifiers
+ *     that are guaranteed to be distinct within the same application session.
+ *     Identifiers are generated using an atomic counter, making this class safe for use
+ *     in concurrent environments.
+ * </p>
+ *
+ * <p>
+ *     Identifiers can be serialized and deserialized using a string format: {@code #<number>},
+ *     e.g., {@code #123}. The {@link #parse(String)} method supports conversion from this
+ *     representation, typically used when identifiers are passed from clients (e.g., via JSON).
+ * </p>
+ *
+ * <p>
+ *     The class supports equality, ordering (via {@link Comparable}), and is hashable,
+ *     making it compatible with all standard Java collections such as {@link java.util.HashSet},
+ *     {@link java.util.HashMap}, {@link java.util.TreeSet}, etc.
+ * </p>
  */
 public final class UId implements Comparable<UId> {
     /**
-     * Next identifier.
+     * Global atomic counter for generating unique identifiers.
      */
     private static final AtomicLong next = new AtomicLong(0);
 
     /**
-     * Invalid unique identifier.
+     * Special constant representing an invalid or uninitialized identifier.
      */
     public static final UId INVALID = new UId(0);
 
     /**
-     * Identifier.
+     * Numeric ID value (non-zero for valid identifiers).
      */
     private final long id;
 
     /**
-     * Constructor.
-     * @param id Unique number
+     * Constructs a new identifier from a numeric value.
+     * Private to enforce controlled creation through {@link #create()} or {@link #parse(String)}.
+     *
+     * @param id the numeric ID
      */
     private UId(final long id) {
         this.id = id;
     }
 
     /**
-     * Creates a new unique identifier.
-     * @return An identifier that did not previously exist within this session
+     * Generates a new globally unique identifier.
+     * <p>
+     *     The returned value is guaranteed to be unique within the current session.
+     * </p>
+     *
+     * @return a newly created unique identifier
      */
-    public static @NotNull UId create() {
+    public static UId create() {
         return new UId(next.incrementAndGet());
     }
 
     /**
-     * Parses an identifier from a string representation.
-     * This is necessary to use identifiers that come as part of JSON requests from clients.
-     * @param str String representation of the identifier
-     * @return Parsed identifier
+     * Parses a {@link UId} from its string representation.
+     * <p>
+     *     The expected format is {@code #<number>}. If the string does not conform to this format,
+     *     or the number is invalid, {@link #INVALID} is returned.
+     * </p>
+     *
+     * @param str the string to parse
+     * @return a parsed {@link UId} instance, or {@link #INVALID} if parsing fails
      */
-    public static @NotNull UId parse(final @NotNull String str) {
+    public static UId parse(final String str) {
         if (str.startsWith("#")) {
             try {
                 final long id = Long.parseLong(str.substring(1));
@@ -56,8 +87,12 @@ public final class UId implements Comparable<UId> {
     }
 
     /**
-     * Returns string representation of the identifier.
-     * @return String representation of the identifier
+     * Returns a string representation of this identifier.
+     * <p>
+     *     The format is {@code #<number>} for valid IDs, or {@code #?} for {@link #INVALID}.
+     * </p>
+     *
+     * @return string representation of this identifier
      */
     @Override
     public String toString() {
@@ -65,21 +100,26 @@ public final class UId implements Comparable<UId> {
     }
 
     /**
-     * Compares an identifier to other one for order
-     *  (this needed for {@link java.util.TreeSet} and {@link java.util.TreeMap} classes).
-     * @param other Other identifier.
-     * @return Comparison result
+     * Compares this identifier to another based on numeric order.
+     *
+     * @param other the identifier to compare against
+     * @return a negative number, zero, or a positive number as this ID is less than,
+     *  equal to, or greater than the other
      */
     @Override
-    public int compareTo(final @NotNull UId other) {
+    public int compareTo(final UId other) {
         return Long.compare(this.id, other.id);
     }
 
     /**
-     * Compares identifier to other object
-     * @param obj Another object
-     * @return Comparison result ({@code true} if other object is unique identifier and has
-     *  the same number)
+     * Determines whether this identifier is equal to another object.
+     * <p>
+     *     Two {@code UId} instances are considered equal if they hold the same numeric value.
+     * </p>
+     *
+     * @param obj the object to compare
+     * @return {@code true} if the other object is a {@code UId} with the same value;
+     *  {@code false} otherwise
      */
     @Override
     public boolean equals(final Object obj) {
@@ -91,9 +131,9 @@ public final class UId implements Comparable<UId> {
     }
 
     /**
-     * Returns a hash code for the identifier
-     *  (this needed for {@link java.util.HashSet} and {@link java.util.HashMap} classes).
-     * @return Hash code
+     * Returns the hash code for this identifier, based on its numeric value.
+     *
+     * @return hash code of this identifier
      */
     @Override
     public int hashCode() {

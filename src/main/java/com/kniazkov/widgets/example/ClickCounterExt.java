@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets.example;
 
@@ -7,48 +7,71 @@ import com.kniazkov.widgets.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * A web application that contains a button that can be clicked by the user,
- * as well as a counter of such clicks. The second counter shows the number of button clicks
- * on all pages (instances) of the web application.
- * Here is a demonstration of updating data that is in another, inactive window,
- * without having to manually refresh the web page.
+ * A web application that contains a button and two counters:
+ * <ul>
+ *     <li>One counter displays the number of clicks made on the current page (local counter);</li>
+ *     <li>
+ *         The second counter displays the total number of clicks made across all open pages
+ *         (global counter).
+ *     </li>
+ * </ul>
+ *
+ * <p>
+ *     This example demonstrates how to share a model across multiple UI instances and
+ *     automatically propagate updates between windows/tabs, without needing manual refresh.
+ * </p>
+ *
+ * <p>
  * How to use:
- *   1. Run the program;
- *   2. Open your browser and type "<a href="http://localhost:8000">...</a>" in the address bar;
- *   3. Open a second tab at the same address.
+ * <ol>
+ *     <li>Run the program;</li>
+ *     <li>
+ *         Open your browser and go to
+ *         <a href="http://localhost:8000">http://localhost:8000</a>;
+ *     </li>
+ *     <li>
+ *         Open the same address in a second tab or window — place them side by side
+ *         to observe live sync.
+ *     </li>
+ * </ol>
  */
 public class ClickCounterExt {
     /**
      * Starting point.
+     *
      * @param args Program arguments
      */
     public static void main(String[] args) {
+        // Define the page logic. One global model is shared across all page instances.
         final Page page = new Page() {
+            // Shared model: will be reused across all pages (shared by reference)
             final IntegerModel globalCounterModel = new IntegerModel();
 
             @Override
             public void create(@NotNull RootWidget root) {
-                final Button button = new Button();
-                button.setChild(new TextWidget("Click me"));
+                // Paragraph containing the button
+                final Paragraph p0 = root.createParagraph();
+                final Button button = p0.createButton("Click me");
 
-                final Paragraph p0 = new Paragraph();
-                root.appendChild(p0);
-                p0.appendChild(button);
+                // Paragraph containing the counters
+                final Paragraph p1 = root.createParagraph();
+                p1.createTextWidget("Click counter: ");
 
-                final TextWidget localCounter = new TextWidget();
+                // Local counter: private to this page
+                final TextWidget localCounter = p1.createTextWidget();
                 final IntegerModel localCounterModel = new IntegerModel();
                 localCounter.setTextModel(localCounterModel);
-                final TextWidget globalCounter = new TextWidget();
+
+                // Separator
+                p1.createTextWidget("(");
+
+                // Global counter: shared across all pages
+                final TextWidget globalCounter = p1.createTextWidget();
                 globalCounter.setTextModel(globalCounterModel);
 
-                final Paragraph p1 = new Paragraph();
-                root.appendChild(p1);
-                p1.appendChild(new TextWidget("Click counter: "))
-                    .appendChild(localCounter)
-                    .appendChild(new TextWidget(" ("))
-                    .appendChild(globalCounter)
-                    .appendChild(new TextWidget(")"));
+                p1.createTextWidget(")");
 
+                // On button click: increment both counters
                 button.onClick(() -> {
                     localCounterModel.setIntValue(localCounterModel.getIntValue() + 1);
                     globalCounterModel.setIntValue(globalCounterModel.getIntValue() + 1);
@@ -56,6 +79,7 @@ public class ClickCounterExt {
             }
         };
 
+        // Create the application and start the server
         final Application application = new Application(page);
         final Options options = new Options();
         Server.start(application, options);

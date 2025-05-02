@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets.example;
 
@@ -7,38 +7,55 @@ import com.kniazkov.widgets.*;
 
 /**
  * A web application that contains a button that can be clicked by the user,
- * as well as a counter of such clicks. The principle of controller implementation
- * is demonstrated here.
- * How to use:
- *   1. Run the program;
- *   2. Open your browser and type "<a href="http://localhost:8000">...</a>" in the address bar.
+ * along with a counter showing how many times the button has been clicked.
+ * <p>
+ *     This example demonstrates how to use a controller to react to user interaction
+ *     and update the underlying model.
+ * </p>
+ *
+ * <p>
+ *     How to use:
+ * <ol>
+ *     <li>Run the program;</li>
+ *     <li>
+ *         Open your browser and go to <a href="http://localhost:8000">http://localhost:8000</a>.
+ *     </li>
+ * </ol>
  */
 public class ClickCounter {
+
     /**
      * Starting point.
+     *
      * @param args Program arguments
      */
     public static void main(String[] args) {
+        // Defines the structure and logic of the page
         final Page page = root -> {
-            final Paragraph p0 = new Paragraph();
-            root.appendChild(p0);
-            final Button button = new Button();
-            p0.appendChild(button);
-            button.setChild(new TextWidget("Click me"));
+            // First paragraph: contains the button
+            final Paragraph p0 = root.createParagraph();
+            final Button button = p0.createButton("Click me");
 
-            final Paragraph p1 = new Paragraph();
-            root.appendChild(p1);
-            final TextWidget counter = new TextWidget();
-            p1.appendChild(new TextWidget("Click counter: "))
-                .appendChild(counter);
+            // Second paragraph: contains the label and counter
+            final Paragraph p1 = root.createParagraph();
+            p1.createTextWidget("Click counter: ");
+
+            // Create a text widget to display the counter value
+            final TextWidget counter = p1.createTextWidget();
+
+            // Create a model to hold the integer counter value
             final IntegerModel model = new IntegerModel();
+
+            // Bind the counter widget to the model
             counter.setTextModel(model);
 
+            // Handle button clicks: increment the value stored in the model
             button.onClick(() -> {
                 model.setIntValue(model.getIntValue() + 1);
             });
         };
 
+        // Create the application and start the server
         final Application application = new Application(page);
         final Options options = new Options();
         Server.start(application, options);

@@ -1,6 +1,8 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets;
 
-import com.kniazkov.json.JsonObject;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -17,17 +19,13 @@ public class InstructionPropagationTest {
     public void test() {
         final Client client = new Client();
         final RootWidget root = client.getRootWidget();
-        final Paragraph paragraph = new Paragraph();
-        root.appendChild(paragraph);
-        final TextWidget label = new TextWidget("Enter value:");
-        paragraph.appendChild(label);
-        final InputField input = new InputField();
-        paragraph.appendChild(input);
+        final Paragraph paragraph = root.createParagraph();
+        final TextWidget label = paragraph.createTextWidget("Enter value:");
+        final InputField input = paragraph.createInputField();
         final IntegerModel model = new IntegerModel();
         input.setTextModel(model);
         model.setIntValue(13);
-        final Button button = new Button("Submit");
-        paragraph.appendChild(button);
+        final Button button = paragraph.createButton("Submit");
         final List<Instruction> updates = client.collectUpdates();
         Assert.assertFalse(updates.isEmpty());
     }

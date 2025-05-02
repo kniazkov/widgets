@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A container that can contain only one widget, and can give that child some properties.
@@ -16,24 +17,14 @@ public interface Decorator<T extends Widget> extends Container {
      * by default that is decorated .
      * @return Widget
      */
-    @NotNull T getChild();
-
-    /**
-     * Sets a new child widget in replacing an existing one.
-     * @param child New child widget
-     */
-    void setChild(@NotNull T child);
+    T getChild();
 
     @Override
-    default int getChildCount() {
-        return 1;
+    default List<Widget> getChildren() {
+        return Collections.singletonList(this.getChild());
     }
 
-    @Override
-    @NotNull default Widget getChild(final int index) throws IndexOutOfBoundsException {
-        if (index == 0) {
-            return this.getChild();
-        }
-        throw new IndexOutOfBoundsException();
+    default  List<T> getTypedChildren() {
+        return Collections.singletonList(this.getChild());
     }
 }

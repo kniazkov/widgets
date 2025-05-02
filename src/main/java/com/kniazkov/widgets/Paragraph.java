@@ -1,60 +1,93 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Widget that can contain text and other inline elements.
+ * A block-level widget that displays a paragraph consisting of text and inline elements.
+ * <p>
+ *     This widget acts as a {@link BlockWidget} and implements {@link InlineContainer},
+ *     allowing it to hold and manage a sequence of {@link InlineWidget} instances
+ *     (e.g. text, buttons, inputs). Widgets are laid out horizontally, in a flow-like manner,
+ *     and rendered top-to-bottom as a block.
+ * </p>
  */
-public final class Paragraph extends BlockWidget implements TypedContainer<InlineWidget> {
+public final class Paragraph extends BlockWidget implements InlineContainer {
     /**
      * Children widgets.
      */
     private final List<InlineWidget> children;
 
     /**
-     * Constructor.
+     * Constructs a new widget and registers it with the associated client.*
+     * @param client The owning client instance
+     * @param parent The container that owns this widget (nullable for root)
      */
-    public Paragraph() {
-        this.children = new ArrayList<>();
+    public Paragraph(Client client, Container parent) {
+        super(client, parent);
+        this.children = new LinkedList<>();
     }
 
     @Override
-    public boolean accept(final @NotNull WidgetVisitor visitor) {
+    public boolean accept(final WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 
     @Override
-    @NotNull String getType() {
+    String getType() {
         return "paragraph";
     }
 
     @Override
-    void handleEvent(final @NotNull String type, final @Nullable JsonObject data) {
+    void handleEvent(final String type, final Optional<JsonObject> data) {
         // do nothing for now
     }
 
     @Override
-    public int getChildCount() {
-        return this.children.size();
+    public List<InlineWidget> getTypedChildren() {
+        return Collections.unmodifiableList(new ArrayList<>(this.children));
     }
 
     @Override
-    public @NotNull InlineWidget getChild(final int index) throws IndexOutOfBoundsException {
-        return this.children.get(index);
+    public void remove(final Widget widget) {
+        this.children.remove(widget);
     }
 
-    public Paragraph appendChild(final @NotNull InlineWidget widget) {
-        this.children.add(widget);
-        widget.setParent(this);
-        this.sendToClient(new AppendChild(this.getWidgetId(), widget.getWidgetId()));
-        return this;
+    @Override
+    public TextWidget createTextWidget(final String text) {
+        final TextWidget widget = new TextWidget(this.getClient(), this, text);
+        this.appendChild(widget);
+        return widget;
+    }
+
+    @Override
+    public InputField createInputField() {
+        final InputField widget = new InputField(this.getClient(), this);
+        this.appendChild(widget);
+        return widget;
+    }
+
+    @Override
+    public Button createButton() {
+        final Button widget = new Button(this.getClient(), this);
+        this.appendChild(widget);
+        return widget;
+    }
+
+    /**
+     * Adds a new child widget and sends an update to the client.
+     *
+     * @param child The inline widget to add
+     */
+    private void appendChild(final InlineWidget child) {
+        this.children.add(child);
+        this.sendToClient(new AppendChild(this.getWidgetId(), child.getWidgetId()));
     }
 }

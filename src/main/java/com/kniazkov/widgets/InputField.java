@@ -1,65 +1,81 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.util.Optional;
 
 /**
- * Input field widget.
+ * A widget representing a single-line text input field.
+ * <p>
+ *     Internally, the text content is managed using a {@link Model}, allowing for reactive
+ *     behavior, validation, and data binding. Controllers can be assigned to handle input
+ *     and click events.
+ * </p>
  */
 public final class InputField extends InlineWidget implements HasTextInput, Clickable {
     /**
-     * Model that stores and processes the text of this widget.
+     * Text model binding — handles model and listener for text changes.
      */
-    private Model<String> textModel;
+    private final ModelBinding<String> text;
 
     /**
-     * Listener to follow text model data updates and send instructions to clients.
-     */
-    private final Listener<String> textModelListener;
-
-    /**
-     * Controller that determines the behavior when the field is clicked.
+     * Controller invoked when the user modifies the text.
      */
     private TypedController<String> textInputCtrl;
 
     /**
-     * Controller that determines the behavior when the field is clicked.
+     * Controller invoked when the field is clicked.
      */
     private Controller clickCtrl;
 
     /**
-     * Constructor.
+     * Constructs a new input field with default model and no-op controllers.
+     *
+     * @param client the owning client
+     * @param parent the container this widget belongs to
      */
-    public InputField() {
-        this.textModel = new DefaultStringModel();
-        this.textModelListener = new TextModelListener(this);
-        this.textModel.addListener(this.textModelListener);
-        this.textInputCtrl = data -> { };
+    InputField(final Client client, final Container parent) {
+        super(client, parent);
+        this.text = new ModelBinding<>(
+            new DefaultStringModel(),
+            new TextModelListener(this)
+        );
+        this.textInputCtrl = data -> { }; // no-op
         this.clickCtrl = StubController.INSTANCE;
     }
 
     @Override
-    public boolean accept(final @NotNull WidgetVisitor visitor) {
+    public boolean accept(final WidgetVisitor visitor) {
         return visitor.visit(this);
     }
 
     @Override
-    @NotNull String getType() {
+    String getType() {
         return "input field";
     }
 
+    /**
+     * Handles input and click events from the client.
+     * <p>
+     * Recognized event types:
+     * <ul>
+     *     <li>{@code "text input"} — updates the model and invokes the input controller</li>
+     *     <li>{@code "click"} — invokes the click controller</li>
+     * </ul>
+     *
+     * @param type event type
+     * @param data optional event data (e.g., new text)
+     */
     @Override
-    void handleEvent(final @NotNull String type, final @Nullable JsonObject data) {
-        if (type.equals("text input") && data != null) {
-            final JsonElement element = data.getElement("text");
+    void handleEvent(final String type, final Optional<JsonObject> data) {
+        if (type.equals("text input") && data.isPresent()) {
+            final JsonElement element = data.get().getElement("text");
             if (element.isString()) {
                 final String text = element.getStringValue();
-                this.textModel.setData(text);
+                this.text.getModel().setData(text);
                 this.textInputCtrl.handleEvent(text);
             }
         } else if (type.equals("click")) {
@@ -68,25 +84,22 @@ public final class InputField extends InlineWidget implements HasTextInput, Clic
     }
 
     @Override
-    public @NotNull Model<String> getTextModel() {
-        return this.textModel;
+    public Model<String> getTextModel() {
+        return this.text.getModel();
     }
 
     @Override
-    public void setTextModel(@NotNull Model<String> model) {
-        this.textModel.removeListener(this.textModelListener);
-        this.textModel = model;
-        this.textModel.addListener(this.textModelListener);
-        this.textModel.notifyListeners();
+    public void setTextModel(final Model<String> model) {
+        this.text.setModel(model);
     }
 
     @Override
-    public void onTextInput(@NotNull TypedController<String> ctrl) {
+    public void onTextInput(TypedController<String> ctrl) {
         this.textInputCtrl = ctrl;
     }
 
     @Override
-    public void onClick(@NotNull Controller ctrl) {
+    public void onClick(final Controller ctrl) {
         this.clickCtrl = ctrl;
     }
 }

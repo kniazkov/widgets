@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets.example;
 
@@ -14,36 +14,51 @@ import com.kniazkov.widgets.TextWidget;
 
 /**
  * A web application that demonstrates text color changes.
+ * <p>
+ *     When the user clicks one of the color buttons, the text color updates accordingly.
+ * </p>
+ *
+ * <p>
  * How to use:
- *   1. Run the program;
- *   2. Open your browser and type "<a href="http://localhost:8000">...</a>" in the address bar.
+ * <ol>
+ *     <li>Run the program;</li>
+ *     <li>
+ *         Open your browser and go to
+ *         <a href="http://localhost:8000">http://localhost:8000</a>.
+ *     </li>
+ * </ol>
  */
 public class TextColor {
+
     /**
      * Starting point.
+     *
      * @param args Program arguments
      */
     public static void main(String[] args) {
+        // Defines the structure and behavior of the page
         final Page page = root -> {
-            final Paragraph paragraph = new Paragraph();
-            root.appendChild(paragraph);
+            // Create a horizontal paragraph to hold all widgets
+            final Paragraph paragraph = root.createParagraph();
 
-            final TextWidget text = new TextWidget("Click on some button and the color changes:");
-            paragraph.appendChild(text);
+            // Create a text widget with default color
+            final TextWidget text =
+                paragraph.createTextWidget("Click on some button and the color changes:");
 
-            final Button red = new Button("red");
-            paragraph.appendChild(red);
+            // Create a red button and set its click handler to change the text color
+            final Button red = paragraph.createButton("red");
             red.onClick(() -> text.setColor(Color.RED));
 
-            final Button green = new Button("green");
-            paragraph.appendChild(green);
+            // Create a green button with the same behavior
+            final Button green = paragraph.createButton("green");
             green.onClick(() -> text.setColor(Color.GREEN));
 
-            final Button blue = new Button("blue");
-            paragraph.appendChild(blue);
+            // Create a blue button
+            final Button blue = paragraph.createButton("blue");
             blue.onClick(() -> text.setColor(Color.BLUE));
         };
 
+        // Create the application and start the server
         final Application application = new Application(page);
         final Options options = new Options();
         Server.start(application, options);

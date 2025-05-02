@@ -1,19 +1,22 @@
 /*
- * Copyright (c) 2024 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
- * Interface that describes the behavior when some event occurs.
- * This event contains additional data of a specified type.
- * @param <T> Type of event data
+ * A controller that reacts to events carrying additional data of a specific type.
+ *
+ * @param <T> The type of data associated with the event
  */
 public interface TypedController<T> {
     /**
-     * Method called when some event occurs.
-     * @param data Data that is transmitted with the event
+     * Handles an event with the given data.
+     * <p>
+     *     This method is called when an event occurs and the corresponding value of type {@code T}
+     *     is passed along. Used in contexts like input changes, selection updates, etc.
+     * </p>
+     *
+     * @param data Event-specific data
      */
-    void handleEvent(@NotNull T data);
+    void handleEvent(T data);
 }

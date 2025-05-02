@@ -4,10 +4,22 @@
 package com.kniazkov.widgets;
 
 /**
- * An inline widget, that is, one that can be inside a line (string).
- * As a rule, such a widget has exactly the width required to display content,
- * and such widgets are placed in containers from left to right..
+ * A base class for inline widgets.
+ * <p>
+ *     An inline widget is a UI element that can appear inside a line of text or be laid out
+ *     horizontally alongside other widgets. These widgets typically consume only as much
+ *     horizontal space as needed to display their content and are positioned left to right
+ *     in a container.
+ * </p>
  */
 public abstract class InlineWidget extends Widget {
 
+    /**
+     * Constructs a new widget and registers it with the associated client.
+     * @param client The owning client instance
+     * @param parent The container that owns this widget (nullable for root)
+     */
+    public InlineWidget(Client client, Container parent) {
+        super(client, parent);
+    }
 }
