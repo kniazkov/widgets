@@ -8,7 +8,7 @@ import com.kniazkov.widgets.*;
 /**
  * A web application that demonstrates the processing of integer values entered into a text field.
  * <p>
- *     In this example, an {@link IntegerModel} is used to parse and validate user input.
+ *     In this example, an {@link IntegerViaStringModel} is used to parse and validate user input.
  *     When a valid number is entered, it is multiplied by 2 and the result is displayed next
  *     to the input.
  * </p>
@@ -39,7 +39,7 @@ public class IntegerInput {
             final InputField input = line.createInputField();
 
             // Create an IntegerModel that parses string input into integers
-            final IntegerModel inputData = new IntegerModel();
+            final IntegerViaStringModel inputData = new IntegerViaStringModel();
 
             // Bind the input field to the IntegerModel
             input.setTextModel(inputData);

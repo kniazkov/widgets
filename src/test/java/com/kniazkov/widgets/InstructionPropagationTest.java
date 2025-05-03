@@ -22,7 +22,7 @@ public class InstructionPropagationTest {
         final Paragraph paragraph = root.createParagraph();
         final TextWidget label = paragraph.createTextWidget("Enter value:");
         final InputField input = paragraph.createInputField();
-        final IntegerModel model = new IntegerModel();
+        final IntegerViaStringModel model = new IntegerViaStringModel();
         input.setTextModel(model);
         model.setIntValue(13);
         final Button button = paragraph.createButton("Submit");

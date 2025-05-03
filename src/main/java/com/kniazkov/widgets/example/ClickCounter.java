@@ -44,7 +44,7 @@ public class ClickCounter {
             final TextWidget counter = p1.createTextWidget();
 
             // Create a model to hold the integer counter value
-            final IntegerModel model = new IntegerModel();
+            final IntegerViaStringModel model = new IntegerViaStringModel();
 
             // Bind the counter widget to the model
             counter.setTextModel(model);

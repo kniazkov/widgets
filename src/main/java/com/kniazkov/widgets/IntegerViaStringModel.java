@@ -31,7 +31,7 @@ import java.util.Optional;
  *     to the numeric value.
  * </p>
  */
-public final class IntegerModel extends Model<String> {
+public final class IntegerViaStringModel extends Model<String> {
     /**
      * Parsed integer value stored internally.
      */
@@ -45,14 +45,14 @@ public final class IntegerModel extends Model<String> {
     /**
      * Constructs an initially invalid integer model with value set to 0.
      */
-    public IntegerModel() {
+    public IntegerViaStringModel() {
         this.value = 0;
         this.valid = false;
     }
 
     @Override
     protected Model<String> createInstance() {
-        return new IntegerModel();
+        return new IntegerViaStringModel();
     }
 
     @Override

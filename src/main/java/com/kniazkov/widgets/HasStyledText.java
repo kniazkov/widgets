@@ -55,6 +55,47 @@ public interface HasStyledText extends HasText {
     }
 
     /**
+     * Returns the model used to store and manage the font size of this text.
+     *
+     * @return The model containing the font size
+     */
+    Model<FontSize> getFontSizeModel();
+
+    /**
+     * Sets the model used to store and manage the font size of this text.
+     *
+     * @param model The new font size model
+     */
+    void setFontSizeModel(Model<FontSize> model);
+
+    /**
+     * Returns the current font size used for rendering the text.
+     *
+     * @return The current font size
+     */
+    default FontSize getFontSize() {
+        return this.getFontSizeModel().getData();
+    }
+
+    /**
+     * Sets the font size used for rendering the text.
+     *
+     * @param size The font size to apply
+     */
+    default void setFontSize(FontSize size) {
+        this.getFontSizeModel().setData(size);
+    }
+
+    /**
+     * Sets the font size using a CSS-style string (e.g., "12pt", "14px").
+     *
+     * @param size The string representing font size
+     */
+    default void setFontSize(String size) {
+        this.setFontSize(new FontSize(size));
+    }
+
+    /**
      * Returns the model used to store and manage the font weight of this text.
      *
      * @return The model containing the font weight

@@ -78,6 +78,7 @@ var actionHandlers = {
     "set text" : setText,
     "set color" : setColor,
     "set font face": setFontFace,
+    "set font size": setFontSize,
     "set font weight": setFontWeight,
     "set italic": setItalic
 };

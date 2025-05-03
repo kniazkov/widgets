@@ -45,7 +45,7 @@ public class ClickCounterExt {
         // Define the page logic. One global model is shared across all page instances.
         final Page page = new Page() {
             // Shared model: will be reused across all pages (shared by reference)
-            final IntegerModel globalCounterModel = new IntegerModel();
+            final IntegerViaStringModel globalCounterModel = new IntegerViaStringModel();
 
             @Override
             public void create(@NotNull RootWidget root) {
@@ -59,7 +59,7 @@ public class ClickCounterExt {
 
                 // Local counter: private to this page
                 final TextWidget localCounter = p1.createTextWidget();
-                final IntegerModel localCounterModel = new IntegerModel();
+                final IntegerViaStringModel localCounterModel = new IntegerViaStringModel();
                 localCounter.setTextModel(localCounterModel);
 
                 // Separator
