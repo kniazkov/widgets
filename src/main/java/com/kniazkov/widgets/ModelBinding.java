@@ -27,6 +27,7 @@ public final class ModelBinding<T> {
         this.listener = listener;
         this.model = model;
         this.model.addListener(this.listener);
+        this.model.notifyListeners();
     }
 
     /**

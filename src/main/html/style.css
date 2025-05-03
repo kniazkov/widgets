@@ -1,5 +1,4 @@
 body {
-    font-family: 'Inter';
     font-size: 11pt;
     font-weight: 400;
     color: black;
@@ -7,14 +6,12 @@ body {
 }
 
 span {
-    font-family: 'Inter';
     font-size: 11pt;
     font-weight: 400;
     color: black;
 }
 
 input {
-    font-family: 'Inter';
     font-size: 11pt;
     font-weight: 700;
     color: black;

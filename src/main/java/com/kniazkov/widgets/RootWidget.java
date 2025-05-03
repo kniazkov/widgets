@@ -23,16 +23,26 @@ import java.util.Optional;
  * </p>
  *
  * <p>
+ *     In addition to serving as the root of the widget tree, the root widget also maintains
+ *     a shared {@link StyleSet}, which holds default styles for the application. These styles
+ *     can be accessed by child widgets during initialization to ensure consistent appearance.
+ * </p>
+ *
+ * <p>
  *     The root widget cannot be instantiated manually — it is created automatically and managed
  *     by the framework.
  * </p>
  */
 public final class RootWidget extends Widget implements BlockContainer {
-
     /**
      * List of block-level children contained by this root widget.
      */
     private final List<BlockWidget> children;
+
+    /**
+     * Shared default styles accessible from all widgets in this tree.
+     */
+    private final StyleSet styles;
 
     /**
      * Constructs the root widget.
@@ -45,6 +55,7 @@ public final class RootWidget extends Widget implements BlockContainer {
     RootWidget(final Client client) {
         super(client, null);
         this.children = new ArrayList<>();
+        this.styles = new StyleSet();
     }
 
     @Override
@@ -87,5 +98,18 @@ public final class RootWidget extends Widget implements BlockContainer {
     private void appendChild(final BlockWidget child) {
         this.children.add(child);
         this.sendToClient(new AppendChild(this.getWidgetId(), child.getWidgetId()));
+    }
+
+    /**
+     * Returns the shared default style set for this root.
+     * <p>
+     *     This can be used by widgets to apply consistent appearance based on centralized styles.
+     *     Changes to styles here will affect all widgets using forked models derived from them.
+     * </p>
+     *
+     * @return The default style set
+     */
+    public StyleSet getDefaultStyles() {
+        return this.styles;
     }
 }
