@@ -37,7 +37,7 @@ import com.kniazkov.widgets.TextWidgetStyle;
  *     </li>
  * </ol>
  */
-public class TextStyle {
+public class FontFaceExample {
     /**
      * Starting point.
      *

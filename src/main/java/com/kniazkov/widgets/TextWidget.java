@@ -26,6 +26,11 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
     private final ModelBinding<FontFace> fontFace;
 
     /**
+     * Font weight model binding — handles model and listener for font weight changes.
+     */
+    private final ModelBinding<FontWeight> fontWeight;
+
+    /**
      * Constructs a new {@code TextWidget} with default text and color models.
      *
      * @param client The owning client instance
@@ -45,6 +50,10 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
         this.fontFace = new ModelBinding<>(
             styles.getDefaultTextWidgetStyle().getFontFaceModel().fork(),
             new FontFaceModelListener(this)
+        );
+        this.fontWeight = new ModelBinding<>(
+            styles.getDefaultTextWidgetStyle().getFontWeightModel().fork(),
+            new FontWeightModelListener(this)
         );
     }
 
@@ -101,7 +110,17 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
     }
 
     @Override
-    public void setFontFaceModel(Model<FontFace> model) {
+    public void setFontFaceModel(final Model<FontFace> model) {
         this.fontFace.setModel(model);
+    }
+
+    @Override
+    public Model<FontWeight> getFontWeightModel() {
+        return this.fontWeight.getModel();
+    }
+
+    @Override
+    public void setFontWeightModel(final Model<FontWeight> model) {
+        this.fontWeight.setModel(model);
     }
 }

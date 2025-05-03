@@ -120,6 +120,17 @@ var setFontFace = function(data) {
     return false;
 };
 
+var setFontWeight = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["font weight"];
+    if (widget && typeof value == "number") {
+        widget.style.fontWeight = value;
+        console.log("The font weight \"" + value + "\" has been set to the widget " + data.widget + '.');
+        return true;
+    }
+    return false;
+};
+
 var handleClickEvent = function(widget) {
     addEvent(widget, "click", function() {
         sendEventToServer(widget, "click");
