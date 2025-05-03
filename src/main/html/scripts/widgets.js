@@ -131,6 +131,17 @@ var setFontWeight = function(data) {
     return false;
 };
 
+var setItalic = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["italic"];
+    if (widget && typeof value == "boolean") {
+        widget.style.fontStyle = value ? "italic" : "normal";
+        console.log("The italic flag \"" + value + "\" has been set to the widget " + data.widget + '.');
+        return true;
+    }
+    return false;
+};
+
 var handleClickEvent = function(widget) {
     addEvent(widget, "click", function() {
         sendEventToServer(widget, "click");

@@ -31,6 +31,11 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
     private final ModelBinding<FontWeight> fontWeight;
 
     /**
+     * Italic model binding — handles model and listener for italic changes.
+     */
+    private final ModelBinding<Boolean> italic;
+
+    /**
      * Constructs a new {@code TextWidget} with default text and color models.
      *
      * @param client The owning client instance
@@ -54,6 +59,10 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
         this.fontWeight = new ModelBinding<>(
             styles.getDefaultTextWidgetStyle().getFontWeightModel().fork(),
             new FontWeightModelListener(this)
+        );
+        this.italic = new ModelBinding<>(
+            styles.getDefaultTextWidgetStyle().getItalicModel().fork(),
+            new ItalicModelListener(this)
         );
     }
 
@@ -122,5 +131,15 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
     @Override
     public void setFontWeightModel(final Model<FontWeight> model) {
         this.fontWeight.setModel(model);
+    }
+
+    @Override
+    public Model<Boolean> getItalicModel() {
+        return this.italic.getModel();
+    }
+
+    @Override
+    public void setItalicModel(final Model<Boolean> model) {
+        this.italic.setModel(model);
     }
 }

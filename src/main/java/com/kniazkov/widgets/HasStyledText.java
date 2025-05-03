@@ -7,8 +7,8 @@ package com.kniazkov.widgets;
  * Represents a widget that displays styled text.
  * <p>
  *     In addition to plain text ({@link HasText}), this interface allows accessing and modifying
- *     the font face (i.e., font family) and font weight (i.e., thickness) via models.
- *     This enables two-way data binding and reactive updates.
+ *     the font face (i.e., font family), font weight (i.e., thickness), and italic style
+ *     via models. This enables two-way data binding and reactive updates.
  * </p>
  */
 public interface HasStyledText extends HasText {
@@ -84,5 +84,37 @@ public interface HasStyledText extends HasText {
      */
     default void setFontWeight(FontWeight fontWeight) {
         this.getFontWeightModel().setData(fontWeight);
+    }
+
+    /**
+     * Returns the model used to store and manage italic rendering of the text.
+     *
+     * @return The model containing the italic state
+     */
+    Model<Boolean> getItalicModel();
+
+    /**
+     * Sets the model used to store and manage italic rendering of the text.
+     *
+     * @param model The new italic model
+     */
+    void setItalicModel(Model<Boolean> model);
+
+    /**
+     * Returns whether the text is currently rendered in italic style.
+     *
+     * @return {@code true} if italic, {@code false} otherwise
+     */
+    default boolean isItalic() {
+        return this.getItalicModel().getData();
+    }
+
+    /**
+     * Sets whether the text should be rendered in italic style.
+     *
+     * @param italic {@code true} to enable italic, {@code false} to disable
+     */
+    default void setItalic(boolean italic) {
+        this.getItalicModel().setData(italic);
     }
 }

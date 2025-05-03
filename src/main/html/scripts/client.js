@@ -78,7 +78,8 @@ var actionHandlers = {
     "set text" : setText,
     "set color" : setColor,
     "set font face": setFontFace,
-    "set font weight": setFontWeight
+    "set font weight": setFontWeight,
+    "set italic": setItalic
 };
 
 var sendEventToServer = function(widget, type, data) {
