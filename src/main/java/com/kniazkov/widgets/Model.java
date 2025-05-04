@@ -314,7 +314,8 @@ public abstract class Model<T> {
      * </p>
      *
      * @param listener the listener to remove; must not be {@code null}
-     */    public void removeListener(final Listener<T> listener) {
+     */
+    public void removeListener(final Listener<T> listener) {
         final Iterator<WeakReference<Listener<T>>> iterator = this.listeners.iterator();
         while (iterator.hasNext()) {
             final WeakReference<Listener<T>> reference = iterator.next();

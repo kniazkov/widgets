@@ -42,6 +42,7 @@ public class TextInput {
             final Paragraph p0 = root.createParagraph();
             p0.createTextWidget("Enter your name: ");
             final InputField input = p0.createInputField();
+            input.setWidth("100px");
 
             // Second paragraph: greeting output
             final Paragraph p1 = root.createParagraph();
@@ -55,9 +56,6 @@ public class TextInput {
                     greetings.setText("Hello, " + data.trim() + '!');
                 }
             });
-
-            // Set initial value (optional): triggers greeting immediately
-            input.setText("Johnny");
         };
 
         // Create the application and start the server

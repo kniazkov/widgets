@@ -36,7 +36,7 @@ final class FontSizeModelListener implements Listener<FontSize> {
 
             @Override
             protected void fillJsonObject(JsonObject json) {
-                json.addString("font size", data.toString()); // e.g., "14px"
+                json.addString("font size", data.getCSSCode()); // e.g., "14px"
             }
         };
         widget.sendToClient(instruction);

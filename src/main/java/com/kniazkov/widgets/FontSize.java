@@ -78,15 +78,6 @@ public final class FontSize implements Comparable<FontSize> {
     }
 
     /**
-     * Returns the internal value in pixels.
-     *
-     * @return Font size in pixels (always >= 3)
-     */
-    public int getPixels() {
-        return pixels;
-    }
-
-    /**
      * Converts a given numeric value with unit to pixels.
      *
      * @param value Numeric portion of the input
@@ -94,7 +85,7 @@ public final class FontSize implements Comparable<FontSize> {
      * @return Converted pixel value
      * @throws IllegalArgumentException If the unit is unsupported
      */
-    private static int toPixels(float value, String unit) {
+    private static int toPixels(final float value, final String unit) {
         switch (unit) {
             case "px": return Math.round(value);
             case "pt": return Math.round(value * 96f / 72f);
@@ -116,13 +107,22 @@ public final class FontSize implements Comparable<FontSize> {
         return Math.max(3, px);
     }
 
-    @Override
-    public String toString() {
+    /**
+     * Returns the size as a CSS-compatible string.
+     *
+     * @return CSS size string (e.g., {@code "16px"})
+     */
+    public String getCSSCode() {
         return this.pixels + "px";
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public String toString() {
+        return this.getCSSCode();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
         return obj instanceof FontSize && ((FontSize) obj).pixels == this.pixels;
     }
 

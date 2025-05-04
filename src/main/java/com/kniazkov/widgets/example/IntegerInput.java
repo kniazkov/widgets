@@ -37,6 +37,7 @@ public class IntegerInput {
 
             // Create an input field and place it inside the paragraph
             final InputField input = line.createInputField();
+            input.setWidth("50px");
 
             // Create an IntegerModel that parses string input into integers
             final IntegerViaStringModel inputData = new IntegerViaStringModel();

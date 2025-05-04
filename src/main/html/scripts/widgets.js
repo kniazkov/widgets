@@ -106,6 +106,28 @@ var setColor = function(data) {
     return false;
 };
 
+var setWidth = function(data) {
+    var widget = widgets[data.widget];
+    var value = data.width;
+    if (widget && typeof value == "string") {
+        widget.style.width = value;
+        console.log("The width of the widget " + data.widget + " has been set to \"" + value + "\"");
+        return true;
+    }
+    return false;
+};
+
+var setHeight = function(data) {
+    var widget = widgets[data.widget];
+    var value = data.height;
+    if (widget && typeof value == "string") {
+        widget.style.height = value;
+        console.log("The height of the widget " + data.widget + " has been set to \"" + value + "\"");
+        return true;
+    }
+    return false;
+};
+
 var setFontFace = function(data) {
     var widget = widgets[data.widget];
     var value = data["font face"];

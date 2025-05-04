@@ -1,19 +1,13 @@
 body {
-    font-size: 11pt;
-    font-weight: 400;
     color: black;
     background: white;
 }
 
 span {
-    font-size: 11pt;
-    font-weight: 400;
     color: black;
 }
 
 input {
-    font-size: 11pt;
-    font-weight: 700;
     color: black;
     background: #EEE;
     border-style: solid;

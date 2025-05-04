@@ -4,12 +4,12 @@
 package com.kniazkov.widgets;
 
 /**
- * Style definition for {@link TextWidget}, specifying how text should be rendered.
+ * Style definition for {@link InputField}, specifying how field should be rendered.
  * <p>
  *     Currently supports font face, font size, font weight, and italic customization via models.
  * </p>
  */
-public final class TextWidgetStyle implements Style<TextWidget> {
+public final class InputFieldStyle implements Style<InputField> {
     /**
      * Model for the font face.
      */
@@ -33,11 +33,13 @@ public final class TextWidgetStyle implements Style<TextWidget> {
     /**
      * Constructs a new text style using default models.
      */
-    TextWidgetStyle() {
+    InputFieldStyle() {
         this.fontFace = new DefaultFontFaceModel();
         this.fontSize = new DefaultFontSizeModel();
         this.fontWeight = new DefaultFontWeightModel();
         this.italic = new DefaultBooleanModel();
+
+        this.fontWeight.setData(FontWeight.BOLD);
     }
 
     /**
@@ -48,8 +50,8 @@ public final class TextWidgetStyle implements Style<TextWidget> {
      * @param fontWeight Forked font weight model
      * @param italic Forked italic model
      */
-    private TextWidgetStyle(final Model<FontFace> fontFace, final Model<FontSize> fontSize,
-            final Model<FontWeight> fontWeight, final Model<Boolean> italic) {
+    private InputFieldStyle(final Model<FontFace> fontFace, final Model<FontSize> fontSize,
+                            final Model<FontWeight> fontWeight, final Model<Boolean> italic) {
         this.fontFace = fontFace;
         this.fontSize = fontSize;
         this.fontWeight = fontWeight;
@@ -183,7 +185,7 @@ public final class TextWidgetStyle implements Style<TextWidget> {
     }
 
     @Override
-    public void apply(TextWidget widget) {
+    public void apply(InputField widget) {
         widget.setFontFaceModel(this.fontFace.fork());
         widget.setFontSizeModel(this.fontSize.fork());
         widget.setFontWeightModel(this.fontWeight.fork());
@@ -191,8 +193,8 @@ public final class TextWidgetStyle implements Style<TextWidget> {
     }
 
     @Override
-    public TextWidgetStyle fork() {
-        return new TextWidgetStyle(
+    public InputFieldStyle fork() {
+        return new InputFieldStyle(
             this.fontFace.fork(),
             this.fontSize.fork(),
             this.fontWeight.fork(),
