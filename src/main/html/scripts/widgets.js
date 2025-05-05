@@ -42,7 +42,7 @@ var createWidget = function(data) {
         var widget = ctor();
         widget._id = id;
         widgets[id] = widget;
-        console.log("Widget '" + data.type + "' created, id: " + id + '.');
+        log("Widget '" + data.type + "' created, id: " + id + '.');
         return true;
     }
     return false;
@@ -54,7 +54,7 @@ var setChildWidget = function(data) {
     if (widget && child) {
         widget.innerHTML = "";
         widget.appendChild(child);
-        console.log("Widget " + data.child + " is set as a child of widget " + data.widget + '.');
+        log("Widget " + data.child + " is set as a child of widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -65,7 +65,7 @@ var appendChildWidget = function(data) {
     var child = widgets[data.child];
     if (widget && child) {
         widget.appendChild(child);
-        console.log("Widget " + data.child + " is added as a child of widget " + data.widget + '.');
+        log("Widget " + data.child + " is added as a child of widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -81,7 +81,7 @@ var setText = function(data) {
             widget.innerHTML = escapeHtml(data.text);
         }
         if (flag) {
-            console.log("The text \"" + data.text + "\" has been set to the widget " + data.widget + '.');
+            log("The text \"" + data.text + "\" has been set to the widget " + data.widget + '.');
         }
         return true;
     }
@@ -99,7 +99,7 @@ var setColor = function(data) {
             widget.style.color = color;
         }
         if (flag) {
-            console.log("The color \"" + color + "\" has been set to the widget " + data.widget + '.');
+            log("The color \"" + color + "\" has been set to the widget " + data.widget + '.');
         }
         return true;
     }
@@ -111,7 +111,7 @@ var setWidth = function(data) {
     var value = data.width;
     if (widget && typeof value == "string") {
         widget.style.width = value;
-        console.log("The width of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The width of the widget " + data.widget + " has been set to \"" + value + "\"");
         return true;
     }
     return false;
@@ -122,7 +122,7 @@ var setHeight = function(data) {
     var value = data.height;
     if (widget && typeof value == "string") {
         widget.style.height = value;
-        console.log("The height of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The height of the widget " + data.widget + " has been set to \"" + value + "\"");
         return true;
     }
     return false;
@@ -136,7 +136,7 @@ var setFontFace = function(data) {
             value = DEFAULT_FONT_FACE;
         }
         widget.style.fontFamily = value;
-        console.log("The font face \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The font face \"" + value + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -147,7 +147,7 @@ var setFontSize = function(data) {
     var value = data["font size"];
     if (widget && typeof value == "string") {
         widget.style.fontSize = value;
-        console.log("The font size \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The font size \"" + value + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -158,7 +158,7 @@ var setFontWeight = function(data) {
     var value = data["font weight"];
     if (widget && typeof value == "number") {
         widget.style.fontWeight = value;
-        console.log("The font weight \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The font weight \"" + value + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -169,7 +169,7 @@ var setItalic = function(data) {
     var value = data["italic"];
     if (widget && typeof value == "boolean") {
         widget.style.fontStyle = value ? "italic" : "normal";
-        console.log("The italic flag \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The italic flag \"" + value + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;

@@ -5,6 +5,7 @@ package com.kniazkov.widgets;
 
 import com.kniazkov.json.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -29,10 +30,14 @@ final class ProcessEvent extends ActionHandler {
 
     @Override
     JsonElement process(final Map<String, String> data) {
+        // Resulting object
+        final JsonObject obj = new JsonObject();
+
         // Check required fields
         if (!data.containsKey("client") || !data.containsKey("widget")
                 || !data.containsKey("type")) {
-            return JsonBoolean.getInstance(false);
+            obj.addBoolean("result", false);
+            return obj;
         }
 
         // Parse client and widget IDs
@@ -52,6 +57,17 @@ final class ProcessEvent extends ActionHandler {
 
         // Dispatch event to application
         application.handleEvent(clientId, widgetId, eventType, payload);
-        return JsonBoolean.getInstance(true);
+        obj.addBoolean("result", true);
+
+        // Collect and serialize all pending instructions for this client
+        final List<Instruction> instructions = application.getUpdates(clientId);
+        if (!instructions.isEmpty()) {
+            final JsonArray updates = obj.createArray("updates");
+            for (final Instruction instruction : instructions) {
+                instruction.serialize(updates.createObject());
+            }
+        }
+
+        return obj;
     }
 }

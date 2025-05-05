@@ -3,7 +3,7 @@
  */
 
 var clientId = null;
-var period = 100;
+var period = 250;
 var mainCycleTask = null;
 
 var initClient = function() {
@@ -28,8 +28,9 @@ var startClient = function() {
         function(data) {
             var json = JSON.parse(data);
             clientId = json.id;
-            console.log("Client created, id: " + clientId + '.');
+            log("Client created, id: " + clientId + '.');
             mainCycleTask = setInterval(mainCycle, period);
+            mainCycle();
         }
     );
     setTimeout(function() {
@@ -39,6 +40,24 @@ var startClient = function() {
     }, 1000);
 }
 
+var processUpdates = function(json) {
+    if (json.updates && json.updates.length > 0) {
+        if (json.updates.length == 1) {
+            log("Received 1 update.");
+        } else {
+            log("Received " + json.updates.length + " updates.");
+        }
+        for (var i = 0; i < json.updates.length; i++) {
+            var result = false;
+            var update = json.updates[i];
+            var handler = actionHandlers[update.action];
+            if (handler) {
+                result = handler(update);
+            }
+        }
+    }
+};
+
 var mainCycle = function() {
     sendRequest(
         {
@@ -46,24 +65,14 @@ var mainCycle = function() {
             client : clientId
         },
         function(data) {
-            var i;
             var json = JSON.parse(data);
-            if (json.updates) {
-                for (var i = 0; i < json.updates.length; i++) {
-                    var result = false;
-                    var update = json.updates[i];
-                    var handler = actionHandlers[update.action];
-                    if (handler) {
-                        result = handler(update);
-                    }
-                }
-            }
+            processUpdates(json);
         }
     );
 };
 
 var reset = function() {
-    console.log("The server initiated the client reset.");
+    log("The server initiated the client reset.");
     clientId = null;
     clearInterval(mainCycleTask);
     document.body.innerHTML = "";
@@ -95,6 +104,12 @@ var sendEventToServer = function(widget, type, data) {
     if (data) {
         request.data = data;
     }
-    console.log("The widget " + widget._id + " triggered the event '" + type + "'.");
-    sendRequest(request);
+    log("The widget " + widget._id + " triggered the event '" + type + "'.");
+    sendRequest(request, function(data) {
+        var json = JSON.parse(data);
+        if (json.result) {
+            log("The event was processed.");
+            processUpdates(json);
+        }
+    });
 };

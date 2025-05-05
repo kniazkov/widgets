@@ -95,3 +95,7 @@ var escapeHtml = function(unsafe) {
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
 };
+
+var log = function(message) {
+    console.log(message);
+}
