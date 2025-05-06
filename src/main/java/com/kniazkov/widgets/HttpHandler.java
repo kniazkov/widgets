@@ -45,8 +45,8 @@ final class HttpHandler implements Handler {
     public Response handle(Request request) {
         // Handle action requests: /?action=...
         if (request.address.startsWith("/?")) {
-            String action = request.formData.get("action");
-            ActionHandler handler = actionHandlers.get(action);
+            final String action = request.formData.get("action");
+            final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
                 return new ResponseJson(handler.process(request.formData));
             }
@@ -54,15 +54,14 @@ final class HttpHandler implements Handler {
         }
 
         // Normalize root path
-        String address = request.address.equals("/") ? "/index.html" : request.address;
+        final String address = request.address.equals("/") ? "/index.html" : request.address;
 
         // Attempt to load static resource
-        URL url = getClass().getResource(address);
+        final URL url = getClass().getResource(address);
         if (url != null) {
             try {
-                byte[] rawData = Files.readAllBytes(Paths.get(url.toURI()));
-                String contentType = getContentTypeByExtension(address);
-                byte[] data = contentType.startsWith("text") ? unpack(rawData) : rawData;
+                final String contentType = getContentTypeByExtension(address);
+                final byte[] data = Files.readAllBytes(Paths.get(url.toURI()));
 
                 return new Response() {
                     @Override
@@ -107,29 +106,5 @@ final class HttpHandler implements Handler {
             case "gif":  return "image/" + ext;
             default:     return "application/" + ext;
         }
-    }
-
-    /**
-     * Decompresses RLE-encoded data (used for text resource compression).
-     *
-     * @param data RLE-compressed byte array
-     * @return Decompressed byte array
-     */
-    private static byte[] unpack(byte[] data) {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        int count = 1;
-
-        for (byte b : data) {
-            if (b < 0) {
-                count = -b;
-            } else {
-                for (int i = 0; i < count; i++) {
-                    out.write(b);
-                }
-                count = 1;
-            }
-        }
-
-        return out.toByteArray();
     }
 }
