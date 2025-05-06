@@ -94,9 +94,13 @@ var actionHandlers = {
     "set italic": setItalic
 };
 
+var lastEventId = 0;
+
 var sendEventToServer = function(widget, type, data) {
+    var eventId = "#" + ++lastEventId;
     var request = {
         action : "process event",
+        event : eventId,
         client : clientId,
         widget : widget._id,
         type   : type
@@ -104,12 +108,14 @@ var sendEventToServer = function(widget, type, data) {
     if (data) {
         request.data = data;
     }
-    log("The widget " + widget._id + " triggered the event '" + type + "'.");
+    log("The widget " + widget._id + " triggered the event " + eventId + " '" + type + "'.");
     sendRequest(request, function(data) {
         var json = JSON.parse(data);
-        if (json.result) {
-            log("The event was processed.");
+        if (json.result && json.event) {
+            log("The event " + json.event + " was processed.");
             processUpdates(json);
+        } else {
+            log("The event has not been processed.");
         }
     });
 };

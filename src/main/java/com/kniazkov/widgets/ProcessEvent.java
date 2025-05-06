@@ -34,11 +34,15 @@ final class ProcessEvent extends ActionHandler {
         final JsonObject obj = new JsonObject();
 
         // Check required fields
-        if (!data.containsKey("client") || !data.containsKey("widget")
-                || !data.containsKey("type")) {
+        if (!data.containsKey("event") || !data.containsKey("client")
+                || !data.containsKey("widget") || !data.containsKey("type")) {
             obj.addBoolean("result", false);
             return obj;
         }
+
+        // Return the event identifier as is
+        final String eventId = data.get("event");
+        obj.addString("event", eventId);
 
         // Parse client and widget IDs
         final UId clientId = UId.parse(data.get("client"));

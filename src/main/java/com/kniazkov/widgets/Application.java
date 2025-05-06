@@ -115,8 +115,10 @@ public final class Application {
             return Collections.singletonList(new ResetClient());
         }
 
-        client.timer = this.options.clientLifetime;
-        return client.collectUpdates();
+        synchronized (client) {
+            client.timer = this.options.clientLifetime;
+            return client.collectUpdates();
+        }
     }
 
     /**
@@ -134,8 +136,10 @@ public final class Application {
         this.counter++;
         final Client client = this.clients.get(clientId);
         if (client != null) {
-            client.timer = this.options.clientLifetime;
-            client.handleEvent(widgetId, type, data);
+            synchronized (client) {
+                client.timer = this.options.clientLifetime;
+                client.handleEvent(widgetId, type, data);
+            }
         }
     }
 
