@@ -65,6 +65,11 @@ var sendRequest = function(query, callback, method) {
             }
         }
     };
+    req.onerror = function() {
+        if (callback) {
+            callback(null);
+        }
+    };
     req.send(form);
 };
 

@@ -65,6 +65,10 @@ var mainCycle = function() {
             client : clientId
         },
         function(data) {
+            if (!data) {
+                log("Network error.");
+                return;
+            }
             var json = JSON.parse(data);
             processUpdates(json);
         }
@@ -95,6 +99,7 @@ var actionHandlers = {
 };
 
 var lastEventId = 0;
+var events = new Set();
 
 var sendEventToServer = function(widget, type, data) {
     var eventId = "#" + ++lastEventId;
@@ -109,10 +114,17 @@ var sendEventToServer = function(widget, type, data) {
         request.data = data;
     }
     log("The widget " + widget._id + " triggered the event " + eventId + " '" + type + "'.");
+    events.add(eventId);
     sendRequest(request, function(data) {
+        if (!data) {
+            log("Network error.");
+            return;
+        }
         var json = JSON.parse(data);
         if (json.result && json.event) {
-            log("The event " + json.event + " was processed.");
+            events.delete(eventId);
+            log("The event " + json.event + " was processed, unprocessed events: "
+                + events.size + ".");
             processUpdates(json);
         } else {
             log("The event has not been processed.");
