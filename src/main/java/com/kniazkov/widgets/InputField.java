@@ -90,7 +90,7 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
         );
         this.width = new ModelBinding<>(
             new DefaultInlineWidgetSizeModel(),
-            new InlineWidgetSizeListener(this, "width")
+            new WidgetSizeListener<InlineWidgetSize>(this, "width")
         );
     }
 
