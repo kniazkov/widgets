@@ -142,6 +142,7 @@ var actionHandlers = {
     "append child" : appendChildWidget,
     "set text" : setText,
     "set color" : setColor,
+    "set background color" : setBackgroundColor,
     "set width" : setWidth,
     "set height" : setHeight,
     "set font face": setFontFace,

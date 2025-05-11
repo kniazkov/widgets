@@ -19,11 +19,17 @@ import java.util.Optional;
  *     handler can be customized using {@link #onClick(Controller)}.
  * </p>
  */
-public final class Button extends InlineWidget implements Decorator<InlineWidget>, Clickable {
+public final class Button extends InlineWidget implements Decorator<InlineWidget>, HasBgColor,
+        Clickable {
     /**
      * Child widget rendered inside the button.
      */
     private InlineWidget child;
+
+    /**
+     * Background color model binding — handles model and listener for color changes.
+     */
+    private final ModelBinding<Color> bgColor;
 
     /**
      * Controller invoked when the button is clicked.
@@ -39,6 +45,12 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     Button(final Client client, final Container parent) {
         super(client, parent);
         this.setChild(new TextWidget(client, this));
+        final StyleSet styles = client.getRootWidget().getDefaultStyles();
+        final ButtonStyle style = styles.getDefaultButtonStyle();
+        this.bgColor = new ModelBinding<>(
+            style.getBackgroundColorModel().fork(),
+            new BgColorModelListener(this)
+        );
         this.clickCtrl = StubController.INSTANCE;
     }
 
@@ -118,5 +130,15 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     private void setChild(final InlineWidget child) {
         this.child = child;
         this.sendToClient(new SetChild(this.getWidgetId(), child.getWidgetId()));
+    }
+
+    @Override
+    public Model<Color> getBackgroundColorModel() {
+        return this.bgColor.getModel();
+    }
+
+    @Override
+    public void setBackgroundColorModel(final Model<Color> model) {
+        this.bgColor.setModel(model);
     }
 }

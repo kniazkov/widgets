@@ -35,6 +35,11 @@ public final class Color {
     public static final Color BLACK = new Color(0, 0, 0);
 
     /**
+     * White color (255, 255, 255).
+     */
+    public static final Color WHITE = new Color(255, 255, 255);
+
+    /**
      * Red color (255, 0, 0).
      */
     public static final Color RED = new Color(255, 0, 0);
@@ -42,12 +47,17 @@ public final class Color {
     /**
      * Green color (0, 255, 0).
      */
-    public static final Color GREEN = new Color(0, 255, 0);
+    public static final Color GREEN = new Color(0, 127, 0);
 
     /**
      * Blue color (0, 0, 255).
      */
     public static final Color BLUE = new Color(0, 0, 255);
+
+    /**
+     * Dark slate gray color (47, 79, 79).
+     */
+    public static final Color DARK_SLATE_GRAY = new Color(47, 79, 79);
 
     /**
      * Red component in range [0, 255].

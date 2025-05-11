@@ -47,6 +47,7 @@ public class TextColor {
 
             // Create a red button and set its click handler to change the text color
             final Button red = paragraph.createButton("red");
+            red.setBackgroundColor(Color.RED);
             red.onClick(() -> text.setColor(Color.RED));
 
             // Create a green button with the same behavior

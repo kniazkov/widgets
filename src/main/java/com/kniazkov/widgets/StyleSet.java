@@ -23,11 +23,17 @@ public final class StyleSet {
     private final InputFieldStyle inputFieldStyle;
 
     /**
+     * Default style for {@link Button} instances.
+     */
+    private final ButtonStyle buttonStyle;
+
+    /**
      * Constructs a style set with predefined defaults.
      */
     StyleSet() {
         this.textWidgetStyle = new TextWidgetStyle();
         this.inputFieldStyle = new InputFieldStyle();
+        this.buttonStyle = new ButtonStyle();
     }
 
     /**
@@ -46,5 +52,14 @@ public final class StyleSet {
      */
     public InputFieldStyle getDefaultInputFieldStyle() {
         return this.inputFieldStyle;
+    }
+
+    /**
+     * Returns the default style for {@link Button}s.
+     *
+     * @return Shared button style
+     */
+    public ButtonStyle getDefaultButtonStyle() {
+        return this.buttonStyle;
     }
 }

@@ -57,20 +57,21 @@ public final class TextWidget extends InlineWidget implements HasStyledText, Has
             new ColorModelListener(this)
         );
         final StyleSet styles = client.getRootWidget().getDefaultStyles();
+        final TextWidgetStyle style = styles.getDefaultTextWidgetStyle();
         this.fontFace = new ModelBinding<>(
-            styles.getDefaultTextWidgetStyle().getFontFaceModel().fork(),
+            style.getFontFaceModel().fork(),
             new FontFaceModelListener(this)
         );
         this.fontSize = new ModelBinding<>(
-            styles.getDefaultTextWidgetStyle().getFontSizeModel().fork(),
+            style.getFontSizeModel().fork(),
             new FontSizeModelListener(this)
         );
         this.fontWeight = new ModelBinding<>(
-            styles.getDefaultTextWidgetStyle().getFontWeightModel().fork(),
+            style.getFontWeightModel().fork(),
             new FontWeightModelListener(this)
         );
         this.italic = new ModelBinding<>(
-            styles.getDefaultTextWidgetStyle().getItalicModel().fork(),
+            style.getItalicModel().fork(),
             new ItalicModelListener(this)
         );
     }

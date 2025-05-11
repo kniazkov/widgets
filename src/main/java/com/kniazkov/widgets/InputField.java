@@ -72,20 +72,21 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
         this.textInputCtrl = data -> { }; // no-op
         this.clickCtrl = StubController.INSTANCE;
         final StyleSet styles = client.getRootWidget().getDefaultStyles();
+        final InputFieldStyle style = styles.getDefaultInputFieldStyle();
         this.fontFace = new ModelBinding<>(
-            styles.getDefaultInputFieldStyle().getFontFaceModel().fork(),
+            style.getFontFaceModel().fork(),
             new FontFaceModelListener(this)
         );
         this.fontSize = new ModelBinding<>(
-            styles.getDefaultInputFieldStyle().getFontSizeModel().fork(),
+            style.getFontSizeModel().fork(),
             new FontSizeModelListener(this)
         );
         this.fontWeight = new ModelBinding<>(
-            styles.getDefaultInputFieldStyle().getFontWeightModel().fork(),
+            style.getFontWeightModel().fork(),
             new FontWeightModelListener(this)
         );
         this.italic = new ModelBinding<>(
-            styles.getDefaultInputFieldStyle().getItalicModel().fork(),
+            style.getItalicModel().fork(),
             new ItalicModelListener(this)
         );
         this.width = new ModelBinding<>(

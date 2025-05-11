@@ -106,6 +106,25 @@ var setColor = function(data) {
     return false;
 };
 
+var setBackgroundColor = function(data) {
+    var widget = widgets[data.widget];
+    var rgb = data["background color"];
+    if (widget && typeof rgb == "object") {
+        var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        var flag = true;
+        if (widget.setColor) {
+            flag = widget.setBgColor(color);
+        } else {
+            widget.style.backgroundColor = color;
+        }
+        if (flag) {
+            log("The background color \"" + color + "\" has been set to the widget " + data.widget + '.');
+        }
+        return true;
+    }
+    return false;
+};
+
 var setWidth = function(data) {
     var widget = widgets[data.widget];
     var value = data.width;
