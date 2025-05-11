@@ -127,46 +127,70 @@ public final class Client implements Comparable<Client> {
      *  processed event ID
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
-        if (request.containsKey("events")) {
-            try {
-                final JsonElement element = Json.parse(request.get("events"));
-                final JsonArray events = element.toJsonArray();
-                if (events != null) {
-                    for (JsonElement item : events) {
-                        final JsonObject event = item.toJsonObject();
-                        if (event == null) {
-                            continue;
-                        }
-                        final UId eventId = UId.parse(event.get("id").getStringValue());
-                        if (eventId.compareTo(this.lastHandledEventId) <= 0) {
-                            continue;
-                        }
-                        final UId widgetId = UId.parse(event.get("widget").getStringValue());
-                        final Widget widget = this.widgets.get(widgetId);
-                        if (widget == null) {
-                            continue;
-                        }
-                        final String type = event.get("type").getStringValue();
-                        final Optional<JsonObject> data;
-                        if (event.containsKey("data")) {
-                            data = Optional.ofNullable(event.get("data").toJsonObject());
-                        } else {
-                            data = Optional.empty();
-                        }
-                        widget.handleEvent(type, data);
-                        this.lastHandledEventId = eventId;
-                    }
-                }
-            } catch (final JsonException ignored) {
-            }
-        }
-        response.addString("lastEvent", this.lastHandledEventId.toString());
+        processEvents(request);
+        cleanupAcknowledgedInstructions(request);
+        serializeUpdates(response);
+    }
 
+    /**
+     * Processes incoming events from the client and dispatches them to appropriate widgets.
+     *
+     * @param request The map of client parameters containing the "events" key
+     */
+    private void processEvents(final Map<String, String> request) {
+        if (!request.containsKey("events")) {
+            return;
+        }
+
+        try {
+            final JsonElement element = Json.parse(request.get("events"));
+            final JsonArray events = element.toJsonArray();
+            if (events == null) {
+                return;
+            }
+
+            for (JsonElement item : events) {
+                final JsonObject event = item.toJsonObject();
+                if (event == null) continue;
+
+                final UId eventId = UId.parse(event.get("id").getStringValue());
+                if (eventId.compareTo(this.lastHandledEventId) <= 0) continue;
+
+                final UId widgetId = UId.parse(event.get("widget").getStringValue());
+                final Widget widget = this.widgets.get(widgetId);
+                if (widget == null) continue;
+
+                final String type = event.get("type").getStringValue();
+                final Optional<JsonObject> data = event.containsKey("data")
+                    ? Optional.ofNullable(event.get("data").toJsonObject())
+                    : Optional.empty();
+
+                widget.handleEvent(type, data);
+                this.lastHandledEventId = eventId;
+            }
+        } catch (final JsonException ignored) {
+        }
+    }
+
+    /**
+     * Removes all update instructions that have already been acknowledged by the client.
+     *
+     * @param request The map of client parameters containing the "lastInstruction" key
+     */
+    private void cleanupAcknowledgedInstructions(final Map<String, String> request) {
         if (request.containsKey("lastInstruction")) {
             final UId id = UId.parse(request.get("lastInstruction"));
             this.updates.removeIf(instr -> instr.getInstrId().compareTo(id) <= 0);
         }
+    }
 
+    /**
+     * Serializes the list of remaining updates into the JSON response.
+     *
+     * @param response The response JSON object to populate
+     */
+    private void serializeUpdates(final JsonObject response) {
+        response.addString("lastEvent", this.lastHandledEventId.toString());
         final JsonArray updates = response.createArray("updates");
         for (final Instruction instruction : this.updates) {
             instruction.serialize(updates.createObject());
