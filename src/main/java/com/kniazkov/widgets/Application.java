@@ -95,7 +95,12 @@ public final class Application {
      */
     boolean killClient(final UId clientId) {
         this.counter++;
-        return this.clients.remove(clientId) != null;
+        final Client client = this.clients.remove(clientId);
+        if (client != null) {
+            client.destroy();
+            return true;
+        }
+        return false;
     }
 
 
@@ -152,7 +157,8 @@ public final class Application {
 
             // Kill expired clients
             for (final UId id : toKill) {
-                clients.remove(id);
+                final Client client = clients.remove(id);
+                client.destroy();
                 options.logger.write("Client " + id + " is killed by the watchdog.");
             }
 
