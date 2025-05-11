@@ -46,14 +46,6 @@ public abstract class Widget {
     private final Container parent;
 
     /**
-     * A set of update instructions that should be sent to the client.
-     * <p>
-     *     Instructions accumulate between requests and are flushed via {@link #getUpdates(Set)}.
-     * </p>
-     */
-    private final Set<Instruction> updates;
-
-    /**
      * Constructs a new widget and registers it with the associated client.
      * <p>
      *     A {@code create} instruction is automatically added to the update queue.
@@ -67,8 +59,7 @@ public abstract class Widget {
         this.client = client;
         this.client.widgets.put(this.widgetId, this);
         this.parent = parent;
-        this.updates = new TreeSet<>();
-        this.updates.add(new Create(this.widgetId, this.getType()));
+        client.addInstruction(new Create(this.widgetId, this.getType()));
     }
 
     /**
@@ -138,20 +129,7 @@ public abstract class Widget {
      * @param instruction the instruction to add
      */
     void sendToClient(final Instruction instruction) {
-        this.updates.add(instruction);
-    }
-
-    /**
-     * Flushes this widget’s pending updates into the provided collection and clears them locally.
-     * <p>
-     *     Called by the client during the update phase to collect all UI changes across widgets.
-     * </p>
-     *
-     * @param allUpdates A shared collection used to gather updates from all widgets
-     */
-    void getUpdates(final Set<Instruction> allUpdates) {
-        allUpdates.addAll(this.updates);
-        this.updates.clear();
+        this.client.addInstruction(instruction);
     }
 
     /**

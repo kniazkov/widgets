@@ -47,10 +47,18 @@ public final class Client implements Comparable<Client> {
     final Map<UId, Widget> widgets;
 
     /**
+     * A list of update instructions that should be sent to the client.
+     * <p>
+     *     Instructions accumulate between requests and are flushed via {@link #getUpdates}.
+     * </p>
+     */
+    private final List<Instruction> updates;
+
+    /**
      * The root widget of the client, representing the entry point to the widget hierarchy.
      */
     private final RootWidget root;
-
+    
     /**
      * Constructs a new client with a unique ID and an empty widget registry.
      * <p>
@@ -60,6 +68,7 @@ public final class Client implements Comparable<Client> {
     Client() {
         this.id = UId.create();
         this.widgets = new TreeMap<>();
+        this.updates = new ArrayList<>();
         this.root = new RootWidget(this);
     }
 
@@ -82,20 +91,33 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Collects update instructions from all widgets in this client.
+     * Retrieves and clears the list of pending update instructions for this client.
      * <p>
-     *     These instructions represent state changes to be pushed to the front end.
-     *     The result is a sorted list of unique instructions (duplicates removed).
+     *     This method is called by the server to obtain all accumulated {@link Instruction}
+     *     instances that describe UI changes. These updates will be sent to the corresponding
+     *     client browser for synchronization.
      * </p>
      *
-     * @return Sorted list of instructions to be sent to the client
+     * <p>
+     *     After the updates are retrieved, the internal list is cleared, so repeated calls
+     *     will not return the same instructions.
+     * </p>
+     *
+     * @return A list of pending {@link Instruction} objects to be sent to the client
      */
-    List<Instruction> collectUpdates() {
-        final Set<Instruction> set = new TreeSet<>();
-        for (final Widget widget : widgets.values()) {
-            widget.getUpdates(set);
-        }
-        return new ArrayList<>(set);
+    List<Instruction> getUpdates() {
+        final List<Instruction> list = new ArrayList<>(this.updates);
+        this.updates.clear();
+        return list;
+    }
+
+    /**
+     * Queues an instruction to be sent to the client during the next update cycle.
+     *
+     * @param instruction the instruction to add
+     */
+    void addInstruction(final Instruction instruction) {
+        this.updates.add(instruction);
     }
 
     /**

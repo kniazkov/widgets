@@ -58,6 +58,10 @@ var processUpdates = function(json) {
     }
 };
 
+var composeSyncData = function(){
+
+};
+
 var mainCycle = function() {
     sendRequest(
         {

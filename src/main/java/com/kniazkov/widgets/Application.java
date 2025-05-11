@@ -117,7 +117,7 @@ public final class Application {
 
         synchronized (client) {
             client.timer = this.options.clientLifetime;
-            return client.collectUpdates();
+            return client.getUpdates();
         }
     }
 
