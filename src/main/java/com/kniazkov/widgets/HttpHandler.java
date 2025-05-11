@@ -38,7 +38,6 @@ final class HttpHandler implements Handler {
         this.actionHandlers.put("new instance", new NewInstance(application, options.logger));
         this.actionHandlers.put("synchronize", new Synchronize(application, options.logger));
         this.actionHandlers.put("kill", new Kill(application, options.logger));
-        this.actionHandlers.put("process event", new ProcessEvent(application, options.logger));
     }
 
     @Override

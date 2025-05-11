@@ -3,12 +3,16 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
+import com.kniazkov.json.JsonError;
+import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Action handler that synchronizes the state between client and server.
@@ -31,21 +35,12 @@ final class Synchronize extends ActionHandler {
 
     @Override
     JsonElement process(final Map<String, String> data) {
-        // Extract client ID from request
-        if (!data.containsKey("client")) {
-            return JsonNull.INSTANCE;
-        }
-
-        final UId clientId = UId.parse(data.get("client"));
-
-        // Create response object
         final JsonObject obj = new JsonObject();
-        final JsonArray updates = obj.createArray("updates");
+        obj.addBoolean("result", false);
 
-        // Collect and serialize all pending instructions for this client
-        final List<Instruction> instructions = application.getUpdates(clientId);
-        for (final Instruction instruction : instructions) {
-            instruction.serialize(updates.createObject());
+        if (data.containsKey("client")) {
+            final UId clientId = UId.parse(data.get("client"));
+            this.application.synchronize(clientId, data, obj);
         }
 
         return obj;

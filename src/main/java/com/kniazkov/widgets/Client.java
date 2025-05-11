@@ -3,12 +3,14 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonArray;
+import com.kniazkov.json.JsonElement;
+import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -48,9 +50,6 @@ public final class Client implements Comparable<Client> {
 
     /**
      * A list of update instructions that should be sent to the client.
-     * <p>
-     *     Instructions accumulate between requests and are flushed via {@link #getUpdates}.
-     * </p>
      */
     private final List<Instruction> updates;
 
@@ -58,7 +57,12 @@ public final class Client implements Comparable<Client> {
      * The root widget of the client, representing the entry point to the widget hierarchy.
      */
     private final RootWidget root;
-    
+
+    /**
+     * The identifier of the last event processed.
+     */
+    private UId lastHandledEventId = UId.INVALID;
+
     /**
      * Constructs a new client with a unique ID and an empty widget registry.
      * <p>
@@ -91,49 +95,81 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Retrieves and clears the list of pending update instructions for this client.
-     * <p>
-     *     This method is called by the server to obtain all accumulated {@link Instruction}
-     *     instances that describe UI changes. These updates will be sent to the corresponding
-     *     client browser for synchronization.
-     * </p>
-     *
-     * <p>
-     *     After the updates are retrieved, the internal list is cleared, so repeated calls
-     *     will not return the same instructions.
-     * </p>
-     *
-     * @return A list of pending {@link Instruction} objects to be sent to the client
-     */
-    List<Instruction> getUpdates() {
-        final List<Instruction> list = new ArrayList<>(this.updates);
-        this.updates.clear();
-        return list;
-    }
-
-    /**
      * Queues an instruction to be sent to the client during the next update cycle.
      *
-     * @param instruction the instruction to add
+     * @param instruction The instruction to add
      */
     void addInstruction(final Instruction instruction) {
         this.updates.add(instruction);
     }
 
     /**
-     * Dispatches an event received from the front end to the appropriate widget.
+     * Processes a synchronization request from the client.
      * <p>
-     *     If no matching widget is found for the given ID, the event is ignored.
+     *     This method handles two main tasks:
      * </p>
+     * <ul>
+     *     <li>
+     *         Processes the list of incoming events (if present) and dispatches them
+     *         to the corresponding widgets using {@link Widget#handleEvent(String, Optional)}.
+     *         Events that have already been handled (based on {@code lastHandledEventId})
+     *         are skipped.
+     *     </li>
+     *     <li>
+     *         Removes already acknowledged update instructions (based on {@code lastInstruction})
+     *         and serializes the remaining ones into the {@code updates} array in the response.
+     *     </li>
+     * </ul>
      *
-     * @param widgetId The identifier of the widget that the event targets
-     * @param type The type of the event (e.g., "click", "input")
-     * @param data Optional JSON payload associated with the event
+     * @param request  A map containing client parameters, including events and acknowledged
+     *  instructions
+     * @param response A JSON object that will be filled with pending updates and the last
+     *  processed event ID
      */
-    void handleEvent(final UId widgetId, final String type, final Optional<JsonObject> data) {
-        final Widget widget = this.widgets.get(widgetId);
-        if (widget != null) {
-            widget.handleEvent(type, data);
+    void synchronize(final Map<String, String> request, final JsonObject response) {
+        if (request.containsKey("events")) {
+            try {
+                final JsonElement element = Json.parse(request.get("events"));
+                final JsonArray events = element.toJsonArray();
+                if (events != null) {
+                    for (JsonElement item : events) {
+                        final JsonObject event = item.toJsonObject();
+                        if (event == null) {
+                            continue;
+                        }
+                        final UId eventId = UId.parse(event.get("id").getStringValue());
+                        if (eventId.compareTo(this.lastHandledEventId) <= 0) {
+                            continue;
+                        }
+                        final UId widgetId = UId.parse(event.get("widget").getStringValue());
+                        final Widget widget = this.widgets.get(widgetId);
+                        if (widget == null) {
+                            continue;
+                        }
+                        final String type = event.get("type").getStringValue();
+                        final Optional<JsonObject> data;
+                        if (event.containsKey("data")) {
+                            data = Optional.ofNullable(event.get("data").toJsonObject());
+                        } else {
+                            data = Optional.empty();
+                        }
+                        widget.handleEvent(type, data);
+                        this.lastHandledEventId = eventId;
+                    }
+                }
+            } catch (final JsonException ignored) {
+            }
+        }
+        response.addString("lastEvent", this.lastHandledEventId.toString());
+
+        if (request.containsKey("lastInstruction")) {
+            final UId id = UId.parse(request.get("lastInstruction"));
+            this.updates.removeIf(instr -> instr.getInstrId().compareTo(id) <= 0);
+        }
+
+        final JsonArray updates = response.createArray("updates");
+        for (final Instruction instruction : this.updates) {
+            instruction.serialize(updates.createObject());
         }
     }
 

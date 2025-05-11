@@ -98,47 +98,36 @@ public final class Application {
         return this.clients.remove(clientId) != null;
     }
 
-    /**
-     * Collects all pending updates for a given client to send back to the browser.
-     * <p>
-     *     Also refreshes the client's timeout to prevent watchdog removal.
-     * </p>
-     *
-     * @param clientId The client to synchronize
-     * @return A list of UI instructions for the client
-     */
-    List<Instruction> getUpdates(final UId clientId) {
-        counter++;
-        final Client client = this.clients.get(clientId);
-
-        if (client == null) {
-            return Collections.singletonList(new ResetClient());
-        }
-
-        synchronized (client) {
-            client.timer = this.options.clientLifetime;
-            return client.getUpdates();
-        }
-    }
 
     /**
-     * Processes an event that was sent from the client.
+     * Handles a synchronization request for a specific client.
      * <p>
-     *     If the client is found, the event is delegated to its widgets.
+     *     This method is invoked when a web page requests to synchronize its state
+     *     with the server. It performs the following operations:
      * </p>
+     * <ul>
+     *     <li>Increments the internal action counter.</li>
+     *     <li>Finds the client instance by its ID.</li>
+     *     <li>
+     *         Resets the client's lifetime timer to avoid premature termination
+     *         by the watchdog.
+     *     </li>
+     *     <li>Delegates the actual processing of events and updates to the client.</li>
+     * </ul>
      *
-     * @param clientId Client ID
-     * @param widgetId Target widget ID
-     * @param type Event type
-     * @param data Event-related payload (optional)
+     * @param clientId The unique identifier of the client session
+     * @param request  The incoming request parameters from the client (e.g. events,
+     *                        lastInstruction)
+     * @param response The JSON object to be populated with UI update instructions and state
      */
-    void handleEvent(UId clientId, UId widgetId, String type, Optional<JsonObject> data) {
+    void synchronize(final UId clientId, final Map<String, String> request,
+                        final JsonObject response) {
         this.counter++;
         final Client client = this.clients.get(clientId);
         if (client != null) {
             synchronized (client) {
                 client.timer = this.options.clientLifetime;
-                client.handleEvent(widgetId, type, data);
+                client.synchronize(request, response);
             }
         }
     }

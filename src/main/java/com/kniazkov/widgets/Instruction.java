@@ -40,6 +40,14 @@ abstract class Instruction implements Comparable<Instruction> {
     }
 
     /**
+     * Returns unique identifier of this instruction.
+     * @return Instruction id
+     */
+    UId getInstrId() {
+        return this.instrId;
+    }
+
+    /**
      * Serializes this instruction into a JSON object for client transmission.
      * <p>
      *     This method sets standard fields (ID, widget, action) and then delegates
