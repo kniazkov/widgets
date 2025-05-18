@@ -70,13 +70,13 @@ public class FontFaceExample {
 
             // Button that updates the default style (affects any widget using the original style)
             final Button b0 = p3.createButton("Change default font");
-            b0.onClick(() -> {
+            b0.onClick((data) -> {
                 defaultStyles.getDefaultTextWidgetStyle().setFontFace(fontNameModel.getData());
             });
 
             // Button that updates the forked style (affects only widgets that applied it)
             final Button b1 = p3.createButton("Change font in forked style");
-            b1.onClick(() -> {
+            b1.onClick((data) -> {
                 style.setFontFace(fontNameModel.getData());
             });
         };

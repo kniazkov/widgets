@@ -3,7 +3,13 @@
  */
 package com.kniazkov.widgets.example;
 
-import com.kniazkov.widgets.*;
+import com.kniazkov.widgets.Application;
+import com.kniazkov.widgets.Button;
+import com.kniazkov.widgets.Options;
+import com.kniazkov.widgets.Page;
+import com.kniazkov.widgets.Paragraph;
+import com.kniazkov.widgets.Server;
+import com.kniazkov.widgets.TextWidget;
 
 /**
  * A web application that contains a button that can be clicked by the user,
@@ -22,7 +28,7 @@ import com.kniazkov.widgets.*;
  *     </li>
  * </ol>
  */
-public class ClickCounter {
+public class MouseEvents {
 
     /**
      * Starting point.
@@ -33,25 +39,20 @@ public class ClickCounter {
         // Defines the structure and logic of the page
         final Page page = root -> {
             // First paragraph: contains the button
-            final Paragraph p0 = root.createParagraph();
-            final Button button = p0.createButton("Click me");
+            final Paragraph paragraph = root.createParagraph();
+            final Button button = paragraph.createButton();
+            final TextWidget text = button.createText("Click me");
 
-            // Second paragraph: contains the label and counter
-            final Paragraph p1 = root.createParagraph();
-            p1.createTextWidget("Click counter: ");
-
-            // Create a text widget to display the counter value
-            final TextWidget counter = p1.createTextWidget();
-
-            // Create a model to hold the integer counter value
-            final IntegerViaStringModel model = new IntegerViaStringModel();
-
-            // Bind the counter widget to the model
-            counter.setTextModel(model);
-
-            // Handle button clicks: increment the value stored in the model
             button.onClick((data) -> {
-                model.setIntValue(model.getIntValue() + 1);
+                text.setText("Clicked!");
+            });
+
+            button.onPointerOver((data) -> {
+                text.setText("Mouse over!");
+            });
+
+            button.onPointerOut((data) -> {
+                text.setText("Mouse out");
             });
         };
 

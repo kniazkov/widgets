@@ -48,15 +48,15 @@ public class TextColor {
             // Create a red button and set its click handler to change the text color
             final Button red = paragraph.createButton("red");
             red.setBackgroundColor(Color.RED);
-            red.onClick(() -> text.setColor(Color.RED));
+            red.onClick((data) -> text.setColor(Color.RED));
 
             // Create a green button with the same behavior
             final Button green = paragraph.createButton("green");
-            green.onClick(() -> text.setColor(Color.GREEN));
+            green.onClick((data) -> text.setColor(Color.GREEN));
 
             // Create a blue button
             final Button blue = paragraph.createButton("blue");
-            blue.onClick(() -> text.setColor(Color.BLUE));
+            blue.onClick((data) -> text.setColor(Color.BLUE));
         };
 
         // Create the application and start the server

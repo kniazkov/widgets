@@ -72,7 +72,7 @@ public class ClickCounterExt {
                 p1.createTextWidget(")");
 
                 // On button click: increment both counters
-                button.onClick(() -> {
+                button.onClick((data) -> {
                     localCounterModel.setIntValue(localCounterModel.getIntValue() + 1);
                     globalCounterModel.setIntValue(globalCounterModel.getIntValue() + 1);
                 });

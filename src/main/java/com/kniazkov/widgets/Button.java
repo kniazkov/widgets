@@ -10,17 +10,15 @@ import java.util.Optional;
  * A button widget.
  * <p>
  *     Represents a clickable inline UI element that contains a single child widget
- *     (typically text), and invokes a configured {@link Controller} when clicked.
+ *     (typically text), and invokes a configured {@link TypedController} when clicked.
  * </p>
  *
  * <p>
- *     By default, the button is initialized with an empty {@link TextWidget} as its content,
- *     and a {@link StubController} that does nothing. The content can be replaced, and the click
- *     handler can be customized using {@link #onClick(Controller)}.
+ *     By default, the button is initialized with an empty {@link TextWidget} as its content.
  * </p>
  */
 public final class Button extends InlineWidget implements Decorator<InlineWidget>, HasBgColor,
-        Clickable {
+    ProcessesPointerEvents {
     /**
      * Child widget rendered inside the button.
      */
@@ -34,7 +32,12 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     /**
      * Controller invoked when the button is clicked.
      */
-    private Controller clickCtrl;
+    private TypedController<PointerEvent> clickCtrl;
+
+    private TypedController<PointerEvent> mouseOverCtrl;
+
+    private TypedController<PointerEvent> mouseOutCtrl;
+
 
     /**
      * Constructs a new button with default text content and no-op click behavior.
@@ -51,7 +54,9 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
             style.getBackgroundColorModel().fork(),
             new BgColorModelListener(this)
         );
-        this.clickCtrl = StubController.INSTANCE;
+        this.clickCtrl = PointerEvent.STUB_CONTROLLER;
+        this.mouseOverCtrl = PointerEvent.STUB_CONTROLLER;
+        this.mouseOutCtrl = PointerEvent.STUB_CONTROLLER;
     }
 
     @Override
@@ -66,19 +71,21 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
 
     @Override
     void handleEvent(final String type, final Optional<JsonObject> data) {
+        if (!data.isPresent()) {
+            return;
+        }
         if (type.equals("click")) {
-            this.clickCtrl.handleEvent();
+            this.clickCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
+        } else if (type.equals("mouse over")) {
+            this.mouseOverCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
+        } else if (type.equals("mouse out")) {
+            this.mouseOutCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
         }
     }
 
     @Override
     public InlineWidget getChild() {
         return this.child;
-    }
-
-    @Override
-    public void onClick(final Controller ctrl) {
-        this.clickCtrl = ctrl;
     }
 
     @Override
@@ -140,5 +147,20 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     @Override
     public void setBackgroundColorModel(final Model<Color> model) {
         this.bgColor.setModel(model);
+    }
+
+    @Override
+    public void onClick(final TypedController<PointerEvent> ctrl) {
+        this.clickCtrl = ctrl;
+    }
+
+    @Override
+    public void onPointerOver(final TypedController<PointerEvent> ctrl) {
+        this.mouseOverCtrl = ctrl;
+    }
+
+    @Override
+    public void onPointerOut(final TypedController<PointerEvent> ctrl) {
+        this.mouseOutCtrl = ctrl;
     }
 }

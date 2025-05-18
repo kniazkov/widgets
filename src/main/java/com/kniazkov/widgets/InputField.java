@@ -16,7 +16,7 @@ import java.util.Optional;
  * </p>
  */
 public final class InputField extends InlineWidget implements HasTextInput, HasStyledText,
-        HasWidth<InlineWidgetSize>, Clickable {
+        HasWidth<InlineWidgetSize>, ProcessesPointerEvents {
     /**
      * Text model binding — handles model and listener for text changes.
      */
@@ -55,7 +55,11 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
     /**
      * Controller invoked when the field is clicked.
      */
-    private Controller clickCtrl;
+    private TypedController<PointerEvent> clickCtrl;
+
+    private TypedController<PointerEvent> mouseOverCtrl;
+
+    private TypedController<PointerEvent> mouseOutCtrl;
 
     /**
      * Constructs a new input field with default model and no-op controllers.
@@ -70,7 +74,6 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
             new TextModelListener(this)
         );
         this.textInputCtrl = data -> { }; // no-op
-        this.clickCtrl = StubController.INSTANCE;
         final StyleSet styles = client.getRootWidget().getDefaultStyles();
         final InputFieldStyle style = styles.getDefaultInputFieldStyle();
         this.fontFace = new ModelBinding<>(
@@ -93,6 +96,9 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
             new DefaultInlineWidgetSizeModel(),
             new WidgetSizeListener<InlineWidgetSize>(this, "width")
         );
+        this.clickCtrl = PointerEvent.STUB_CONTROLLER;
+        this.mouseOverCtrl = PointerEvent.STUB_CONTROLLER;
+        this.mouseOutCtrl = PointerEvent.STUB_CONTROLLER;
     }
 
     @Override
@@ -126,8 +132,16 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
                 this.text.getModel().setData(text);
                 this.textInputCtrl.handleEvent(text);
             }
-        } else if (type.equals("click")) {
-            this.clickCtrl.handleEvent();
+        }
+        if (!data.isPresent()) {
+            return;
+        }
+        else if (type.equals("click")) {
+            this.clickCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
+        } else if (type.equals("mouse over")) {
+            this.mouseOverCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
+        } else if (type.equals("mouse out")) {
+            this.mouseOutCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
         }
     }
 
@@ -225,7 +239,17 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
     }
 
     @Override
-    public void onClick(final Controller ctrl) {
+    public void onClick(final TypedController<PointerEvent> ctrl) {
         this.clickCtrl = ctrl;
+    }
+
+    @Override
+    public void onPointerOver(final TypedController<PointerEvent> ctrl) {
+        this.mouseOverCtrl = ctrl;
+    }
+
+    @Override
+    public void onPointerOut(final TypedController<PointerEvent> ctrl) {
+        this.mouseOutCtrl = ctrl;
     }
 }

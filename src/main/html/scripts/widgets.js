@@ -30,7 +30,7 @@ var widgetsLibrary = {
     },
     "button" : function() {
         var widget = document.createElement("button");
-        handleClickEvent(widget);
+        handlePointerEvents(widget);
         return widget;
     }
 };
@@ -194,8 +194,47 @@ var setItalic = function(data) {
     return false;
 };
 
-var handleClickEvent = function(widget) {
-    addEvent(widget, "click", function() {
-        sendEventToServer(widget, "click");
+var processPointerEvent = function(element, event) {
+    var rect = element.getBoundingClientRect();
+    var data = {};
+    data.position = {};
+    data.position.element = {
+        x: Math.round(event.clientX - rect.left),
+        y: Math.round(event.clientY - rect.top)
+    };
+    data.position.client = {
+        x: Math.round(event.clientX),
+        y: Math.round(event.clientY)
+    };
+    data.position.page = {
+        x: Math.round(event.pageX),
+        y: Math.round(event.pageY)
+    };
+    data.position.screen = {
+        x: Math.round(event.screenX),
+        y: Math.round(event.screenY)
+    };
+    data.type = event.pointerType;
+    data.primary = event.isPrimary;
+    data.buttons = event.buttons;
+    data.keys = {
+        ctrl: event.ctrlKey,
+        alt: event.altKey,
+        shift: event.shiftKey,
+        meta: event.metaKey
+    };
+    data.pressure = event.pressure;
+    return data;
+};
+
+var handlePointerEvents = function(widget) {
+    addEvent(widget, "click", function(event) {
+        sendEventToServer(widget, "click", processPointerEvent(widget, event));
+    });
+    addEvent(widget, "pointerenter", function(event) {
+        sendEventToServer(widget, "mouse over", processPointerEvent(widget, event));
+    });
+    addEvent(widget, "pointerleave", function(event) {
+        sendEventToServer(widget, "mouse out", processPointerEvent(widget, event));
     });
 };
