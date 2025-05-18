@@ -160,16 +160,19 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     @Override
     public void onClick(final TypedController<PointerEvent> ctrl) {
         this.clickCtrl = ctrl;
+        this.subscribeToEvent("click");
     }
 
     @Override
     public void onPointerEnter(final TypedController<PointerEvent> ctrl) {
         this.mouseOverCtrl = ctrl;
+        this.subscribeToEvent("pointer enter");
     }
 
     @Override
     public void onPointerLeave(final TypedController<PointerEvent> ctrl) {
         this.mouseOutCtrl = ctrl;
+        this.subscribeToEvent("pointer leave");
     }
 
 

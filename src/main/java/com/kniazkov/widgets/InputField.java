@@ -158,6 +158,7 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
     @Override
     public void onTextInput(TypedController<String> ctrl) {
         this.textInputCtrl = ctrl;
+        this.subscribeToEvent("text input");
     }
 
     @Override
@@ -241,15 +242,19 @@ public final class InputField extends InlineWidget implements HasTextInput, HasS
     @Override
     public void onClick(final TypedController<PointerEvent> ctrl) {
         this.clickCtrl = ctrl;
+        this.subscribeToEvent("click");
     }
 
     @Override
     public void onPointerEnter(final TypedController<PointerEvent> ctrl) {
         this.mouseOverCtrl = ctrl;
+        this.subscribeToEvent("pointer enter");
     }
 
     @Override
     public void onPointerLeave(final TypedController<PointerEvent> ctrl) {
         this.mouseOutCtrl = ctrl;
+        this.subscribeToEvent("pointer leave");
     }
+
 }

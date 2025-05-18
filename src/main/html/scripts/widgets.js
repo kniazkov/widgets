@@ -41,11 +41,21 @@ var createWidget = function(data) {
     if (ctor && id) {
         var widget = ctor();
         widget._id = id;
+        widget._events = {};
         widgets[id] = widget;
         log("Widget '" + data.type + "' created, id: " + id + '.');
         return true;
     }
     return false;
+};
+
+var subscribeToEvent = function(data) {
+    var widget = widgets[data.widget];
+    var event = data.event;
+    if (widget && event) {
+        log("Server subscribed to the '" + event + "' event of widget " + widget._id + '.');
+        widget._events[event] = true;
+    }
 };
 
 var setChildWidget = function(data) {

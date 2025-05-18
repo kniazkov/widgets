@@ -138,6 +138,7 @@ var reset = function() {
 var actionHandlers = {
     "create" : createWidget,
     "reset" : reset,
+    "subscribe" : subscribeToEvent,
     "set child" : setChildWidget,
     "append child" : appendChildWidget,
     "set text" : setText,
@@ -152,6 +153,8 @@ var actionHandlers = {
 };
 
 var sendEventToServer = function(widget, type, data) {
-    createEvent(widget, type, data);
-    sendSynchronizeRequest();
+    if (widget._events[type]) {
+        createEvent(widget, type, data);
+        sendSynchronizeRequest();
+    }
 };

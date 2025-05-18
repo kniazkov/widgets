@@ -133,6 +133,16 @@ public abstract class Widget {
     }
 
     /**
+     * Sends an instruction to the client to start forwarding events of the specified type
+     * for this widget to the server.
+     *
+     * @param event The name of the event to subscribe to (e.g., "click", "pointer enter")
+     */
+    void subscribeToEvent(final String event) {
+        this.sendToClient(new SubscribeToEvent(this.widgetId, event));
+    }
+
+    /**
      * Removes this widget from the UI and its parent container.
      * <p>
      *     The widget is removed from the parent container (if any),
