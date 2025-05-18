@@ -232,9 +232,9 @@ var handlePointerEvents = function(widget) {
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerenter", function(event) {
-        sendEventToServer(widget, "mouse over", processPointerEvent(widget, event));
+        sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerleave", function(event) {
-        sendEventToServer(widget, "mouse out", processPointerEvent(widget, event));
+        sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
     });
 };

@@ -21,9 +21,9 @@ public interface ProcessesPointerEvents {
      */
     void onClick(TypedController<PointerEvent> ctrl);
 
-    void onPointerOver(TypedController<PointerEvent> ctrl);
+    void onPointerEnter(TypedController<PointerEvent> ctrl);
 
-    void onPointerOut(TypedController<PointerEvent> ctrl);
+    void onPointerLeave(TypedController<PointerEvent> ctrl);
 
     /**
      * Parses a {@link PointerEvent} from a given JSON object.

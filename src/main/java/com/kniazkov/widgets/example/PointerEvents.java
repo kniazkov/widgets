@@ -28,7 +28,7 @@ import com.kniazkov.widgets.TextWidget;
  *     </li>
  * </ol>
  */
-public class MouseEvents {
+public class PointerEvents {
 
     /**
      * Starting point.
@@ -41,17 +41,18 @@ public class MouseEvents {
             // First paragraph: contains the button
             final Paragraph paragraph = root.createParagraph();
             final Button button = paragraph.createButton();
+            button.setWidth(200);
             final TextWidget text = button.createText("Click me");
 
             button.onClick((data) -> {
-                text.setText("Clicked!");
+                text.setText("Clicked");
             });
 
-            button.onPointerOver((data) -> {
-                text.setText("Mouse over!");
+            button.onPointerEnter((data) -> {
+                text.setText("Mouse over");
             });
 
-            button.onPointerOut((data) -> {
+            button.onPointerLeave((data) -> {
                 text.setText("Mouse out");
             });
         };

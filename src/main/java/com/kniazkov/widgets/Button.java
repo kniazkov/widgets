@@ -18,7 +18,7 @@ import java.util.Optional;
  * </p>
  */
 public final class Button extends InlineWidget implements Decorator<InlineWidget>, HasBgColor,
-    ProcessesPointerEvents {
+    HasWidth<InlineWidgetSize>, ProcessesPointerEvents {
     /**
      * Child widget rendered inside the button.
      */
@@ -38,6 +38,10 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
 
     private TypedController<PointerEvent> mouseOutCtrl;
 
+    /**
+     * Width model binding — handles model and listener for width changes.
+     */
+    private final ModelBinding<InlineWidgetSize> width;
 
     /**
      * Constructs a new button with default text content and no-op click behavior.
@@ -57,6 +61,10 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
         this.clickCtrl = PointerEvent.STUB_CONTROLLER;
         this.mouseOverCtrl = PointerEvent.STUB_CONTROLLER;
         this.mouseOutCtrl = PointerEvent.STUB_CONTROLLER;
+        this.width = new ModelBinding<>(
+            new DefaultInlineWidgetSizeModel(),
+            new WidgetSizeListener<InlineWidgetSize>(this, "width")
+        );
     }
 
     @Override
@@ -76,9 +84,9 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
         }
         if (type.equals("click")) {
             this.clickCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
-        } else if (type.equals("mouse over")) {
+        } else if (type.equals("pointer enter")) {
             this.mouseOverCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
-        } else if (type.equals("mouse out")) {
+        } else if (type.equals("pointer leave")) {
             this.mouseOutCtrl.handleEvent(ProcessesPointerEvents.parsePointerEvent(data.get()));
         }
     }
@@ -155,12 +163,36 @@ public final class Button extends InlineWidget implements Decorator<InlineWidget
     }
 
     @Override
-    public void onPointerOver(final TypedController<PointerEvent> ctrl) {
+    public void onPointerEnter(final TypedController<PointerEvent> ctrl) {
         this.mouseOverCtrl = ctrl;
     }
 
     @Override
-    public void onPointerOut(final TypedController<PointerEvent> ctrl) {
+    public void onPointerLeave(final TypedController<PointerEvent> ctrl) {
         this.mouseOutCtrl = ctrl;
+    }
+
+
+    @Override
+    public Model<InlineWidgetSize> getWidthModel() {
+        return this.width.getModel();
+    }
+
+    @Override
+    public void setWidthModel(final Model<InlineWidgetSize> model) {
+        this.width.setModel(model);
+    }
+
+    /**
+     * Sets the width of the widget in pixels.
+     * <p>
+     *     This is a convenience method that wraps the given pixel value in an
+     *     {@link InlineWidgetSize} and updates the associated width model.
+     * </p>
+     *
+     * @param pixels The width in pixels (must be ≥ 0)
+     */
+    public void setWidth(final int pixels) {
+        this.width.getModel().setData(new InlineWidgetSize(pixels));
     }
 }
