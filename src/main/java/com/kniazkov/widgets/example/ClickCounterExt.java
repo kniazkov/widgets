@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.example;
 
 import com.kniazkov.widgets.*;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A web application that contains a button and two counters:
@@ -48,7 +47,7 @@ public class ClickCounterExt {
             final IntegerViaStringModel globalCounterModel = new IntegerViaStringModel();
 
             @Override
-            public void create(@NotNull RootWidget root) {
+            public void create(RootWidget root) {
                 // Paragraph containing the button
                 final Paragraph p0 = root.createParagraph();
                 final Button button = p0.createButton("Click me");
