@@ -61,13 +61,23 @@ public abstract class Widget {
     public  abstract String getType();
 
     /**
-     * Returns the immutable list of child widgets. Default implementation returns an empty list.
-     * Container widgets should override this to provide their children.
+     * Returns the number of child widgets contained in this widget.
      *
-     * @return the list of child widgets
+     * @return the number of child widgets
      */
-    public List<Widget> getChildWidgets() {
-        return Collections.emptyList();
+    public int getChildCount() {
+        return 0;
+    }
+
+    /**
+     * Returns the child widget at the given index.
+     *
+     * @param index the index of the child widget (from {@code 0} to {@code getChildCount() - 1})
+     * @return the child widget
+     * @throws IndexOutOfBoundsException if the index is invalid
+     */
+    public Widget getChild(final int index) {
+        throw new IndexOutOfBoundsException();
     }
 
     /**
@@ -91,8 +101,9 @@ public abstract class Widget {
             final Widget widget = stack.pop();
             set.addAll(widget.updates);
             widget.updates.clear();
-            for (Widget child : widget.getChildWidgets()) {
-                stack.push(child);
+            final int count = widget.getChildCount();
+            for (int index = 0; index < count; index++) {
+                stack.push(widget.getChild(index));
             }
         }
     }
