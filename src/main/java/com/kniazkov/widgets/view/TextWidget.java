@@ -55,7 +55,7 @@ public class TextWidget extends InlineWidget implements HasText {
     }
 
     @Override
-    public void handleEvent(String type, Optional<JsonObject> data) {
+    void handleEvent(String type, Optional<JsonObject> data) {
         // no events to process
     }
 }
