@@ -1,10 +1,10 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.common;
 
 /**
- * Immutable class representing a point with integer X and Y coordinates.
+ * Class representing a point with integer X and Y coordinates.
  */
 public final class Point {
     /**
@@ -13,7 +13,7 @@ public final class Point {
     public int x;
 
     /**
-     * The X coordinate.
+     * The Y coordinate.
      */
     public int y;
 

@@ -1,14 +1,15 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.controller;
+
+import com.kniazkov.widgets.common.Point;
 
 /**
  * Represents the position of a pointer (e.g., mouse or touch)
  * relative to different coordinate systems in a web or GUI environment.
  */
 public final class PointerPosition {
-
     /**
      * The pointer's position relative to the target element.
      */

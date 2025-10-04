@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.controller;
 
 /**
  * Represents the state of keyboard modifier keys during an input event,
@@ -28,4 +28,3 @@ public class ModifierKeys {
      */
     public boolean meta;
 }
-

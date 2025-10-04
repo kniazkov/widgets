@@ -11,4 +11,9 @@ public interface Controller {
      * Method called when some event occurs.
      */
     void handleEvent();
+
+    /**
+     * Stub controller that does nothing.
+     */
+    static Controller STUB_CONTROLLER = () -> { };
 }

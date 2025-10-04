@@ -33,20 +33,12 @@ public class TextWidget extends InlineWidget implements HasText {
     public TextWidget(final String text) {
         final Model<String> textModel = new DefaultStringModel();
         textModel.setData(text);
-        this.text = new ModelBinding<>(
-            textModel,
-            new TextModelListener(this)
-        );
+        this.text = new ModelBinding<>(textModel, new TextModelListener(this));
     }
 
     @Override
-    public Model<String> getTextModel() {
-        return this.text.getModel();
-    }
-
-    @Override
-    public void setTextModel(Model<String> model) {
-        this.text.setModel(model);
+    public ModelBinding<String> getTextModelBinding() {
+        return this.text;
     }
 
     @Override

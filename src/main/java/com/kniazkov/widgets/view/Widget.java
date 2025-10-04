@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveWidgetFromContainer;
@@ -59,7 +60,7 @@ public abstract class Widget {
      *
      * @return the widget type
      */
-    public  abstract String getType();
+    public abstract String getType();
 
     /**
      * Handles an event received from the client for this widget.
@@ -74,13 +75,22 @@ public abstract class Widget {
      * If the widget was previously attached to another container,
      * a {@link RemoveWidgetFromContainer} update will be queued.
      *
-     * @param container the new parent container
+     * @param container the new parent container (may be {@code null})
      */
     void setParent(final Container container) {
         if (this.parent != null) {
             this.updates.add(new RemoveWidgetFromContainer(this.id, this.parent.getId()));
         }
         this.parent = container;
+    }
+
+    /**
+     * Removes this widget from its parent container.
+     * This effectively removes the widget from the UI hierarchy. After removal, this widget
+     * is considered "detached" - it will no longer receive updates or events from the client.
+     */
+    public void remove() {
+        this.setParent(null);
     }
 
     /**
@@ -99,7 +109,7 @@ public abstract class Widget {
      *
      * @param update the update to add
      */
-    protected void update(final Update update) {
+    protected void pushUpdate(final Update update) {
         this.updates.add(update);
     }
 
@@ -110,5 +120,32 @@ public abstract class Widget {
      */
     protected void subscribeToEvent(final String event) {
         this.updates.add(new Subscribe(this.id, event));
+    }
+
+    /**
+     * Listener that listens to text models and sends a "set text" update.
+     */
+    protected static final class TextModelListener implements Listener<String> {
+        private final Widget widget;
+
+        public TextModelListener(final Widget widget) {
+            this.widget = widget;
+        }
+
+        @Override
+        public void accept(final String data) {
+            final Update update = new Update(this.widget.getId()) {
+                @Override
+                protected String getAction() {
+                    return "set text";
+                }
+
+                @Override
+                protected void fillJsonObject(JsonObject json) {
+                    json.addString("text", data);
+                }
+            };
+            this.widget.pushUpdate(update);
+        }
     }
 }
