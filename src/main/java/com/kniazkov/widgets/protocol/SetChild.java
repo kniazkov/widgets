@@ -10,7 +10,7 @@ import com.kniazkov.widgets.common.UId;
  * An {@link Update} that instructs the client to place (set) a widget
  * into a specific container (decorator).
  */
-public final class SetWidgetInContainer extends Update {
+public final class SetChild extends Update {
     /**
      * The identifier of the container where the widget is placed.
      */
@@ -22,14 +22,14 @@ public final class SetWidgetInContainer extends Update {
      * @param widget the widget being placed
      * @param container the container that will contain the widget
      */
-    public SetWidgetInContainer(final UId widget, final UId container) {
+    public SetChild(final UId widget, final UId container) {
         super(widget);
         this.container = container;
     }
 
     @Override
     protected String getAction() {
-        return "set widget";
+        return "set child";
     }
 
     @Override

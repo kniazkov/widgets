@@ -8,8 +8,8 @@ var widgetsLibrary = {
     "root" : function() {
         return document.body;
     },
-    "paragraph" : function() {
-        return document.createElement("p");
+    "section" : function() {
+        return document.createElement("div");
     },
     "text" : function() {
         return document.createElement("span");
@@ -60,11 +60,11 @@ var subscribeToEvent = function(data) {
 
 var setChildWidget = function(data) {
     var widget = widgets[data.widget];
-    var child = widgets[data.child];
-    if (widget && child) {
-        widget.innerHTML = "";
-        widget.appendChild(child);
-        log("Widget " + data.child + " is set as a child of widget " + data.widget + '.');
+    var container = widgets[data.container];
+    if (widget && container) {
+        container.innerHTML = "";
+        container.appendChild(widget);
+        log("Widget " + data.widget + " is set as a child of widget " + data.container + '.');
         return true;
     }
     return false;
@@ -72,10 +72,10 @@ var setChildWidget = function(data) {
 
 var appendChildWidget = function(data) {
     var widget = widgets[data.widget];
-    var child = widgets[data.child];
-    if (widget && child) {
-        widget.appendChild(child);
-        log("Widget " + data.child + " is added as a child of widget " + data.widget + '.');
+    var container = widgets[data.container];
+    if (widget && container) {
+        container.appendChild(widget);
+        log("Widget " + data.widget + " is added as a child of widget " + data.container + '.');
         return true;
     }
     return false;

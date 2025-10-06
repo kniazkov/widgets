@@ -7,7 +7,7 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.controller.PointerEvent;
 import com.kniazkov.widgets.controller.ProcessesPointerEvents;
 import com.kniazkov.widgets.controller.TypedController;
-import com.kniazkov.widgets.protocol.SetWidgetInContainer;
+import com.kniazkov.widgets.protocol.SetChild;
 import java.util.Optional;
 
 /**
@@ -49,7 +49,7 @@ public class Button extends InlineWidget
      */
     public Button(final String text) {
         this.child = new TextWidget(text);
-        this.pushUpdate(new SetWidgetInContainer(this.child.getId(), this.getId()));
+        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
         this.clickCtrl = PointerEvent.STUB_CONTROLLER;
         this.mouseOverCtrl = PointerEvent.STUB_CONTROLLER;
         this.mouseOutCtrl = PointerEvent.STUB_CONTROLLER;
@@ -59,7 +59,7 @@ public class Button extends InlineWidget
     public void remove(Widget widget) {
         this.child.setParent(null);
         this.child = new TextWidget();
-        this.pushUpdate(new SetWidgetInContainer(this.child.getId(), this.getId()));
+        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
     @Override
@@ -74,7 +74,7 @@ public class Button extends InlineWidget
         }
         this.child.setParent(null);
         this.child = widget;
-        this.pushUpdate(new SetWidgetInContainer(this.child.getId(), this.getId()));
+        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
     @Override

@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.protocol.AppendChild;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +42,7 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     public void add(InlineWidget widget) {
         this.children.add(widget);
         widget.setParent(this);
+        pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override

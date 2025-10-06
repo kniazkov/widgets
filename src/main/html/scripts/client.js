@@ -73,21 +73,23 @@ var processUpdates = function(updates) {
         return;
     }
     if (updates.length == 1) {
-        log("Received 1 instruction.");
+        log("Received 1 update.");
     } else {
-        log("Received " + updates.length + " instructions.");
+        log("Received " + updates.length + " updates.");
     }
     for (var i = 0; i < updates.length; i++) {
         var result = false;
         var update = updates[i];
         var id = parseId(update.id);
         if (id <= lastProcessedUpdateId) {
-            log("Instruction " + update.id + " skipped.");
+            log("Update " + update.id + " skipped.");
             continue;
         }
         var handler = actionHandlers[update.action];
         if (handler) {
             result = handler(update);
+        } else {
+            log("Unknown action: '" + update.action + "'.");
         }
         lastProcessedUpdateId = id;
     }
@@ -136,7 +138,7 @@ var reset = function() {
 };
 
 var actionHandlers = {
-    "create" : createWidget,
+    "create widget" : createWidget,
     "reset" : reset,
     "subscribe" : subscribeToEvent,
     "set child" : setChildWidget,

@@ -9,7 +9,7 @@ import com.kniazkov.widgets.common.UId;
 /**
  * An {@link Update} that instructs the client to add a widget to a specific container.
  */
-public final class AddWidgetToContainer extends Update {
+public final class AppendChild extends Update {
     /**
      * The identifier of the container to which the widget is added.
      */
@@ -21,14 +21,14 @@ public final class AddWidgetToContainer extends Update {
      * @param widget the widget being added
      * @param container the container that receives the widget
      */
-    public AddWidgetToContainer(final UId widget, final UId container) {
+    public AppendChild(final UId widget, final UId container) {
         super(widget);
         this.container = container;
     }
 
     @Override
     protected String getAction() {
-        return "add widget";
+        return "append child";
     }
 
     @Override

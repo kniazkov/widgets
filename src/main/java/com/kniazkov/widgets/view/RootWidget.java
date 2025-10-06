@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.protocol.AppendChild;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -41,6 +42,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     public void add(BlockWidget widget) {
         this.children.add(widget);
         widget.setParent(this);
+        pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
