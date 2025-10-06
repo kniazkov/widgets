@@ -29,7 +29,7 @@ public final class SetWidgetInContainer extends Update {
 
     @Override
     protected String getAction() {
-        return "set widget in container";
+        return "set widget";
     }
 
     @Override
