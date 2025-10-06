@@ -55,4 +55,31 @@ public interface HasText extends View {
     default void setText(String text) {
         this.getTextModel().setData(text);
     }
+
+    /**
+     * Listener that listens to text models and sends a "set text" update.
+     */
+    final class TextModelListener implements Listener<String> {
+        private final Widget widget;
+
+        public TextModelListener(final Widget widget) {
+            this.widget = widget;
+        }
+
+        @Override
+        public void accept(final String data) {
+            final Update update = new Update(this.widget.getId()) {
+                @Override
+                protected String getAction() {
+                    return "set text";
+                }
+
+                @Override
+                protected void fillJsonObject(JsonObject json) {
+                    json.addString("text", data);
+                }
+            };
+            this.widget.pushUpdate(update);
+        }
+    }
 }

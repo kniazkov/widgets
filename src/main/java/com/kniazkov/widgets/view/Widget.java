@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.protocol.CreateWidget;
@@ -120,32 +121,5 @@ public abstract class Widget {
      */
     protected void subscribeToEvent(final String event) {
         this.updates.add(new Subscribe(this.id, event));
-    }
-
-    /**
-     * Listener that listens to text models and sends a "set text" update.
-     */
-    protected static final class TextModelListener implements Listener<String> {
-        private final Widget widget;
-
-        public TextModelListener(final Widget widget) {
-            this.widget = widget;
-        }
-
-        @Override
-        public void accept(final String data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set text";
-                }
-
-                @Override
-                protected void fillJsonObject(JsonObject json) {
-                    json.addString("text", data);
-                }
-            };
-            this.widget.pushUpdate(update);
-        }
     }
 }
