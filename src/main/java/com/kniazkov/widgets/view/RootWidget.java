@@ -17,7 +17,7 @@ import java.util.Optional;
  * of the interface. The root itself cannot have a parent container and represents the logical
  * entry point for traversing or updating the widget tree.
  */
-public class RootWidget extends Widget implements TypedContainer<BlockWidget> {
+public final class RootWidget extends Widget implements TypedContainer<BlockWidget> {
     final List<BlockWidget> children = new ArrayList<>();
 
     @Override

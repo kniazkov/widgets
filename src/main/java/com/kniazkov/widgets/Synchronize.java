@@ -3,16 +3,10 @@
  */
 package com.kniazkov.widgets;
 
-import com.kniazkov.json.Json;
-import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
-import com.kniazkov.json.JsonError;
-import com.kniazkov.json.JsonException;
-import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
-import java.util.List;
+import com.kniazkov.widgets.base.ActionHandler;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Action handler that synchronizes the state between client and server.

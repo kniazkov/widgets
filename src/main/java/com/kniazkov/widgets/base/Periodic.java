@@ -1,22 +1,20 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 /**
  * A base class for tasks that should be executed periodically.
- * <p>
- *     Subclasses define the behavior in {@link #tick()}, which is called at fixed intervals.
- *    If {@code tick()} returns {@code false}, the periodic execution stops automatically.
- * </p>
+ * Subclasses define the behavior in {@link #tick()}, which is called at fixed intervals.
+ * If {@code tick()} returns {@code false}, the periodic execution stops automatically.
  */
 public abstract class Periodic {
 
     private Timer timer;
-    private TimerTask currentTask;
+    private TimerTask task;
     private long totalTime = 0;
 
     /**
@@ -29,13 +27,13 @@ public abstract class Periodic {
      * Starts periodic execution with the given interval.
      * If already running, it is restarted.
      *
-     * @param period Interval in milliseconds
+     * @param period interval in milliseconds
      */
     public synchronized void start(long period) {
         stop();
         this.totalTime = 0;
         this.timer = new Timer();
-        this.currentTask = new TimerTask() {
+        this.task = new TimerTask() {
             @Override
             public void run() {
                 totalTime += period;
@@ -44,16 +42,16 @@ public abstract class Periodic {
                 }
             }
         };
-        this.timer.scheduleAtFixedRate(this.currentTask, 0, period);
+        this.timer.scheduleAtFixedRate(this.task, 0, period);
     }
 
     /**
      * Stops periodic execution if running.
      */
     public synchronized void stop() {
-        if (this.currentTask != null) {
-            this.currentTask.cancel();
-            this.currentTask = null;
+        if (this.task != null) {
+            this.task.cancel();
+            this.task = null;
         }
         if (this.timer != null) {
             this.timer.cancel();
@@ -63,7 +61,7 @@ public abstract class Periodic {
 
     /**
      * Returns the total time this task has been executing.
-     * @return Elapsed time in milliseconds
+     * @return elapsed time in milliseconds
      */
     public synchronized long getTotalTime() {
         return this.totalTime;

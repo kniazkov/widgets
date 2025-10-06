@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.widgets.base.Periodic;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import com.kniazkov.json.JsonObject;

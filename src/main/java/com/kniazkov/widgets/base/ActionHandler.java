@@ -1,23 +1,18 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
 
+import com.kniazkov.widgets.Application;
 import java.util.Map;
 
 /**
  * Base class for handling actions requested by the client.
- * <p>
- *     Each {@code ActionHandler} processes a specific kind of client-side request,
- *     such as sending events, or handling commands.
- * </p>
- *
- * <p>
- *     The {@link #process(Map)} method must be implemented to handle incoming request data
- *     and return a response in JSON format.
- * </p>
+ * Each {@code ActionHandler} processes a specific kind of client-side request,
+ * such as sending events, or handling commands. The {@link #process(Map)} method
+ * must be implemented to handle incoming request data and return a response in JSON format.
  */
 abstract class ActionHandler {
     /**
@@ -26,19 +21,12 @@ abstract class ActionHandler {
     protected final Application application;
 
     /**
-     * Logger used for diagnostics and error reporting.
-     */
-    protected final Logger logger;
-
-    /**
      * Constructs a new action handler.
      *
-     * @param application The application instance
-     * @param logger The logger for diagnostic output
+     * @param application the application instance
      */
-    ActionHandler(final Application application, final Logger logger) {
+    ActionHandler(final Application application) {
         this.application = application;
-        this.logger = logger;
     }
 
     /**
