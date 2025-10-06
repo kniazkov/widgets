@@ -5,6 +5,9 @@ package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.FontFace;
+import com.kniazkov.widgets.common.FontSize;
+import com.kniazkov.widgets.common.InlineWidgetSize;
 import com.kniazkov.widgets.controller.PointerEvent;
 import com.kniazkov.widgets.controller.ProcessesPointerEvents;
 import java.util.Optional;

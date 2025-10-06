@@ -5,6 +5,7 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.Color;
 
 /**
  * An entity that has a background color.

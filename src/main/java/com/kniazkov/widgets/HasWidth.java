@@ -4,6 +4,7 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.WidgetSize;
 
 /**
  * An entity that has a configurable width value.

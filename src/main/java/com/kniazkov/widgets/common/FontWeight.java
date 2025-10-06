@@ -1,17 +1,13 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.common;
 
 /**
  * Represents standard font weight values used in web typography.
- * <p>
- *     This enum corresponds to common CSS and Google Fonts weights,
- *     ranging from {@code 100} (thin) to {@code 900} (black).
- * </p>
- * <p>
- *     These values can be used in styling engines, CSS generation, or text rendering settings.
- * </p>
+ * This enum corresponds to common CSS and Google Fonts weights, ranging from {@code 100} (thin)
+ * to {@code 900} (black). These values can be used in styling engines, CSS generation,
+ * or text rendering settings.
  */
 public enum FontWeight {
     /**
@@ -71,7 +67,7 @@ public enum FontWeight {
 
     /**
      * Constructor.
-     * @param weight Weight numeric value
+     * @param weight weight numeric value
      */
     FontWeight(int weight) {
         this.weight = weight;
@@ -90,7 +86,7 @@ public enum FontWeight {
      * Returns a lowercase string version of the name, with underscores replaced by spaces.
      * Useful for UI display or serialization.
      *
-     * @return Human-readable name (e.g., "extra light")
+     * @return human-readable name (e.g., "extra light")
      */
     @Override
     public String toString() {
@@ -101,8 +97,8 @@ public enum FontWeight {
      * Parses a numeric weight and maps it to the closest enum constant.
      * If the exact value is not defined, falls back to {@link #NORMAL}.
      *
-     * @param weight The numeric weight value
-     * @return Corresponding {@code FontWeight} or {@code NORMAL} if unknown
+     * @param weight the numeric weight value
+     * @return corresponding {@code FontWeight} or {@code NORMAL} if unknown
      */
     public static FontWeight fromWeight(int weight) {
         for (final FontWeight fw : values()) {

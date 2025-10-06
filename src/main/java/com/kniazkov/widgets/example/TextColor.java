@@ -5,7 +5,7 @@ package com.kniazkov.widgets.example;
 
 import com.kniazkov.widgets.Application;
 import com.kniazkov.widgets.Button;
-import com.kniazkov.widgets.Color;
+import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.Options;
 import com.kniazkov.widgets.Page;
 import com.kniazkov.widgets.Paragraph;

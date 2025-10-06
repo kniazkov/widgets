@@ -1,30 +1,21 @@
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.common;
 
 import java.util.Objects;
 
 /**
  * Represents a CSS-compatible font size using absolute units.
- * <p>
- *     Internally stores the value in pixels and supports parsing from strings
- *     like {@code "12pt"}, {@code "1in"}, {@code "14px"}, etc.
- * </p>
- *
- * <p>
- *     Supported units:
- *     <ul>
- *         <li>{@code px} — pixels</li>
- *         <li>{@code pt} — points (1pt = 1/72 inch)</li>
- *         <li>{@code pc} — picas (1pc = 12pt)</li>
- *         <li>{@code in} — inches</li>
- *         <li>{@code cm} — centimeters</li>
- *         <li>{@code mm} — millimeters</li>
- *     </ul>
- * </p>
- *
- * <p>
- *     If no unit is provided when parsing from string, {@code px} is assumed.
- *     The minimum resolved pixel value is always clamped to 3.
- * </p>
+ * Internally stores the value in <b>pixels</b> and supports parsing from strings
+ * like {@code "12pt"}, {@code "1in"}, {@code "14px"}, etc. Supported units:
+ * <ul>
+ *     <li>{@code px} — pixels</li>
+ *     <li>{@code pt} — points (1pt = 1/72 inch)</li>
+ *     <li>{@code pc} — picas (1pc = 12pt)</li>
+ *     <li>{@code in} — inches</li>
+ *     <li>{@code cm} — centimeters</li>
+ *     <li>{@code mm} — millimeters</li>
+ * </ul>
+ * If no unit is provided when parsing from string, {@code px} is assumed.
+ * The minimum resolved pixel value is always clamped to 3.
  */
 public final class FontSize implements Comparable<FontSize> {
     /**
@@ -41,7 +32,7 @@ public final class FontSize implements Comparable<FontSize> {
     /**
      * Constructs a font size from a pixels value.
 
-     * @param px Size in pixels
+     * @param px size in pixels
      */
     public FontSize(int px) {
         this.pixels = px;
@@ -49,12 +40,10 @@ public final class FontSize implements Comparable<FontSize> {
 
     /**
      * Constructs a font size from a CSS-style string such as "12pt", "1in", or "16px".
-     * <p>
-     *     If no unit is specified, pixels are assumed.
-     * </p>
+     * If no unit is specified, pixels are assumed.
      *
-     * @param str Font size string to parse
-     * @throws IllegalArgumentException If the input is invalid or contains unsupported units
+     * @param str font size string to parse
+     * @throws IllegalArgumentException if the input is invalid or contains unsupported units
      */
     public FontSize(String str) {
         str = str.trim().toLowerCase();
@@ -80,9 +69,9 @@ public final class FontSize implements Comparable<FontSize> {
     /**
      * Converts a given numeric value with unit to pixels.
      *
-     * @param value Numeric portion of the input
-     * @param unit  Unit suffix (e.g., "pt", "px", etc.)
-     * @return Converted pixel value
+     * @param value numeric portion of the input
+     * @param unit  unit suffix (e.g., "pt", "px", etc.)
+     * @return converted pixel value
      * @throws IllegalArgumentException If the unit is unsupported
      */
     private static int toPixels(final float value, final String unit) {
@@ -100,8 +89,8 @@ public final class FontSize implements Comparable<FontSize> {
     /**
      * Ensures that the pixel value is not below 3.
      *
-     * @param px Pixel value
-     * @return Clamped pixel value (minimum 3)
+     * @param px pixel value
+     * @return clamped pixel value (minimum 3)
      */
     private static int clamp(int px) {
         return Math.max(3, px);

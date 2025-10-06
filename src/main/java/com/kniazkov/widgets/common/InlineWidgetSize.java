@@ -1,13 +1,11 @@
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.common;
 
 import java.util.Objects;
 
 /**
  * Represents an absolute size (width or height) of an inline widget.
- * <p>
- *     This value is expressed in pixels internally, parsed from a CSS-style string.
- *     Only absolute units are supported:
- * </p>
+ * This value is expressed in pixels internally, parsed from a CSS-style string.
+ * Only absolute units are supported:
  * <ul>
  *     <li>{@code px} — pixels (default if no unit specified)</li>
  *     <li>{@code pt} — points (1pt = 1/72 inch)</li>
@@ -16,10 +14,7 @@ import java.util.Objects;
  *     <li>{@code cm} — centimeters</li>
  *     <li>{@code mm} — millimeters</li>
  * </ul>
- *
- * <p>
- *     The minimum accepted value is clamped to 1 pixel.
- * </p>
+ * The minimum accepted value is clamped to 0 pixels.
  */
 public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize> {
     /**
@@ -46,7 +41,7 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
     /**
      * Constructs a new size in pixels.
      *
-     * @param px Size in pixels; must be ≥ 0
+     * @param px size in pixels; must be ≥ 0
      * @throws IllegalArgumentException if the size is negative
      */
     public InlineWidgetSize(final int px) {
@@ -58,12 +53,10 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
 
     /**
      * Constructs a size by parsing a CSS-like string.
-     * <p>
-     *     Accepts units like {@code px}, {@code pt}, {@code in}, etc.
-     *     If no unit is provided, pixels are assumed.
-     * </p>
+     * Accepts units like {@code px}, {@code pt}, {@code in}, etc.
+     * If no unit is provided, pixels are assumed.
      *
-     * @param str Size string (e.g., "10pt", "24px", "1in")
+     * @param str size string (e.g., "10pt", "24px", "1in")
      */
     public InlineWidgetSize(String str) {
         str = str.trim().toLowerCase();
@@ -89,10 +82,10 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
     /**
      * Converts a given numeric value with unit to pixels.
      *
-     * @param value Numeric portion of the input
-     * @param unit  Unit suffix (e.g., "pt", "px", etc.)
-     * @return Converted pixel value
-     * @throws IllegalArgumentException If the unit is unsupported
+     * @param value numeric portion of the input
+     * @param unit  unit suffix (e.g., "pt", "px", etc.)
+     * @return converted pixel value
+     * @throws IllegalArgumentException if the unit is unsupported
      */
     private static int toPixels(final float value, final String unit) {
         switch (unit) {

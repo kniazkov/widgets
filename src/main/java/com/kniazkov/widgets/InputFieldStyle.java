@@ -3,6 +3,9 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.widgets.common.FontFace;
+import com.kniazkov.widgets.common.FontSize;
+
 /**
  * Style definition for {@link InputField}, specifying how field should be rendered.
  * <p>

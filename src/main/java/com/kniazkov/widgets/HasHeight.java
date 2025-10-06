@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets;
 
+import com.kniazkov.widgets.common.WidgetSize;
+
 /**
  * An entity that has a configurable height value.
  * <p>

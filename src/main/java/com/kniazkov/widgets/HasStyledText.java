@@ -4,6 +4,8 @@
 package com.kniazkov.widgets;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.FontFace;
+import com.kniazkov.widgets.common.FontSize;
 
 /**
  * Represents a widget that displays styled text.
