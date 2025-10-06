@@ -1,30 +1,32 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 
-import com.kniazkov.widgets.base.ActionHandler;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Action handler that creates a new client instance.
- * <p>
- *     This handler is triggered when the client requests a new page session.
- *     It creates a new {@link Client}, logs the creation, and returns its unique ID.
- * </p>
+ * This handler is triggered when the client requests a new page session.
+ * It creates a new {@link Client}, logs the creation, and returns its unique ID.
  */
-final class NewInstance extends ActionHandler {
+final class CreateClient extends ActionHandler {
+    /**
+     * Logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Application.class.getName());
+
     /**
      * Constructs a new instance handler.
      *
-     * @param application The application instance
-     * @param logger The logger to use
+     * @param application the application instance
      */
-    NewInstance(final Application application, final Logger logger) {
-        super(application, logger);
+    CreateClient(final Application application) {
+        super(application);
     }
 
     @Override
@@ -37,7 +39,7 @@ final class NewInstance extends ActionHandler {
         obj.addString("id", id);
 
         // Log creation for debugging or monitoring
-        logger.write("Client " + id + " has been created.");
+        LOGGER.info("Client " + id + " has been created.");
 
         return obj;
     }

@@ -1,27 +1,30 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
-import java.util.ArrayList;
+import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.view.RootWidget;
+import com.kniazkov.widgets.view.Widget;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Represents a single connected client in the system.
- * <p>
- *     An instance of this class corresponds to one active web page or browser tab.
- *     Each client is uniquely identified by a {@link UId} and contains its own widget tree,
- *     managed by a {@link RootWidget}. The client tracks all registered widgets, handles
- *     incoming events from the front end, and collects outgoing updates for transmission.
- * </p>
+ * An instance of this class corresponds to one active web page or browser tab.
+ * Each client is uniquely identified by a {@link UId} and contains its own widget tree,
+ * managed by a {@link RootWidget}. The client tracks all registered widgets, handles
+ * incoming events from the front end, and collects outgoing updates for transmission.
  */
 public final class Client implements Comparable<Client> {
     /**
@@ -31,32 +34,21 @@ public final class Client implements Comparable<Client> {
 
     /**
      * Client expiration timer in milliseconds.
-     * <p>
-     *     When this value reaches zero, the client is considered expired and should be removed.
-     *     It is the responsibility of external code (e.g., a scheduler) to decrement this timer
-     *     and act accordingly.
-     * </p>
+     * When this value reaches zero, the client is considered expired and should be removed.
+     * It is the responsibility of external code (e.g., a scheduler) to decrement this timer
+     * and act accordingly.
      */
     long timer;
-
-    /**
-     * Mapping of all widgets associated with this client, indexed by their unique identifiers.
-     * <p>
-     *     This collection serves as a registry for event routing and state updates.
-     *     Widgets are stored in a sorted map for predictable iteration order.
-     * </p>
-     */
-    final Map<UId, Widget> widgets;
-
-    /**
-     * A list of update instructions that should be sent to the client.
-     */
-    private final List<Instruction> updates;
 
     /**
      * The root widget of the client, representing the entry point to the widget hierarchy.
      */
     private final RootWidget root;
+
+    /**
+     * Set of updates collected from widgets but not processed by the client.
+     */
+    private final Set<Update> updates;
 
     /**
      * The identifier of the last event processed.
@@ -65,21 +57,18 @@ public final class Client implements Comparable<Client> {
 
     /**
      * Constructs a new client with a unique ID and an empty widget registry.
-     * <p>
-     *     A new {@link RootWidget} is created and associated with this client.
-     * </p>
+     * A new {@link RootWidget} is created and associated with this client.
      */
     Client() {
         this.id = UId.create();
-        this.widgets = new TreeMap<>();
-        this.updates = new ArrayList<>();
-        this.root = new RootWidget(this);
+        this.root = new RootWidget();
+        this.updates = new TreeSet<>();
     }
 
     /**
      * Returns the unique identifier assigned to this client.
      *
-     * @return Client ID
+     * @return client ID
      */
     UId getId() {
         return this.id;
@@ -88,19 +77,10 @@ public final class Client implements Comparable<Client> {
     /**
      * Returns the root widget of the client.
      *
-     * @return The root widget
+     * @return the root widget
      */
     RootWidget getRootWidget() {
         return this.root;
-    }
-
-    /**
-     * Queues an instruction to be sent to the client during the next update cycle.
-     *
-     * @param instruction The instruction to add
-     */
-    void addInstruction(final Instruction instruction) {
-        this.updates.add(instruction);
     }
 
     /**
@@ -116,7 +96,7 @@ public final class Client implements Comparable<Client> {
      *         are skipped.
      *     </li>
      *     <li>
-     *         Removes already acknowledged update instructions (based on {@code lastInstruction})
+     *         Removes already processed update instructions (based on {@code lastUpdate})
      *         and serializes the remaining ones into the {@code updates} array in the response.
      *     </li>
      * </ul>
@@ -127,28 +107,32 @@ public final class Client implements Comparable<Client> {
      *  processed event ID
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
-        processEvents(request);
-        cleanupAcknowledgedInstructions(request);
-        serializeUpdates(response);
+        final List<Widget> widgets = this.root.collectAllWidgets();
+        this.processEvents(request, widgets);
+        this.collectUpdates(request, widgets);
+        this.serializeUpdates(response);
     }
 
     /**
      * Processes incoming events from the client and dispatches them to appropriate widgets.
      *
      * @param request The map of client parameters containing the "events" key
+     * @param widgets List of widgets collected from the widget tree
      */
-    private void processEvents(final Map<String, String> request) {
+    private void processEvents(final Map<String, String> request, final List<Widget> widgets) {
         if (!request.containsKey("events")) {
             return;
         }
-
         try {
             final JsonElement element = Json.parse(request.get("events"));
             final JsonArray events = element.toJsonArray();
             if (events == null) {
                 return;
             }
-
+            final Map<UId, Widget> map = new TreeMap<>();
+            for (final Widget widget : widgets) {
+                map.put(widget.getId(), widget);
+            }
             for (JsonElement item : events) {
                 final JsonObject event = item.toJsonObject();
                 if (event == null) continue;
@@ -157,7 +141,7 @@ public final class Client implements Comparable<Client> {
                 if (eventId.compareTo(this.lastHandledEventId) <= 0) continue;
 
                 final UId widgetId = UId.parse(event.get("widget").getStringValue());
-                final Widget widget = this.widgets.get(widgetId);
+                final Widget widget = map.get(widgetId);
                 if (widget == null) continue;
 
                 final String type = event.get("type").getStringValue();
@@ -173,14 +157,19 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Removes all update instructions that have already been acknowledged by the client.
+     * Collects updates from widgets, adding them to the set.
+     * Removes from the set any updates that have already been processed by the client.
      *
-     * @param request The map of client parameters containing the "lastInstruction" key
+     * @param request The map of client parameters containing the "lastUpdate" key
+     * @param widgets List of widgets collected from the widget tree
      */
-    private void cleanupAcknowledgedInstructions(final Map<String, String> request) {
-        if (request.containsKey("lastInstruction")) {
-            final UId id = UId.parse(request.get("lastInstruction"));
-            this.updates.removeIf(instr -> instr.getInstrId().compareTo(id) <= 0);
+    private void collectUpdates(final Map<String, String> request, final List<Widget> widgets) {
+        if (request.containsKey("lastUpdate")) {
+            final UId id = UId.parse(request.get("lastUpdate"));
+            this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
+        }
+        for (final Widget widget : widgets) {
+            widget.getUpdates(this.updates);
         }
     }
 
@@ -192,20 +181,15 @@ public final class Client implements Comparable<Client> {
     private void serializeUpdates(final JsonObject response) {
         response.addString("lastEvent", this.lastHandledEventId.toString());
         final JsonArray updates = response.createArray("updates");
-        for (final Instruction instruction : this.updates) {
-            instruction.serialize(updates.createObject());
+        for (final Update update : this.updates) {
+            update.serialize(updates.createObject());
         }
     }
 
     /**
      * Cleans up client state before destruction.
-     * <p>
-     *     Removes all widgets and performs any additional teardown logic.
-     *     This method should be called when the client session expires or is explicitly terminated.
-     * </p>
      */
     void destroy() {
-        this.widgets.clear();
         //...
     }
 

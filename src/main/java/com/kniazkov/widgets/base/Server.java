@@ -1,18 +1,22 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Handler;
+import java.util.logging.Logger;
+
 
 /**
  * The entry point for running a web application.
- * <p>
- *     This class starts the HTTP server and binds the provided application to it.
- *     It acts as a bridge between the widget-based UI framework and the low-level HTTP layer.
- * </p>
+ * This class starts the HTTP server and binds the provided application to it.
+ * It acts as a bridge between the widget-based UI framework and the low-level HTTP layer.
  */
 public final class Server {
+    /**
+     * Logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
     private Server() {
         // Static-only class
@@ -21,8 +25,8 @@ public final class Server {
     /**
      * Starts the web server and runs the given application.
      *
-     * @param application The application instance to launch
-     * @param options Configuration options (logger, timeouts, etc.)
+     * @param application the application instance to launch
+     * @param options configuration options (logger, timeouts, etc.)
      */
     public static void start(final Application application, final Options options) {
         // Clone options so the application can modify them safely
@@ -34,14 +38,14 @@ public final class Server {
         com.kniazkov.webserver.Server.start(getWebServerOptions(), handler);
 
         // Log startup
-        options.logger.write("Server started.");
+        LOGGER.info("Server started.");
     }
 
     /**
      * Returns configuration options for the underlying web server.
      * This method may be extended in the future.
      *
-     * @return Default web server options
+     * @return default web server options
      */
     private static com.kniazkov.webserver.Options getWebServerOptions() {
         return new com.kniazkov.webserver.Options();

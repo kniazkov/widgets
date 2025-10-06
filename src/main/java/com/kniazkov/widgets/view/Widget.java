@@ -69,7 +69,7 @@ public abstract class Widget {
      * @param type the event type
      * @param data optional event data
      */
-    abstract void handleEvent(final String type, final Optional<JsonObject> data);
+    public abstract void handleEvent(final String type, final Optional<JsonObject> data);
 
     /**
      * Sets the parent container of this widget.
@@ -100,7 +100,7 @@ public abstract class Widget {
      *
      * @param set the set to which updates are added
      */
-    void getUpdates(final Set<Update> set) {
+    public void getUpdates(final Set<Update> set) {
         set.addAll(this.updates);
         this.updates.clear();
     }

@@ -1,30 +1,28 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.base.ActionHandler;
+import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.protocol.Update;
 import java.util.Map;
 
 /**
  * Action handler that synchronizes the state between client and server.
- * <p>
- *     This handler receives the client ID, collects all pending {@link Instruction}s for
- *     that client, serializes them into a JSON response, and sends them back to the client
- *     for execution.
- * </p>
+ * This handler receives the client ID, collects all pending {@link Update}s for
+ * that client, serializes them into a JSON response, and sends them back to the client
+ * for execution.
  */
 final class Synchronize extends ActionHandler {
     /**
      * Constructs a new synchronization handler.
      *
-     * @param application The application instance
-     * @param logger The logger to use
+     * @param application the application instance
      */
-    Synchronize(final Application application, final Logger logger) {
-        super(application, logger);
+    Synchronize(final Application application) {
+        super(application);
     }
 
     @Override

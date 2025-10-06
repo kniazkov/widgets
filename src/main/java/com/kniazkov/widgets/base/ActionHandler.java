@@ -5,7 +5,6 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
 
-import com.kniazkov.widgets.Application;
 import java.util.Map;
 
 /**

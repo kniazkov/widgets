@@ -222,7 +222,7 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     }
 
     @Override
-    void handleEvent(String type, Optional<JsonObject> data) {
+    public void handleEvent(String type, Optional<JsonObject> data) {
         if (!data.isPresent()) {
             return;
         }

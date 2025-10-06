@@ -1,21 +1,30 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
-import com.kniazkov.widgets.base.Periodic;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.view.RootWidget;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 /**
  * Web application executed by the {@link Server}.
- * <p>
- *     To use this framework, you must implement and provide at least one {@link Page}
- *     (the index page) and pass it to this class.
- * </p>
+ * To use this framework, you must implement and provide at least one {@link Page}
+ * (the index page) and pass it to this class.
  */
 public final class Application {
+    /**
+     * Logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Application.class.getName());
+
+
     /**
      * Interval at which the internal watchdog checks all clients, in milliseconds.
      */
@@ -44,7 +53,7 @@ public final class Application {
     /**
      * Constructs an application with a given index page (served at path {@code "/"}).
      *
-     * @param index The root page of the application
+     * @param index the root page of the application
      */
     public Application(Page index) {
         this.clients = new ConcurrentHashMap<>();
@@ -69,7 +78,7 @@ public final class Application {
     /**
      * Creates a new client and initializes its page.
      *
-     * @return The unique identifier of the created client
+     * @return the unique identifier of the created client
      */
     UId createClient() {
         this.counter++;
@@ -87,11 +96,9 @@ public final class Application {
 
     /**
      * Terminates a client and removes it from memory.
-     * <p>
-     *     Typically called when the browser tab is closed.
-     * </p>
+     * Typically called when the browser tab is closed.
      *
-     * @param clientId The client to kill
+     * @param clientId the client to kill
      * @return {@code true} if the client was removed
      */
     boolean killClient(final UId clientId) {
@@ -123,7 +130,7 @@ public final class Application {
      *
      * @param clientId The unique identifier of the client session
      * @param request  The incoming request parameters from the client (e.g. events,
-     *                        lastInstruction)
+     *                        lastUpdate)
      * @param response The JSON object to be populated with UI update instructions and state
      */
     void synchronize(final UId clientId, final Map<String, String> request,
@@ -160,17 +167,17 @@ public final class Application {
             for (final UId id : toKill) {
                 final Client client = clients.remove(id);
                 client.destroy();
-                options.logger.write("Client " + id + " is killed by the watchdog.");
+                LOGGER.info("Client " + id + " is killed by the watchdog.");
             }
 
             // Every minute, log performance
             if (this.getTotalTime() % 60000 == 0) {
                 if (counter > 0) {
-                    options.logger.write("Server processed " + counter + " action"
+                    LOGGER.info("Server processed " + counter + " action"
                         + (counter != 1 ? "s" : "") + " in one minute (~" + (counter / 60) + "/sec).");
                     counter = 0;
                 } else {
-                    options.logger.write("Server processed no actions.");
+                    LOGGER.info("Server processed no actions.");
                 }
             }
 

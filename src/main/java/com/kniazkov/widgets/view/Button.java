@@ -83,7 +83,7 @@ public class Button extends InlineWidget
     }
 
     @Override
-    void handleEvent(final String type, final Optional<JsonObject> data) {
+    public void handleEvent(final String type, final Optional<JsonObject> data) {
         if (!data.isPresent()) {
             return;
         }

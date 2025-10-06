@@ -49,7 +49,7 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     }
 
     @Override
-    void handleEvent(String type, Optional<JsonObject> data) {
+    public void handleEvent(String type, Optional<JsonObject> data) {
         // not yet
     }
 }

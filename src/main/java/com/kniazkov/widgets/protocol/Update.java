@@ -47,7 +47,7 @@ public abstract class Update implements Comparable<Update> {
      *
      * @param obj the JSON object to fill
      */
-    void serialize(final JsonObject obj) {
+    public void serialize(final JsonObject obj) {
         obj.addString("id", this.id.toString());
         obj.addString("widget", this.widget.toString());
         obj.addString("action", this.getAction());

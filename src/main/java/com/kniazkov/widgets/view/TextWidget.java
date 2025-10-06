@@ -129,7 +129,7 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     }
 
     @Override
-    void handleEvent(String type, Optional<JsonObject> data) {
+    public void handleEvent(String type, Optional<JsonObject> data) {
         // no events to process
     }
 }

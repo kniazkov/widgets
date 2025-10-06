@@ -1,13 +1,11 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets;
+package com.kniazkov.widgets.base;
 
-import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseJson;
-import com.kniazkov.widgets.base.ActionHandler;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -21,7 +19,7 @@ import java.util.TreeMap;
  * HTTP handler that routes incoming requests to appropriate action handlers
  * or serves static resources (HTML, JS, CSS, images).
  */
-final class HttpHandler implements Handler {
+final class HttpHandler implements com.kniazkov.webserver.Handler {
     /**
      * Registered action handlers (e.g. "new instance", "synchronize", etc.).
      */
@@ -30,14 +28,14 @@ final class HttpHandler implements Handler {
     /**
      * Constructs an HTTP handler that binds application-specific logic to supported actions.
      *
-     * @param application The web application
-     * @param options Configuration options (e.g. logger)
+     * @param application the web application
+     * @param options configuration options (e.g. logger)
      */
     HttpHandler(final Application application, final Options options) {
         this.actionHandlers = new TreeMap<>();
-        this.actionHandlers.put("new instance", new NewInstance(application, options.logger));
-        this.actionHandlers.put("synchronize", new Synchronize(application, options.logger));
-        this.actionHandlers.put("kill", new Kill(application, options.logger));
+        this.actionHandlers.put("new instance", new CreateClient(application));
+        this.actionHandlers.put("synchronize", new Synchronize(application));
+        this.actionHandlers.put("kill", new KillClient(application));
     }
 
     @Override

@@ -56,7 +56,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     }
 
     @Override
-    void handleEvent(String type, Optional<JsonObject> data) {
+    public void handleEvent(String type, Optional<JsonObject> data) {
         // not yet
     }
 

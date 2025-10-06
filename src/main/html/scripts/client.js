@@ -7,7 +7,7 @@ var period = 250;
 var mainCycleTask = null;
 var events = [];
 var lastEventId = 0;
-var lastProcessedInstructionId = 0;
+var lastProcessedUpdateId = 0;
 
 var parseId = function(str) {
     if (typeof str !== "string" || !str.startsWith("#")) {
@@ -81,7 +81,7 @@ var processUpdates = function(updates) {
         var result = false;
         var update = updates[i];
         var id = parseId(update.id);
-        if (id <= lastProcessedInstructionId) {
+        if (id <= lastProcessedUpdateId) {
             log("Instruction " + update.id + " skipped.");
             continue;
         }
@@ -89,7 +89,7 @@ var processUpdates = function(updates) {
         if (handler) {
             result = handler(update);
         }
-        lastProcessedInstructionId = id;
+        lastProcessedUpdateId = id;
     }
 };
 
@@ -109,7 +109,7 @@ var sendSynchronizeRequest = function() {
             action : "synchronize",
             client : clientId,
             events : events,
-            lastInstruction : "#" + lastProcessedInstructionId
+            lastUpdate : "#" + lastProcessedUpdateId
         },
         function(data) {
             if (!data) {
