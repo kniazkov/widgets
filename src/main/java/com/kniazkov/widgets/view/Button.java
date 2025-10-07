@@ -50,16 +50,9 @@ public class Button extends InlineWidget
     public Button(final String text) {
         this.child = new TextWidget(text);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
-        this.clickCtrl = PointerEvent.STUB_CONTROLLER;
-        this.mouseOverCtrl = PointerEvent.STUB_CONTROLLER;
-        this.mouseOutCtrl = PointerEvent.STUB_CONTROLLER;
-    }
-
-    @Override
-    public void remove(Widget widget) {
-        this.child.setParent(null);
-        this.child = new TextWidget();
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
+        this.clickCtrl = TypedController.stub();
+        this.mouseOverCtrl = TypedController.stub();
+        this.mouseOutCtrl = TypedController.stub();
     }
 
     @Override
@@ -74,6 +67,14 @@ public class Button extends InlineWidget
         }
         this.child.setParent(null);
         this.child = widget;
+        widget.setParent(this);
+        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
+    }
+
+    @Override
+    public void remove(Widget widget) {
+        this.child.setParent(null);
+        this.child = new TextWidget();
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 

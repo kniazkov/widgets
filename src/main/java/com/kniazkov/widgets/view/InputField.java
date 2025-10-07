@@ -145,6 +145,10 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
             new DefaultInlineWidgetSizeModel(),
             new HeightModelListener<>(this)
         );
+        this.textInputCtrl = TypedController.stub();
+        this.clickCtrl = TypedController.stub();
+        this.mouseOverCtrl = TypedController.stub();
+        this.mouseOutCtrl = TypedController.stub();
     }
 
     @Override

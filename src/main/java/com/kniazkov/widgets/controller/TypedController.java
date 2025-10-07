@@ -15,4 +15,23 @@ public interface TypedController<T> {
      * @param data Event-specific data
      */
     void handleEvent(T data);
+
+    /**
+     * A shared stub controller instance that ignores all events.
+     * Intended to be used internally by {@link #stub()}.
+     */
+    TypedController<?> STUB_CONTROLLER = data -> { };
+
+    /**
+     * Creates a no-op (stub) controller for any type.
+     * This method provides a type-safe way to obtain a default controller
+     * that performs no action. Useful as a placeholder to avoid {@code null} checks.
+     *
+     * @param <T> the event data type
+     * @return a stub controller that ignores all events
+     */
+    @SuppressWarnings("unchecked")
+    static <T> TypedController<T> stub() {
+        return (TypedController<T>) STUB_CONTROLLER;
+    }
 }

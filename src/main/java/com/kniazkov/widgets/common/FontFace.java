@@ -19,7 +19,17 @@ public interface FontFace {
     /**
      * Default logical font face (typically maps to a system default).
      */
-    FontFace DEFAULT = () -> "default";
+    FontFace DEFAULT = new FontFace() {
+        @Override
+        public String getName() {
+            return "default";
+        }
+
+        @Override
+        public String toString() {
+            return "default";
+        }
+    };
 
     /**
      * Returns the font face name.

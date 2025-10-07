@@ -9,7 +9,7 @@ import com.kniazkov.widgets.common.UId;
 /**
  * An {@link Update} that instructs the client to remove a widget from a specific container.
  */
-public final class RemoveWidgetFromContainer extends Update {
+public final class RemoveChild extends Update {
     /**
      * The identifier of the container from which the widget is removed.
      */
@@ -21,7 +21,7 @@ public final class RemoveWidgetFromContainer extends Update {
      * @param widget the widget being removed
      * @param container the container from which the widget is removed
      */
-    public RemoveWidgetFromContainer(final UId widget, final UId container) {
+    public RemoveChild(final UId widget, final UId container) {
         super(widget);
         this.container = container;
     }

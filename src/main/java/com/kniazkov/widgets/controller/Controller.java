@@ -16,4 +16,11 @@ public interface Controller {
      * Stub controller that does nothing.
      */
     static Controller STUB_CONTROLLER = () -> { };
+
+    /**
+     * Returns stub controller that does nothing.
+     */
+    static Controller stub() {
+        return STUB_CONTROLLER;
+    }
 }

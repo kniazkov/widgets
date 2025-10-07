@@ -4,11 +4,9 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.protocol.CreateWidget;
-import com.kniazkov.widgets.protocol.RemoveWidgetFromContainer;
+import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.Subscribe;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
@@ -74,15 +72,25 @@ public abstract class Widget {
     /**
      * Sets the parent container of this widget.
      * If the widget was previously attached to another container,
-     * a {@link RemoveWidgetFromContainer} update will be queued.
+     * a {@link RemoveChild} update will be queued.
      *
      * @param container the new parent container (may be {@code null})
      */
     void setParent(final Container container) {
         if (this.parent != null) {
-            this.updates.add(new RemoveWidgetFromContainer(this.id, this.parent.getId()));
+            this.updates.add(new RemoveChild(this.id, this.parent.getId()));
         }
         this.parent = container;
+    }
+
+    /**
+     * Returns the container that currently holds this widget, if any.
+     *
+     * @return an {@link Optional} containing the parent container, or empty if the widget
+     *  has no parent
+     */
+    public Optional<Container> getParent() {
+        return Optional.ofNullable(this.parent);
     }
 
     /**

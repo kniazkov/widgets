@@ -9,13 +9,6 @@ package com.kniazkov.widgets.controller;
  */
 public final class PointerEvent {
     /**
-     * A no-op (stub) controller for {@link PointerEvent}.
-     */
-    public static final TypedController<PointerEvent> STUB_CONTROLLER = data -> {
-        // do nothing
-    };
-
-    /**
      * The pointer's position relative to various coordinate systems.
      */
     public PointerPosition position;
