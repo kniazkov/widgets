@@ -154,8 +154,10 @@ var actionHandlers = {
     "set italic": setItalic
 };
 
+var ALWAYS_ALLOWED_EVENTS = ["text input"];
+
 var sendEventToServer = function(widget, type, data) {
-    if (widget._events[type]) {
+    if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {
         createEvent(widget, type, data);
         sendSynchronizeRequest();
     }

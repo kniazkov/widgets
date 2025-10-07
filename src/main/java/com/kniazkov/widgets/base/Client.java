@@ -126,7 +126,7 @@ public final class Client implements Comparable<Client> {
         try {
             final JsonElement element = Json.parse(request.get("events"));
             final JsonArray events = element.toJsonArray();
-            if (events == null) {
+            if (events == null || events.isEmpty()) {
                 return;
             }
             final Map<UId, Widget> map = new TreeMap<>();

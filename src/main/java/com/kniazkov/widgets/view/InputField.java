@@ -232,7 +232,9 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
         }
         switch (type) {
             case "text input":
-                this.textInputCtrl.handleEvent(data.get().get("text").getStringValue());
+                final String value = data.get().get("text").getStringValue();
+                this.text.getModel().setData(value);
+                this.textInputCtrl.handleEvent(value);
                 break;
             case "click":
                 this.clickCtrl.handleEvent(

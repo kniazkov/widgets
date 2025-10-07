@@ -47,12 +47,11 @@ import com.kniazkov.widgets.view.TextWidget;
 public class CustomWidget {
     public static void main(String[] args) {
         final Page page = root -> {
-            final IntegerToStringModel model = new IntegerToStringModel();
-
             final MyWidget customWidget = new MyWidget("Enter text", "Ok");
             root.add(customWidget);
 
             final Section section = new Section();
+            root.add(section);
             section.add(new TextWidget("You entered: "));
             final TextWidget textWidget = new TextWidget();
             section.add(textWidget);
@@ -60,9 +59,6 @@ public class CustomWidget {
 
             customWidget.onTextInput(data -> {
                 textWidget.setText(data.toUpperCase());
-                if (!section.getParent().isPresent()) {
-                    root.add(section);
-                }
             });
         };
 
