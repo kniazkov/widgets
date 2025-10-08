@@ -117,8 +117,10 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
             new DefaultColorModel(),
             new ColorModelListener(this)
         );
+        final Model<Color> bgColorModel = new DefaultColorModel();
+        bgColorModel.setData(Color.WHITE);
         this.bgColor = new ModelBinding<>(
-            new DefaultColorModel(),
+            bgColorModel,
             new BgColorModelListener(this)
         );
         this.fontFace = new ModelBinding<>(
