@@ -17,6 +17,11 @@ class ResetClient extends Update {
     }
 
     @Override
+    public Update clone() {
+        return new ResetClient();
+    }
+
+    @Override
     protected String getAction() {
         return "reset";
     }

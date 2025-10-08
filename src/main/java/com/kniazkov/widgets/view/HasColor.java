@@ -1,9 +1,8 @@
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.protocol.SetColor;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
 
@@ -71,18 +70,7 @@ public interface HasColor extends View {
 
         @Override
         public void accept(final Color data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set color";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addElement("color", data.toJsonObject());
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetColor(this.widget.getId(), data));
         }
     }
 }

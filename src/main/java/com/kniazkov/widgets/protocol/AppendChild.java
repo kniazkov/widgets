@@ -27,6 +27,11 @@ public final class AppendChild extends Update {
     }
 
     @Override
+    public Update clone() {
+        return new AppendChild(this.getWidgetId(), this.container);
+    }
+
+    @Override
     protected String getAction() {
         return "append child";
     }

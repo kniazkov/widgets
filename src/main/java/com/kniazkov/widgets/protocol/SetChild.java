@@ -28,6 +28,11 @@ public final class SetChild extends Update {
     }
 
     @Override
+    public Update clone() {
+        return new SetChild(this.getWidgetId(), this.container);
+    }
+
+    @Override
     protected String getAction() {
         return "set child";
     }

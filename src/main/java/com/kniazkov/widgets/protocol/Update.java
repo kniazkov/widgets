@@ -12,14 +12,14 @@ import com.kniazkov.widgets.common.UId;
  * Each update is uniquely identified by an auto-generated {@link UId}, which allows updates
  * to be compared and applied in a strict chronological order.
  */
-public abstract class Update implements Comparable<Update> {
+public abstract class Update implements Comparable<Update>, Cloneable {
     /**
-     * Update Id.
+     * Update ID.
      */
     private final UId id;
 
     /**
-     * The Id of the widget to which the update applies.
+     * The ID of the widget to which the update applies.
      */
     private final UId widget;
 
@@ -43,6 +43,15 @@ public abstract class Update implements Comparable<Update> {
     }
 
     /**
+     * Returns the unique identifier of the widget to which the update applies.
+     *
+     * @return the widget ID
+     */
+    public UId getWidgetId() {
+        return  this.widget;
+    }
+
+    /**
      * Serializes this update into a JSON object.
      *
      * @param obj the JSON object to fill
@@ -53,6 +62,18 @@ public abstract class Update implements Comparable<Update> {
         obj.addString("action", this.getAction());
         this.fillJsonObject(obj);
     }
+
+
+    /**
+     * Creates an exact copy of this update with a new unique ID.
+     * Subclasses must implement this method to return a new instance
+     * of the same concrete type, preserving all update-specific data
+     * but regenerating its {@link #id}.
+     *
+     * @return a new {@code Update} instance identical to this one, but with a new {@link UId}
+     */
+    @Override
+    public abstract Update clone();
 
     /**
      * Returns the action type of this update.

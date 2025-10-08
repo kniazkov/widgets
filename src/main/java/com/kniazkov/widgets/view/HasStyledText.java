@@ -10,6 +10,10 @@ import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.protocol.SetFontFace;
+import com.kniazkov.widgets.protocol.SetFontSize;
+import com.kniazkov.widgets.protocol.SetFontWeight;
+import com.kniazkov.widgets.protocol.SetItalic;
 import com.kniazkov.widgets.protocol.Update;
 
 /**
@@ -60,18 +64,7 @@ public interface HasStyledText extends HasText {
 
         @Override
         public void accept(final FontFace data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set font face";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addString("font face", data.getName());
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetFontFace(this.widget.getId(), data));
         }
     }
 
@@ -94,18 +87,7 @@ public interface HasStyledText extends HasText {
 
         @Override
         public void accept(final FontSize data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set font size";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addString("font size", data.getCSSCode());
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetFontSize(this.widget.getId(), data));
         }
     }
 
@@ -128,18 +110,7 @@ public interface HasStyledText extends HasText {
 
         @Override
         public void accept(final FontWeight data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set font weight";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addNumber("font weight", data.getWeight());
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetFontWeight(this.widget.getId(), data));
         }
     }
 
@@ -162,18 +133,7 @@ public interface HasStyledText extends HasText {
 
         @Override
         public void accept(final Boolean data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set italic";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addBoolean("italic", data);
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetItalic(this.widget.getId(), data));
         }
     }
 }

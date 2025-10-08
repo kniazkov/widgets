@@ -61,29 +61,4 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     public void handleEvent(String type, Optional<JsonObject> data) {
         // not yet
     }
-
-    /**
-     * Collects all widgets in the hierarchy starting from this root widget.
-     * The traversal is depth-first and non-recursive (uses an explicit stack).
-     * All widgets are included — the root itself and all its descendants.
-     *
-     * @return a list containing all widgets in the hierarchy, including this root
-     */
-    public List<Widget> collectAllWidgets() {
-        final List<Widget> result = new ArrayList<>();
-        final Deque<Widget> stack = new ArrayDeque<>();
-        stack.push(this);
-        while (!stack.isEmpty()) {
-            final Widget current = stack.pop();
-            result.add(current);
-
-            if (current instanceof Container) {
-                final Container container = (Container) current;
-                for (int index = container.getChildCount() - 1; index >= 0; index--) {
-                    stack.push(container.getChild(index));
-                }
-            }
-        }
-        return result;
-    }
 }

@@ -33,6 +33,11 @@ public final class Subscribe extends Update {
     }
 
     @Override
+    public Update clone() {
+        return new Subscribe(this.getWidgetId(), this.event);
+    }
+
+    @Override
     protected String getAction() {
         return "subscribe";
     }

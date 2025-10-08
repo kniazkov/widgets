@@ -4,6 +4,10 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.UId;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 /**
  * Represents a logical container of {@link Widget}s.
@@ -44,4 +48,38 @@ public interface Container {
      * @param widget the widget to remove
      */
     void remove(Widget widget);
+
+    /**
+     * Collects all widgets in the hierarchy starting from this container.
+     * The traversal is depth-first and non-recursive (uses an explicit stack).
+     * All widgets are included — the container itself and all its descendants.
+     *
+     * @return a list containing this container and all nested widgets
+     */
+    default List<Widget> collectAllWidgets() {
+        final List<Widget> result = new ArrayList<>();
+        final Deque<Widget> stack = new ArrayDeque<>();
+
+        if (this instanceof Widget) {
+            result.add((Widget) this);
+        }
+
+        for (int index = this.getChildCount() - 1; index >= 0; index--) {
+            stack.push(this.getChild(index));
+        }
+
+        while (!stack.isEmpty()) {
+            final Widget current = stack.pop();
+            result.add(current);
+
+            if (current instanceof Container) {
+                final Container container = (Container) current;
+                for (int index = container.getChildCount() - 1; index >= 0; index--) {
+                    stack.push(container.getChild(index));
+                }
+            }
+        }
+
+        return result;
+    }
 }

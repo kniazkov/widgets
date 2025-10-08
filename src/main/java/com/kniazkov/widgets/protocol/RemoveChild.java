@@ -27,6 +27,11 @@ public final class RemoveChild extends Update {
     }
 
     @Override
+    public Update clone() {
+        return new RemoveChild(this.getWidgetId(), this.container);
+    }
+
+    @Override
     protected String getAction() {
         return "remove widget from container";
     }

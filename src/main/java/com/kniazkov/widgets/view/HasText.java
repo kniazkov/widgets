@@ -3,9 +3,8 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.protocol.SetText;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
 
@@ -68,18 +67,7 @@ public interface HasText extends View {
 
         @Override
         public void accept(final String data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set text";
-                }
-
-                @Override
-                protected void fillJsonObject(JsonObject json) {
-                    json.addString("text", data);
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetText(this.widget.getId(), data));
         }
     }
 }

@@ -28,6 +28,11 @@ public final class CreateWidget extends Update {
     }
 
     @Override
+    public Update clone() {
+        return new CreateWidget(this.getWidgetId(), this.type);
+    }
+
+    @Override
     protected String getAction() {
         return "create widget";
     }

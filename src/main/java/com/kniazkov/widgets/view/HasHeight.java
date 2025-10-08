@@ -3,12 +3,11 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
-import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.protocol.SetHeight;
 
 /**
  * A {@link View} that has an associated height model.
@@ -77,18 +76,7 @@ public interface HasHeight<T extends WidgetSize> extends View {
 
         @Override
         public void accept(final T data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set height";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addString("height", data.getCSSCode());
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetHeight<T>(this.widget.getId(), data));
         }
     }
 }

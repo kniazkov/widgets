@@ -3,12 +3,11 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
-import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.protocol.SetWidth;
 
 /**
  * A {@link View} that has an associated width model.
@@ -77,18 +76,7 @@ public interface HasWidth<T extends WidgetSize> extends View {
 
         @Override
         public void accept(final T data) {
-            final Update update = new Update(this.widget.getId()) {
-                @Override
-                protected String getAction() {
-                    return "set width";
-                }
-
-                @Override
-                protected void fillJsonObject(final JsonObject json) {
-                    json.addString("width", data.getCSSCode());
-                }
-            };
-            this.widget.pushUpdate(update);
+            this.widget.pushUpdate(new SetWidth<T>(this.widget.getId(), data));
         }
     }
 }
