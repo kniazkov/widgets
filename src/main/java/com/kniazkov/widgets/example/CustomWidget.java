@@ -51,13 +51,15 @@ public class CustomWidget {
             root.add(customWidget);
 
             final Section section = new Section();
-            root.add(section);
             section.add(new TextWidget("You entered: "));
             final TextWidget textWidget = new TextWidget();
             section.add(textWidget);
             textWidget.setFontWeight(FontWeight.BOLD);
 
             customWidget.onTextInput(data -> {
+                if (!section.getParent().isPresent()) {
+                    root.add(section);
+                }
                 textWidget.setText(data.toUpperCase());
             });
         };

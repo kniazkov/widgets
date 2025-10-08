@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Abstract base class for all UI widgets. A widget represents a single element in the view tree.
@@ -71,14 +72,61 @@ public abstract class Widget {
 
     /**
      * Sets the parent container of this widget.
-     * If the widget was previously attached to another container,
-     * a {@link RemoveChild} update will be queued.
+     * <p>
+     * If the widget was previously attached to another container, a {@link RemoveChild}
+     * update is queued to notify the client about the removal of that relationship.
+     * Afterward, the parent reference is updated to the new container.
+     * </p>
+     *
+     * <h3>Handling pending updates</h3>
+     * <p>
+     * When a widget (or an entire subtree of widgets) has been detached from the hierarchy,
+     * it may still have accumulated updates — for example, content changes or style updates.
+     * Such updates are not sent to the client immediately because the widget is not part
+     * of the active UI tree at that time.
+     * </p>
+     *
+     * <p>
+     * However, when reattaching that widget later, all previously accumulated updates
+     * become <em>stale</em>: their {@link UId} values are older than those already processed
+     * by the client. The client will reject them to preserve strict chronological consistency,
+     * which would lead to a desynchronized state.
+     * </p>
+     *
+     * <h3>Solution</h3>
+     * <p>
+     * To prevent this inconsistency, this method performs the following steps:
+     * </p>
+     * <ol>
+     *   <li>Collects all pending updates from this widget and all its descendants
+     *       (if it is a {@link Container}) using a depth-first traversal;</li>
+     *   <li>Clones each update using {@link Update#clone()} to assign
+     *       a fresh unique identifier;</li>
+     *   <li>Adds these newly cloned updates to the outgoing update queue.</li>
+     * </ol>
+     *
+     * <p>
+     * As a result, the client receives a valid, up-to-date sequence of updates:
+     * the widget (and its subtree) are created and displayed as if they had just
+     * been constructed on the server at the time of attachment.
+     * </p>
      *
      * @param container the new parent container (may be {@code null})
      */
     void setParent(final Container container) {
+        Set<Update> pending = new TreeSet<>();
+        if (this instanceof Container) {
+            for (final Widget child : ((Container) this).collectAllWidgets()) {
+                child.getUpdates(pending);
+            }
+        } else {
+            this.getUpdates(pending);
+        }
         if (this.parent != null) {
             this.updates.add(new RemoveChild(this.id, this.parent.getId()));
+        }
+        for (Update update : pending) {
+            this.updates.add(update.clone());
         }
         this.parent = container;
     }
