@@ -33,7 +33,7 @@ public final class RemoveChild extends Update {
 
     @Override
     protected String getAction() {
-        return "remove widget from container";
+        return "remove child";
     }
 
     @Override

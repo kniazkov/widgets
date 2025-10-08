@@ -81,6 +81,17 @@ var appendChildWidget = function(data) {
     return false;
 };
 
+var removeChildWidget = function(data) {
+    var widget = widgets[data.widget];
+    var container = widgets[data.container];
+    if (widget && container) {
+        container.removeChild(widget);
+        log("Widget " + data.widget + " is removed from parent widget " + data.container + '.');
+        return true;
+    }
+    return false;
+};
+
 var setText = function(data) {
     var widget = widgets[data.widget];
     if (widget && typeof data.text == "string") {

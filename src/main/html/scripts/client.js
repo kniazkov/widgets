@@ -143,6 +143,7 @@ var actionHandlers = {
     "subscribe" : subscribeToEvent,
     "set child" : setChildWidget,
     "append child" : appendChildWidget,
+    "remove child" : removeChildWidget,
     "set text" : setText,
     "set color" : setColor,
     "set background color" : setBackgroundColor,
