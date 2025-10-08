@@ -18,7 +18,7 @@ import java.util.Optional;
 /**
  * A demo showing how to create a custom read-only model that transforms data from another model.
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run this program.</li>
  *   <li>
@@ -29,7 +29,11 @@ import java.util.Optional;
  * </ol>
  */
 public class CustomModel {
-
+    /**
+     * Entry point.
+     *
+     * @param args program arguments
+     */
     public static void main(String[] args) {
         final Page page = root -> {
             final Section inputSection = new Section();

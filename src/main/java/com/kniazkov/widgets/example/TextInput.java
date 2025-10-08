@@ -16,7 +16,7 @@ import com.kniazkov.widgets.view.TextWidget;
  * A minimal demo application that shows how to handle text input
  * and display user-entered text in real time.
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run this program.</li>
  *   <li>
@@ -27,7 +27,11 @@ import com.kniazkov.widgets.view.TextWidget;
  * </ol>
  */
 public class TextInput {
-
+    /**
+     * Entry point.
+     *
+     * @param args program arguments
+     */
     public static void main(String[] args) {
         final Page page = root -> {
             final Section inputSection = new Section();

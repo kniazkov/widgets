@@ -23,7 +23,7 @@ import com.kniazkov.widgets.view.TextWidget;
  * are instantly reflected across all open sessions.
  * </p>
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run the program;</li>
  *   <li>
@@ -36,6 +36,11 @@ import com.kniazkov.widgets.view.TextWidget;
  * </ol>
  */
 public class ClickCounterExt {
+    /**
+     * Entry point.
+     *
+     * @param args program arguments
+     */
     public static void main(String[] args) {
         final IntegerToStringModel globalModel = new IntegerToStringModel();
 

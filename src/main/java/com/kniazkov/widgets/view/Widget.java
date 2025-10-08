@@ -78,7 +78,7 @@ public abstract class Widget {
      * Afterward, the parent reference is updated to the new container.
      * </p>
      *
-     * <h3>Handling pending updates</h3>
+     * <b>Handling pending updates</b>
      * <p>
      * When a widget (or an entire subtree of widgets) has been detached from the hierarchy,
      * it may still have accumulated updates — for example, content changes or style updates.
@@ -93,7 +93,7 @@ public abstract class Widget {
      * which would lead to a desynchronized state.
      * </p>
      *
-     * <h3>Solution</h3>
+     * <b>Solution</b>
      * <p>
      * To prevent this inconsistency, this method performs the following steps:
      * </p>

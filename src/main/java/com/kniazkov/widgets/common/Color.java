@@ -11,13 +11,59 @@ import com.kniazkov.json.JsonObject;
  * each in the range [0, 255]. Values outside this range are clamped automatically.
  */
 public final class Color {
+    /** Black (0, 0, 0). */
     public static final Color BLACK = new Color(0, 0, 0);
+
+    /** White (255, 255, 255). */
     public static final Color WHITE = new Color(255, 255, 255);
-    public static final Color RED = new Color(255, 0, 0);
-    public static final Color YELLOW = new Color(255, 255, 0);
-    public static final Color GREEN = new Color(0, 127, 0);
-    public static final Color BLUE = new Color(0, 0, 255);
+
+    /** Dark gray (64, 64, 64). */
+    public static final Color DARK_GRAY = new Color(64, 64, 64);
+
+    /** Gray (128, 128, 128). */
+    public static final Color GRAY = new Color(128, 128, 128);
+
+    /** Light gray (192, 192, 192). */
+    public static final Color LIGHT_GRAY = new Color(192, 192, 192);
+
+    /** Dark slate gray (47, 79, 79). */
     public static final Color DARK_SLATE_GRAY = new Color(47, 79, 79);
+
+    /** Red (255, 0, 0). */
+    public static final Color RED = new Color(255, 0, 0);
+
+    /** Orange (255, 165, 0). */
+    public static final Color ORANGE = new Color(255, 165, 0);
+
+    /** Yellow (255, 255, 0). */
+    public static final Color YELLOW = new Color(255, 255, 0);
+
+    /** Green (0, 127, 0). */
+    public static final Color GREEN = new Color(0, 127, 0);
+
+    /** Cyan (0, 255, 255). */
+    public static final Color CYAN = new Color(0, 255, 255);
+
+    /** Blue (0, 0, 255). */
+    public static final Color BLUE = new Color(0, 0, 255);
+
+    /** Indigo (75, 0, 130). */
+    public static final Color INDIGO = new Color(75, 0, 130);
+
+    /** Violet (148, 0, 211). */
+    public static final Color VIOLET = new Color(148, 0, 211);
+
+    /** Pink (255, 192, 203). */
+    public static final Color PINK = new Color(255, 192, 203);
+
+    /** Brown (165, 42, 42). */
+    public static final Color BROWN = new Color(165, 42, 42);
+
+    /** Gold (255, 215, 0). */
+    public static final Color GOLD = new Color(255, 215, 0);
+
+    /** Silver (192, 192, 192). */
+    public static final Color SILVER = new Color(192, 192, 192);
 
     /**
      * Red component in range [0, 255].

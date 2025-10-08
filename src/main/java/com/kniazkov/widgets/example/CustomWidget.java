@@ -33,7 +33,7 @@ import com.kniazkov.widgets.view.TextWidget;
  * first user interaction.
  * </p>
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run the program;</li>
  *   <li>
@@ -45,6 +45,11 @@ import com.kniazkov.widgets.view.TextWidget;
  * </ol>
  */
 public class CustomWidget {
+    /**
+     * Entry point.
+     *
+     * @param args program arguments
+     */
     public static void main(String[] args) {
         final Page page = root -> {
             final MyWidget customWidget = new MyWidget("Enter text", "Ok");
