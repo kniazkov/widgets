@@ -7,7 +7,9 @@ import com.kniazkov.widgets.common.UId;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Represents a logical container of {@link Widget}s.
@@ -15,7 +17,7 @@ import java.util.List;
  * a container DOES NOT HAVE to be part of the visual hierarchy itself — it is simply an object
  * that owns or groups widgets.
  */
-public interface Container {
+public interface Container extends Iterable<Widget> {
     /**
      * Returns the unique identifier of this container.
      *
@@ -49,37 +51,55 @@ public interface Container {
      */
     void remove(Widget widget);
 
+    @Override
+    default Iterator<Widget> iterator() {
+        return new WidgetIterator(this);
+    }
+
     /**
-     * Collects all widgets in the hierarchy starting from this container.
-     * The traversal is depth-first and non-recursive (uses an explicit stack).
-     * All widgets are included — the container itself and all its descendants.
-     *
-     * @return a list containing this container and all nested widgets
+     * An iterator that performs a depth-first traversal over all widgets contained in a
+     * {@link Container}. The traversal starts with the container itself (if it is a {@link Widget})
+     * and continues through all its descendants using an explicit stack.
      */
-    default List<Widget> collectAllWidgets() {
-        final List<Widget> result = new ArrayList<>();
-        final Deque<Widget> stack = new ArrayDeque<>();
+    class WidgetIterator implements Iterator<Widget> {
 
-        if (this instanceof Widget) {
-            result.add((Widget) this);
-        }
+        private final Deque<Widget> stack = new ArrayDeque<>();
 
-        for (int index = this.getChildCount() - 1; index >= 0; index--) {
-            stack.push(this.getChild(index));
-        }
-
-        while (!stack.isEmpty()) {
-            final Widget current = stack.pop();
-            result.add(current);
-
-            if (current instanceof Container) {
-                final Container container = (Container) current;
-                for (int index = container.getChildCount() - 1; index >= 0; index--) {
-                    stack.push(container.getChild(index));
-                }
+        /**
+         * Creates an iterator that traverses widgets in the given container.
+         *
+         * @param root the root container to start traversal from
+         */
+        public WidgetIterator(final Container root) {
+            if (root instanceof Widget) {
+                this.stack.push((Widget) root);
+            }
+            for (int index = root.getChildCount() - 1; index >= 0; index--) {
+                this.stack.push(root.getChild(index));
             }
         }
 
-        return result;
+        @Override
+        public boolean hasNext() {
+            return !this.stack.isEmpty();
+        }
+
+        @Override
+        public Widget next() {
+            if (this.stack.isEmpty()) {
+                throw new NoSuchElementException();
+            }
+
+            Widget widget = this.stack.pop();
+
+            if (widget instanceof Container) {
+                Container container = (Container) widget;
+                for (int i = container.getChildCount() - 1; i >= 0; i--) {
+                    this.stack.push(container.getChild(i));
+                }
+            }
+
+            return widget;
+        }
     }
 }

@@ -116,7 +116,7 @@ public abstract class Widget {
     void setParent(final Container container) {
         Set<Update> pending = new TreeSet<>();
         if (this instanceof Container) {
-            for (final Widget child : ((Container) this).collectAllWidgets()) {
+            for (final Widget child : (Container)this) {
                 child.getUpdates(pending);
             }
         } else {

@@ -107,19 +107,17 @@ public final class Client implements Comparable<Client> {
      *  processed event ID
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
-        final List<Widget> widgets = this.root.collectAllWidgets();
-        this.processEvents(request, widgets);
-        this.collectUpdates(request, widgets);
+        this.processEvents(request);
+        this.collectUpdates(request);
         this.serializeUpdates(response);
     }
 
     /**
      * Processes incoming events from the client and dispatches them to appropriate widgets.
      *
-     * @param request The map of client parameters containing the "events" key
-     * @param widgets List of widgets collected from the widget tree
+     * @param request the map of client parameters containing the "events" key
      */
-    private void processEvents(final Map<String, String> request, final List<Widget> widgets) {
+    private void processEvents(final Map<String, String> request) {
         if (!request.containsKey("events")) {
             return;
         }
@@ -129,31 +127,61 @@ public final class Client implements Comparable<Client> {
             if (events == null || events.isEmpty()) {
                 return;
             }
+            if (events.size() == 1) {
+                processSingleEvent(events.getElement(0).toJsonObject());
+                return;
+            }
             final Map<UId, Widget> map = new TreeMap<>();
-            for (final Widget widget : widgets) {
+            for (final Widget widget : this.root) {
                 map.put(widget.getId(), widget);
             }
             for (JsonElement item : events) {
                 final JsonObject event = item.toJsonObject();
                 if (event == null) continue;
 
-                final UId eventId = UId.parse(event.get("id").getStringValue());
-                if (eventId.compareTo(this.lastHandledEventId) <= 0) continue;
-
-                final UId widgetId = UId.parse(event.get("widget").getStringValue());
-                final Widget widget = map.get(widgetId);
-                if (widget == null) continue;
-
-                final String type = event.get("type").getStringValue();
-                final Optional<JsonObject> data = event.containsKey("data")
-                    ? Optional.ofNullable(event.get("data").toJsonObject())
-                    : Optional.empty();
-
-                widget.handleEvent(type, data);
-                this.lastHandledEventId = eventId;
+                handleEventObject(event, map.get(UId.parse(event.get("widget").getStringValue())));
             }
+
         } catch (final JsonException ignored) {
         }
+    }
+
+    /**
+     * Handles a single event (used in the fast path).
+     */
+    private void processSingleEvent(final JsonObject event) {
+        if (event == null) {
+            return;
+        }
+        final UId widgetId = UId.parse(event.get("widget").getStringValue());
+        Widget widget = null;
+        for (final Widget child : this.root) {
+            if (child.getId().equals(widgetId)) {
+                widget = child;
+                break;
+            }
+        }
+        handleEventObject(event, widget);
+    }
+
+    /**
+     * Dispatches an event to its target widget.
+     */
+    private void handleEventObject(final JsonObject event, final Widget widget) {
+        if (widget == null) {
+            return;
+        }
+        final UId eventId = UId.parse(event.get("id").getStringValue());
+        if (eventId.compareTo(this.lastHandledEventId) <= 0) {
+            return;
+        }
+        final String type = event.get("type").getStringValue();
+        final Optional<JsonObject> data = event.containsKey("data")
+            ? Optional.ofNullable(event.get("data").toJsonObject())
+            : Optional.empty();
+
+        widget.handleEvent(type, data);
+        this.lastHandledEventId = eventId;
     }
 
     /**
@@ -161,14 +189,13 @@ public final class Client implements Comparable<Client> {
      * Removes from the set any updates that have already been processed by the client.
      *
      * @param request The map of client parameters containing the "lastUpdate" key
-     * @param widgets List of widgets collected from the widget tree
      */
-    private void collectUpdates(final Map<String, String> request, final List<Widget> widgets) {
+    private void collectUpdates(final Map<String, String> request) {
         if (request.containsKey("lastUpdate")) {
             final UId id = UId.parse(request.get("lastUpdate"));
             this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
         }
-        for (final Widget widget : widgets) {
+        for (final Widget widget : this.root) {
             widget.getUpdates(this.updates);
         }
     }
