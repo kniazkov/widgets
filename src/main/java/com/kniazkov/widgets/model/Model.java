@@ -11,70 +11,76 @@ import java.util.Set;
 
 /**
  * Base class for a data model in an MVC architecture.
- * The model is responsible for holding, validating, and persisting application data.
- * It defines a contract for reading, writing, and providing default values for the data,
- * while also supporting listener registration to notify other components (typically controllers
- * or views) about changes.
+ * A {@code Model} encapsulates a unit of application data, providing a uniform interface
+ * for reading, writing, and validation. Models are designed to be reactive: components such as
+ * views or controllers can register listeners to be notified when the data changes.
+ * The model guarantees that {@link #getData()} always returns a usable value —
+ * either the last successfully read data or a default fallback.
+ * The validity of the data can be checked separately via {@link #isValid()}.
+ * Models are not thread-safe by default.
  *
  * @param <T> the type of the data managed by this model
  */
 public abstract class Model<T> {
+
     /**
      * The set of registered listeners.
+     * Listeners are notified whenever the model's data is updated
+     * through {@link #setData(Object)} or when {@link #notifyListeners()} is called explicitly.
      */
     private final Set<Listener<T>> listeners = new HashSet<>();
 
     /**
-     * Checks whether the model currently holds valid data.
-     * Even if the model is not valid, data can still be read using {@link #getData()},
-     * but in that case the default value will be returned.
-     * This guarantees that clients always receive a valid, usable object.
+     * Determines whether the model currently holds valid data.
+     * Even if the model is not valid, {@link #getData()} can still return
+     * a default value that represents a safe fallback.
      *
-     * @return true if the model has valid data, false otherwise
+     * @return {@code true} if the model's data is valid, {@code false} otherwise
      */
     public abstract boolean isValid();
 
     /**
      * Reads the current data from the underlying source.
+     * Implementations should return any available data, even if not valid,
+     * as long as it can be safely represented. If no meaningful value can be produced,
+     * this method must return {@link Optional#empty()} instead of throwing an exception.
      *
-     * @return an {@link Optional} containing the data if available
+     * @return an {@link Optional} containing the data if available, or empty if not readable
      */
     protected abstract Optional<T> readData();
 
     /**
      * Provides a default value for the model data.
-     * The default is returned whenever the model is invalid or cannot provide a meaningful value.
+     * The default is returned when no valid or readable value is available.
+     * Implementations must ensure that this method never returns {@code null}.
      *
-     * @return the default data
+     * @return the default data value
      */
     protected abstract T getDefaultData();
 
     /**
      * Writes new data to the underlying source.
-     * Implementations must guarantee that if writing fails (returns {@code false}),
-     * the existing model data remains intact and is not corrupted.
+     * Implementations may modify internal validity state depending on whether
+     * the data could be stored successfully. This method should not throw exceptions;
+     * instead, return {@code false} to indicate a write failure or read-only behavior.
      *
      * @param data the new data to write
-     * @return true if the write was successful, false otherwise
+     * @return {@code true} if the write succeeded, or {@code false} if the model cannot be updated
      */
     protected abstract boolean writeData(T data);
 
     /**
      * Retrieves the current data.
-     * If the model is valid and readable, returns the stored data;
-     * otherwise returns the default data.
-     * This method guarantees that the returned value is always valid and never {@code null}.
+     * If {@link #readData()} provides a value, that value is returned directly.
+     * Otherwise, the model returns the default value from {@link #getDefaultData()}.
+     * This method does <b>not</b> check validity; use {@link #isValid()} to determine
+     * whether the returned data should be trusted.
      *
-     * @return the current or default data
+     * @return the current or default data (never {@code null})
      */
     public T getData() {
-        if (this.isValid()) {
-            Optional<T> data = this.readData();
-            if (data.isPresent()) {
-                return data.get();
-            }
-        }
-        return this.getDefaultData();
+        Optional<T> data = this.readData();
+        return data.orElseGet(this::getDefaultData);
     }
 
     /**
@@ -92,7 +98,7 @@ public abstract class Model<T> {
     }
 
     /**
-     * Registers a new listener.
+     * Registers a new listener to receive model updates.
      *
      * @param listener the listener to add
      */
@@ -110,7 +116,7 @@ public abstract class Model<T> {
     }
 
     /**
-     * Notifies all registered listeners with the current data.
+     * Notifies all registered listeners with the model's current data.
      */
     public void notifyListeners() {
         this.notifyListeners(this.getData());

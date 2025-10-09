@@ -8,7 +8,10 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.model.DefaultIntegerModel;
+import com.kniazkov.widgets.model.DetachableModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
+import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
@@ -42,10 +45,11 @@ public class ClickCounterExt {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final IntegerToStringModel globalModel = new IntegerToStringModel();
+        final Model<Integer> globalModel = new DefaultIntegerModel();
 
         final Page page = root -> {
-            final IntegerToStringModel localModel = new IntegerToStringModel();
+            final Model<Integer> detachableModel = new DetachableModel<>(root, globalModel);
+            final Model<Integer> localModel = new DefaultIntegerModel();
 
             // --- Shared button section ---
             Section section = new Section();
@@ -55,8 +59,8 @@ public class ClickCounterExt {
             section.add(button);
 
             button.onClick(data -> {
-                globalModel.setIntValue(globalModel.getIntValue() + 1);
-                localModel.setIntValue(localModel.getIntValue() + 1);
+                detachableModel.setData(detachableModel.getData() + 1);
+                localModel.setData(localModel.getData() + 1);
             });
 
             // --- Global counter section ---
@@ -65,7 +69,7 @@ public class ClickCounterExt {
             section.add(new TextWidget("Global counter: "));
             final TextWidget globalCounter = new TextWidget();
             section.add(globalCounter);
-            globalCounter.setTextModel(globalModel);
+            globalCounter.setTextModel(new IntegerToStringModel(detachableModel));
             globalCounter.setFontWeight(FontWeight.BOLD);
 
             // --- Local counter section ---
@@ -74,7 +78,7 @@ public class ClickCounterExt {
             section.add(new TextWidget("Local counter: "));
             final TextWidget localCounter = new TextWidget();
             section.add(localCounter);
-            localCounter.setTextModel(localModel);
+            localCounter.setTextModel(new IntegerToStringModel(localModel));
             localCounter.setFontWeight(FontWeight.BOLD);
         };
 

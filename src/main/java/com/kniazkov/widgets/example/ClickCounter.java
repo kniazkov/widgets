@@ -8,6 +8,7 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.model.DefaultIntegerModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.view.Button;
@@ -41,7 +42,7 @@ public class ClickCounter {
      */
     public static void main(String[] args) {
         final Page page = root -> {
-            final IntegerToStringModel model = new IntegerToStringModel();
+            final Model<Integer> model = new DefaultIntegerModel();
             final Section section = new Section();
             root.add(section);
 
@@ -49,13 +50,13 @@ public class ClickCounter {
             section.add(button);
 
             // Increment model on click
-            button.onClick(data -> model.setIntValue(model.getIntValue() + 1));
+            button.onClick(data -> model.setData(model.getData() + 1));
 
             // Display current counter value
             section.add(new TextWidget("Click counter: "));
             final TextWidget counter = new TextWidget();
             section.add(counter);
-            counter.setTextModel(model);
+            counter.setTextModel(new IntegerToStringModel(model));
             counter.setFontWeight(FontWeight.BOLD);
         };
 

@@ -6,47 +6,52 @@ package com.kniazkov.widgets.model;
 import java.util.Optional;
 
 /**
- * A {@link Model} that bridges between an integer value and its string representation.
- * This model allows UI elements that operate on text (like {@code InputField})
- * to be bound to integer values transparently. The model automatically converts
- * between {@code int} and {@code String} representations.
- * <ul>
- *   <li>Parsing errors (non-numeric input) mark the model as invalid.</li>
- *   <li>When invalid, {@link #getData()} returns the the default ("0").</li>
- *   <li>Setting an integer value triggers a listener update with its string form.</li>
- * </ul>
+ * A model adapter that converts an {@link Integer}-based model to a {@link String}-based one.
+ * <p>
+ * This model provides a textual representation of an integer value, making it suitable for
+ * text input fields that display numbers as strings. It keeps the base integer model
+ * and the string representation synchronized in both directions.
+ * </p>
+ *
+ * <p>
+ * When the base model changes, this adapter updates its own string value and notifies listeners.
+ * When the string changes, it tries to parse the value as an integer and write it back to the base model.
+ * If parsing fails, the adapter becomes invalid until a valid integer string is provided again.
+ * </p>
  */
 public final class IntegerToStringModel extends Model<String> {
     /**
-     * The current integer value represented by this model.
+     * The underlying integer-based model.
      */
-    private int intValue = 0;
+    private final Model<Integer> base;
 
     /**
-     * Indicates whether the current value is valid (i.e. successfully parsed).
+     * The current string representation of the integer value.
      */
-    private boolean valid = true;
+    private String string;
 
     /**
-     * Returns the current integer value.
+     * Indicates whether the current string value is valid (i.e., can be parsed as an integer).
+     */
+    private boolean valid;
+
+    /**
+     * Creates a new adapter over the specified integer model.
      *
-     * @return the integer value
+     * @param base the base integer model
      */
-    public int getIntValue() {
-        return this.intValue;
-    }
+    public IntegerToStringModel(final Model<Integer> base) {
+        this.base = base;
+        this.string = base.getData().toString();
+        this.valid = base.isValid();
 
-    /**
-     * Sets a new integer value.
-     *
-     * @param value the new integer value to set
-     */
-    public void setIntValue(final int value) {
-        if (this.intValue != value || !this.valid) {
-            this.intValue = value;
-            this.valid = true;
-            this.notifyListeners(String.valueOf(value));
-        }
+        base.addListener(data -> {
+            final String value = data.toString();
+            if (!this.string.equals(value)) {
+                this.string = value;
+                this.notifyListeners();
+            }
+        });
     }
 
     @Override
@@ -56,23 +61,24 @@ public final class IntegerToStringModel extends Model<String> {
 
     @Override
     protected Optional<String> readData() {
-        return Optional.of(String.valueOf(this.intValue));
+        return Optional.of(this.string);
     }
 
     @Override
     protected String getDefaultData() {
-        return "0";
+        return this.base.getDefaultData().toString();
     }
 
     @Override
     protected boolean writeData(final String data) {
+        this.string = data;
         try {
-            this.intValue = Integer.parseInt(data);
+            int value = Integer.parseInt(data);
+            this.base.setData(value);
             this.valid = true;
-            return true;
         } catch (NumberFormatException ignored) {
             this.valid = false;
-            return false;
         }
+        return true;
     }
 }
