@@ -132,4 +132,17 @@ public abstract class Model<T> {
             listener.accept(data);
         }
     }
+
+    /**
+     * Returns a read-only model that reflects the validity state of this model.
+     * The returned model produces {@code true} when this model is valid
+     * and {@code false} when it is not. It automatically updates whenever
+     * this model's data or validity changes, allowing UI components to react
+     * to validation status changes in real time.
+     *
+     * @return a {@link Model} providing the current validity flag of this model
+     */
+    public Model<Boolean> getValidFlagModel() {
+        return new ValidFlagModel<T>(this);
+    }
 }
