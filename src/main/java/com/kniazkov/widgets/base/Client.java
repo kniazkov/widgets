@@ -9,9 +9,11 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.protocol.Update;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
@@ -46,6 +48,11 @@ public final class Client implements Comparable<Client> {
     private final RootWidget root;
 
     /**
+     * List of handlers that are called when the client is closed (destroyed).
+     */
+    final Set<Controller> closeHandlers = new HashSet<>();
+
+    /**
      * Set of updates collected from widgets but not processed by the client.
      */
     private final Set<Update> updates;
@@ -61,7 +68,7 @@ public final class Client implements Comparable<Client> {
      */
     Client() {
         this.id = UId.create();
-        this.root = new RootWidget();
+        this.root = new RootWidget(this);
         this.updates = new TreeSet<>();
     }
 
@@ -81,6 +88,15 @@ public final class Client implements Comparable<Client> {
      */
     RootWidget getRootWidget() {
         return this.root;
+    }
+
+    /**
+     * Adds a handler that is called when the client is destroyed.
+     *
+     * @param ctrl handler
+     */
+    public void onClose(Controller ctrl) {
+        this.closeHandlers.add(ctrl);
     }
 
     /**
@@ -217,7 +233,9 @@ public final class Client implements Comparable<Client> {
      * Cleans up client state before destruction.
      */
     void destroy() {
-        //...
+        for (final Controller ctrl : this.closeHandlers) {
+            ctrl.handleEvent();
+        }
     }
 
     /**
