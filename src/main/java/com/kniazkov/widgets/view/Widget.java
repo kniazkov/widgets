@@ -114,6 +114,13 @@ public abstract class Widget {
      * @param container the new parent container (may be {@code null})
      */
     void setParent(final Container container) {
+        if (container == null) {
+            if (this.parent != null) {
+                this.updates.add(new RemoveChild(this.id, this.parent.getId()));
+            }
+            this.parent = null;
+            return;
+        }
         Set<Update> pending = new TreeSet<>();
         if (this instanceof Container) {
             for (final Widget child : (Container)this) {

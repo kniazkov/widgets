@@ -73,9 +73,10 @@ public interface Container extends Iterable<Widget> {
         public WidgetIterator(final Container root) {
             if (root instanceof Widget) {
                 this.stack.push((Widget) root);
-            }
-            for (int index = root.getChildCount() - 1; index >= 0; index--) {
-                this.stack.push(root.getChild(index));
+            } else {
+                for (int index = root.getChildCount() - 1; index >= 0; index--) {
+                    this.stack.push(root.getChild(index));
+                }
             }
         }
 

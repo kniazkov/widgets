@@ -19,6 +19,9 @@ import java.util.Optional;
  * entry point for traversing or updating the widget tree.
  */
 public final class RootWidget extends Widget implements TypedContainer<BlockWidget> {
+    /**
+     * List of child widgets.
+     */
     final List<BlockWidget> children = new ArrayList<>();
 
     @Override
