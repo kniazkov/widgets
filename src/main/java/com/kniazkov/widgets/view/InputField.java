@@ -107,10 +107,8 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
      * @param text the initial text to display in the input field
      */
     public InputField(final String text) {
-        final Model<String> textModel = new DefaultStringModel();
-        textModel.setData(text);
         this.text = new ModelBinding<>(
-            textModel,
+            new DefaultStringModel(text),
             new TextModelListener(this)
         );
         this.color = new ModelBinding<>(

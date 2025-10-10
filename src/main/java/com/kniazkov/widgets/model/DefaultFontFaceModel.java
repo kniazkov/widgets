@@ -9,6 +9,21 @@ import com.kniazkov.widgets.common.FontFace;
  * A default font face model implementation.
  */
 public final class DefaultFontFaceModel extends DefaultModel<FontFace> {
+    /**
+     * Creates a new font face model initialized with {@link FontFace#DEFAULT}.
+     */
+    public DefaultFontFaceModel() {
+    }
+
+    /**
+     * Creates a new font face model initialized with the specified value.
+     *
+     * @param data the initial font face
+     */
+    public DefaultFontFaceModel(final FontFace data) {
+        super(data);
+    }
+
     @Override
     public FontFace getDefaultData() {
         return FontFace.DEFAULT;

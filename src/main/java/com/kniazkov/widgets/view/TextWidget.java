@@ -65,10 +65,8 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
      * @param text the initial text
      */
     public TextWidget(final String text) {
-        final Model<String> textModel = new DefaultStringModel();
-        textModel.setData(text);
         this.text = new ModelBinding<>(
-            textModel,
+            new DefaultStringModel(text),
             new TextModelListener(this)
         );
         this.color = new ModelBinding<>(

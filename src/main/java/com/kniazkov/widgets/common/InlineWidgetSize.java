@@ -1,11 +1,17 @@
 package com.kniazkov.widgets.common;
 
+import java.util.Locale;
 import java.util.Objects;
 
 /**
  * Represents an absolute size (width or height) of an inline widget.
- * This value is expressed in pixels internally, parsed from a CSS-style string.
- * Only absolute units are supported:
+ * <p>
+ * Stores both the original numeric value and unit (e.g., {@code "10pt"})
+ * along with a precomputed pixel equivalent. This allows relative or
+ * incremental operations on sizes while maintaining pixel precision for
+ * rendering on the client.
+ * <p>
+ * Supported units:
  * <ul>
  *     <li>{@code px} — pixels (default if no unit specified)</li>
  *     <li>{@code pt} — points (1pt = 1/72 inch)</li>
@@ -17,11 +23,12 @@ import java.util.Objects;
  * The minimum accepted value is clamped to 0 pixels.
  */
 public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize> {
+
     /**
      * Singleton instance representing an undefined size.
      * Used when no explicit value has been assigned.
      */
-    public static final InlineWidgetSize UNDEFINED = new InlineWidgetSize(0) {
+    public static final InlineWidgetSize UNDEFINED = new InlineWidgetSize(0, "px") {
         @Override
         public String getCSSCode() {
             return "";
@@ -34,12 +41,22 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
     };
 
     /**
-     * Internal size in pixels.
+     * Original numeric value (e.g., 12 from "12pt").
+     */
+    private final float value;
+
+    /**
+     * Original unit string (e.g., "pt", "px", etc.).
+     */
+    private final String unit;
+
+    /**
+     * Computed pixel equivalent (never negative).
      */
     private final int pixels;
 
     /**
-     * Constructs a new size in pixels.
+     * Constructs a new inline widget size in pixels.
      *
      * @param px size in pixels; must be ≥ 0
      * @throws IllegalArgumentException if the size is negative
@@ -48,15 +65,35 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
         if (px < 0) {
             throw new IllegalArgumentException("InlineWidgetSize must be ≥ 0, or use UNDEFINED");
         }
+        this.value = px;
+        this.unit = "px";
         this.pixels = px;
     }
 
     /**
-     * Constructs a size by parsing a CSS-like string.
-     * Accepts units like {@code px}, {@code pt}, {@code in}, etc.
-     * If no unit is provided, pixels are assumed.
+     * Constructs a new inline widget size from a numeric value and a unit string.
+     *
+     * @param value numeric portion (e.g. 12)
+     * @param unit  unit suffix (e.g., "pt", "px", etc.)
+     * @throws IllegalArgumentException if the value is negative or the unit unsupported
+     */
+    public InlineWidgetSize(final float value, final String unit) {
+        if (value < 0) {
+            throw new IllegalArgumentException("InlineWidgetSize must be ≥ 0, or use UNDEFINED");
+        }
+        if (unit == null || unit.isEmpty()) {
+            throw new IllegalArgumentException("Unit must not be null or empty");
+        }
+        this.value = value;
+        this.unit = unit.toLowerCase();
+        this.pixels = Math.max(0, toPixels(value, this.unit));
+    }
+
+    /**
+     * Constructs a new inline widget size by parsing a CSS-style string.
      *
      * @param str size string (e.g., "10pt", "24px", "1in")
+     * @throws IllegalArgumentException if the input string is invalid or contains unsupported units
      */
     public InlineWidgetSize(String str) {
         str = str.trim().toLowerCase();
@@ -70,13 +107,14 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
             unitStart++;
         }
 
-        float value = Float.parseFloat(str.substring(0, unitStart));
-        String unit = str.substring(unitStart).trim();
-        if (unit.isEmpty()) {
-            unit = "px";
+        this.value = Float.parseFloat(str.substring(0, unitStart));
+        String parsedUnit = str.substring(unitStart).trim();
+        if (parsedUnit.isEmpty()) {
+            parsedUnit = "px";
         }
 
-        this.pixels = Math.max(0, (toPixels(value, unit)));
+        this.unit = parsedUnit;
+        this.pixels = Math.max(0, toPixels(this.value, this.unit));
     }
 
     /**
@@ -99,6 +137,44 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
         }
     }
 
+    /**
+     * Returns the numeric portion of the size.
+     *
+     * @return numeric value
+     */
+    public float getValue() {
+        return this.value;
+    }
+
+    /**
+     * Returns the unit portion of the size.
+     *
+     * @return unit string (e.g., "px", "pt", etc.)
+     */
+    public String getUnit() {
+        return this.unit;
+    }
+
+    /**
+     * Returns the computed pixel equivalent.
+     *
+     * @return size in pixels (≥ 0)
+     */
+    public int getPixels() {
+        return this.pixels;
+    }
+
+    /**
+     * Returns a new {@code InlineWidgetSize} larger or smaller by the given delta.
+     * The delta is applied in the same unit as the current size.
+     *
+     * @param delta the amount to add (can be negative)
+     * @return a new {@code InlineWidgetSize} instance
+     */
+    public InlineWidgetSize add(final float delta) {
+        return new InlineWidgetSize(this.value + delta, this.unit);
+    }
+
     @Override
     public String getCSSCode() {
         return this.pixels + "px";
@@ -106,17 +182,19 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
 
     @Override
     public String toString() {
-        return this.getCSSCode();
+        return String.format(Locale.ROOT, "%.2f%s", this.value, this.unit);
     }
 
     @Override
     public boolean equals(final Object obj) {
-        return obj instanceof InlineWidgetSize && ((InlineWidgetSize) obj).pixels == this.pixels;
+        if (!(obj instanceof InlineWidgetSize)) return false;
+        final InlineWidgetSize other = (InlineWidgetSize) obj;
+        return Float.compare(this.value, other.value) == 0 && this.unit.equals(other.unit);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.pixels);
+        return Objects.hash(this.value, this.unit);
     }
 
     @Override

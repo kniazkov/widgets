@@ -26,6 +26,16 @@ public abstract class DefaultModel<T> extends Model<T> {
         this.data = this.getDefaultData();
     }
 
+    /**
+     * Creates a new default model initialized with the specified value.
+     * This value immediately becomes the current and default data of the model.
+     *
+     * @param data the initial value to store in the model
+     */
+    protected DefaultModel(T data) {
+        this.data = data;
+    }
+
     @Override
     public boolean isValid() {
         return true;
