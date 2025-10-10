@@ -13,11 +13,21 @@ import com.kniazkov.widgets.model.ModelBinding;
  */
 public interface HasText extends View {
     /**
+     * Returns the model binding associated with the specified property.
+     *
+     * @param property the property key
+     * @return the model binding associated with the given property
+     */
+    <T> ModelBinding<T> getModelBinding(final Property property);
+
+    /**
      * Returns the binding that connects the text model to this widget.
      *
      * @return the text model binding
      */
-    ModelBinding<String> getTextModelBinding();
+    default ModelBinding<String> getTextModelBinding() {
+        return this.getModelBinding(Property.TEXT);
+    }
 
     /**
      * Returns the model that stores the text for this view.

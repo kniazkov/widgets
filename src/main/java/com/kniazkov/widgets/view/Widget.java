@@ -5,12 +5,15 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.model.ModelBinding;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.Subscribe;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
@@ -38,12 +41,25 @@ public abstract class Widget {
     private Container parent;
 
     /**
+     * Stores bindings that are independent of widget state.
+     */
+    private final Map<Property, ModelBinding<?>> bindings;
+
+    /**
+     * Stores bindings that depend on widget state.
+     * Example: background color may vary between NORMAL, HOVER, ACTIVE, etc.
+     */
+    private final Map<Property, Map<WidgetState, ModelBinding<?>>> stateBindings;
+
+    /**
      * Constructs a new widget and schedules a {@link CreateWidget} update.
      */
     public Widget() {
         this.id = UId.create();
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
+        this.bindings = new EnumMap<>(Property.class);
+        this.stateBindings = new EnumMap<>(Property.class);
     }
 
     /**
@@ -69,6 +85,77 @@ public abstract class Widget {
      * @param data optional event data
      */
     public abstract void handleEvent(final String type, final Optional<JsonObject> data);
+
+    /**
+     * Returns the container that currently holds this widget, if any.
+     *
+     * @return an {@link Optional} containing the parent container, or empty if the widget
+     *  has no parent
+     */
+    public Optional<Container> getParent() {
+        return Optional.ofNullable(this.parent);
+    }
+
+    /**
+     * Removes this widget from its parent container.
+     * This effectively removes the widget from the UI hierarchy. After removal, this widget
+     * is considered "detached" - it will no longer receive updates or events from the client.
+     */
+    public void remove() {
+        this.setParent(null);
+    }
+
+    /**
+     * Collects and clears all pending updates from this widget, adding them
+     * to the given set. This effectively drains the update queues.
+     *
+     * @param set the set to which updates are added
+     */
+    public void getUpdates(final Set<Update> set) {
+        set.addAll(this.updates);
+        this.updates.clear();
+    }
+
+    /**
+     * Returns a state-independent binding for the specified property.
+     *
+     * @param property property key
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> ModelBinding<T> getModelBinding(final Property property) {
+        final ModelBinding<?> binding = this.bindings.get(property);
+        if (binding == null) {
+            throw new IllegalStateException("No binding for property: " + property);
+        }
+        return (ModelBinding<T>) binding;
+    }
+
+    /**
+     * Returns a state-dependent binding for the specified property and state.
+     *
+     * @param property property key
+     * @param state widget state
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found for the given state
+     */
+    @SuppressWarnings("unchecked")
+    public <T> ModelBinding<T> getModelBinding(final Property property, final WidgetState state) {
+        final Map<WidgetState, ModelBinding<?>> byState = this.stateBindings.get(property);
+        if (byState == null) {
+            throw new IllegalStateException("No state bindings for property: " + property);
+        }
+        final ModelBinding<?> binding = byState.get(state);
+        if (binding == null) {
+            throw new IllegalStateException(
+                "No binding for property: " + property + " in state: " + state
+            );
+        }
+        return (ModelBinding<T>) binding;
+    }
 
     /**
      * Sets the parent container of this widget.
@@ -139,33 +226,29 @@ public abstract class Widget {
     }
 
     /**
-     * Returns the container that currently holds this widget, if any.
+     * Adds a state-independent binding for the specified property.
      *
-     * @return an {@link Optional} containing the parent container, or empty if the widget
-     *  has no parent
+     * @param property property key
+     * @param binding model binding
+     * @param <T> binding data type
      */
-    public Optional<Container> getParent() {
-        return Optional.ofNullable(this.parent);
+    protected <T> void addBinding(final Property property, final ModelBinding<T> binding) {
+        this.bindings.put(property, binding);
     }
 
     /**
-     * Removes this widget from its parent container.
-     * This effectively removes the widget from the UI hierarchy. After removal, this widget
-     * is considered "detached" - it will no longer receive updates or events from the client.
-     */
-    public void remove() {
-        this.setParent(null);
-    }
-
-    /**
-     * Collects and clears all pending updates from this widget, adding them
-     * to the given set. This effectively drains the update queues.
+     * Adds a state-dependent binding for the specified property and state.
      *
-     * @param set the set to which updates are added
+     * @param property property key
+     * @param state widget state
+     * @param binding model binding
+     * @param <T> binding data type
      */
-    public void getUpdates(final Set<Update> set) {
-        set.addAll(this.updates);
-        this.updates.clear();
+    protected <T> void addBinding(final Property property, final WidgetState state,
+            final ModelBinding<T> binding) {
+        this.stateBindings
+            .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class))
+            .put(state, binding);
     }
 
     /**

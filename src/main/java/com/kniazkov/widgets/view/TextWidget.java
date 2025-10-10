@@ -23,11 +23,6 @@ import java.util.Optional;
  */
 public class TextWidget extends InlineWidget implements HasStyledText, HasColor {
     /**
-     * Binding between the text model and the widget.
-     */
-    final ModelBinding<String> text;
-
-    /**
      * Binding between the color model and this widget.
      */
     final ModelBinding<Color> color;
@@ -65,9 +60,12 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
      * @param text the initial text
      */
     public TextWidget(final String text) {
-        this.text = new ModelBinding<>(
-            new DefaultStringModel(text),
-            new TextModelListener(this)
+        this.addBinding(
+            Property.TEXT,
+            new ModelBinding<>(
+                new DefaultStringModel(text),
+                new TextModelListener(this)
+            )
         );
         this.color = new ModelBinding<>(
             new DefaultColorModel(),
@@ -89,11 +87,6 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
             new DefaultBooleanModel(),
             new ItalicModelListener(this)
         );
-    }
-
-    @Override
-    public ModelBinding<String> getTextModelBinding() {
-        return this.text;
     }
 
     @Override
