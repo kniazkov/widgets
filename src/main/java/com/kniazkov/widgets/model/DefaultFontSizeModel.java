@@ -10,6 +10,11 @@ import com.kniazkov.widgets.common.FontSize;
  */
 public final class DefaultFontSizeModel extends DefaultModel<FontSize> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultFontSizeModel} instances.
+     */
+    public static final ModelFactory<FontSize> FACTORY = DefaultFontSizeModel::new;
+
+    /**
      * Creates a new font size model initialized with {@link FontSize#DEFAULT}.
      */
     public DefaultFontSizeModel() {

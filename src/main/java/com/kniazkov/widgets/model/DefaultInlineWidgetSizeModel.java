@@ -10,6 +10,11 @@ import com.kniazkov.widgets.common.InlineWidgetSize;
  */
 public final class DefaultInlineWidgetSizeModel extends DefaultModel<InlineWidgetSize> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultInlineWidgetSizeModel} instances.
+     */
+    public static final ModelFactory<InlineWidgetSize> FACTORY = DefaultInlineWidgetSizeModel::new;
+
+    /**
      * Creates a new inline widget size model initialized with
      * {@link InlineWidgetSize#UNDEFINED}.
      */

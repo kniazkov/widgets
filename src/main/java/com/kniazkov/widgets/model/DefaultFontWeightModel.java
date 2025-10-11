@@ -10,6 +10,11 @@ import com.kniazkov.widgets.common.FontWeight;
  */
 public final class DefaultFontWeightModel extends DefaultModel<FontWeight> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultFontWeightModel} instances.
+     */
+    public static final ModelFactory<FontWeight> FACTORY = DefaultFontWeightModel::new;
+
+    /**
      * Creates a new font weight model initialized with {@link FontWeight#NORMAL}.
      */
     public DefaultFontWeightModel() {

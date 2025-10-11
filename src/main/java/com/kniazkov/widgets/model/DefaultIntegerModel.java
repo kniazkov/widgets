@@ -8,6 +8,11 @@ package com.kniazkov.widgets.model;
  */
 public final class DefaultIntegerModel extends DefaultModel<Integer> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultIntegerModel} instances.
+     */
+    public static final ModelFactory<Integer> FACTORY = DefaultIntegerModel::new;
+
+    /**
      * Creates a new integer model initialized with {@code 0}.
      */
     public DefaultIntegerModel() {

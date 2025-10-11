@@ -10,6 +10,11 @@ import com.kniazkov.widgets.common.FontFace;
  */
 public final class DefaultFontFaceModel extends DefaultModel<FontFace> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultFontFaceModel} instances.
+     */
+    public static final ModelFactory<FontFace> FACTORY = DefaultFontFaceModel::new;
+
+    /**
      * Creates a new font face model initialized with {@link FontFace#DEFAULT}.
      */
     public DefaultFontFaceModel() {

@@ -8,6 +8,11 @@ package com.kniazkov.widgets.model;
  */
 public final class DefaultBooleanModel extends DefaultModel<Boolean> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultBooleanModel} instances.
+     */
+    public static final ModelFactory<Boolean> FACTORY = DefaultBooleanModel::new;
+
+    /**
      * Creates a new boolean model initialized with {@code false}.
      */
     public DefaultBooleanModel() {

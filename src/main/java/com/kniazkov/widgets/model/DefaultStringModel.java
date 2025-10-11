@@ -8,6 +8,11 @@ package com.kniazkov.widgets.model;
  */
 public final class DefaultStringModel extends DefaultModel<String> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultStringModel} instances.
+     */
+    public static final ModelFactory<String> FACTORY = DefaultStringModel::new;
+
+    /**
      * Creates a new string model initialized with an empty string.
      */
     public DefaultStringModel() {

@@ -10,6 +10,11 @@ import com.kniazkov.widgets.common.Color;
  */
 public final class DefaultColorModel extends DefaultModel<Color> {
     /**
+     * A {@link ModelFactory} that produces {@link DefaultColorModel} instances.
+     */
+    public static final ModelFactory<Color> FACTORY = DefaultColorModel::new;
+
+    /**
      * Creates a new color model initialized with {@link Color#BLACK}.
      */
     public DefaultColorModel() {
