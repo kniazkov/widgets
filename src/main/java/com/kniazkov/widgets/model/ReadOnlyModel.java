@@ -14,7 +14,7 @@ public abstract class ReadOnlyModel<T> extends Model<T>  {
     }
 
     @Override
-    public void setData(T data) {
-        // do nothing
+    public boolean setData(T data) {
+        return false;
     }
 }

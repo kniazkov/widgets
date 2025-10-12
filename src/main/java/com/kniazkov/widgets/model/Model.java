@@ -88,13 +88,17 @@ public abstract class Model<T> {
      * and notifies listeners if the update succeeds.
      *
      * @param data the new data to set
+     * @return {@code true} if the data was changed and written successfully,
+     *         {@code false} otherwise
      */
-    public void setData(final T data) {
+    public boolean setData(final T data) {
         final Optional<T> oldData = this.readData();
         if (!Objects.equals(oldData.orElse(this.getDefaultData()), data)
-                && this.writeData(data)) {
+            && this.writeData(data)) {
             this.notifyListeners(data);
+            return true;
         }
+        return false;
     }
 
     /**

@@ -56,15 +56,6 @@ public final class CascadingModel<T> extends Model<T> {
         base.addListener(this.listener);
     }
 
-    /**
-     * Returns {@code true} if a local model exists.
-     *
-     * @return whether this model has been overridden
-     */
-    public boolean hasLocal() {
-        return this.local != null;
-    }
-
     @Override
     public boolean isValid() {
         return (this.local != null) ? this.local.isValid() : this.base.isValid();
@@ -87,9 +78,9 @@ public final class CascadingModel<T> extends Model<T> {
             this.local = this.factory.create(data);
             this.local.addListener(this.listener);
             this.notifyListeners(data);
+            return true;
         } else {
-            this.local.setData(data);
+            return this.local.setData(data);
         }
-        return true;
     }
 }
