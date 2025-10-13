@@ -44,7 +44,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     @Override
     void setParent(final Container container) {
         if (container != null) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("The root widget cannot have a parent");
         }
     }
 
