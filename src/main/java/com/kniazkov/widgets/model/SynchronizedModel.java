@@ -21,29 +21,18 @@ public class SynchronizedModel<T> implements Model<T> {
 
     /**
      * The wrapped base model that provides the actual data and validation logic.
-     * <p>
-     * All direct access to this model is synchronized on {@link #dataLock}.
-     * </p>
+     * All direct access to this model is synchronized on {@link #lock}.
      */
     private final Model<T> base;
 
     /**
-     * The synchronization lock used to serialize access to the underlying model’s data.
+     * The synchronization lock used to serialize access to the underlying model’s data
+     * and listeners.
      */
-    private final Object dataLock = new Object();
+    private final Object lock = new Object();
 
     /**
-     * The synchronization lock used to protect listener registration and removal.
-     * Separating this lock from {@link #dataLock} reduces contention when listeners
-     * are frequently added or removed while other threads update data.
-     */
-    private final Object listenerLock = new Object();
-
-    /**
-     * A thread-safe set of listeners registered on this wrapper.
-     * <p>
-     * Iteration and modification are protected by {@link #listenerLock}.
-     * </p>
+     * A set of listeners registered on this wrapper.
      */
     private final Set<Listener<T>> listeners = new HashSet<>();
 
@@ -67,14 +56,14 @@ public class SynchronizedModel<T> implements Model<T> {
 
     @Override
     public boolean isValid() {
-        synchronized (this.dataLock) {
+        synchronized (this.lock) {
             return this.base.isValid();
         }
     }
 
     @Override
     public T getData() {
-        synchronized (this.dataLock) {
+        synchronized (this.lock) {
             return this.base.getData();
         }
     }
@@ -86,44 +75,45 @@ public class SynchronizedModel<T> implements Model<T> {
 
     @Override
     public boolean setData(final T data) {
-        synchronized (this.dataLock) {
+        synchronized (this.lock) {
             return this.base.setData(data);
         }
     }
 
     @Override
     public void addListener(final Listener<T> listener) {
-        synchronized (this.listenerLock) {
+        synchronized (this.lock) {
             this.listeners.add(listener);
         }
     }
 
     @Override
     public void removeListener(final Listener<T> listener) {
-        synchronized (this.listenerLock) {
+        synchronized (this.lock) {
             this.listeners.remove(listener);
         }
     }
 
     @Override
     public void notifyListeners() {
-        this.notifyListeners(this.getData());
+        final List<Listener<T>> copy;
+        final T data;
+        synchronized (this.lock) {
+            copy = new ArrayList<>(this.listeners);
+            data = this.base.getData();
+        }
+        for (Listener<T> listener : copy) {
+            listener.accept(data);
+        }
     }
 
     /**
      * Notifies all registered listeners with the specified data value.
-     * This method copies the listener set under {@link #listenerLock} and then delivers
-     * notifications outside of any synchronization to avoid
-     * reentrancy and deadlocks.
      *
      * @param data the data value to broadcast to listeners
      */
     protected void notifyListeners(final T data) {
-        final List<Listener<T>> copy;
-        synchronized (this.listenerLock) {
-            copy = new ArrayList<>(this.listeners);
-        }
-        for (Listener<T> listener : copy) {
+        for (Listener<T> listener : this.listeners) {
             listener.accept(data);
         }
     }
