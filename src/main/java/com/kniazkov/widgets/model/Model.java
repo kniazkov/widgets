@@ -4,50 +4,36 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Listener;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 /**
- * Base class for a data model in an MVC architecture.
- * A {@code Model} encapsulates a unit of application data, providing a uniform interface
- * for reading, writing, and validation. Models are designed to be reactive: components such as
- * views or controllers can register listeners to be notified when the data changes.
- * The model guarantees that {@link #getData()} always returns a usable value —
- * either the last successfully read data or a default fallback.
- * The validity of the data can be checked separately via {@link #isValid()}.
- * Models are not thread-safe by default.
+ * Represents a reactive data model in an MVC architecture. A {@code Model} defines the contract
+ * for managing a unit of application data — reading, writing, validating, and notifying listeners
+ * about changes.
+ * <br>
+ * Models are used by controllers and views to observe data updates and reflect changes in the user
+ * interface or application state. Implementations of this interface may define various storage
+ * and synchronization strategies, but by default, models are <b>not thread-safe</b>
+ * unless explicitly documented.
  *
  * @param <T> the type of the data managed by this model
  */
-public abstract class Model<T> {
-
+public interface Model<T> {
     /**
-     * The set of registered listeners.
-     * Listeners are notified whenever the model's data is updated
-     * through {@link #setData(Object)} or when {@link #notifyListeners()} is called explicitly.
-     */
-    private final Set<Listener<T>> listeners = new HashSet<>();
-
-    /**
-     * Determines whether the model currently holds valid data.
-     * Even if the model is not valid, {@link #getData()} can still return
-     * a default value that represents a safe fallback.
+     * Indicates whether the model currently holds valid data.
+     * Even if the model is not valid, {@link #getData()} must still return a usable fallback value.
      *
      * @return {@code true} if the model's data is valid, {@code false} otherwise
      */
-    public abstract boolean isValid();
+    boolean isValid();
 
     /**
-     * Reads the current data from the underlying source.
-     * Implementations should return any available data, even if not valid,
-     * as long as it can be safely represented. If no meaningful value can be produced,
-     * this method must return {@link Optional#empty()} instead of throwing an exception.
+     * Returns the current data value of this model. Implementations should ensure this method
+     * never returns {@code null}. The returned value should either represent the current data
+     * (if available) or a reasonable default if the underlying source cannot provide data.
      *
-     * @return an {@link Optional} containing the data if available, or empty if not readable
+     * @return the current or default data value (never {@code null})
      */
-    protected abstract Optional<T> readData();
+    T getData();
 
     /**
      * Provides a default value for the model data.
@@ -56,97 +42,54 @@ public abstract class Model<T> {
      *
      * @return the default data value
      */
-    protected abstract T getDefaultData();
+    T getDefaultData();
 
     /**
-     * Writes new data to the underlying source.
-     * Implementations may modify internal validity state depending on whether
-     * the data could be stored successfully. This method should not throw exceptions;
-     * instead, return {@code false} to indicate a write failure or read-only behavior.
-     *
-     * @param data the new data to write
-     * @return {@code true} if the write succeeded, or {@code false} if the model cannot be updated
-     */
-    protected abstract boolean writeData(T data);
-
-    /**
-     * Retrieves the current data.
-     * If {@link #readData()} provides a value, that value is returned directly.
-     * Otherwise, the model returns the default value from {@link #getDefaultData()}.
-     * This method does <b>not</b> check validity; use {@link #isValid()} to determine
-     * whether the returned data should be trusted.
-     *
-     * @return the current or default data (never {@code null})
-     */
-    public T getData() {
-        Optional<T> data = this.readData();
-        return data.orElseGet(this::getDefaultData);
-    }
-
-    /**
-     * Updates the model data if it differs from the current one,
-     * and notifies listeners if the update succeeds.
+     * Updates the model’s data if it differs from the current one, and notifies all registered
+     * listeners if the update succeeds. If the model cannot be written to (e.g., is read-only
+     * or persistence fails), this method must return {@code false}
+     * instead of throwing an exception.
      *
      * @param data the new data to set
      * @return {@code true} if the data was changed and written successfully,
      *         {@code false} otherwise
      */
-    public boolean setData(final T data) {
-        final Optional<T> oldData = this.readData();
-        if (!Objects.equals(oldData.orElse(this.getDefaultData()), data)
-            && this.writeData(data)) {
-            this.notifyListeners(data);
-            return true;
-        }
-        return false;
-    }
+    boolean setData(final T data);
 
     /**
-     * Registers a new listener to receive model updates.
+     * Registers a new listener that will be notified whenever the model's data changes.
      *
-     * @param listener the listener to add
+     * @param listener the listener to register
      */
-    public void addListener(final Listener<T> listener) {
-        this.listeners.add(listener);
-    }
+    void addListener(final Listener<T> listener);
 
     /**
-     * Removes a previously registered listener.
+     * Unregisters a previously added listener.
      *
      * @param listener the listener to remove
      */
-    public void removeListener(final Listener<T> listener) {
-        this.listeners.remove(listener);
-    }
+    void removeListener(final Listener<T> listener);
 
     /**
-     * Notifies all registered listeners with the model's current data.
+     * Notifies all registered listeners with the current data value.
+     * Implementations should guarantee that all listeners receive the update
+     * synchronously and in the order they were registered.
      */
-    public void notifyListeners() {
-        this.notifyListeners(this.getData());
-    }
+    void notifyListeners();
 
     /**
-     * Notifies all registered listeners with the provided data.
+     * Returns a reactive read-only {@link Model} representing the validity state of this model.
+     * The returned model produces {@code true} when this model’s data is valid
+     * (i.e. {@link #isValid()} returns {@code true}) and {@code false} otherwise.
+     * It automatically updates whenever this model’s data or validity changes,
+     * allowing UI components or controllers to observe validation state changes
+     * in real time. This is especially useful in reactive UIs, where the validity flag can be
+     * bound to visual indicators (such as red borders around invalid fields) or used to enable
+     * and disable interactive controls.
      *
-     * @param data the data to send to listeners
+     * @return a read-only {@link Model} that reflects the validity state of this model
      */
-    protected void notifyListeners(final T data) {
-        for (final Listener<T> listener : this.listeners) {
-            listener.accept(data);
-        }
-    }
-
-    /**
-     * Returns a read-only model that reflects the validity state of this model.
-     * The returned model produces {@code true} when this model is valid
-     * and {@code false} when it is not. It automatically updates whenever
-     * this model's data or validity changes, allowing UI components to react
-     * to validation status changes in real time.
-     *
-     * @return a {@link Model} providing the current validity flag of this model
-     */
-    public Model<Boolean> getValidFlagModel() {
-        return new ValidFlagModel<T>(this);
+    default Model<Boolean> getValidFlagModel() {
+        return new ValidFlagModel<>(this);
     }
 }

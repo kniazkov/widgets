@@ -1,7 +1,9 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Listener;
-import java.util.Optional;
 
 /**
  * A read-only model that exposes the validity flag of another model as a separate {@link Model}.
@@ -13,7 +15,6 @@ import java.util.Optional;
  * @param <T> the type of data in the base model
  */
 public class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
-
     /**
      * The wrapped base model.
      */
@@ -50,12 +51,12 @@ public class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
     }
 
     @Override
-    protected Optional<Boolean> readData() {
-        return Optional.of(this.base.isValid());
+    public Boolean getData() {
+        return this.base.isValid();
     }
 
     @Override
-    protected Boolean getDefaultData() {
-        return false;
+    public Boolean getDefaultData() {
+        return Boolean.FALSE;
     }
 }

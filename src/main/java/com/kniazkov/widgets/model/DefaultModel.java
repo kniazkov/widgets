@@ -3,17 +3,15 @@
  */
 package com.kniazkov.widgets.model;
 
-import java.util.Objects;
-import java.util.Optional;
-
 /**
  * Default in-memory implementation of {@link Model}.
- * This model always contains valid data. The internal value is initialized with
- * {@link #getDefaultData()} at construction time.
+ * This class provides a simple and reliable data model suitable for most use cases
+ * where the model only needs to store data in memory and does not require
+ * validation, persistence, or complex synchronization logic.
  *
  * @param <T> the type of the data managed by this model
  */
-public abstract class DefaultModel<T> extends Model<T> {
+public abstract class DefaultModel<T> extends SingleThreadModel<T> {
     /**
      * The internal data storage.
      */
@@ -42,13 +40,17 @@ public abstract class DefaultModel<T> extends Model<T> {
     }
 
     @Override
-    protected Optional<T> readData() {
-        return Optional.of(this.data);
+    public T getData() {
+        return this.data;
     }
 
     @Override
-    protected boolean writeData(final T data) {
-        this.data = Objects.requireNonNull(data);
+    public boolean setData(final T data) {
+        if (this.data.equals(data)) {
+            return false;
+        }
+        this.data = data;
+        this.notifyListeners(data);
         return true;
     }
 }

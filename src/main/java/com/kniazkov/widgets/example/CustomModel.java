@@ -77,16 +77,15 @@ public class CustomModel {
         }
 
         @Override
-        protected Optional<String> readData() {
+        public String getData() {
             String text = this.source.getData();
-            String transformed = new StringBuilder(text.trim().toUpperCase())
+            return new StringBuilder(text.trim().toUpperCase())
                     .reverse()
                     .toString();
-            return Optional.of(transformed);
         }
 
         @Override
-        protected String getDefaultData() {
+        public String getDefaultData() {
             return "";
         }
     }

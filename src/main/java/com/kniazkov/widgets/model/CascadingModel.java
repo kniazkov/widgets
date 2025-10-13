@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Listener;
-import java.util.Optional;
 
 /**
  * A cascading model that delegates to a base model until overridden.
@@ -24,7 +23,7 @@ import java.util.Optional;
  *
  * @param <T> the type of data managed by this model
  */
-public final class CascadingModel<T> extends Model<T> {
+public final class CascadingModel<T> extends SingleThreadModel<T> {
     /**
      * The base model from which this cascading model derives its data.
      * */
@@ -62,17 +61,17 @@ public final class CascadingModel<T> extends Model<T> {
     }
 
     @Override
-    protected Optional<T> readData() {
-        return (this.local != null) ? this.local.readData() : this.base.readData();
+    public T getData() {
+        return (this.local != null) ? this.local.getData() : this.base.getData();
     }
 
     @Override
-    protected T getDefaultData() {
+    public T getDefaultData() {
         return (this.local != null) ? this.local.getDefaultData() : this.base.getDefaultData();
     }
 
     @Override
-    protected boolean writeData(final T data) {
+    public boolean setData(final T data) {
         if (this.local == null) {
             this.base.removeListener(this.listener);
             this.local = this.factory.create(data);

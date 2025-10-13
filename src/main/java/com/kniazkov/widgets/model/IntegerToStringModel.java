@@ -3,8 +3,6 @@
  */
 package com.kniazkov.widgets.model;
 
-import java.util.Optional;
-
 /**
  * A model adapter that converts an {@link Integer}-based model to a {@link String}-based one.
  * <p>
@@ -15,11 +13,12 @@ import java.util.Optional;
  *
  * <p>
  * When the base model changes, this adapter updates its own string value and notifies listeners.
- * When the string changes, it tries to parse the value as an integer and write it back to the base model.
- * If parsing fails, the adapter becomes invalid until a valid integer string is provided again.
+ * When the string changes, it tries to parse the value as an integer and write it back
+ * to the base model. If parsing fails, the adapter becomes invalid until a valid integer string
+ * is provided again.
  * </p>
  */
-public final class IntegerToStringModel extends Model<String> {
+public final class IntegerToStringModel extends SingleThreadModel<String> {
     /**
      * The underlying integer-based model.
      */
@@ -49,7 +48,7 @@ public final class IntegerToStringModel extends Model<String> {
             final String value = data.toString();
             if (!this.string.equals(value)) {
                 this.string = value;
-                this.notifyListeners();
+                this.notifyListeners(value);
             }
         });
     }
@@ -60,17 +59,20 @@ public final class IntegerToStringModel extends Model<String> {
     }
 
     @Override
-    protected Optional<String> readData() {
-        return Optional.of(this.string);
+    public String getData() {
+        return this.string;
     }
 
     @Override
-    protected String getDefaultData() {
+    public String getDefaultData() {
         return this.base.getDefaultData().toString();
     }
 
     @Override
-    protected boolean writeData(final String data) {
+    public boolean setData(final String data) {
+        if (this.string.equals(data)) {
+            return false;
+        }
         this.string = data;
         try {
             int value = Integer.parseInt(data);
@@ -79,6 +81,7 @@ public final class IntegerToStringModel extends Model<String> {
         } catch (NumberFormatException ignored) {
             this.valid = false;
         }
+        this.notifyListeners(data);
         return true;
     }
 }
