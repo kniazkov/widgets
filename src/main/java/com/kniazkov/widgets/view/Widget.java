@@ -158,6 +158,24 @@ public abstract class Widget {
     }
 
     /**
+     * Detaches this widget from all bound models.
+     * After detachment, all models are effectively disconnected from the widget’s
+     * listeners, allowing the garbage collector to reclaim the widget and its
+     * associated bindings safely. The binding objects themselves remain intact and
+     * can later reattach to new models if needed.
+     */
+    public void detach() {
+        for (ModelBinding<?> binding : this.bindings.values()) {
+            binding.setModel(null);
+        }
+        for (Map<WidgetState, ModelBinding<?>> stateMap : this.stateBindings.values()) {
+            for (ModelBinding<?> binding : stateMap.values()) {
+                binding.setModel(null);
+            }
+        }
+    }
+
+    /**
      * Sets the parent container of this widget.
      * <p>
      * If the widget was previously attached to another container, a {@link RemoveChild}

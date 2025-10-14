@@ -64,28 +64,34 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
             Property.TEXT,
             new ModelBinding<>(
                 new DefaultStringModel(text),
-                new TextModelListener(this)
+                new TextModelListener(this),
+                DefaultStringModel.FACTORY
             )
         );
         this.color = new ModelBinding<>(
             new DefaultColorModel(),
-            new ColorModelListener(this)
+            new ColorModelListener(this),
+            DefaultColorModel.FACTORY
         );
         this.fontFace = new ModelBinding<>(
             new DefaultFontFaceModel(),
-            new FontFaceModelListener(this)
+            new FontFaceModelListener(this),
+            DefaultFontFaceModel.FACTORY
         );
         this.fontSize = new ModelBinding<>(
             new DefaultFontSizeModel(),
-            new FontSizeModelListener(this))
-        ;
+            new FontSizeModelListener(this),
+            DefaultFontSizeModel.FACTORY
+        );
         this.fontWeight = new ModelBinding<>(
             new DefaultFontWeightModel(),
-            new FontWeightModelListener(this)
+            new FontWeightModelListener(this),
+            DefaultFontWeightModel.FACTORY
         );
         this.italic = new ModelBinding<>(
             new DefaultBooleanModel(),
-            new ItalicModelListener(this)
+            new ItalicModelListener(this),
+            DefaultBooleanModel.FACTORY
         );
     }
 

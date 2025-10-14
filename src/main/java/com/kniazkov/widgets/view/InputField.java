@@ -109,41 +109,50 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     public InputField(final String text) {
         this.text = new ModelBinding<>(
             new DefaultStringModel(text),
-            new TextModelListener(this)
+            new TextModelListener(this),
+            DefaultStringModel.FACTORY
         );
         this.color = new ModelBinding<>(
             new DefaultColorModel(),
-            new ColorModelListener(this)
+            new ColorModelListener(this),
+            DefaultColorModel.FACTORY
         );
         final Model<Color> bgColorModel = new DefaultColorModel();
         bgColorModel.setData(Color.WHITE);
         this.bgColor = new ModelBinding<>(
             bgColorModel,
-            new BgColorModelListener(this)
+            new BgColorModelListener(this),
+            DefaultColorModel.FACTORY
         );
         this.fontFace = new ModelBinding<>(
             new DefaultFontFaceModel(),
-            new FontFaceModelListener(this)
+            new FontFaceModelListener(this),
+            DefaultFontFaceModel.FACTORY
         );
         this.fontSize = new ModelBinding<>(
             new DefaultFontSizeModel(),
-            new FontSizeModelListener(this)
+            new FontSizeModelListener(this),
+            DefaultFontSizeModel.FACTORY
         );
         this.fontWeight = new ModelBinding<>(
             new DefaultFontWeightModel(),
-            new FontWeightModelListener(this)
+            new FontWeightModelListener(this),
+            DefaultFontWeightModel.FACTORY
         );
         this.italic = new ModelBinding<>(
             new DefaultBooleanModel(),
-            new ItalicModelListener(this)
+            new ItalicModelListener(this),
+            DefaultBooleanModel.FACTORY
         );
         this.width = new ModelBinding<>(
             new DefaultInlineWidgetSizeModel(),
-            new WidthModelListener<>(this)
+            new WidthModelListener<>(this),
+            DefaultInlineWidgetSizeModel.FACTORY
         );
         this.height = new ModelBinding<>(
             new DefaultInlineWidgetSizeModel(),
-            new HeightModelListener<>(this)
+            new HeightModelListener<>(this),
+            DefaultInlineWidgetSizeModel.FACTORY
         );
         this.textInputCtrl = TypedController.stub();
         this.clickCtrl = TypedController.stub();

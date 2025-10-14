@@ -97,11 +97,23 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     }
 
     /**
-     * Called when the client closes. This allows this event to be broadcast to subscribers.
+     * Invoked when the client is being closed.
+     * This method performs the final shutdown procedure for the entire widget
+     * hierarchy rooted at this widget. It first notifies all registered
+     * {@link #closeHandlers controllers} by invoking their {@code handleEvent()}
+     * method, allowing external components to react to the closing event
+     * (e.g., to save state or release resources).
+     * After notifying the controllers, the method traverses all child widgets
+     * in the hierarchy and calls {@link Widget#detach()} on each of them.
+     * This ensures that every widget releases its model bindings and unsubscribes
+     * from any global models, preventing memory leaks caused by dangling listeners.
      */
     private void close() {
         for (final Controller ctrl : this.closeHandlers) {
             ctrl.handleEvent();
+        }
+        for (final Widget child : this) {
+            child.detach();
         }
     }
 }
