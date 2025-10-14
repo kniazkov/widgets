@@ -14,7 +14,6 @@ import com.kniazkov.widgets.model.DefaultFontFaceModel;
 import com.kniazkov.widgets.model.DefaultFontSizeModel;
 import com.kniazkov.widgets.model.DefaultFontWeightModel;
 import com.kniazkov.widgets.model.DefaultStringModel;
-import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
 import java.util.Optional;
 
