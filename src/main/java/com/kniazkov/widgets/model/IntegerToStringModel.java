@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.model;
 
+import com.kniazkov.widgets.common.Listener;
+
 /**
  * A model adapter that converts an {@link Integer}-based model to a {@link String}-based one.
  * <p>
@@ -35,6 +37,11 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
     private boolean valid;
 
     /**
+     * The listener attached to the base model.
+     */
+    private final Listener<Integer> listener;
+
+    /**
      * Creates a new adapter over the specified integer model.
      *
      * @param base the base integer model
@@ -43,14 +50,15 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
         this.base = base;
         this.string = base.getData().toString();
         this.valid = base.isValid();
-
-        base.addListener(data -> {
+        this.listener = data -> {
             final String value = data.toString();
             if (!this.string.equals(value)) {
                 this.string = value;
                 this.notifyListeners(value);
             }
-        });
+        };
+
+        base.addListener(this.listener);
     }
 
     @Override
@@ -83,5 +91,10 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
         }
         this.notifyListeners(data);
         return true;
+    }
+
+    @Override
+    public void detach() {
+        this.base.removeListenerAndDetach(this.listener);
     }
 }

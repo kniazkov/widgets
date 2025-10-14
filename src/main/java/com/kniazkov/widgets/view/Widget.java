@@ -166,11 +166,11 @@ public abstract class Widget {
      */
     public void detach() {
         for (ModelBinding<?> binding : this.bindings.values()) {
-            binding.setModel(null);
+            binding.detach();
         }
         for (Map<WidgetState, ModelBinding<?>> stateMap : this.stateBindings.values()) {
             for (ModelBinding<?> binding : stateMap.values()) {
-                binding.setModel(null);
+                binding.detach();
             }
         }
     }

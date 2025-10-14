@@ -14,7 +14,7 @@ import com.kniazkov.widgets.common.Listener;
  *
  * @param <T> the type of data in the base model
  */
-public class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
+public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
     /**
      * The wrapped base model.
      */
@@ -36,14 +36,6 @@ public class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
         base.addListener(this.listener);
     }
 
-    /**
-     * Manually detaches this model from the base model.
-     * After detachment, this model will no longer receive updates.
-     */
-    public void detach() {
-        this.base.removeListener(this.listener);
-    }
-
     @Override
     public boolean isValid() {
         // The "valid" flag itself is always valid
@@ -58,5 +50,10 @@ public class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
     @Override
     public Boolean getDefaultData() {
         return Boolean.FALSE;
+    }
+
+    @Override
+    public void detach() {
+        this.base.removeListenerAndDetach(this.listener);
     }
 }

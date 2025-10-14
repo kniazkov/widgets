@@ -60,15 +60,37 @@ public interface Model<T> {
      * Registers a new listener that will be notified whenever the model's data changes.
      *
      * @param listener the listener to register
+     * @return the total number of listeners currently registered after this operation
      */
-    void addListener(final Listener<T> listener);
+    int addListener(final Listener<T> listener);
 
     /**
      * Unregisters a previously added listener.
      *
      * @param listener the listener to remove
+     * @return the total number of listeners currently registered after this operation
      */
-    void removeListener(final Listener<T> listener);
+    int removeListener(final Listener<T> listener);
+
+    /**
+     * Removes the specified listener from this model and performs any additional
+     * detachment logic required by wrapper models.
+     *
+     * @param listener the listener to remove and optionally detach
+     */
+    default void removeListenerAndDetach(final Listener<T> listener) {
+        final int size = this.removeListener(listener);
+        if (size == 0) {
+            this.detach();
+        }
+    }
+
+    /**
+     * Detaches the model from other (parent) models.
+     */
+    default void detach() {
+        return;
+    }
 
     /**
      * Notifies all registered listeners with the current data value.

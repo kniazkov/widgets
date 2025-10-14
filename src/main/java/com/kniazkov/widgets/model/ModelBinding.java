@@ -67,9 +67,12 @@ public final class ModelBinding<T> {
     }
 
     /**
-     * Rebinds this binding to a different model.
+     * Binds this {@link ModelBinding} to a new, non-null model instance.
+     * The binding automatically unsubscribes from the currently bound model (if any)
+     * and attaches the listener to the provided model. The listener immediately receives
+     * the model’s current data upon successful binding.
      *
-     * @param model the new model to bind to (may be {@code null})
+     * @param model the new model to bind to (must not be {@code null})
      */
     public void setModel(final Model<T> model) {
         if (this.model == model) {
@@ -79,9 +82,19 @@ public final class ModelBinding<T> {
             this.model.removeListener(this.listener);
         }
         this.model = model;
-        if (model != null) {
-            model.addListener(this.listener);
-            this.listener.accept(model.getData());
+        model.addListener(this.listener);
+        this.listener.accept(model.getData());
+    }
+
+    /**
+     * Detaches this binding from the currently bound model, if any. After detachment,
+     * the binding holds no reference to any model. The listener will no longer receive updates
+     * until a new model is assigned via {@link #setModel(Model)}.
+     */
+    public void detach() {
+        if (this.model != null) {
+            this.model.removeListenerAndDetach(this.listener);
+            this.model = null;
         }
     }
 }

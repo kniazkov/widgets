@@ -39,6 +39,9 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
      */
     private Model<T> local;
 
+    /**
+     * A listener who listens to one of two models.
+     */
     private final Listener<T> listener;
 
     /**
@@ -80,6 +83,15 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
             return true;
         } else {
             return this.local.setData(data);
+        }
+    }
+
+    @Override
+    public void detach() {
+        if (this.local != null) {
+            this.local.removeListenerAndDetach(this.listener);
+        } else {
+            this.base.removeListenerAndDetach(this.listener);
         }
     }
 }

@@ -17,7 +17,7 @@ import java.util.*;
  *
  * @param <T> the type of the data managed by this model
  */
-public class SynchronizedModel<T> implements Model<T> {
+public final class SynchronizedModel<T> implements Model<T> {
 
     /**
      * The wrapped base model that provides the actual data and validation logic.
@@ -29,29 +29,24 @@ public class SynchronizedModel<T> implements Model<T> {
      * The synchronization lock used to serialize access to the underlying model’s data
      * and listeners.
      */
-    private final Object lock = new Object();
+    private final Object lock;
 
     /**
      * A set of listeners registered on this wrapper.
      */
-    private final Set<Listener<T>> listeners = new HashSet<>();
-
-    /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     */
-    private final Listener<T> forwarder = this::notifyListeners;
+    private final Set<Listener<T>> listeners;
 
     /**
      * Creates a new synchronized wrapper for the specified base model.
-     * <p>
-     * The wrapper automatically subscribes to updates from the base model.
-     * </p>
      *
      * @param base the model to wrap (must not be {@code null})
      */
     public SynchronizedModel(final Model<T> base) {
-        this.base = Objects.requireNonNull(base);
-        this.base.addListener(this.forwarder);
+        this.base = base;
+        this.lock = new Object();
+        this.listeners = new HashSet<>();
+
+        base.addListener(this::notifyListeners);
     }
 
     @Override
@@ -81,17 +76,23 @@ public class SynchronizedModel<T> implements Model<T> {
     }
 
     @Override
-    public void addListener(final Listener<T> listener) {
+    public int addListener(final Listener<T> listener) {
+        final int size;
         synchronized (this.lock) {
             this.listeners.add(listener);
+            size = this.listeners.size();
         }
+        return size;
     }
 
     @Override
-    public void removeListener(final Listener<T> listener) {
+    public int removeListener(final Listener<T> listener) {
+        final int size;
         synchronized (this.lock) {
             this.listeners.remove(listener);
+            size = this.listeners.size();
         }
+        return size;
     }
 
     @Override
@@ -112,18 +113,9 @@ public class SynchronizedModel<T> implements Model<T> {
      *
      * @param data the data value to broadcast to listeners
      */
-    protected void notifyListeners(final T data) {
+    private void notifyListeners(final T data) {
         for (Listener<T> listener : this.listeners) {
             listener.accept(data);
         }
-    }
-
-    /**
-     * Unsubscribes this wrapper from the base model.
-     * After calling this method, this wrapper will no longer receive updates from the underlying
-     * model. The registered listeners remain stored, but they will not be triggered automatically.
-     */
-    public void detach() {
-        this.base.removeListener(this.forwarder);
     }
 }

@@ -16,7 +16,8 @@ import java.util.Set;
  * and validation).
  *
  * @param <T> the type of the data managed by this model
- */public abstract class SingleThreadModel<T> implements Model<T> {
+ */
+public abstract class SingleThreadModel<T> implements Model<T> {
     /**
      * The collection of registered listeners that should be notified
      * whenever this model's data changes.
@@ -24,13 +25,15 @@ import java.util.Set;
     private final Set<Listener<T>> listeners = new HashSet<>();
 
     @Override
-    public void addListener(final Listener<T> listener) {
+    public int addListener(final Listener<T> listener) {
         this.listeners.add(listener);
+        return this.listeners.size();
     }
 
     @Override
-    public void removeListener(final Listener<T> listener) {
+    public int removeListener(final Listener<T> listener) {
         this.listeners.remove(listener);
+        return this.listeners.size();
     }
 
     @Override
