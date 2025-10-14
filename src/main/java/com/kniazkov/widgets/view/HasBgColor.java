@@ -11,11 +11,24 @@ import com.kniazkov.widgets.protocol.SetBgColor;
  */
 public interface HasBgColor extends View {
     /**
+     * Returns a state-dependent binding for the specified property and state.
+     *
+     * @param property property key
+     * @param state widget state
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found for the given state
+     */
+    <T> ModelBinding<T> getBinding(Property property, WidgetState state);
+
+    /**
      * Returns the binding that connects the background color model to this widget.
      *
      * @return the background color model binding
      */
-    ModelBinding<Color> getBgColorModelBinding();
+    default ModelBinding<Color> getBgColorModelBinding() {
+        return this.getBinding(Property.BG_COLOR, WidgetState.NORMAL);
+    }
 
     /**
      * Returns the model that stores the background color for this view.

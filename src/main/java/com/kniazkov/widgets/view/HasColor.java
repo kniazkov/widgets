@@ -11,11 +11,24 @@ import com.kniazkov.widgets.model.ModelBinding;
  */
 public interface HasColor extends View {
     /**
+     * Returns a state-dependent binding for the specified property and state.
+     *
+     * @param property property key
+     * @param state widget state
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found for the given state
+     */
+    <T> ModelBinding<T> getBinding(Property property, WidgetState state);
+
+    /**
      * Returns the binding that connects the color model to this widget.
      *
      * @return the color model binding
      */
-    ModelBinding<Color> getColorModelBinding();
+    default ModelBinding<Color> getColorModelBinding() {
+        return this.getBinding(Property.COLOR, WidgetState.NORMAL);
+    }
 
     /**
      * Returns the model that stores the color for this view.

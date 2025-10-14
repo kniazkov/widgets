@@ -15,13 +15,22 @@ import com.kniazkov.widgets.protocol.SetHeight;
  * @param <T> the specific type of {@link WidgetSize} used by the view
  */
 public interface HasHeight<T extends WidgetSize> extends View {
+    /**
+     * Returns the model binding associated with the specified property.
+     *
+     * @param property the property key
+     * @return the model binding associated with the given property
+     */
+    <Q> ModelBinding<Q> getBinding(Property property);
 
     /**
      * Returns the binding that connects the height model to this widget.
      *
      * @return the height model binding
      */
-    ModelBinding<T> getHeightModelBinding();
+    default ModelBinding<T> getHeightModelBinding() {
+        return this.getBinding(Property.HEIGHT);
+    }
 
     /**
      * Returns the model that stores the height for this view.

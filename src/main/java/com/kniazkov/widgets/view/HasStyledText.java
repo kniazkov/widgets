@@ -3,18 +3,15 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
 import com.kniazkov.widgets.protocol.SetFontFace;
 import com.kniazkov.widgets.protocol.SetFontSize;
 import com.kniazkov.widgets.protocol.SetFontWeight;
 import com.kniazkov.widgets.protocol.SetItalic;
-import com.kniazkov.widgets.protocol.Update;
 
 /**
  * A {@link View} that displays stylable text.
@@ -28,11 +25,24 @@ import com.kniazkov.widgets.protocol.Update;
  */
 public interface HasStyledText extends HasText {
     /**
+     * Returns a state-dependent binding for the specified property and state.
+     *
+     * @param property property key
+     * @param state widget state
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found for the given state
+     */
+    <T> ModelBinding<T> getBinding(Property property, WidgetState state);
+
+    /**
      * Returns the binding that connects the font face model to this widget.
      *
      * @return the font face model binding
      */
-    ModelBinding<FontFace> getFontFaceModelBinding();
+    default ModelBinding<FontFace> getFontFaceModelBinding() {
+        return this.getBinding(Property.FONT_FACE, WidgetState.NORMAL);
+    }
 
     /**
      * Returns the current font face.
@@ -68,7 +78,14 @@ public interface HasStyledText extends HasText {
         }
     }
 
-    ModelBinding<FontSize> getFontSizeModelBinding();
+    /**
+     * Returns the binding that connects the font face size to this widget.
+     *
+     * @return the font face size binding
+     */
+    default ModelBinding<FontSize> getFontSizeModelBinding() {
+        return this.getBinding(Property.FONT_SIZE, WidgetState.NORMAL);
+    }
 
     default FontSize getFontSize() {
         return this.getFontSizeModelBinding().getModel().getData();
@@ -91,7 +108,14 @@ public interface HasStyledText extends HasText {
         }
     }
 
-    ModelBinding<FontWeight> getFontWeightModelBinding();
+    /**
+     * Returns the binding that connects the font weight model to this widget.
+     *
+     * @return the font weight model binding
+     */
+    default ModelBinding<FontWeight> getFontWeightModelBinding() {
+        return this.getBinding(Property.FONT_WEIGHT, WidgetState.NORMAL);
+    }
 
     default FontWeight getFontWeight() {
         return this.getFontWeightModelBinding().getModel().getData();
@@ -114,7 +138,14 @@ public interface HasStyledText extends HasText {
         }
     }
 
-    ModelBinding<Boolean> getItalicModelBinding();
+    /**
+     * Returns the binding that connects the italic (boolean) model to this widget.
+     *
+     * @return the italic (boolean) model binding
+     */
+    default ModelBinding<Boolean> getItalicModelBinding() {
+        return this.getBinding(Property.ITALIC, WidgetState.NORMAL);
+    }
 
     default boolean isItalic() {
         return this.getItalicModelBinding().getModel().getData();

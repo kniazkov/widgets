@@ -18,7 +18,7 @@ public interface HasText extends View {
      * @param property the property key
      * @return the model binding associated with the given property
      */
-    <T> ModelBinding<T> getModelBinding(final Property property);
+    <T> ModelBinding<T> getBinding(Property property);
 
     /**
      * Returns the binding that connects the text model to this widget.
@@ -26,7 +26,7 @@ public interface HasText extends View {
      * @return the text model binding
      */
     default ModelBinding<String> getTextModelBinding() {
-        return this.getModelBinding(Property.TEXT);
+        return this.getBinding(Property.TEXT);
     }
 
     /**

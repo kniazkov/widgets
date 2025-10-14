@@ -125,7 +125,7 @@ public abstract class Widget {
      * @throws IllegalStateException if no binding is found
      */
     @SuppressWarnings("unchecked")
-    public <T> ModelBinding<T> getModelBinding(final Property property) {
+    public <T> ModelBinding<T> getBinding(final Property property) {
         final ModelBinding<?> binding = this.bindings.get(property);
         if (binding == null) {
             throw new IllegalStateException("No binding for property: " + property);
@@ -143,7 +143,7 @@ public abstract class Widget {
      * @throws IllegalStateException if no binding is found for the given state
      */
     @SuppressWarnings("unchecked")
-    public <T> ModelBinding<T> getModelBinding(final Property property, final WidgetState state) {
+    public <T> ModelBinding<T> getBinding(final Property property, final WidgetState state) {
         final Map<WidgetState, ModelBinding<?>> byState = this.stateBindings.get(property);
         if (byState == null) {
             throw new IllegalStateException("No state bindings for property: " + property);

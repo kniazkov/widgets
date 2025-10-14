@@ -15,13 +15,22 @@ import com.kniazkov.widgets.protocol.SetWidth;
  * @param <T> the specific type of {@link WidgetSize} used by the view
  */
 public interface HasWidth<T extends WidgetSize> extends View {
+    /**
+     * Returns the model binding associated with the specified property.
+     *
+     * @param property the property key
+     * @return the model binding associated with the given property
+     */
+    <Q> ModelBinding<Q> getBinding(Property property);
 
     /**
      * Returns the binding that connects the width model to this widget.
      *
      * @return the width model binding
      */
-    ModelBinding<T> getWidthModelBinding();
+    default ModelBinding<T> getWidthModelBinding() {
+        return this.getBinding(Property.WIDTH);
+    }
 
     /**
      * Returns the model that stores the width for this view.

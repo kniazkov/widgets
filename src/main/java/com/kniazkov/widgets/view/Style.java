@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.ModelBinding;
 
 /**
  * Represents a visual style applied to a widget.
@@ -14,6 +15,25 @@ import com.kniazkov.widgets.model.Model;
  * from a base style while overriding selected ones.
  */
 public interface Style {
+    /**
+     * Returns the model binding associated with the specified property.
+     *
+     * @param property the property key
+     * @return the model binding associated with the given property
+     */
+    <T> ModelBinding<T> getBinding(Property property);
+
+    /**
+     * Returns a state-dependent binding for the specified property and state.
+     *
+     * @param property property key
+     * @param state widget state
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found for the given state
+     */
+    <T> ModelBinding<T> getBinding(Property property, WidgetState state);
+
     /**
      * Creates a new style derived from this style.
      *
