@@ -5,6 +5,8 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Represents a visual style applied to a widget.
@@ -14,14 +16,45 @@ import com.kniazkov.widgets.model.ModelBinding;
  * Styles are typically hierarchical: a derived style may inherit all properties
  * from a base style while overriding selected ones.
  */
-public interface Style {
+public abstract class Style {
     /**
-     * Returns the model binding associated with the specified property.
-     *
-     * @param property the property key
-     * @return the model binding associated with the given property
+     * Prototype style. If there is no model in the current style, it searches in the prototype.
      */
-    <T> ModelBinding<T> getBinding(Property property);
+    private final Style prototype;
+
+    /**
+     * Stores bindings that are independent of widget state.
+     */
+    private final Map<Property, ModelBinding<?>> bindings;
+
+    /**
+     * Stores bindings that depend on widget state.
+     * Example: background color may vary between NORMAL, HOVER, ACTIVE, etc.
+     */
+    private final Map<Property, Map<WidgetState, ModelBinding<?>>> stateBindings;
+
+    protected Style(final Style prototype) {
+        this.prototype = prototype;
+        this.bindings = new EnumMap<>(Property.class);
+        this.stateBindings = new EnumMap<>(Property.class);
+    }
+
+    /**
+     * Returns a state-independent binding for the specified property.
+     *
+     * @param property property key
+     * @param <T> binding data type
+     * @return the model binding
+     * @throws IllegalStateException if no binding is found
+     */
+    @SuppressWarnings("unchecked")
+    public <T> ModelBinding<T> getBinding(final Property property) {
+        final ModelBinding<?> binding = this.bindings.get(property);
+        if (binding == null) {
+            throw new IllegalStateException("No binding for property: " + property);
+        }
+        return (ModelBinding<T>) binding;
+    }
 
     /**
      * Returns a state-dependent binding for the specified property and state.
@@ -32,12 +65,51 @@ public interface Style {
      * @return the model binding
      * @throws IllegalStateException if no binding is found for the given state
      */
-    <T> ModelBinding<T> getBinding(Property property, WidgetState state);
+    @SuppressWarnings("unchecked")
+    public <T> ModelBinding<T> getBinding(final Property property, final WidgetState state) {
+        final Map<WidgetState, ModelBinding<?>> byState = this.stateBindings.get(property);
+        if (byState == null) {
+            throw new IllegalStateException("No state bindings for property: " + property);
+        }
+        final ModelBinding<?> binding = byState.get(state);
+        if (binding == null) {
+            throw new IllegalStateException(
+                "No binding for property: " + property + " in state: " + state
+            );
+        }
+        return (ModelBinding<T>) binding;
+    }
 
     /**
      * Creates a new style derived from this style.
      *
      * @return a new {@code Style} instance derived from this one
      */
-    Style derive();
+    public abstract Style derive();
+
+    /**
+     * Adds a state-independent binding for the specified property.
+     *
+     * @param property property key
+     * @param binding model binding
+     * @param <T> binding data type
+     */
+    protected <T> void addBinding(final Property property, final ModelBinding<T> binding) {
+        this.bindings.put(property, binding);
+    }
+
+    /**
+     * Adds a state-dependent binding for the specified property and state.
+     *
+     * @param property property key
+     * @param state widget state
+     * @param binding model binding
+     * @param <T> binding data type
+     */
+    protected <T> void addBinding(final Property property, final WidgetState state,
+                                  final ModelBinding<T> binding) {
+        this.stateBindings
+            .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class))
+            .put(state, binding);
+    }
 }
