@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.common.WidgetSize;
 
 /**
- * An {@link Update} that instructs the client to change the width of a widget.
+ * An {@link Update} that instructs the client to change the width of a target.
  */
 public class SetWidth<T extends WidgetSize> extends Update {
     /**
@@ -19,17 +19,17 @@ public class SetWidth<T extends WidgetSize> extends Update {
     /**
      * Creates a new width update.
      *
-     * @param widget the widget ID whose width will change
+     * @param target the target ID whose width will change
      * @param width the new width value
      */
-    public SetWidth(UId widget, T width) {
-        super(widget);
+    public SetWidth(UId target, T width) {
+        super(target);
         this.width = width;
     }
 
     @Override
     public Update clone() {
-        return new SetWidth<T>(this.getWidgetId(), this.width);
+        return new SetWidth<T>(this.getTargetId(), this.width);
     }
 
     @Override

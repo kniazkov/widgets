@@ -34,7 +34,7 @@ public final class Subscribe extends Update {
 
     @Override
     public Update clone() {
-        return new Subscribe(this.getWidgetId(), this.event);
+        return new Subscribe(this.getTargetId(), this.event);
     }
 
     @Override

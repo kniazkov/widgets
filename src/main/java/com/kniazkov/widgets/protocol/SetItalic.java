@@ -4,12 +4,11 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.UId;
 
 /**
  * An {@link Update} that instructs the client to change the italic style
- * of the text in a widget.
+ * of the text in a target (widget).
  */
 public class SetItalic extends Update {
     /**
@@ -20,17 +19,17 @@ public class SetItalic extends Update {
     /**
      * Creates a new "set italic" update.
      *
-     * @param widget the target widget ID
+     * @param target the target ID
      * @param italic {@code true} to enable italic text, {@code false} to disable it
      */
-    public SetItalic(UId widget, boolean italic) {
-        super(widget);
+    public SetItalic(UId target, boolean italic) {
+        super(target);
         this.italic = italic;
     }
 
     @Override
     public Update clone() {
-        return new SetItalic(this.getWidgetId(), this.italic);
+        return new SetItalic(this.getTargetId(), this.italic);
     }
 
     @Override

@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to change the background color of a widget.
+ * An {@link Update} that instructs the client to change the background color of a target.
  */
 public class SetBgColor extends Update {
     /**
@@ -19,17 +19,17 @@ public class SetBgColor extends Update {
     /**
      * Creates a new background color update.
      *
-     * @param widget the widget ID whose background color will change
+     * @param target the target ID whose background color will change
      * @param color the new color value
      */
-    public SetBgColor(UId widget, Color color) {
-        super(widget);
+    public SetBgColor(UId target, Color color) {
+        super(target);
         this.color = color;
     }
 
     @Override
     public Update clone() {
-        return new SetBgColor(this.getWidgetId(), this.color);
+        return new SetBgColor(this.getTargetId(), this.color);
     }
 
     @Override

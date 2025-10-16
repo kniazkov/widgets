@@ -7,7 +7,7 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to change the widget text.
+ * An {@link Update} that instructs the client to change the target (widget) text.
  */
 public class SetText extends Update {
     /**
@@ -18,17 +18,17 @@ public class SetText extends Update {
     /**
      * Creates a new text update.
      *
-     * @param widget the widget ID whose text will change
+     * @param target the target ID whose text will change
      * @param text the new text value
      */
-    public SetText(UId widget, String text) {
-        super(widget);
+    public SetText(UId target, String text) {
+        super(target);
         this.text = text;
     }
 
     @Override
     public Update clone() {
-        return new SetText(this.getWidgetId(), this.text);
+        return new SetText(this.getTargetId(), this.text);
     }
 
     @Override

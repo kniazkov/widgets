@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to change the size of the font of a widget.
+ * An {@link Update} that instructs the client to change the size of the font of a target.
  */
 public class SetFontSize extends Update {
     /**
@@ -19,17 +19,17 @@ public class SetFontSize extends Update {
     /**
      * Creates a new font size update.
      *
-     * @param widget the widget ID whose font size will change
+     * @param target the target ID whose font size will change
      * @param fontSize the new font size value
      */
-    public SetFontSize(UId widget, FontSize fontSize) {
-        super(widget);
+    public SetFontSize(UId target, FontSize fontSize) {
+        super(target);
         this.fontSize = fontSize;
     }
 
     @Override
     public Update clone() {
-        return new SetFontSize(this.getWidgetId(), this.fontSize);
+        return new SetFontSize(this.getTargetId(), this.fontSize);
     }
 
     @Override

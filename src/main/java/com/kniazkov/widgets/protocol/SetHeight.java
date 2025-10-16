@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.common.WidgetSize;
 
 /**
- * An {@link Update} that instructs the client to change the height of a widget.
+ * An {@link Update} that instructs the client to change the height of a target.
  */
 public class SetHeight<T extends WidgetSize> extends Update {
     /**
@@ -19,17 +19,17 @@ public class SetHeight<T extends WidgetSize> extends Update {
     /**
      * Creates a new height update.
      *
-     * @param widget the widget ID whose height will change
+     * @param target the target ID whose height will change
      * @param height the new height value
      */
-    public SetHeight(UId widget, T height) {
-        super(widget);
+    public SetHeight(UId target, T height) {
+        super(target);
         this.height = height;
     }
 
     @Override
     public Update clone() {
-        return new SetHeight<T>(this.getWidgetId(), this.height);
+        return new SetHeight<T>(this.getTargetId(), this.height);
     }
 
     @Override

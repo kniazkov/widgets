@@ -7,28 +7,28 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to remove a widget from a specific container.
+ * An {@link Update} that instructs the client to remove a target from a specific container.
  */
 public final class RemoveChild extends Update {
     /**
-     * The identifier of the container from which the widget is removed.
+     * The identifier of the container from which the target is removed.
      */
     private final UId container;
 
     /**
-     * Creates a new "remove widget from container" update.
+     * Creates a new "remove child" update.
      *
-     * @param widget the widget being removed
-     * @param container the container from which the widget is removed
+     * @param target the target being removed
+     * @param container the container from which the target is removed
      */
-    public RemoveChild(final UId widget, final UId container) {
-        super(widget);
+    public RemoveChild(final UId target, final UId container) {
+        super(target);
         this.container = container;
     }
 
     @Override
     public Update clone() {
-        return new RemoveChild(this.getWidgetId(), this.container);
+        return new RemoveChild(this.getTargetId(), this.container);
     }
 
     @Override

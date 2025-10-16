@@ -37,7 +37,7 @@ var widgetsLibrary = {
 
 var createWidget = function(data) {
     var ctor = widgetsLibrary[data.type];
-    var id = data.widget;
+    var id = data.target;
     if (ctor && id) {
         var widget = ctor();
         widget._id = id;
@@ -50,7 +50,7 @@ var createWidget = function(data) {
 };
 
 var subscribeToEvent = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var event = data.event;
     if (widget && event) {
         log("Server subscribed to the '" + event + "' event of widget " + widget._id + '.');
@@ -59,41 +59,41 @@ var subscribeToEvent = function(data) {
 };
 
 var setChildWidget = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var container = widgets[data.container];
     if (widget && container) {
         container.innerHTML = "";
         container.appendChild(widget);
-        log("Widget " + data.widget + " is set as a child of widget " + data.container + '.');
+        log("Widget " + data.target + " is set as a child of widget " + data.container + '.');
         return true;
     }
     return false;
 };
 
 var appendChildWidget = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var container = widgets[data.container];
     if (widget && container) {
         container.appendChild(widget);
-        log("Widget " + data.widget + " is added as a child of widget " + data.container + '.');
+        log("Widget " + data.target + " is added as a child of widget " + data.container + '.');
         return true;
     }
     return false;
 };
 
 var removeChildWidget = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var container = widgets[data.container];
     if (widget && container) {
         container.removeChild(widget);
-        log("Widget " + data.widget + " is removed from parent widget " + data.container + '.');
+        log("Widget " + data.target + " is removed from parent widget " + data.container + '.');
         return true;
     }
     return false;
 };
 
 var setText = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     if (widget && typeof data.text == "string") {
         var flag = true;
         if (widget.setText) {
@@ -102,7 +102,7 @@ var setText = function(data) {
             widget.innerHTML = escapeHtml(data.text);
         }
         if (flag) {
-            log("The text \"" + data.text + "\" has been set to the widget " + data.widget + '.');
+            log("The text \"" + data.text + "\" has been set to the target " + data.target + '.');
         }
         return true;
     }
@@ -110,7 +110,7 @@ var setText = function(data) {
 };
 
 var setColor = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     if (widget && typeof data.color == "object") {
         var color = "rgb(" + data.color.r + ',' + data.color.g + ',' + data.color.b + ')';
         var flag = true;
@@ -120,7 +120,7 @@ var setColor = function(data) {
             widget.style.color = color;
         }
         if (flag) {
-            log("The color \"" + color + "\" has been set to the widget " + data.widget + '.');
+            log("The color \"" + color + "\" has been set to the target " + data.target + '.');
         }
         return true;
     }
@@ -128,7 +128,7 @@ var setColor = function(data) {
 };
 
 var setBackgroundColor = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var rgb = data["background color"];
     if (widget && typeof rgb == "object") {
         var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
@@ -139,7 +139,7 @@ var setBackgroundColor = function(data) {
             widget.style.backgroundColor = color;
         }
         if (flag) {
-            log("The background color \"" + color + "\" has been set to the widget " + data.widget + '.');
+            log("The background color \"" + color + "\" has been set to the target " + data.target + '.');
         }
         return true;
     }
@@ -147,69 +147,69 @@ var setBackgroundColor = function(data) {
 };
 
 var setWidth = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var value = data.width;
     if (widget && typeof value == "string") {
         widget.style.width = value;
-        log("The width of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The width of the target " + data.target + " has been set to \"" + value + "\"");
         return true;
     }
     return false;
 };
 
 var setHeight = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var value = data.height;
     if (widget && typeof value == "string") {
         widget.style.height = value;
-        log("The height of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The height of the target " + data.target + " has been set to \"" + value + "\"");
         return true;
     }
     return false;
 };
 
 var setFontFace = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var value = data["font face"];
     if (widget && typeof value == "string") {
         if (value == "default") {
             value = DEFAULT_FONT_FACE;
         }
         widget.style.fontFamily = value;
-        log("The font face \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The font face \"" + value + "\" has been set to the target " + data.target + '.');
         return true;
     }
     return false;
 };
 
 var setFontSize = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var value = data["font size"];
     if (widget && typeof value == "string") {
         widget.style.fontSize = value;
-        log("The font size \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The font size \"" + value + "\" has been set to the target " + data.target + '.');
         return true;
     }
     return false;
 };
 
 var setFontWeight = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var value = data["font weight"];
     if (widget && typeof value == "number") {
         widget.style.fontWeight = value;
-        log("The font weight \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The font weight \"" + value + "\" has been set to the target " + data.target + '.');
         return true;
     }
     return false;
 };
 
 var setItalic = function(data) {
-    var widget = widgets[data.widget];
+    var widget = widgets[data.target];
     var value = data["italic"];
     if (widget && typeof value == "boolean") {
         widget.style.fontStyle = value ? "italic" : "normal";
-        log("The italic flag \"" + value + "\" has been set to the widget " + data.widget + '.');
+        log("The italic flag \"" + value + "\" has been set to the target " + data.target + '.');
         return true;
     }
     return false;

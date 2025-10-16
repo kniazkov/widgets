@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.UId;
 
 /**
  * Abstract base class for UI updates sent from the server to the client. An {@code Update}
- * represents a change in the state of a specific widget that must be reflected in the client view.
+ * represents a change in the state of a specific target that must be reflected in the client view.
  * Each update is uniquely identified by an auto-generated {@link UId}, which allows updates
  * to be compared and applied in a strict chronological order.
  */
@@ -19,18 +19,18 @@ public abstract class Update implements Comparable<Update>, Cloneable {
     private final UId id;
 
     /**
-     * The ID of the widget to which the update applies.
+     * The ID of the target to which the update applies.
      */
-    private final UId widget;
+    private final UId target;
 
     /**
-     * Creates a new update for the specified widget.
+     * Creates a new update for the specified target.
      *
-     * @param widget the target widget identifier
+     * @param target the target identifier
      */
-    protected Update(final UId widget) {
+    protected Update(final UId target) {
         this.id = UId.create();
-        this.widget = widget;
+        this.target = target;
     }
 
     /**
@@ -43,12 +43,12 @@ public abstract class Update implements Comparable<Update>, Cloneable {
     }
 
     /**
-     * Returns the unique identifier of the widget to which the update applies.
+     * Returns the unique identifier of the target to which the update applies.
      *
-     * @return the widget ID
+     * @return the target ID
      */
-    public UId getWidgetId() {
-        return  this.widget;
+    public UId getTargetId() {
+        return  this.target;
     }
 
     /**
@@ -58,7 +58,7 @@ public abstract class Update implements Comparable<Update>, Cloneable {
      */
     public void serialize(final JsonObject obj) {
         obj.addString("id", this.id.toString());
-        obj.addString("widget", this.widget.toString());
+        obj.addString("target", this.target.toString());
         obj.addString("action", this.getAction());
         this.fillJsonObject(obj);
     }

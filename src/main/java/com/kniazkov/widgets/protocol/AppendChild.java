@@ -7,28 +7,28 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to add a widget to a specific container.
+ * An {@link Update} that instructs the client to add a target to a specific container.
  */
 public final class AppendChild extends Update {
     /**
-     * The identifier of the container to which the widget is added.
+     * The identifier of the container to which the target is added.
      */
     private final UId container;
 
     /**
-     * Creates a new "add widget to container" update.
+     * Creates a new "append child" update.
      *
-     * @param widget the widget being added
-     * @param container the container that receives the widget
+     * @param target the target being added
+     * @param container the container that receives the target
      */
-    public AppendChild(final UId widget, final UId container) {
-        super(widget);
+    public AppendChild(final UId target, final UId container) {
+        super(target);
         this.container = container;
     }
 
     @Override
     public Update clone() {
-        return new AppendChild(this.getWidgetId(), this.container);
+        return new AppendChild(this.getTargetId(), this.container);
     }
 
     @Override

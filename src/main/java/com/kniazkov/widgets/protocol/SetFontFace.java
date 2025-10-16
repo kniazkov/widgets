@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to change the font face of a widget.
+ * An {@link Update} that instructs the client to change the font face of a target.
  */
 public class SetFontFace extends Update {
     /**
@@ -19,17 +19,17 @@ public class SetFontFace extends Update {
     /**
      * Creates a new font face update.
      *
-     * @param widget the widget ID whose font face will change
+     * @param target the target ID whose font face will change
      * @param fontFace the new font face value
      */
-    public SetFontFace(UId widget, FontFace fontFace) {
-        super(widget);
+    public SetFontFace(UId target, FontFace fontFace) {
+        super(target);
         this.fontFace = fontFace;
     }
 
     @Override
     public Update clone() {
-        return new SetFontFace(this.getWidgetId(), this.fontFace);
+        return new SetFontFace(this.getTargetId(), this.fontFace);
     }
 
     @Override

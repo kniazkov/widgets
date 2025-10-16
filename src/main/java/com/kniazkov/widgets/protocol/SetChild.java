@@ -7,29 +7,29 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to place (set) a widget
+ * An {@link Update} that instructs the client to place (set) a target
  * into a specific container (decorator).
  */
 public final class SetChild extends Update {
     /**
-     * The identifier of the container where the widget is placed.
+     * The identifier of the container where the target is placed.
      */
     private final UId container;
 
     /**
-     * Creates a new "set widget in container" update.
+     * Creates a new "set child" update.
      *
-     * @param widget the widget being placed
-     * @param container the container that will contain the widget
+     * @param target the target being placed
+     * @param container the container that will contain the target
      */
-    public SetChild(final UId widget, final UId container) {
-        super(widget);
+    public SetChild(final UId target, final UId container) {
+        super(target);
         this.container = container;
     }
 
     @Override
     public Update clone() {
-        return new SetChild(this.getWidgetId(), this.container);
+        return new SetChild(this.getTargetId(), this.container);
     }
 
     @Override

@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.UId;
 
 /**
- * An {@link Update} that instructs the client to change the weight of the font of a widget.
+ * An {@link Update} that instructs the client to change the weight of the font of a target.
  */
 public class SetFontWeight extends Update {
     /**
@@ -19,17 +19,17 @@ public class SetFontWeight extends Update {
     /**
      * Creates a new font weight update.
      *
-     * @param widget the widget ID whose font weight will change
+     * @param target the target ID whose font weight will change
      * @param fontWeight the new font weight value
      */
-    public SetFontWeight(UId widget, FontWeight fontWeight) {
-        super(widget);
+    public SetFontWeight(UId target, FontWeight fontWeight) {
+        super(target);
         this.fontWeight = fontWeight;
     }
 
     @Override
     public Update clone() {
-        return new SetFontWeight(this.getWidgetId(), this.fontWeight);
+        return new SetFontWeight(this.getTargetId(), this.fontWeight);
     }
 
     @Override
