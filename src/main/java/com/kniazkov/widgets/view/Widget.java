@@ -10,7 +10,6 @@ import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
 import com.kniazkov.widgets.model.ModelFactory;
 import com.kniazkov.widgets.model.ModelListener;
-import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.Subscribe;
@@ -113,6 +112,16 @@ public abstract class Widget extends Entity {
         this.setParent(null);
     }
 
+    /**
+     * Derives a binding for this style from a binding defined in a prototype. This method creates
+     * a new {@link ModelBinding} that mirrors the behavior of the given binding but associates
+     * it with this widget’s entity context. Derived model supports cascading updates
+     * through {@link CascadingModel}.
+     *
+     * @param parent the binding to derive from
+     * @param <T> the type of data managed by the binding
+     * @return a new derived binding for this style
+     */
     private <T> ModelBinding<T> deriveBinding(final ModelBinding<T> parent) {
         final ModelListener<T> listener = parent.getListener().create(this);
         final ModelFactory<T> factory = parent.getFactory();

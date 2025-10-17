@@ -9,13 +9,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Base class for any identifiable reactive entity within the system.
+ * An {@code Entity} represents a server-side object that has a unique {@link UId identifier}
+ * and participates in the reactive update cycle. Entities may correspond to UI widgets, styles,
+ * or other application-level components that can change state and send updates to clients.
+ */
 public abstract class Entity {
-    public abstract UId getId();
-
     /**
      * List of updates not yet sent to the client.
      */
     private final List<Update> updates = new ArrayList<>();
+
+    /**
+     * Returns the unique identifier of this entity.
+     *
+     * @return the unique identifier of this entity
+     */
+    public abstract UId getId();
 
     /**
      * Collects and clears all pending updates from this widget, adding them

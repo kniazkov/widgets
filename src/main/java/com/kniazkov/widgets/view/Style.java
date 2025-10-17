@@ -23,12 +23,15 @@ import java.util.Map;
  */
 public abstract class Style extends Entity {
     /**
-     * Style unique Id.
+     * Unique identifier of this style.
      */
     private final UId id;
 
     /**
-     * Prototype style. If there is no model in the current style, it searches in the prototype.
+     * The prototype (base) style from which this style inherits properties.
+     * When a property or state binding is not defined in this style, it is lazily
+     * resolved by looking up the prototype. Derived styles can override any of
+     * the prototype’s bindings while preserving shared defaults.
      */
     private final Style prototype;
 
@@ -43,6 +46,12 @@ public abstract class Style extends Entity {
      */
     private final Map<Property, Map<WidgetState, ModelBinding<?>>> stateBindings;
 
+    /**
+     * Creates a new style instance with the specified prototype.
+     *
+     * @param prototype the base style from which this one inherits, or {@code null}
+     *  if this is a root style
+     */
     protected Style(final Style prototype) {
         this.id = UId.create();
         this.prototype = prototype;
@@ -55,6 +64,16 @@ public abstract class Style extends Entity {
         return this.id;
     }
 
+    /**
+     * Derives a binding for this style from a binding defined in a prototype. This method creates
+     * a new {@link ModelBinding} that mirrors the behavior of the given parent binding but
+     * associates it with this style’s entity context. Derived model is synchronized and supports
+     * cascading updates through {@link CascadingModel}.
+     *
+     * @param parent the binding to derive from
+     * @param <T> the type of data managed by the binding
+     * @return a new derived binding for this style
+     */
     private <T> ModelBinding<T> deriveBinding(final ModelBinding<T> parent) {
         final ModelListener<T> listener = parent.getListener().create(this);
         final ModelFactory<T> factory = parent.getFactory();
