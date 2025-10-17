@@ -16,15 +16,29 @@ import com.kniazkov.widgets.model.DefaultFontWeightModel;
 import com.kniazkov.widgets.model.DefaultInlineWidgetSizeModel;
 import com.kniazkov.widgets.model.ReadOnlyModel;
 
+/**
+ * Defines the visual style for input fields.
+ */
 public class InputFieldStyle extends Style implements HasStyledText, HasColor,
         HasBgColor, HasWidth<InlineWidgetSize>, HasHeight<InlineWidgetSize> {
+    /**
+     * The default immutable input field style used as the root prototype.
+     */
     public static final InputFieldStyle DEFAULT = new DefaultTextWidgetStyle();
 
+    /**
+     * Creates a new {@code InputFieldStyle} instance that derives from {@link #DEFAULT}.
+     */
     public InputFieldStyle() {
-        super(InputFieldStyle.DEFAULT);
+        this(InputFieldStyle.DEFAULT);
     }
 
-    protected InputFieldStyle(final Style prototype) {
+    /**
+     * Creates a new {@code InputFieldStyle} with the specified prototype.
+     *
+     * @param prototype the style to inherit properties from
+     */
+    protected InputFieldStyle(final InputFieldStyle prototype) {
         super(prototype);
     }
 
@@ -33,7 +47,13 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor,
         return new InputFieldStyle(this);
     }
 
+    /**
+     * Default input field style.
+     */
     private static class DefaultTextWidgetStyle extends InputFieldStyle {
+        /**
+         * Constructs the default input field style without a prototype.
+         */
         protected DefaultTextWidgetStyle() {
             super(null);
             this.bind(

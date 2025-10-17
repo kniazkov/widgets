@@ -14,14 +14,28 @@ import com.kniazkov.widgets.model.DefaultFontSizeModel;
 import com.kniazkov.widgets.model.DefaultFontWeightModel;
 import com.kniazkov.widgets.model.ReadOnlyModel;
 
+/**
+ * Defines the visual style for text-based widgets.
+ */
 public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
+    /**
+     * The default immutable text widget style used as the root prototype.
+     */
     public static final TextWidgetStyle DEFAULT = new DefaultTextWidgetStyle();
 
+    /**
+     * Creates a new {@code TextWidgetStyle} instance that derives from {@link #DEFAULT}.
+     */
     public TextWidgetStyle() {
-        super(TextWidgetStyle.DEFAULT);
+        this(TextWidgetStyle.DEFAULT);
     }
 
-    protected TextWidgetStyle(final Style prototype) {
+    /**
+     * Creates a new {@code TextWidgetStyle} with the specified prototype.
+     *
+     * @param prototype the style to inherit properties from
+     */
+    protected TextWidgetStyle(final TextWidgetStyle prototype) {
         super(prototype);
     }
 
@@ -30,8 +44,14 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
         return new TextWidgetStyle(this);
     }
 
+    /**
+     * Default text widget style.
+     */
     private static class DefaultTextWidgetStyle extends TextWidgetStyle {
-        protected DefaultTextWidgetStyle() {
+        /**
+         * Constructs the default text widget style without a prototype.
+         */
+        private DefaultTextWidgetStyle() {
             super(null);
             this.bind(
                 Property.FONT_FACE,
