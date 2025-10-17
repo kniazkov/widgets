@@ -15,4 +15,14 @@ public abstract class ReadOnlyModel<T> extends SingleThreadModel<T> {
     public boolean setData(T data) {
         return false;
     }
+
+    /**
+     * Creates a new {@link ReadOnlyModel} instance initialized with the specified data.
+     *
+     * @param data the static value for the new model
+     * @return a new read-only model instance containing {@code data}
+     */
+    public static <T> ReadOnlyModel<T> create(T data) {
+        return new DefaultReadOnlyModel<>(data);
+    }
 }
