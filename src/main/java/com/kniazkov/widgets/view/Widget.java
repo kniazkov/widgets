@@ -5,14 +5,17 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.model.CascadingModel;
+import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelFactory;
+import com.kniazkov.widgets.model.ModelListener;
+import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.Subscribe;
 import com.kniazkov.widgets.protocol.Update;
-import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -24,16 +27,16 @@ import java.util.TreeSet;
  * describe how the client should create or modify its representation.
  * On creation, every widget automatically generates a {@link CreateWidget} update with its type.
  */
-public abstract class Widget {
+public abstract class Widget extends Entity {
     /**
      * Widget unique Id.
      */
     private final UId id;
 
     /**
-     * List of updates not yet sent to the client.
+     * Widget style.
      */
-    private final List<Update> updates;
+    private Style style;
 
     /**
      * The parent container that contains this widget.
@@ -56,19 +59,24 @@ public abstract class Widget {
      */
     public Widget() {
         this.id = UId.create();
-        this.updates = new ArrayList<>();
-        this.updates.add(new CreateWidget(this.id, this.getType()));
+        this.style = EmptyStyle.INSTANCE;
+        this.pushUpdate(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(Property.class);
         this.stateBindings = new EnumMap<>(Property.class);
     }
 
-    /**
-     * Returns the unique identifier of this widget.
-     *
-     * @return the widget ID
-     */
+    @Override
     public UId getId() {
         return this.id;
+    }
+
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    protected void setStyle(final Style style) {
+        this.style = style;
     }
 
     /**
@@ -105,15 +113,11 @@ public abstract class Widget {
         this.setParent(null);
     }
 
-    /**
-     * Collects and clears all pending updates from this widget, adding them
-     * to the given set. This effectively drains the update queues.
-     *
-     * @param set the set to which updates are added
-     */
-    public void getUpdates(final Set<Update> set) {
-        set.addAll(this.updates);
-        this.updates.clear();
+    private <T> ModelBinding<T> deriveBinding(final ModelBinding<T> parent) {
+        final ModelListener<T> listener = parent.getListener().create(this);
+        final ModelFactory<T> factory = parent.getFactory();
+        final Model<T> model = new CascadingModel<>(parent.getModel(), factory);
+        return new ModelBinding<>(model, listener, factory);
     }
 
     /**
@@ -126,11 +130,15 @@ public abstract class Widget {
      */
     @SuppressWarnings("unchecked")
     public <T> ModelBinding<T> getBinding(final Property property) {
+        final ModelBinding<T> result;
         final ModelBinding<?> binding = this.bindings.get(property);
         if (binding == null) {
-            throw new IllegalStateException("No binding for property: " + property);
+            result = this.deriveBinding(this.style.getBinding(property));
+            this.bindings.put(property, result);
+        } else {
+            result = (ModelBinding<T>) binding;
         }
-        return (ModelBinding<T>) binding;
+        return result;
     }
 
     /**
@@ -144,17 +152,17 @@ public abstract class Widget {
      */
     @SuppressWarnings("unchecked")
     public <T> ModelBinding<T> getBinding(final Property property, final WidgetState state) {
-        final Map<WidgetState, ModelBinding<?>> byState = this.stateBindings.get(property);
-        if (byState == null) {
-            throw new IllegalStateException("No state bindings for property: " + property);
-        }
-        final ModelBinding<?> binding = byState.get(state);
+        final ModelBinding<T> result;
+        final Map<WidgetState, ModelBinding<?>> subset = this.stateBindings
+            .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class));
+        final ModelBinding<?> binding = subset.get(state);
         if (binding == null) {
-            throw new IllegalStateException(
-                "No binding for property: " + property + " in state: " + state
-            );
+            result = this.deriveBinding(this.style.getBinding(property, state));
+            subset.put(state, result);
+        } else {
+            result = (ModelBinding<T>) binding;
         }
-        return (ModelBinding<T>) binding;
+        return result;
     }
 
     /**
@@ -221,7 +229,7 @@ public abstract class Widget {
     void setParent(final Container container) {
         if (container == null) {
             if (this.parent != null) {
-                this.updates.add(new RemoveChild(this.id, this.parent.getId()));
+                this.pushUpdate(new RemoveChild(this.id, this.parent.getId()));
             }
             this.parent = null;
             return;
@@ -235,10 +243,10 @@ public abstract class Widget {
             this.getUpdates(pending);
         }
         if (this.parent != null) {
-            this.updates.add(new RemoveChild(this.id, this.parent.getId()));
+            this.pushUpdate(new RemoveChild(this.id, this.parent.getId()));
         }
         for (Update update : pending) {
-            this.updates.add(update.clone());
+            this.pushUpdate(update.clone());
         }
         this.parent = container;
     }
@@ -247,11 +255,18 @@ public abstract class Widget {
      * Adds a state-independent binding for the specified property.
      *
      * @param property property key
-     * @param binding model binding
+     * @param model the initial model to bind
+     * @param listener the listener that will receive model updates
+     * @param factory  the factory used to lazily create models when needed
      * @param <T> binding data type
      */
-    protected <T> void addBinding(final Property property, final ModelBinding<T> binding) {
-        this.bindings.put(property, binding);
+    protected <T> void bind(
+        final Property property,
+        final Model<T> model,
+        final ModelListener<T> listener,
+        final ModelFactory<T> factory
+    ) {
+        this.bindings.put(property, new ModelBinding<>(model, listener, factory));
     }
 
     /**
@@ -259,23 +274,21 @@ public abstract class Widget {
      *
      * @param property property key
      * @param state widget state
-     * @param binding model binding
+     * @param model the initial model to bind
+     * @param listener the listener that will receive model updates
+     * @param factory  the factory used to lazily create models when needed
      * @param <T> binding data type
      */
-    protected <T> void addBinding(final Property property, final WidgetState state,
-            final ModelBinding<T> binding) {
+    protected <T> void bind(
+        final Property property,
+        final WidgetState state,
+        final Model<T> model,
+        final ModelListener<T> listener,
+        final ModelFactory<T> factory
+    ) {
         this.stateBindings
             .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class))
-            .put(state, binding);
-    }
-
-    /**
-     * Adds an update for this widget.
-     *
-     * @param update the update to add
-     */
-    protected void pushUpdate(final Update update) {
-        this.updates.add(update);
+            .put(state, new ModelBinding<>(model, listener, factory));
     }
 
     /**
@@ -284,6 +297,6 @@ public abstract class Widget {
      * @param event the event type to subscribe to
      */
     protected void subscribeToEvent(final String event) {
-        this.updates.add(new Subscribe(this.id, event));
+        this.pushUpdate(new Subscribe(this.id, event));
     }
 }

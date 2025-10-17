@@ -1,10 +1,13 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.protocol.SetColor;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelListener;
 
 /**
  * A {@link View} that has an associated color model.
@@ -69,21 +72,24 @@ public interface HasColor extends View {
     /**
      * Listener that listens to color models and sends a "set color" update.
      */
-    final class ColorModelListener implements Listener<Color> {
-        private final Widget widget;
-
+    final class ColorModelListener extends ModelListener<Color> {
         /**
-         * Creates a new listener bound to the specified widget.
+         * Creates a new listener bound to the specified target.
          *
-         * @param widget the widget whose color will be updated
+         * @param target the target whose color will be updated
          */
-        public ColorModelListener(final Widget widget) {
-            this.widget = widget;
+        public ColorModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final Color data) {
-            this.widget.pushUpdate(new SetColor(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetColor(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<Color> create(final Entity target) {
+            return new ColorModelListener(target);
         }
     }
 }

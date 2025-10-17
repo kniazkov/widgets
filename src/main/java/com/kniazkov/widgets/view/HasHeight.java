@@ -3,10 +3,10 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelListener;
 import com.kniazkov.widgets.protocol.SetHeight;
 
 /**
@@ -71,21 +71,24 @@ public interface HasHeight<T extends WidgetSize> extends View {
     /**
      * Listener that listens to height models and sends a "set height" update.
      */
-    final class HeightModelListener<T extends WidgetSize> implements Listener<T> {
-        private final Widget widget;
-
+    final class HeightModelListener<T extends WidgetSize> extends ModelListener<T> {
         /**
-         * Creates a new listener bound to the specified widget.
+         * Creates a new listener bound to the specified target.
          *
-         * @param widget the widget whose height will be updated
+         * @param target the target whose height will be updated
          */
-        public HeightModelListener(final Widget widget) {
-            this.widget = widget;
+        public HeightModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final T data) {
-            this.widget.pushUpdate(new SetHeight<T>(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetHeight<T>(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<T> create(final Entity target) {
+            return new HeightModelListener<>(target);
         }
     }
 }

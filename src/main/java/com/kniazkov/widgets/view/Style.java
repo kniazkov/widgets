@@ -3,8 +3,13 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.model.CascadingModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelFactory;
+import com.kniazkov.widgets.model.ModelListener;
+import com.kniazkov.widgets.model.SynchronizedModel;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -16,7 +21,12 @@ import java.util.Map;
  * Styles are typically hierarchical: a derived style may inherit all properties
  * from a base style while overriding selected ones.
  */
-public abstract class Style {
+public abstract class Style extends Entity {
+    /**
+     * Style unique Id.
+     */
+    private final UId id;
+
     /**
      * Prototype style. If there is no model in the current style, it searches in the prototype.
      */
@@ -34,9 +44,24 @@ public abstract class Style {
     private final Map<Property, Map<WidgetState, ModelBinding<?>>> stateBindings;
 
     protected Style(final Style prototype) {
+        this.id = UId.create();
         this.prototype = prototype;
         this.bindings = new EnumMap<>(Property.class);
         this.stateBindings = new EnumMap<>(Property.class);
+    }
+
+    @Override
+    public UId getId() {
+        return this.id;
+    }
+
+    private <T> ModelBinding<T> deriveBinding(final ModelBinding<T> parent) {
+        final ModelListener<T> listener = parent.getListener().create(this);
+        final ModelFactory<T> factory = parent.getFactory();
+        final Model<T> model = new SynchronizedModel<>(
+            new CascadingModel<>(parent.getModel(), factory)
+        );
+        return new ModelBinding<>(model, listener, factory);
     }
 
     /**
@@ -49,11 +74,18 @@ public abstract class Style {
      */
     @SuppressWarnings("unchecked")
     public <T> ModelBinding<T> getBinding(final Property property) {
+        final ModelBinding<T> result;
         final ModelBinding<?> binding = this.bindings.get(property);
         if (binding == null) {
-            throw new IllegalStateException("No binding for property: " + property);
+            if (this.prototype == null) {
+                throw new IllegalStateException("No binding for property: " + property);
+            }
+            result = this.deriveBinding(this.prototype.getBinding(property));
+            this.bindings.put(property, result);
+        } else {
+            result = (ModelBinding<T>) binding;
         }
-        return (ModelBinding<T>) binding;
+        return result;
     }
 
     /**
@@ -67,17 +99,22 @@ public abstract class Style {
      */
     @SuppressWarnings("unchecked")
     public <T> ModelBinding<T> getBinding(final Property property, final WidgetState state) {
-        final Map<WidgetState, ModelBinding<?>> byState = this.stateBindings.get(property);
-        if (byState == null) {
-            throw new IllegalStateException("No state bindings for property: " + property);
-        }
-        final ModelBinding<?> binding = byState.get(state);
+        final ModelBinding<T> result;
+        final Map<WidgetState, ModelBinding<?>> subset = this.stateBindings
+            .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class));
+        final ModelBinding<?> binding = subset.get(state);
         if (binding == null) {
-            throw new IllegalStateException(
-                "No binding for property: " + property + " in state: " + state
-            );
+            if (this.prototype == null) {
+                throw new IllegalStateException(
+                    "No binding for property: " + property + " in state: " + state
+                );
+            }
+            result = this.deriveBinding(this.prototype.getBinding(property, state));
+            subset.put(state, result);
+        } else {
+            result = (ModelBinding<T>) binding;
         }
-        return (ModelBinding<T>) binding;
+        return result;
     }
 
     /**
@@ -91,11 +128,21 @@ public abstract class Style {
      * Adds a state-independent binding for the specified property.
      *
      * @param property property key
-     * @param binding model binding
+     * @param model the initial model to bind
+     * @param listener the listener that will receive model updates
+     * @param factory  the factory used to lazily create models when needed
      * @param <T> binding data type
      */
-    protected <T> void addBinding(final Property property, final ModelBinding<T> binding) {
-        this.bindings.put(property, binding);
+    protected <T> void bind(
+        final Property property,
+        final Model<T> model,
+        final ModelListener<T> listener,
+        final ModelFactory<T> factory
+    ) {
+        this.bindings.put(
+            property,
+            new ModelBinding<>(new SynchronizedModel<>(model), listener, factory)
+        );
     }
 
     /**
@@ -103,13 +150,20 @@ public abstract class Style {
      *
      * @param property property key
      * @param state widget state
-     * @param binding model binding
+     * @param model the initial model to bind
+     * @param listener the listener that will receive model updates
+     * @param factory  the factory used to lazily create models when needed
      * @param <T> binding data type
      */
-    protected <T> void addBinding(final Property property, final WidgetState state,
-                                  final ModelBinding<T> binding) {
+    protected <T> void bind(
+        final Property property,
+        final WidgetState state,
+        final Model<T> model,
+        final ModelListener<T> listener,
+        final ModelFactory<T> factory
+    ) {
         this.stateBindings
             .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class))
-            .put(state, binding);
+            .put(state, new ModelBinding<>(new SynchronizedModel<>(model), listener, factory));
     }
 }

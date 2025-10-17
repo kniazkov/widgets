@@ -6,8 +6,8 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelListener;
 import com.kniazkov.widgets.protocol.SetFontFace;
 import com.kniazkov.widgets.protocol.SetFontSize;
 import com.kniazkov.widgets.protocol.SetFontWeight;
@@ -65,16 +65,24 @@ public interface HasStyledText extends HasText {
     /**
      * Listener that listens to font face models and sends a "set font face" update.
      */
-    final class FontFaceModelListener implements Listener<FontFace> {
-        private final Widget widget;
-
-        public FontFaceModelListener(final Widget widget) {
-            this.widget = widget;
+    final class FontFaceModelListener extends ModelListener<FontFace> {
+        /**
+         * Creates a new listener bound to the specified target.
+         *
+         * @param target the target whose font face will be updated
+         */
+        public FontFaceModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final FontFace data) {
-            this.widget.pushUpdate(new SetFontFace(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetFontFace(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<FontFace> create(final Entity target) {
+            return new FontFaceModelListener(target);
         }
     }
 
@@ -95,16 +103,24 @@ public interface HasStyledText extends HasText {
         this.getFontSizeModelBinding().getModel().setData(size);
     }
 
-    final class FontSizeModelListener implements Listener<FontSize> {
-        private final Widget widget;
-
-        public FontSizeModelListener(final Widget widget) {
-            this.widget = widget;
+    final class FontSizeModelListener extends ModelListener<FontSize> {
+        /**
+         * Creates a new listener bound to the specified target.
+         *
+         * @param target the target whose font size will be updated
+         */
+        public FontSizeModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final FontSize data) {
-            this.widget.pushUpdate(new SetFontSize(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetFontSize(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<FontSize> create(final Entity target) {
+            return null;
         }
     }
 
@@ -125,16 +141,24 @@ public interface HasStyledText extends HasText {
         this.getFontWeightModelBinding().getModel().setData(weight);
     }
 
-    final class FontWeightModelListener implements Listener<FontWeight> {
-        private final Widget widget;
-
-        public FontWeightModelListener(final Widget widget) {
-            this.widget = widget;
+    final class FontWeightModelListener extends ModelListener<FontWeight> {
+        /**
+         * Creates a new listener bound to the specified target.
+         *
+         * @param target the target whose font weight will be updated
+         */
+        public FontWeightModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final FontWeight data) {
-            this.widget.pushUpdate(new SetFontWeight(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetFontWeight(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<FontWeight> create(final Entity target) {
+            return new FontWeightModelListener(target);
         }
     }
 
@@ -155,16 +179,24 @@ public interface HasStyledText extends HasText {
         this.getItalicModelBinding().getModel().setData(italic);
     }
 
-    final class ItalicModelListener implements Listener<Boolean> {
-        private final Widget widget;
-
-        public ItalicModelListener(final Widget widget) {
-            this.widget = widget;
+    final class ItalicModelListener extends ModelListener<Boolean> {
+        /**
+         * Creates a new listener bound to the specified target.
+         *
+         * @param target the target whose italic flag will be updated
+         */
+        public ItalicModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final Boolean data) {
-            this.widget.pushUpdate(new SetItalic(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetItalic(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<Boolean> create(final Entity target) {
+            return new ItalicModelListener(target);
         }
     }
 }

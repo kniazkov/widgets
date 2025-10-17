@@ -3,10 +3,10 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelListener;
 import com.kniazkov.widgets.protocol.SetWidth;
 
 /**
@@ -71,21 +71,24 @@ public interface HasWidth<T extends WidgetSize> extends View {
     /**
      * Listener that listens to width models and sends a "set width" update.
      */
-    final class WidthModelListener<T extends WidgetSize> implements Listener<T> {
-        private final Widget widget;
-
+    final class WidthModelListener<T extends WidgetSize> extends ModelListener<T> {
         /**
-         * Creates a new listener bound to the specified widget.
+         * Creates a new listener bound to the specified target.
          *
-         * @param widget the widget whose width will be updated
+         * @param target the target whose width will be updated
          */
-        public WidthModelListener(final Widget widget) {
-            this.widget = widget;
+        public WidthModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final T data) {
-            this.widget.pushUpdate(new SetWidth<T>(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetWidth<T>(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<T> create(final Entity target) {
+            return new WidthModelListener<>(target);
         }
     }
 }

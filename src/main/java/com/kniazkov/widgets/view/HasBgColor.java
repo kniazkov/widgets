@@ -1,9 +1,12 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelListener;
 import com.kniazkov.widgets.protocol.SetBgColor;
 
 /**
@@ -69,21 +72,24 @@ public interface HasBgColor extends View {
     /**
      * Listener that listens to background color models and sends a "set background color" update.
      */
-    final class BgColorModelListener implements Listener<Color> {
-        private final Widget widget;
-
+    final class BgColorModelListener extends ModelListener<Color> {
         /**
-         * Creates a new listener bound to the specified widget.
+         * Creates a new listener bound to the specified target.
          *
-         * @param widget the widget whose background color will be updated
+         * @param target the target whose background color will be updated
          */
-        public BgColorModelListener(final Widget widget) {
-            this.widget = widget;
+        public BgColorModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final Color data) {
-            this.widget.pushUpdate(new SetBgColor(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetBgColor(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<Color> create(final Entity target) {
+            return new BgColorModelListener(target);
         }
     }
 }

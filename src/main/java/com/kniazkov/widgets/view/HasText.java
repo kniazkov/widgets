@@ -3,10 +3,10 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.protocol.SetText;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.ModelListener;
 
 /**
  * A {@link View} that has an associated text model.
@@ -68,16 +68,24 @@ public interface HasText extends View {
     /**
      * Listener that listens to text models and sends a "set text" update.
      */
-    final class TextModelListener implements Listener<String> {
-        private final Widget widget;
-
-        public TextModelListener(final Widget widget) {
-            this.widget = widget;
+    final class TextModelListener extends ModelListener<String> {
+        /**
+         * Creates a new listener bound to the specified target.
+         *
+         * @param target the target whose text will be updated
+         */
+        public TextModelListener(final Entity target) {
+            super(target);
         }
 
         @Override
         public void accept(final String data) {
-            this.widget.pushUpdate(new SetText(this.widget.getId(), data));
+            this.getTarget().pushUpdate(new SetText(this.getTarget().getId(), data));
+        }
+
+        @Override
+        public ModelListener<String> create(final Entity target) {
+            return new TextModelListener(target);
         }
     }
 }

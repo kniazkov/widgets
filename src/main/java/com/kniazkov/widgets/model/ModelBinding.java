@@ -23,7 +23,7 @@ public final class ModelBinding<T> {
      * The listener associated with this binding.
      * This reference is constant during the binding’s lifetime.
      */
-    private final Listener<T> listener;
+    private final ModelListener<T> listener;
 
     /**
      * The factory used to create new models when no model is currently set.
@@ -39,7 +39,7 @@ public final class ModelBinding<T> {
      * @param factory  the factory used to lazily create models when needed
      */
     public ModelBinding(final Model<T> model,
-                        final Listener<T> listener,
+                        final ModelListener<T> listener,
                         final ModelFactory<T> factory) {
         this.model = model;
         this.listener = listener;
@@ -84,6 +84,24 @@ public final class ModelBinding<T> {
         this.model = model;
         model.addListener(this.listener);
         this.listener.accept(model.getData());
+    }
+
+    /**
+     * Returns the listener that will receive model updates.
+     *
+     * @return Model listener
+     */
+    public ModelListener<T> getListener() {
+        return this.listener;
+    }
+
+    /**
+     * Returns the factory used to create new models.
+     *
+     * @return Model factory
+     */
+    public ModelFactory<T> getFactory() {
+        return this.factory;
     }
 
     /**
