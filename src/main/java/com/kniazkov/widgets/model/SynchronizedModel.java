@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Listener;

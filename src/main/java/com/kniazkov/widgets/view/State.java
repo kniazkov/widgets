@@ -7,7 +7,7 @@ package com.kniazkov.widgets.view;
  * Defines the visual or interaction state of a widget.
  * States are used to determine which variant of a property model applies.
  */
-public enum WidgetState {
+public enum State {
     /** Normal state (default appearance). */
     NORMAL("normal"),
 
@@ -25,7 +25,7 @@ public enum WidgetState {
 
     private final String key;
 
-    WidgetState(final String key) {
+    State(final String key) {
         this.key = key;
     }
 

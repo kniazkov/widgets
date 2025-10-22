@@ -49,7 +49,7 @@ public abstract class Widget {
      * Stores bindings that depend on widget state.
      * Example: background color may vary between NORMAL, HOVER, ACTIVE, etc.
      */
-    private final Map<Property, Map<WidgetState, Binding<?>>> stateBindings;
+    private final Map<Property, Map<State, Binding<?>>> stateBindings;
 
     /**
      * Constructs a new widget and schedules a {@link CreateWidget} update.
@@ -143,8 +143,8 @@ public abstract class Widget {
      * @throws IllegalStateException if no binding is found for the given state
      */
     @SuppressWarnings("unchecked")
-    public <T> Binding<T> getModelBinding(final Property property, final WidgetState state) {
-        final Map<WidgetState, Binding<?>> byState = this.stateBindings.get(property);
+    public <T> Binding<T> getModelBinding(final Property property, final State state) {
+        final Map<State, Binding<?>> byState = this.stateBindings.get(property);
         if (byState == null) {
             throw new IllegalStateException("No state bindings for property: " + property);
         }
@@ -244,10 +244,10 @@ public abstract class Widget {
      * @param binding model binding
      * @param <T> binding data type
      */
-    protected <T> void addBinding(final Property property, final WidgetState state,
+    protected <T> void addBinding(final Property property, final State state,
             final Binding<T> binding) {
         this.stateBindings
-            .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class))
+            .computeIfAbsent(property, k -> new EnumMap<>(State.class))
             .put(state, binding);
     }
 
