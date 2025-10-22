@@ -6,16 +6,11 @@ package com.kniazkov.widgets.model;
 /**
  * A default string model implementation.
  */
-public final class DefaultStringModel extends DefaultModel<String> {
-    /**
-     * A {@link ModelFactory} that produces {@link DefaultStringModel} instances.
-     */
-    public static final ModelFactory<String> FACTORY = DefaultStringModel::new;
-
+public final class StringModel extends DefaultModel<String> {
     /**
      * Creates a new string model initialized with an empty string.
      */
-    public DefaultStringModel() {
+    public StringModel() {
     }
 
     /**
@@ -23,12 +18,17 @@ public final class DefaultStringModel extends DefaultModel<String> {
      *
      * @param data the initial string value
      */
-    public DefaultStringModel(final String data) {
+    public StringModel(final String data) {
         super(data);
     }
 
     @Override
     public String getDefaultData() {
         return "";
+    }
+
+    @Override
+    public Model<String> deriveWithData(final String data) {
+        return new StringModel(data);
     }
 }

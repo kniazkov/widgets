@@ -8,17 +8,12 @@ import com.kniazkov.widgets.common.InlineWidgetSize;
 /**
  * A default inline widget size model implementation.
  */
-public final class DefaultInlineWidgetSizeModel extends DefaultModel<InlineWidgetSize> {
-    /**
-     * A {@link ModelFactory} that produces {@link DefaultInlineWidgetSizeModel} instances.
-     */
-    public static final ModelFactory<InlineWidgetSize> FACTORY = DefaultInlineWidgetSizeModel::new;
-
+public final class InlineWidgetSizeModel extends DefaultModel<InlineWidgetSize> {
     /**
      * Creates a new inline widget size model initialized with
      * {@link InlineWidgetSize#UNDEFINED}.
      */
-    public DefaultInlineWidgetSizeModel() {
+    public InlineWidgetSizeModel() {
     }
 
     /**
@@ -26,7 +21,7 @@ public final class DefaultInlineWidgetSizeModel extends DefaultModel<InlineWidge
      *
      * @param data the initial inline widget size
      */
-    public DefaultInlineWidgetSizeModel(final InlineWidgetSize data) {
+    public InlineWidgetSizeModel(final InlineWidgetSize data) {
         super(data);
     }
 
@@ -38,12 +33,17 @@ public final class DefaultInlineWidgetSizeModel extends DefaultModel<InlineWidge
      * @param data the size string (e.g., "10pt", "24px", "1in")
      * @throws IllegalArgumentException if the string is invalid
      */
-    public DefaultInlineWidgetSizeModel(final String data) {
+    public InlineWidgetSizeModel(final String data) {
         this(new InlineWidgetSize(data));
     }
 
     @Override
     public InlineWidgetSize getDefaultData() {
         return InlineWidgetSize.UNDEFINED;
+    }
+
+    @Override
+    public Model<InlineWidgetSize> deriveWithData(final InlineWidgetSize data) {
+        return new InlineWidgetSizeModel(data);
     }
 }

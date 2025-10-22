@@ -6,16 +6,11 @@ package com.kniazkov.widgets.model;
 /**
  * A default integer model implementation.
  */
-public final class DefaultIntegerModel extends DefaultModel<Integer> {
-    /**
-     * A {@link ModelFactory} that produces {@link DefaultIntegerModel} instances.
-     */
-    public static final ModelFactory<Integer> FACTORY = DefaultIntegerModel::new;
-
+public final class IntegerModel extends DefaultModel<Integer> {
     /**
      * Creates a new integer model initialized with {@code 0}.
      */
-    public DefaultIntegerModel() {
+    public IntegerModel() {
     }
 
     /**
@@ -23,12 +18,17 @@ public final class DefaultIntegerModel extends DefaultModel<Integer> {
      *
      * @param data the initial integer value
      */
-    public DefaultIntegerModel(final Integer data) {
+    public IntegerModel(final Integer data) {
         super(data);
     }
 
     @Override
     public Integer getDefaultData() {
         return 0;
+    }
+
+    @Override
+    public Model<Integer> deriveWithData(final Integer data) {
+        return new IntegerModel(data);
     }
 }

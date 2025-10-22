@@ -6,7 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.protocol.SetText;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 
 /**
  * A {@link View} that has an associated text model.
@@ -18,14 +18,14 @@ public interface HasText extends View {
      * @param property the property key
      * @return the model binding associated with the given property
      */
-    <T> ModelBinding<T> getModelBinding(final Property property);
+    <T> Binding<T> getModelBinding(final Property property);
 
     /**
      * Returns the binding that connects the text model to this widget.
      *
      * @return the text model binding
      */
-    default ModelBinding<String> getTextModelBinding() {
+    default Binding<String> getTextModelBinding() {
         return this.getModelBinding(Property.TEXT);
     }
 

@@ -3,18 +3,15 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.protocol.SetFontFace;
 import com.kniazkov.widgets.protocol.SetFontSize;
 import com.kniazkov.widgets.protocol.SetFontWeight;
 import com.kniazkov.widgets.protocol.SetItalic;
-import com.kniazkov.widgets.protocol.Update;
 
 /**
  * A {@link View} that displays stylable text.
@@ -32,7 +29,7 @@ public interface HasStyledText extends HasText {
      *
      * @return the font face model binding
      */
-    ModelBinding<FontFace> getFontFaceModelBinding();
+    Binding<FontFace> getFontFaceModelBinding();
 
     /**
      * Returns the current font face.
@@ -68,7 +65,7 @@ public interface HasStyledText extends HasText {
         }
     }
 
-    ModelBinding<FontSize> getFontSizeModelBinding();
+    Binding<FontSize> getFontSizeModelBinding();
 
     default FontSize getFontSize() {
         return this.getFontSizeModelBinding().getModel().getData();
@@ -91,7 +88,7 @@ public interface HasStyledText extends HasText {
         }
     }
 
-    ModelBinding<FontWeight> getFontWeightModelBinding();
+    Binding<FontWeight> getFontWeightModelBinding();
 
     default FontWeight getFontWeight() {
         return this.getFontWeightModelBinding().getModel().getData();
@@ -114,7 +111,7 @@ public interface HasStyledText extends HasText {
         }
     }
 
-    ModelBinding<Boolean> getItalicModelBinding();
+    Binding<Boolean> getItalicModelBinding();
 
     default boolean isItalic() {
         return this.getItalicModelBinding().getModel().getData();

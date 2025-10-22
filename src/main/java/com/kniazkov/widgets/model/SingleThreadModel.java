@@ -4,49 +4,48 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Listener;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
  * A single-threaded base implementation of the listener management logic
- * for reactive {@link Model} instances. This abstract class provides the infrastructure
- * for handling data change listeners within a model that is expected to be accessed from a single
- * thread (such as the UI thread). Subclasses are responsible for implementing the remaining
- * data-related behavior defined by the {@link Model} interface (e.g., data access, mutation,
- * and validation).
+ * for reactive {@link Model} instances, using {@link WeakHashMap}-based listener storage.
+ * <p>
+ * This implementation prevents memory leaks caused by lingering strong references
+ * to UI components or controllers that subscribe to a model but are no longer in use.
  *
- * @param <T> the type of the data managed by this model
- */public abstract class SingleThreadModel<T> implements Model<T> {
+ * @param <T> the type of data managed by this model
+ */
+public abstract class SingleThreadModel<T> implements Model<T> {
     /**
-     * The collection of registered listeners that should be notified
-     * whenever this model's data changes.
+     * Weakly referenced listener registry.
+     * When a listener is garbage-collected, its entry disappears automatically.
      */
-    private final Set<Listener<T>> listeners = new HashSet<>();
+    private final Map<Listener<T>, Object> listeners = new WeakHashMap<>();
 
     @Override
     public void addListener(final Listener<T> listener) {
-        this.listeners.add(listener);
+        listeners.put(listener, Boolean.TRUE);
     }
 
     @Override
     public void removeListener(final Listener<T> listener) {
-        this.listeners.remove(listener);
+        listeners.remove(listener);
     }
 
     @Override
     public void notifyListeners() {
-        this.notifyListeners(this.getData());
+        notifyListeners(getData());
     }
 
     /**
-     * Notifies all registered listeners with the specified data instance.
-     * This method invokes {@link Listener#accept(Object)} on each registered listener
-     * in the order returned by the underlying {@link HashSet} iterator.
+     * Notifies all currently alive listeners with the specified data.
+     * Dead (collected) listeners are automatically purged by the {@link WeakHashMap}.
      *
-     * @param data the data object to be passed to each listener
+     * @param data the data object to pass to each listener
      */
     protected void notifyListeners(final T data) {
-        for (final Listener<T> listener : this.listeners) {
+        for (Listener<T> listener : listeners.keySet()) {
             listener.accept(data);
         }
     }

@@ -8,16 +8,11 @@ import com.kniazkov.widgets.common.FontSize;
 /**
  * A default font size model implementation.
  */
-public final class DefaultFontSizeModel extends DefaultModel<FontSize> {
-    /**
-     * A {@link ModelFactory} that produces {@link DefaultFontSizeModel} instances.
-     */
-    public static final ModelFactory<FontSize> FACTORY = DefaultFontSizeModel::new;
-
+public final class FontSizeModel extends DefaultModel<FontSize> {
     /**
      * Creates a new font size model initialized with {@link FontSize#DEFAULT}.
      */
-    public DefaultFontSizeModel() {
+    public FontSizeModel() {
     }
 
     /**
@@ -25,7 +20,7 @@ public final class DefaultFontSizeModel extends DefaultModel<FontSize> {
      *
      * @param data the initial font size
      */
-    public DefaultFontSizeModel(final FontSize data) {
+    public FontSizeModel(final FontSize data) {
         super(data);
     }
 
@@ -37,12 +32,17 @@ public final class DefaultFontSizeModel extends DefaultModel<FontSize> {
      * @param data the font size string (e.g., "12pt", "14px", "1in")
      * @throws IllegalArgumentException if the string is invalid
      */
-    public DefaultFontSizeModel(String data) {
+    public FontSizeModel(String data) {
         this(new FontSize(data));
     }
 
     @Override
     public FontSize getDefaultData() {
         return FontSize.DEFAULT;
+    }
+
+    @Override
+    public Model<FontSize> deriveWithData(final FontSize data) {
+        return new FontSizeModel(data);
     }
 }

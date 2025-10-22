@@ -12,15 +12,15 @@ import com.kniazkov.widgets.common.InlineWidgetSize;
 import com.kniazkov.widgets.controller.PointerEvent;
 import com.kniazkov.widgets.controller.ProcessesPointerEvents;
 import com.kniazkov.widgets.controller.TypedController;
-import com.kniazkov.widgets.model.DefaultBooleanModel;
-import com.kniazkov.widgets.model.DefaultColorModel;
-import com.kniazkov.widgets.model.DefaultFontFaceModel;
-import com.kniazkov.widgets.model.DefaultFontSizeModel;
-import com.kniazkov.widgets.model.DefaultFontWeightModel;
-import com.kniazkov.widgets.model.DefaultInlineWidgetSizeModel;
-import com.kniazkov.widgets.model.DefaultStringModel;
+import com.kniazkov.widgets.model.BooleanModel;
+import com.kniazkov.widgets.model.ColorModel;
+import com.kniazkov.widgets.model.FontFaceModel;
+import com.kniazkov.widgets.model.FontSizeModel;
+import com.kniazkov.widgets.model.FontWeightModel;
+import com.kniazkov.widgets.model.InlineWidgetSizeModel;
+import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import java.util.Optional;
 
 /**
@@ -32,47 +32,47 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     /**
      * Binding between the text model and this widget.
      */
-    final ModelBinding<String> text;
+    final Binding<String> text;
 
     /**
      * Binding between the foreground (text) color model and this widget.
      */
-    final ModelBinding<Color> color;
+    final Binding<Color> color;
 
     /**
      * Binding between the background color model and this widget.
      */
-    final ModelBinding<Color> bgColor;
+    final Binding<Color> bgColor;
 
     /**
      * Binding between the font face model and this widget.
      */
-    final ModelBinding<FontFace> fontFace;
+    final Binding<FontFace> fontFace;
 
     /**
      * Binding between the font size model and this widget.
      */
-    final ModelBinding<FontSize> fontSize;
+    final Binding<FontSize> fontSize;
 
     /**
      * Binding between the font weight model and this widget.
      */
-    final ModelBinding<FontWeight> fontWeight;
+    final Binding<FontWeight> fontWeight;
 
     /**
      * Binding between the italic model and this widget.
      */
-    final ModelBinding<Boolean> italic;
+    final Binding<Boolean> italic;
 
     /**
      * Binding between the width model and this widget.
      */
-    final ModelBinding<InlineWidgetSize> width;
+    final Binding<InlineWidgetSize> width;
 
     /**
      * Binding between the height model and this widget.
      */
-    final ModelBinding<InlineWidgetSize> height;
+    final Binding<InlineWidgetSize> height;
 
     /**
      * Controller that handles incoming text input events from the client.
@@ -107,42 +107,42 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
      * @param text the initial text to display in the input field
      */
     public InputField(final String text) {
-        this.text = new ModelBinding<>(
-            new DefaultStringModel(text),
+        this.text = new Binding<>(
+            new StringModel(text),
             new TextModelListener(this)
         );
-        this.color = new ModelBinding<>(
-            new DefaultColorModel(),
+        this.color = new Binding<>(
+            new ColorModel(),
             new ColorModelListener(this)
         );
-        final Model<Color> bgColorModel = new DefaultColorModel();
+        final Model<Color> bgColorModel = new ColorModel();
         bgColorModel.setData(Color.WHITE);
-        this.bgColor = new ModelBinding<>(
+        this.bgColor = new Binding<>(
             bgColorModel,
             new BgColorModelListener(this)
         );
-        this.fontFace = new ModelBinding<>(
-            new DefaultFontFaceModel(),
+        this.fontFace = new Binding<>(
+            new FontFaceModel(),
             new FontFaceModelListener(this)
         );
-        this.fontSize = new ModelBinding<>(
-            new DefaultFontSizeModel(),
+        this.fontSize = new Binding<>(
+            new FontSizeModel(),
             new FontSizeModelListener(this)
         );
-        this.fontWeight = new ModelBinding<>(
-            new DefaultFontWeightModel(),
+        this.fontWeight = new Binding<>(
+            new FontWeightModel(),
             new FontWeightModelListener(this)
         );
-        this.italic = new ModelBinding<>(
-            new DefaultBooleanModel(),
+        this.italic = new Binding<>(
+            new BooleanModel(),
             new ItalicModelListener(this)
         );
-        this.width = new ModelBinding<>(
-            new DefaultInlineWidgetSizeModel(),
+        this.width = new Binding<>(
+            new InlineWidgetSizeModel(),
             new WidthModelListener<>(this)
         );
-        this.height = new ModelBinding<>(
-            new DefaultInlineWidgetSizeModel(),
+        this.height = new Binding<>(
+            new InlineWidgetSizeModel(),
             new HeightModelListener<>(this)
         );
         this.textInputCtrl = TypedController.stub();
@@ -152,47 +152,47 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     }
 
     @Override
-    public ModelBinding<String> getTextModelBinding() {
+    public Binding<String> getTextModelBinding() {
         return this.text;
     }
 
     @Override
-    public ModelBinding<Color> getColorModelBinding() {
+    public Binding<Color> getColorModelBinding() {
         return this.color;
     }
 
     @Override
-    public ModelBinding<Color> getBgColorModelBinding() {
+    public Binding<Color> getBgColorModelBinding() {
         return this.bgColor;
     }
 
     @Override
-    public ModelBinding<FontFace> getFontFaceModelBinding() {
+    public Binding<FontFace> getFontFaceModelBinding() {
         return this.fontFace;
     }
 
     @Override
-    public ModelBinding<FontSize> getFontSizeModelBinding() {
+    public Binding<FontSize> getFontSizeModelBinding() {
         return this.fontSize;
     }
 
     @Override
-    public ModelBinding<FontWeight> getFontWeightModelBinding() {
+    public Binding<FontWeight> getFontWeightModelBinding() {
         return this.fontWeight;
     }
 
     @Override
-    public ModelBinding<Boolean> getItalicModelBinding() {
+    public Binding<Boolean> getItalicModelBinding() {
         return this.italic;
     }
 
     @Override
-    public ModelBinding<InlineWidgetSize> getWidthModelBinding() {
+    public Binding<InlineWidgetSize> getWidthModelBinding() {
         return this.width;
     }
 
     @Override
-    public ModelBinding<InlineWidgetSize> getHeightModelBinding() {
+    public Binding<InlineWidgetSize> getHeightModelBinding() {
         return this.height;
     }
 

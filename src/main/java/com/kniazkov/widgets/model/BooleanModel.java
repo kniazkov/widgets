@@ -6,16 +6,11 @@ package com.kniazkov.widgets.model;
 /**
  * A default boolean model implementation.
  */
-public final class DefaultBooleanModel extends DefaultModel<Boolean> {
-    /**
-     * A {@link ModelFactory} that produces {@link DefaultBooleanModel} instances.
-     */
-    public static final ModelFactory<Boolean> FACTORY = DefaultBooleanModel::new;
-
+public final class BooleanModel extends DefaultModel<Boolean> {
     /**
      * Creates a new boolean model initialized with {@code false}.
      */
-    public DefaultBooleanModel() {
+    public BooleanModel() {
     }
 
     /**
@@ -23,12 +18,17 @@ public final class DefaultBooleanModel extends DefaultModel<Boolean> {
      *
      * @param data the initial boolean value
      */
-    public DefaultBooleanModel(final Boolean data) {
+    public BooleanModel(final Boolean data) {
         super(data);
     }
 
     @Override
     public Boolean getDefaultData() {
         return false;
+    }
+
+    @Override
+    public Model<Boolean> deriveWithData(final Boolean data) {
+        return new BooleanModel(data);
     }
 }

@@ -5,7 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.Subscribe;
@@ -43,13 +43,13 @@ public abstract class Widget {
     /**
      * Stores bindings that are independent of widget state.
      */
-    private final Map<Property, ModelBinding<?>> bindings;
+    private final Map<Property, Binding<?>> bindings;
 
     /**
      * Stores bindings that depend on widget state.
      * Example: background color may vary between NORMAL, HOVER, ACTIVE, etc.
      */
-    private final Map<Property, Map<WidgetState, ModelBinding<?>>> stateBindings;
+    private final Map<Property, Map<WidgetState, Binding<?>>> stateBindings;
 
     /**
      * Constructs a new widget and schedules a {@link CreateWidget} update.
@@ -125,12 +125,12 @@ public abstract class Widget {
      * @throws IllegalStateException if no binding is found
      */
     @SuppressWarnings("unchecked")
-    public <T> ModelBinding<T> getModelBinding(final Property property) {
-        final ModelBinding<?> binding = this.bindings.get(property);
+    public <T> Binding<T> getModelBinding(final Property property) {
+        final Binding<?> binding = this.bindings.get(property);
         if (binding == null) {
             throw new IllegalStateException("No binding for property: " + property);
         }
-        return (ModelBinding<T>) binding;
+        return (Binding<T>) binding;
     }
 
     /**
@@ -143,18 +143,18 @@ public abstract class Widget {
      * @throws IllegalStateException if no binding is found for the given state
      */
     @SuppressWarnings("unchecked")
-    public <T> ModelBinding<T> getModelBinding(final Property property, final WidgetState state) {
-        final Map<WidgetState, ModelBinding<?>> byState = this.stateBindings.get(property);
+    public <T> Binding<T> getModelBinding(final Property property, final WidgetState state) {
+        final Map<WidgetState, Binding<?>> byState = this.stateBindings.get(property);
         if (byState == null) {
             throw new IllegalStateException("No state bindings for property: " + property);
         }
-        final ModelBinding<?> binding = byState.get(state);
+        final Binding<?> binding = byState.get(state);
         if (binding == null) {
             throw new IllegalStateException(
                 "No binding for property: " + property + " in state: " + state
             );
         }
-        return (ModelBinding<T>) binding;
+        return (Binding<T>) binding;
     }
 
     /**
@@ -232,7 +232,7 @@ public abstract class Widget {
      * @param binding model binding
      * @param <T> binding data type
      */
-    protected <T> void addBinding(final Property property, final ModelBinding<T> binding) {
+    protected <T> void addBinding(final Property property, final Binding<T> binding) {
         this.bindings.put(property, binding);
     }
 
@@ -245,7 +245,7 @@ public abstract class Widget {
      * @param <T> binding data type
      */
     protected <T> void addBinding(final Property property, final WidgetState state,
-            final ModelBinding<T> binding) {
+            final Binding<T> binding) {
         this.stateBindings
             .computeIfAbsent(property, k -> new EnumMap<>(WidgetState.class))
             .put(state, binding);

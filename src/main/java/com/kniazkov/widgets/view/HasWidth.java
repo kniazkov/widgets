@@ -6,7 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.protocol.SetWidth;
 
 /**
@@ -21,7 +21,7 @@ public interface HasWidth<T extends WidgetSize> extends View {
      *
      * @return the width model binding
      */
-    ModelBinding<T> getWidthModelBinding();
+    Binding<T> getWidthModelBinding();
 
     /**
      * Returns the model that stores the width for this view.

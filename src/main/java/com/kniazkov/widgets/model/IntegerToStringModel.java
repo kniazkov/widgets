@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.model;
 
+import com.kniazkov.widgets.common.Listener;
+
 /**
  * A model adapter that converts an {@link Integer}-based model to a {@link String}-based one.
  * <p>
@@ -25,6 +27,13 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
     private final Model<Integer> base;
 
     /**
+     * A listener that forwards updates from the base model to this wrapper’s listeners.
+     * It must be stored in a field, not in a local variable, so that the garbage collector
+     * does not remove the listener from the base model while this wrapper exists.
+     */
+    private final Listener<Integer> forwarder;
+
+    /**
      * The current string representation of the integer value.
      */
     private String string;
@@ -41,16 +50,17 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
      */
     public IntegerToStringModel(final Model<Integer> base) {
         this.base = base;
-        this.string = base.getData().toString();
-        this.valid = base.isValid();
-
-        base.addListener(data -> {
+        this.forwarder = data -> {
             final String value = data.toString();
             if (!this.string.equals(value)) {
                 this.string = value;
                 this.notifyListeners(value);
             }
-        });
+        };
+        this.string = base.getData().toString();
+        this.valid = base.isValid();
+
+        base.addListener(this.forwarder);
     }
 
     @Override
@@ -61,11 +71,6 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
     @Override
     public String getData() {
         return this.string;
-    }
-
-    @Override
-    public String getDefaultData() {
-        return this.base.getDefaultData().toString();
     }
 
     @Override
@@ -83,5 +88,10 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
         }
         this.notifyListeners(data);
         return true;
+    }
+
+    @Override
+    public Model<String> deriveWithData(final String data) {
+        return new StringModel(data);
     }
 }

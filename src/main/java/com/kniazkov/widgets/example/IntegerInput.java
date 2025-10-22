@@ -9,7 +9,7 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.model.DefaultIntegerModel;
+import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.view.InputField;
@@ -40,7 +40,7 @@ public class IntegerInput {
      */
     public static void main(String[] args) {
         final Page page = root -> {
-            final Model<Integer> intModel = new DefaultIntegerModel();
+            final Model<Integer> intModel = new IntegerModel();
             final Model<String> stringModel = new IntegerToStringModel(intModel);
             final Model<Boolean> validFlagModel = stringModel.getValidFlagModel();
 

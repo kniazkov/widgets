@@ -10,8 +10,7 @@ import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.controller.TypedController;
-import com.kniazkov.widgets.model.IntegerToStringModel;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.HasTextInput;
 import com.kniazkov.widgets.view.InputField;
@@ -115,7 +114,7 @@ public class CustomWidget {
         }
 
         @Override
-        public ModelBinding<String> getTextModelBinding() {
+        public Binding<String> getTextModelBinding() {
             return this.field.getTextModelBinding();
         }
 

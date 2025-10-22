@@ -8,7 +8,7 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.model.DefaultIntegerModel;
+import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.SynchronizedModel;
@@ -45,11 +45,11 @@ public class ClickCounterExt {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Model<Integer> globalModel = new DefaultIntegerModel();
-        final Model<Integer> syncronizedModel = new SynchronizedModel<>(globalModel);
+        final Model<Integer> globalModel = new IntegerModel().asSynchronized();
 
         final Page page = root -> {
-            final Model<Integer> localModel = new DefaultIntegerModel();
+            System.gc();
+            final Model<Integer> localModel = new IntegerModel();
 
             // --- Shared button section ---
             Section section = new Section();
@@ -59,7 +59,7 @@ public class ClickCounterExt {
             section.add(button);
 
             button.onClick(data -> {
-                syncronizedModel.setData(syncronizedModel.getData() + 1);
+                globalModel.setData(globalModel.getData() + 1);
                 localModel.setData(localModel.getData() + 1);
             });
 
@@ -69,7 +69,7 @@ public class ClickCounterExt {
             section.add(new TextWidget("Global counter: "));
             final TextWidget globalCounter = new TextWidget();
             section.add(globalCounter);
-            globalCounter.setTextModel(new IntegerToStringModel(syncronizedModel));
+            globalCounter.setTextModel(new IntegerToStringModel(globalModel));
             globalCounter.setFontWeight(FontWeight.BOLD);
 
             // --- Local counter section ---

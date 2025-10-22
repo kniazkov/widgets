@@ -53,4 +53,12 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
         this.notifyListeners(data);
         return true;
     }
+
+    /**
+     * Provides the default value for model data. The “no data” model is filled with this data.
+     * Implementations must ensure that this method never returns {@code null}.
+     *
+     * @return the default data value
+     */
+    protected abstract T getDefaultData();
 }

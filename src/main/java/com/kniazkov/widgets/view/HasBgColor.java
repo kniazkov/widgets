@@ -3,7 +3,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.protocol.SetBgColor;
 
 /**
@@ -15,7 +15,7 @@ public interface HasBgColor extends View {
      *
      * @return the background color model binding
      */
-    ModelBinding<Color> getBgColorModelBinding();
+    Binding<Color> getBgColorModelBinding();
 
     /**
      * Returns the model that stores the background color for this view.

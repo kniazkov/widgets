@@ -13,7 +13,7 @@ import com.kniazkov.widgets.common.Listener;
  *
  * @param <T> the type of the model data
  */
-public final class ModelBinding<T> {
+public final class Binding<T> {
     /**
      * The currently bound model.
      */
@@ -33,7 +33,7 @@ public final class ModelBinding<T> {
      * @param model the model to bind to
      * @param listener the listener that will receive model updates
      */
-    public ModelBinding(final Model<T> model, final Listener<T> listener) {
+    public Binding(final Model<T> model, final Listener<T> listener) {
         this.listener = listener;
         this.listener.accept(model.getData());
         this.model = model;

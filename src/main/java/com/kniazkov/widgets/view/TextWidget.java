@@ -8,14 +8,13 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.model.DefaultBooleanModel;
-import com.kniazkov.widgets.model.DefaultColorModel;
-import com.kniazkov.widgets.model.DefaultFontFaceModel;
-import com.kniazkov.widgets.model.DefaultFontSizeModel;
-import com.kniazkov.widgets.model.DefaultFontWeightModel;
-import com.kniazkov.widgets.model.DefaultStringModel;
-import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.BooleanModel;
+import com.kniazkov.widgets.model.ColorModel;
+import com.kniazkov.widgets.model.FontFaceModel;
+import com.kniazkov.widgets.model.FontSizeModel;
+import com.kniazkov.widgets.model.FontWeightModel;
+import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.Binding;
 import java.util.Optional;
 
 /**
@@ -25,27 +24,27 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     /**
      * Binding between the color model and this widget.
      */
-    final ModelBinding<Color> color;
+    final Binding<Color> color;
 
     /**
      * Binding between the font face model and this widget.
      */
-    final ModelBinding<FontFace> fontFace;
+    final Binding<FontFace> fontFace;
 
     /**
      * Binding between the font size model and this widget.
      */
-    final ModelBinding<FontSize> fontSize;
+    final Binding<FontSize> fontSize;
 
     /**
      * Binding between the font weight model and this widget.
      */
-    final ModelBinding<FontWeight> fontWeight;
+    final Binding<FontWeight> fontWeight;
 
     /**
      * Binding between the italic model and this widget.
      */
-    final ModelBinding<Boolean> italic;
+    final Binding<Boolean> italic;
 
     /**
      * Creates a new text widget with empty text.
@@ -62,55 +61,55 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     public TextWidget(final String text) {
         this.addBinding(
             Property.TEXT,
-            new ModelBinding<>(
-                new DefaultStringModel(text),
+            new Binding<>(
+                new StringModel(text),
                 new TextModelListener(this)
             )
         );
-        this.color = new ModelBinding<>(
-            new DefaultColorModel(),
+        this.color = new Binding<>(
+            new ColorModel(),
             new ColorModelListener(this)
         );
-        this.fontFace = new ModelBinding<>(
-            new DefaultFontFaceModel(),
+        this.fontFace = new Binding<>(
+            new FontFaceModel(),
             new FontFaceModelListener(this)
         );
-        this.fontSize = new ModelBinding<>(
-            new DefaultFontSizeModel(),
+        this.fontSize = new Binding<>(
+            new FontSizeModel(),
             new FontSizeModelListener(this))
         ;
-        this.fontWeight = new ModelBinding<>(
-            new DefaultFontWeightModel(),
+        this.fontWeight = new Binding<>(
+            new FontWeightModel(),
             new FontWeightModelListener(this)
         );
-        this.italic = new ModelBinding<>(
-            new DefaultBooleanModel(),
+        this.italic = new Binding<>(
+            new BooleanModel(),
             new ItalicModelListener(this)
         );
     }
 
     @Override
-    public ModelBinding<Color> getColorModelBinding() {
+    public Binding<Color> getColorModelBinding() {
         return this.color;
     }
 
     @Override
-    public ModelBinding<FontFace> getFontFaceModelBinding() {
+    public Binding<FontFace> getFontFaceModelBinding() {
         return this.fontFace;
     }
 
     @Override
-    public ModelBinding<FontSize> getFontSizeModelBinding() {
+    public Binding<FontSize> getFontSizeModelBinding() {
         return this.fontSize;
     }
 
     @Override
-    public ModelBinding<FontWeight> getFontWeightModelBinding() {
+    public Binding<FontWeight> getFontWeightModelBinding() {
         return this.fontWeight;
     }
 
     @Override
-    public ModelBinding<Boolean> getItalicModelBinding() {
+    public Binding<Boolean> getItalicModelBinding() {
         return this.italic;
     }
 

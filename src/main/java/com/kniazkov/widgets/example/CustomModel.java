@@ -83,10 +83,5 @@ public class CustomModel {
                     .reverse()
                     .toString();
         }
-
-        @Override
-        public String getDefaultData() {
-            return "";
-        }
     }
 }

@@ -4,7 +4,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.protocol.SetColor;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 
 /**
  * A {@link View} that has an associated color model.
@@ -15,7 +15,7 @@ public interface HasColor extends View {
      *
      * @return the color model binding
      */
-    ModelBinding<Color> getColorModelBinding();
+    Binding<Color> getColorModelBinding();
 
     /**
      * Returns the model that stores the color for this view.

@@ -36,15 +36,6 @@ public interface Model<T> {
     T getData();
 
     /**
-     * Provides a default value for the model data.
-     * The default is returned when no valid or readable value is available.
-     * Implementations must ensure that this method never returns {@code null}.
-     *
-     * @return the default data value
-     */
-    T getDefaultData();
-
-    /**
      * Updates the model’s data if it differs from the current one, and notifies all registered
      * listeners if the update succeeds. If the model cannot be written to (e.g., is read-only
      * or persistence fails), this method must return {@code false}
@@ -78,6 +69,22 @@ public interface Model<T> {
     void notifyListeners();
 
     /**
+     * Creates a new model instance that is <i>similar</i> to this one but initialized
+     * with the specified data. The returned model should preserve the same behavioral
+     * characteristics — such as validation logic, listener notification policy, and
+     * synchronization strategy — but may represent an entirely new object or even a
+     * different concrete implementation, depending on context.
+     * <br>
+     * This method is useful when you want to derive a model with new data but reuse the
+     * semantics of the current model (for example, when transforming or cloning parts
+     * of a reactive model hierarchy).
+     *
+     * @param data initial data value for the new model
+     * @return a new model instance containing the given data and similar logic
+     */
+    Model<T> deriveWithData(final T data);
+
+    /**
      * Returns a reactive read-only {@link Model} representing the validity state of this model.
      * The returned model produces {@code true} when this model’s data is valid
      * (i.e. {@link #isValid()} returns {@code true}) and {@code false} otherwise.
@@ -91,5 +98,33 @@ public interface Model<T> {
      */
     default Model<Boolean> getValidFlagModel() {
         return new ValidFlagModel<>(this);
+    }
+
+    /**
+     * Creates a cascading view of this model.
+     * <p>
+     * The returned {@link CascadingModel} delegates all reads to this model until the first call
+     * to {@link Model#setData(Object)}, at which point it forks into a local copy that can be
+     * modified independently.
+     *
+     * @return a new cascading model wrapping this model
+     */
+    default Model<T> asCascading() {
+        return new CascadingModel<>(this);
+    }
+
+    /**
+     * Creates a thread-safe wrapper around this model.
+     * <p>
+     * The returned {@link SynchronizedModel} provides synchronized access to the underlying model
+     * and re-emits all updates in a thread-safe manner.
+     * <br>
+     * Use this when the underlying model may be accessed from multiple threads, such as background
+     * tasks or reactive pipelines.
+     *
+     * @return a new synchronized model wrapping this model
+     */
+    default Model<T> asSynchronized() {
+        return new SynchronizedModel<>(this);
     }
 }

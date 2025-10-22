@@ -8,16 +8,11 @@ import com.kniazkov.widgets.common.FontWeight;
 /**
  * A default font weight model implementation.
  */
-public final class DefaultFontWeightModel extends DefaultModel<FontWeight> {
-    /**
-     * A {@link ModelFactory} that produces {@link DefaultFontWeightModel} instances.
-     */
-    public static final ModelFactory<FontWeight> FACTORY = DefaultFontWeightModel::new;
-
+public final class FontWeightModel extends DefaultModel<FontWeight> {
     /**
      * Creates a new font weight model initialized with {@link FontWeight#NORMAL}.
      */
-    public DefaultFontWeightModel() {
+    public FontWeightModel() {
     }
 
     /**
@@ -25,12 +20,17 @@ public final class DefaultFontWeightModel extends DefaultModel<FontWeight> {
      *
      * @param data the initial font weight
      */
-    public DefaultFontWeightModel(final FontWeight data) {
+    public FontWeightModel(final FontWeight data) {
         super(data);
     }
 
    @Override
     public FontWeight getDefaultData() {
         return FontWeight.NORMAL;
+    }
+
+    @Override
+    public Model<FontWeight> deriveWithData(final FontWeight data) {
+        return new FontWeightModel(data);
     }
 }

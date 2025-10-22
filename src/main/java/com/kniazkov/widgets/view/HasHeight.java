@@ -6,7 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.ModelBinding;
+import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.protocol.SetHeight;
 
 /**
@@ -21,7 +21,7 @@ public interface HasHeight<T extends WidgetSize> extends View {
      *
      * @return the height model binding
      */
-    ModelBinding<T> getHeightModelBinding();
+    Binding<T> getHeightModelBinding();
 
     /**
      * Returns the model that stores the height for this view.

@@ -6,80 +6,89 @@ package com.kniazkov.widgets.model;
 import com.kniazkov.widgets.common.Listener;
 
 /**
- * A cascading model that delegates to a base model until overridden.
+ * A cascading reactive model that delegates to a base {@link Model} until locally overridden.
  * <p>
- * This wrapper implements a "lazy fork" mechanism:
+ * This implementation introduces a <em>lazy fork</em> mechanism that allows localized modifications
+ * without affecting the shared base model:
  * <ul>
- *   <li>As long as no local model exists, all read operations are delegated to the base model.</li>
- *   <li>When {@link #setData(Object)} is first called, a new local model is created using the
- *       provided {@link ModelFactory}, and all subsequent reads and writes go through it.</li>
- *   <li>The base model is never modified by this wrapper — updates remain local.</li>
+ *   <li>Initially, all reads and validity checks are delegated directly to the base model.</li>
+ *   <li>When {@link #setData(Object)} is invoked for the first time, this model "forks" — a new
+ *       local model is created by calling {@link Model#deriveWithData(Object)} on the base,
+ *       initialized with the provided data.</li>
+ *   <li>After the fork, all reads and writes are performed on this new local model, and the base
+ *       model remains untouched.</li>
  * </ul>
  * <p>
- * This design enables hierarchical or cascading data propagation.
- * For example, a base style can define shared properties (e.g. background color),
- * while individual instances can locally override them without breaking linkage
- * to the base model for others.
+ * This mechanism enables hierarchical or cascading configuration layers: for example, a shared
+ * style definition or configuration can act as the base model, while individual views
+ * or components locally override values without breaking linkage for other dependents still
+ * observing the base.
+ * <p>
+ * Like its superclass {@link SingleThreadModel}, this class is <strong>not thread-safe</strong>
+ * and should be used only from a single logical thread or event loop.
  *
- * @param <T> the type of data managed by this model
+ * @param <T> the type of the data managed by this model
  */
 public final class CascadingModel<T> extends SingleThreadModel<T> {
-    /**
-     * The base model from which this cascading model derives its data.
-     * */
-    private final Model<T> base;
 
     /**
-     * Factory for creating local models when an override is needed.
+     * The currently active model — initially the shared base model, and later
+     * a locally created model once {@link #setData(Object)} is called.
+     * All read and write operations are delegated to this reference.
      */
-    private final ModelFactory<T> factory;
+    private Model<T> model;
 
     /**
-     * The lazily created local model, or {@code null} if not overridden.
+     * A flag indicating whether this model has already been locally overridden.
+     * {@code false} means this instance still delegates directly to the base model.
+     * {@code true} means a local model has been created and is now active.
      */
-    private Model<T> local;
-
-    private final Listener<T> listener;
+    private boolean flag;
 
     /**
-     * Creates a new cascading model.
+     * A listener that relays change notifications from the current delegate model
+     * to this cascading wrapper by invoking {@link #notifyListeners()}.
+     */
+    private final Listener<T> forwarder;
+
+    /**
+     * Creates a new cascading model that initially delegates all operations
+     * to the specified base model.
      *
      * @param base the base model to delegate to until overridden
-     * @param factory factory that creates new local models
      */
-    public CascadingModel(final Model<T> base, final ModelFactory<T> factory) {
-        this.base = base;
-        this.factory = factory;
-        this.listener = this::notifyListeners;
-
-        base.addListener(this.listener);
+    public CascadingModel(final Model<T> base) {
+        this.model = base;
+        this.flag = false;
+        this.forwarder = this::notifyListeners;
+        base.addListener(this.forwarder);
     }
 
     @Override
     public boolean isValid() {
-        return (this.local != null) ? this.local.isValid() : this.base.isValid();
+        return this.model.isValid();
     }
 
     @Override
     public T getData() {
-        return (this.local != null) ? this.local.getData() : this.base.getData();
-    }
-
-    @Override
-    public T getDefaultData() {
-        return (this.local != null) ? this.local.getDefaultData() : this.base.getDefaultData();
+        return this.model.getData();
     }
 
     @Override
     public boolean setData(final T data) {
-        if (this.local == null) {
-            this.base.removeListener(this.listener);
-            this.local = this.factory.create(data);
-            this.local.addListener(this.listener);
-            this.notifyListeners(data);
-            return true;
-        } else {
-            return this.local.setData(data);
+        if (this.flag) {
+            return this.model.setData(data);
         }
+        this.model.removeListener(this.forwarder);
+        this.model = this.model.deriveWithData(data);
+        this.model.addListener(this.forwarder);
+        this.notifyListeners(data);
+        this.flag = true;
+        return true;
+    }
+
+    @Override
+    public Model<T> deriveWithData(final T data) {
+        return this.model.deriveWithData(data);
     }
 }
