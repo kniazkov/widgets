@@ -25,7 +25,7 @@ public final class SynchronizedModel<T> implements Model<T> {
      * The wrapped base model that provides the actual data and validation logic.
      * All access is guarded by {@link #lock}.
      */
-    private final Model<T> base;
+    private Model<T> base;
 
     /**
      * A reentrant synchronization lock used to serialize and coordinate access
@@ -40,8 +40,6 @@ public final class SynchronizedModel<T> implements Model<T> {
 
     /**
      * A listener that forwards updates from the base model to this wrapper’s listeners.
-     * It must be stored in a field, not in a local variable, so that the garbage collector
-     * does not remove the listener from the base model while this wrapper exists.
      */
     private final Listener<T> forwarder;
 
@@ -62,7 +60,7 @@ public final class SynchronizedModel<T> implements Model<T> {
     public boolean isValid() {
         this.lock.lock();
         try {
-            return base.isValid();
+            return this.base.isValid();
         } finally {
             this.lock.unlock();
         }
@@ -72,7 +70,7 @@ public final class SynchronizedModel<T> implements Model<T> {
     public T getData() {
         this.lock.lock();
         try {
-            return base.getData();
+            return this.base.getData();
         } finally {
             this.lock.unlock();
         }
@@ -82,7 +80,7 @@ public final class SynchronizedModel<T> implements Model<T> {
     public boolean setData(final T data) {
         this.lock.lock();
         try {
-            return base.setData(data);
+            return this.base.setData(data);
         } finally {
             this.lock.unlock();
         }
@@ -92,7 +90,7 @@ public final class SynchronizedModel<T> implements Model<T> {
     public void addListener(final Listener<T> listener) {
         this.lock.lock();
         try {
-            listeners.put(listener, Boolean.TRUE);
+            this.listeners.put(listener, Boolean.TRUE);
         } finally {
             this.lock.unlock();
         }
@@ -102,7 +100,7 @@ public final class SynchronizedModel<T> implements Model<T> {
     public void removeListener(final Listener<T> listener) {
         this.lock.lock();
         try {
-            listeners.remove(listener);
+            this.listeners.remove(listener);
         } finally {
             this.lock.unlock();
         }
@@ -114,7 +112,7 @@ public final class SynchronizedModel<T> implements Model<T> {
         final List<Listener<T>> snapshot;
         this.lock.lock();
         try {
-            data = base.getData();
+            data = this.base.getData();
             snapshot = new ArrayList<>(this.listeners.keySet());
         } finally {
             this.lock.unlock();
@@ -130,9 +128,50 @@ public final class SynchronizedModel<T> implements Model<T> {
     }
 
     @Override
-    public Model<T> asSynchronized() {
+    public SynchronizedModel<T> asSynchronized() {
         // Returns this instance itself, since it is already a thread-safe model
         return this;
+    }
+
+    /**
+     * Returns the currently wrapped base model.
+     *
+     * @return the current underlying {@link Model} instance
+     */
+    public Model<T> getBase() {
+        return this.base;
+    }
+
+    /**
+     * Replaces the underlying base model with a new one.
+     * <p>
+     * This method safely detaches the internal listener from the previous base model,
+     * attaches it to the new one, and immediately notifies all listeners of this wrapper
+     * with the new model’s current data value.
+     * <p>
+     * If the specified model is the same as the current one, no action is taken.
+     *
+     * @param model the new base {@link Model} to wrap
+     */
+    public void setBase(final Model<T> model) {
+        if (this.base == model) {
+            return;
+        }
+        final T data;
+        final List<Listener<T>> snapshot;
+        this.lock.lock();
+        try {
+            this.base.removeListener(this.forwarder);
+            this.base = model;
+            this.base.addListener(this.forwarder);
+            data = model.getData();
+            snapshot = new ArrayList<>(this.listeners.keySet());
+        } finally {
+            this.lock.unlock();
+        }
+        for (final Listener<T> listener : snapshot) {
+            listener.accept(data);
+        }
     }
 
     /**
@@ -140,7 +179,7 @@ public final class SynchronizedModel<T> implements Model<T> {
      *
      * @param data the data value to broadcast to listeners
      */
-    protected void notifyListeners(final T data) {
+    private void notifyListeners(final T data) {
         final List<Listener<T>> snapshot;
         this.lock.lock();
         try {

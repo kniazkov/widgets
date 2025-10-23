@@ -124,7 +124,7 @@ public interface Model<T> {
      *
      * @return a new synchronized model wrapping this model
      */
-    default Model<T> asSynchronized() {
+    default SynchronizedModel<T> asSynchronized() {
         return new SynchronizedModel<>(this);
     }
 }
