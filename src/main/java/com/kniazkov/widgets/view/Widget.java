@@ -4,8 +4,11 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.model.Binding;
+import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.Subscribe;
@@ -24,7 +27,7 @@ import java.util.TreeSet;
  * describe how the client should create or modify its representation.
  * On creation, every widget automatically generates a {@link CreateWidget} update with its type.
  */
-public abstract class Widget {
+public abstract class Widget implements Entity {
     /**
      * Widget unique Id.
      */
@@ -41,15 +44,12 @@ public abstract class Widget {
     private Container parent;
 
     /**
-     * Stores bindings that are independent of widget state.
+     * Two-dimensional mapping: {@link State} → ({@link Property} → {@link Binding}).
+     * Each entry defines a live connection between a reactive {@link Model} and
+     * a {@link Listener} that responds to model updates for a specific
+     * visual or behavioral {@link Property} in a given {@link State}.
      */
-    private final Map<Property, Binding<?>> bindings;
-
-    /**
-     * Stores bindings that depend on widget state.
-     * Example: background color may vary between NORMAL, HOVER, ACTIVE, etc.
-     */
-    private final Map<Property, Map<State, Binding<?>>> stateBindings;
+    private final Map<State, Map<Property, Binding<?>>> bindings;
 
     /**
      * Constructs a new widget and schedules a {@link CreateWidget} update.
@@ -58,8 +58,19 @@ public abstract class Widget {
         this.id = UId.create();
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
-        this.bindings = new EnumMap<>(Property.class);
-        this.stateBindings = new EnumMap<>(Property.class);
+        this.bindings = new EnumMap<>(State.class);
+    }
+
+    @Override
+    public <T> Model<T> getModel(final State state, final Property property, final Class<T> type) {
+        return this.getBinding(state, property, type).getModel();
+    }
+
+    @Override
+    public <T> void setModel(final State state, final Property property, final Class<T> type,
+            final Model<T> model) {
+        final Binding<T> binding = this.getBinding(state, property, type);
+        binding.setModel(model);
     }
 
     /**
@@ -114,47 +125,6 @@ public abstract class Widget {
     public void getUpdates(final Set<Update> set) {
         set.addAll(this.updates);
         this.updates.clear();
-    }
-
-    /**
-     * Returns a state-independent binding for the specified property.
-     *
-     * @param property property key
-     * @param <T> binding data type
-     * @return the model binding
-     * @throws IllegalStateException if no binding is found
-     */
-    @SuppressWarnings("unchecked")
-    public <T> Binding<T> getModelBinding(final Property property) {
-        final Binding<?> binding = this.bindings.get(property);
-        if (binding == null) {
-            throw new IllegalStateException("No binding for property: " + property);
-        }
-        return (Binding<T>) binding;
-    }
-
-    /**
-     * Returns a state-dependent binding for the specified property and state.
-     *
-     * @param property property key
-     * @param state widget state
-     * @param <T> binding data type
-     * @return the model binding
-     * @throws IllegalStateException if no binding is found for the given state
-     */
-    @SuppressWarnings("unchecked")
-    public <T> Binding<T> getModelBinding(final Property property, final State state) {
-        final Map<State, Binding<?>> byState = this.stateBindings.get(property);
-        if (byState == null) {
-            throw new IllegalStateException("No state bindings for property: " + property);
-        }
-        final Binding<?> binding = byState.get(state);
-        if (binding == null) {
-            throw new IllegalStateException(
-                "No binding for property: " + property + " in state: " + state
-            );
-        }
-        return (Binding<T>) binding;
     }
 
     /**
@@ -226,29 +196,24 @@ public abstract class Widget {
     }
 
     /**
-     * Adds a state-independent binding for the specified property.
+     * Registers a reactive binding between a {@link Model} and a {@link Listener}
+     * for the specified {@link State} and {@link Property}.
+     * <p>
+     * This method is intended to be used by subclass constructors to define how
+     * this widget reacts to model updates — for example, by updating visual attributes
+     * such as color, size, or text when the model’s data changes.
      *
-     * @param property property key
-     * @param binding model binding
-     * @param <T> binding data type
+     * @param state the logical state of the widget (e.g. normal, hovered, disabled)
+     * @param property the visual or behavioral property being bound
+     * @param model the reactive model providing data
+     * @param listener the listener that responds to model updates
+     * @param <T> the type of data managed by the model
      */
-    protected <T> void addBinding(final Property property, final Binding<T> binding) {
-        this.bindings.put(property, binding);
-    }
-
-    /**
-     * Adds a state-dependent binding for the specified property and state.
-     *
-     * @param property property key
-     * @param state widget state
-     * @param binding model binding
-     * @param <T> binding data type
-     */
-    protected <T> void addBinding(final Property property, final State state,
-            final Binding<T> binding) {
-        this.stateBindings
-            .computeIfAbsent(property, k -> new EnumMap<>(State.class))
-            .put(state, binding);
+    protected <T> void bindModel(final State state, final Property property, final Model<T> model,
+            final Listener<T> listener) {
+        Map<Property, Binding<?>> subset =
+            this.bindings.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
+        subset.put(property, new Binding<>(model, listener));
     }
 
     /**
@@ -267,5 +232,39 @@ public abstract class Widget {
      */
     protected void subscribeToEvent(final String event) {
         this.updates.add(new Subscribe(this.id, event));
+    }
+
+    /**
+     * Returns the {@link Binding} associated with the specified {@link State} and {@link Property}.
+     *
+     * @param state the logical state (e.g. normal, hovered, disabled)
+     * @param property the property key (e.g. color, size, text)
+     * @param type the expected type of the model’s data
+     * @param <T> the type of data managed by the binding
+     * @return the typed {@link Binding} for the given state and property
+     * @throws IllegalArgumentException if no binding exists or the type is incompatible
+     */
+    private <T> Binding<T> getBinding(final State state, final Property property,
+            final Class<T> type) {
+        final Map<Property, Binding<?>> subset = this.bindings.get(state);
+        if (subset == null) {
+            throw new IllegalArgumentException("No bindings for state " + state);
+        }
+        final Binding<?> binding = subset.get(property);
+        if (binding == null) {
+            throw new IllegalArgumentException(
+                "No binding for property " + property + " in state " + state
+            );
+        }
+        final Object data = binding.getModel().getData();
+        if (!type.isInstance(data)) {
+            throw new IllegalArgumentException(
+                "Binding for " + property + " in state " + state + " has incompatible type: " +
+                data.getClass().getName() + " (expected " + type.getName() + ")"
+            );
+        }
+        @SuppressWarnings("unchecked")
+        final Binding<T> typed = (Binding<T>) binding;
+        return typed;
     }
 }

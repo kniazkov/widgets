@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.UId;
 /**
  * Instruction that initiates a full client reset.
  */
-public class ResetClient extends Update {
+public final class ResetClient extends Update {
     /**
      * Constructs a new reset instruction.
      */

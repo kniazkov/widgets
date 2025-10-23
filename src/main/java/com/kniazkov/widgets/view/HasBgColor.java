@@ -6,27 +6,19 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.protocol.SetBgColor;
 
 /**
- * A {@link View} that has an associated background color model.
+ * An {@link Entity} that has an associated background color model.
  */
-public interface HasBgColor extends View {
-    /**
-     * Returns the binding that connects the background color model to this widget.
-     *
-     * @return the background color model binding
-     */
-    Binding<Color> getBgColorModelBinding();
-
+public interface HasBgColor extends Entity {
     /**
      * Returns the model that stores the background color for this view.
      *
      * @return the background color model
      */
     default Model<Color> getBgColorModel() {
-        return this.getBgColorModelBinding().getModel();
+        return this.getModel(State.NORMAL, Property.BG_COLOR, Color.class);
     }
 
     /**
@@ -35,7 +27,7 @@ public interface HasBgColor extends View {
      * @param model the background color model to set
      */
     default void setBgColorModel(final Model<Color> model) {
-        this.getBgColorModelBinding().setModel(model);
+        this.setModel(State.NORMAL, Property.BG_COLOR, Color.class, model);
     }
 
     /**
@@ -61,19 +53,22 @@ public interface HasBgColor extends View {
      */
     final class BgColorModelListener implements Listener<Color> {
         private final Widget widget;
+        private final State state;
 
         /**
          * Creates a new listener bound to the specified widget.
          *
          * @param widget the widget whose background color will be updated
+         * @param state the state of the widget in which the change is applied
          */
-        public BgColorModelListener(final Widget widget) {
+        public BgColorModelListener(final Widget widget, final State state) {
             this.widget = widget;
+            this.state = state;
         }
 
         @Override
         public void accept(final Color data) {
-            this.widget.pushUpdate(new SetBgColor(this.widget.getId(), data));
+            this.widget.pushUpdate(new SetBgColor(this.widget.getId(), this.state, data));
         }
     }
 }

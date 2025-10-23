@@ -6,36 +6,18 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.protocol.SetText;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.Binding;
 
 /**
- * A {@link View} that has an associated text model.
+ * An {@link Entity} that has an associated text model.
  */
-public interface HasText extends View {
-    /**
-     * Returns the model binding associated with the specified property.
-     *
-     * @param property the property key
-     * @return the model binding associated with the given property
-     */
-    <T> Binding<T> getModelBinding(final Property property);
-
-    /**
-     * Returns the binding that connects the text model to this widget.
-     *
-     * @return the text model binding
-     */
-    default Binding<String> getTextModelBinding() {
-        return this.getModelBinding(Property.TEXT);
-    }
-
+public interface HasText extends Entity {
     /**
      * Returns the model that stores the text for this view.
      *
      * @return the text model
      */
     default Model<String> getTextModel() {
-        return this.getTextModelBinding().getModel();
+        return this.getModel(State.NORMAL, Property.TEXT, String.class);
     }
 
     /**
@@ -44,7 +26,7 @@ public interface HasText extends View {
      * @param model the text model to set
      */
     default void setTextModel(Model<String> model) {
-        this.getTextModelBinding().setModel(model);
+        this.setModel(State.NORMAL, Property.TEXT, String.class, model);
     }
 
     /**

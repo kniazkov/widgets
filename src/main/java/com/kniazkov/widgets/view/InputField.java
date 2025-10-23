@@ -119,7 +119,7 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
         bgColorModel.setData(Color.WHITE);
         this.bgColor = new Binding<>(
             bgColorModel,
-            new BgColorModelListener(this)
+            new BgColorModelListener( this, State.NORMAL)
         );
         this.fontFace = new Binding<>(
             new FontFaceModel(),
@@ -152,18 +152,8 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     }
 
     @Override
-    public Binding<String> getTextModelBinding() {
-        return this.text;
-    }
-
-    @Override
     public Binding<Color> getColorModelBinding() {
         return this.color;
-    }
-
-    @Override
-    public Binding<Color> getBgColorModelBinding() {
-        return this.bgColor;
     }
 
     @Override

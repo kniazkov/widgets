@@ -239,7 +239,7 @@ public abstract class Style implements Entity {
             );
         }
         final Object data = model.getData();
-        if (type.isInstance(data)) {
+        if (!type.isInstance(data)) {
             throw new IllegalArgumentException(
                 "Model for " + property + " in state " + state + " has incompatible type: " +
                 data.getClass().getName() + " (expected " + type.getName() + ")"
