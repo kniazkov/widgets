@@ -60,12 +60,7 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
      */
     public TextWidget(final String text) {
         super(Style.EMPTY_STYLE);
-        this.bindModel(
-            State.NORMAL,
-            Property.TEXT,
-            new StringModel(text),
-            new TextModelListener(this)
-        );
+        this.bindData(State.NORMAL, Property.TEXT, text);
         this.color = new Binding<>(
             new ColorModel(),
             new ColorModelListener(this)

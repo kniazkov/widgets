@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.model.DefaultModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.SynchronizedModel;
 import java.util.EnumMap;
@@ -209,6 +210,22 @@ public abstract class Style implements Entity {
         Map<Property, SynchronizedModel<?>> subset =
             this.models.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
         subset.put(property, model.asSynchronized());
+    }
+
+    /**
+     * Binds a raw data value to the specified {@link Property} of this style.
+     * <p>
+     * This method acts as a convenience wrapper that automatically creates a suitable {@link Model}
+     * instance for the provided {@code data} using {@link DefaultModel#create(Object)}, and then
+     * delegates to {@link #bindModel(State, Property, Model)}.
+     *
+     * @param state the logical widget state
+     * @param property the property key
+     * @param data the initial data value to bind
+     * @throws IllegalArgumentException if {@code data} is of an unsupported type
+     */
+    protected void bindData(final State state, final Property property, Object data) {
+        this.bindModel(state, property, DefaultModel.create(data));
     }
 
     /**

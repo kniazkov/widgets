@@ -3,6 +3,12 @@
  */
 package com.kniazkov.widgets.model;
 
+import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.FontFace;
+import com.kniazkov.widgets.common.FontSize;
+import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.InlineWidgetSize;
+
 /**
  * Default in-memory implementation of {@link Model}.
  * This class provides a simple and reliable data model suitable for most use cases
@@ -61,4 +67,55 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      * @return the default data value
      */
     protected abstract T getDefaultData();
+
+    /**
+     * Creates an appropriate {@link Model} instance for the given data object.
+     * <p>
+     * This factory inspects the runtime type of the provided {@code data}
+     * and returns a corresponding {@link DefaultModel} subclass:
+     * <ul>
+     *   <li>{@link String} → {@link StringModel}</li>
+     *   <li>{@link Integer} → {@link IntegerModel}</li>
+     *   <li>{@link Boolean} → {@link BooleanModel}</li>
+     *   <li>{@link Color} → {@link ColorModel}</li>
+     *   <li>{@link FontFace} → {@link FontFaceModel}</li>
+     *   <li>{@link FontSize} → {@link FontSizeModel}</li>
+     *   <li>{@link FontWeight} → {@link FontWeightModel}</li>
+     *   <li>{@link InlineWidgetSize} → {@link InlineWidgetSizeModel}</li>
+     * </ul>
+     * <p>
+     *
+     * @param data the initial data value for the model (must not be {@code null})
+     * @return a new {@link Model} instance suitable for the given data type
+     * @throws IllegalArgumentException if no matching model implementation exists
+     */
+    public static Model<?> create(final Object data) {
+        if (data instanceof String) {
+            return new StringModel((String) data);
+        }
+        if (data instanceof Integer) {
+            return new IntegerModel((Integer) data);
+        }
+        if (data instanceof Boolean) {
+            return new BooleanModel((Boolean) data);
+        }
+        if (data instanceof Color) {
+            return new ColorModel((Color) data);
+        }
+        if (data instanceof FontFace) {
+            return new FontFaceModel((FontFace) data);
+        }
+        if (data instanceof FontSize) {
+            return new FontSizeModel((FontSize) data);
+        }
+        if (data instanceof FontWeight) {
+            return new FontWeightModel((FontWeight) data);
+        }
+        if (data instanceof InlineWidgetSize) {
+            return new InlineWidgetSizeModel((InlineWidgetSize) data);
+        }
+        throw new IllegalArgumentException(
+            "Unsupported data type for DefaultModel: " + data.getClass().getName()
+        );
+    }
 }
