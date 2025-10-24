@@ -9,5 +9,12 @@ package com.kniazkov.widgets.view;
  * surrounding inline content.
  */
 public abstract class BlockWidget extends Widget {
-
+    /**
+     * Creates a new block widget instance initialized from the specified {@link Style}.
+     *
+     * @param style the style providing the initial models and properties for this widget
+     */
+    public BlockWidget(final Style style) {
+        super(style);
+    }
 }

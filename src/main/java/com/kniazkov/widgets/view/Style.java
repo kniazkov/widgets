@@ -19,6 +19,11 @@ import java.util.Map;
  */
 public abstract class Style implements Entity {
     /**
+     * Empty style, containing no models.
+     */
+    public static final Style EMPTY_STYLE = new EmptyStyle();
+
+    /**
      * Two-dimensional mapping: {@link State} → ({@link Property} → {@link SynchronizedModel}).
      * <p>
      * Each entry defines a reactive, thread-safe model representing a specific visual or
@@ -207,39 +212,34 @@ public abstract class Style implements Entity {
     }
 
     /**
-     * Returns a synchronized model binding for the specified state and property pair.
-     * <p>
-     * A <em>binding</em> represents a {@link SynchronizedModel} wrapper that provides
-     * thread-safe access to the underlying reactive model associated with a particular
-     * {@link State} and {@link Property}. The returned wrapper always exists for valid keys
-     * and remains stable across calls — meaning that even if the underlying model is later
-     * replaced, the wrapper instance itself remains the same.
-     * <p>
-     * This design allows external subscribers (widgets, derived styles, etc.) to safely hold
-     * references to the binding without worrying about reattaching listeners or losing updates
-     * when the model changes.
+     * Returns a typed, thread-safe {@link SynchronizedModel} for the given {@link State}
+     * and {@link Property}, automatically creating it if missing.
+     * If a model is present but its data type is incompatible with the expected
+     * {@code type}, an {@link IllegalArgumentException} is thrown.
      *
-     * @param state the logical control state (e.g. normal, hovered, disabled)
-     * @param property the property key representing a visual or behavioral aspect
+     * @param state the logical state (e.g. NORMAL, DISABLED)
+     * @param property the property key (e.g. TEXT, COLOR, WIDTH)
      * @param type the expected data type of the model
-     * @param <T> the type of data managed by the model
-     * @return the synchronized model binding for the specified state and property
-     * @throws IllegalArgumentException if no binding exists or the model type is incompatible
+     * @param <T> the type parameter of the model’s data
+     * @return an existing or newly created {@link SynchronizedModel} of the correct type
+     * @throws IllegalArgumentException if an existing model has an incompatible type
      */
     private <T> SynchronizedModel<T> getBinding(final State state, final Property property,
             final Class<T> type) {
-        final Map<Property, SynchronizedModel<?>> subset = this.models.get(state);
+        Map<Property, SynchronizedModel<?>> subset = this.models.get(state);
         if (subset == null) {
-            throw new IllegalArgumentException("No models for state " + state);
+            subset = new EnumMap<>(Property.class);
+            this.models.put(state, subset);
         }
-        final SynchronizedModel<?> model = subset.get(property);
+        SynchronizedModel<?> model = subset.get(property);
         if (model == null) {
-            throw new IllegalArgumentException(
-                "No model for property " + property + " in state " + state
-            );
+            Model<?> defaultModel = property.createDefaultModel();
+            SynchronizedModel<?> sync = new SynchronizedModel<>(defaultModel);
+            subset.put(property, sync);
+            model = sync;
         }
         final Object data = model.getData();
-        if (!type.isInstance(data)) {
+        if (data != null && !type.isInstance(data)) {
             throw new IllegalArgumentException(
                 "Model for " + property + " in state " + state + " has incompatible type: " +
                 data.getClass().getName() + " (expected " + type.getName() + ")"
@@ -248,5 +248,40 @@ public abstract class Style implements Entity {
         @SuppressWarnings("unchecked")
         final SynchronizedModel<T> typed = (SynchronizedModel<T>) model;
         return typed;
+    }
+
+    /**
+     * A minimal no-op implementation of {@link Style} that provides default, standalone models
+     * but does not store or propagate any state.
+     * This style serves as a safe fallback or placeholder for widgets or components
+     * that require a style reference but do not yet have a concrete one assigned.
+     */
+    private static class EmptyStyle extends Style {
+        @Override
+        public <T> Model<T> getModel(final State state, final Property property,
+                final Class<T> type) {
+            final Model<?> model = property.createDefaultModel();
+            final Object data = model.getData();
+            if (data != null && !type.isInstance(data)) {
+                throw new IllegalArgumentException(
+                    "Model for " + property + " in state " + state + " has incompatible type: " +
+                        data.getClass().getName() + " (expected " + type.getName() + ")"
+                );
+            }
+            @SuppressWarnings("unchecked")
+            final Model<T> typed = (Model<T>) model;
+            return typed;
+        }
+
+        @Override
+        public <T> void setModel(final State state, final Property property, final Class<T> type,
+                final Model<T> model) {
+            // do nothing
+        }
+
+        @Override
+        public EmptyStyle derive() {
+            return this;
+        }
     }
 }

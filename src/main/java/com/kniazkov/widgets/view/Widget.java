@@ -52,13 +52,27 @@ public abstract class Widget implements Entity {
     private final Map<State, Map<Property, Binding<?>>> bindings;
 
     /**
-     * Constructs a new widget and schedules a {@link CreateWidget} update.
+     * Creates a new widget instance initialized from the specified {@link Style}.
+     *
+     * @param style the style providing the initial models and properties for this widget
      */
-    public Widget() {
+    public Widget(final Style style) {
         this.id = UId.create();
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(State.class);
+        style.forEachModel((state, property, model) -> {
+            Map<Property, Binding<?>> subset =
+                this.bindings.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
+            subset.put(
+                property,
+                property.bindModel(
+                    state,
+                    model.asCascading(),
+                    this
+                )
+            );
+        });
     }
 
     @Override
@@ -235,32 +249,35 @@ public abstract class Widget implements Entity {
     }
 
     /**
-     * Returns the {@link Binding} associated with the specified {@link State} and {@link Property}.
+     * Returns a typed {@link Binding} for the given {@link State} and {@link Property},
+     * automatically creating it if missing.
      *
-     * @param state the logical state (e.g. normal, hovered, disabled)
-     * @param property the property key (e.g. color, size, text)
-     * @param type the expected type of the model’s data
-     * @param <T> the type of data managed by the binding
-     * @return the typed {@link Binding} for the given state and property
-     * @throws IllegalArgumentException if no binding exists or the type is incompatible
+     * @param state the widget’s current logical state (e.g. NORMAL, HOVERED)
+     * @param property the property key (e.g. TEXT, COLOR)
+     * @param type the expected data type of the bound model
+     * @param <T> the type parameter of the model’s data
+     * @return an existing or newly created {@link Binding} for the given property and state
+     * @throws IllegalArgumentException if the existing binding has an incompatible model type
      */
     private <T> Binding<T> getBinding(final State state, final Property property,
             final Class<T> type) {
-        final Map<Property, Binding<?>> subset = this.bindings.get(state);
+        Map<Property, Binding<?>> subset = this.bindings.get(state);
         if (subset == null) {
-            throw new IllegalArgumentException("No bindings for state " + state);
+            subset = new EnumMap<>(Property.class);
+            this.bindings.put(state, subset);
         }
-        final Binding<?> binding = subset.get(property);
+        Binding<?> binding = subset.get(property);
         if (binding == null) {
-            throw new IllegalArgumentException(
-                "No binding for property " + property + " in state " + state
-            );
+            final Model<?> defaultModel = property.createDefaultModel();
+            binding = property.bindModel(state, defaultModel, this);
+            subset.put(property, binding);
         }
         final Object data = binding.getModel().getData();
-        if (!type.isInstance(data)) {
+        if (data != null && !type.isInstance(data)) {
             throw new IllegalArgumentException(
-                "Binding for " + property + " in state " + state + " has incompatible type: " +
-                data.getClass().getName() + " (expected " + type.getName() + ")"
+                "Binding for " + property + " in state " + state +
+                    " has incompatible type: " + data.getClass().getName() +
+                    " (expected " + type.getName() + ")"
             );
         }
         @SuppressWarnings("unchecked")

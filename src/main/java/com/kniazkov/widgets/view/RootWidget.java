@@ -38,6 +38,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
      * @param client client that owns this widget
      */
     public RootWidget(final Client client) {
+        super(Style.EMPTY_STYLE);
         client.onClose(this::close);
     }
 

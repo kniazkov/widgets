@@ -21,6 +21,13 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
      */
     private final List<InlineWidget> children = new ArrayList<>();
 
+    /**
+     * Creates a new section.
+     */
+    public Section() {
+        super(Style.EMPTY_STYLE);
+    }
+
     @Override
     public int getChildCount() {
         return this.children.size();

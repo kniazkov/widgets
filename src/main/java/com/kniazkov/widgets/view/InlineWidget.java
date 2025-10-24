@@ -9,5 +9,12 @@ package com.kniazkov.widgets.view;
  * to block widgets that take the full width of their parent.
  */
 public abstract class InlineWidget extends Widget {
-
+    /**
+     * Creates a new inline widget instance initialized from the specified {@link Style}.
+     *
+     * @param style the style providing the initial models and properties for this widget
+     */
+    public InlineWidget(final Style style) {
+        super(style);
+    }
 }
