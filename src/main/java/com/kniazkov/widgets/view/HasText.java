@@ -3,8 +3,6 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.protocol.SetText;
 import com.kniazkov.widgets.model.Model;
 
 /**
@@ -17,7 +15,7 @@ public interface HasText extends Entity {
      * @return the text model
      */
     default Model<String> getTextModel() {
-        return this.getModel(State.NORMAL, Property.TEXT, String.class);
+        return this.getModel(State.ANY, Property.TEXT, String.class);
     }
 
     /**
@@ -26,7 +24,7 @@ public interface HasText extends Entity {
      * @param model the text model to set
      */
     default void setTextModel(Model<String> model) {
-        this.setModel(State.NORMAL, Property.TEXT, String.class, model);
+        this.setModel(State.ANY, Property.TEXT, String.class, model);
     }
 
     /**
@@ -45,21 +43,5 @@ public interface HasText extends Entity {
      */
     default void setText(String text) {
         this.getTextModel().setData(text);
-    }
-
-    /**
-     * Listener that listens to text models and sends a "set text" update.
-     */
-    final class TextModelListener implements Listener<String> {
-        private final Widget widget;
-
-        public TextModelListener(final Widget widget) {
-            this.widget = widget;
-        }
-
-        @Override
-        public void accept(final String data) {
-            this.widget.pushUpdate(new SetText(this.widget.getId(), data));
-        }
     }
 }

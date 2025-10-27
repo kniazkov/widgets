@@ -127,9 +127,9 @@ var setColor = function(data) {
     return false;
 };
 
-var setBackgroundColor = function(data) {
+var setBgColor = function(data) {
     var widget = widgets[data.widget];
-    var rgb = data["background color"];
+    var rgb = data["bg color"];
     if (widget && typeof rgb == "object") {
         var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
         var flag = true;

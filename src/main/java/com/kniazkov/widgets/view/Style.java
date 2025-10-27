@@ -20,9 +20,14 @@ import java.util.Map;
  */
 public abstract class Style implements Entity {
     /**
-     * Empty style, containing no models.
+     * Returns empty state implementation.
+     *
+     * @return an empty state
      */
-    public static final Style EMPTY_STYLE = new EmptyStyle();
+    public static Style getEmptyStyle() {
+        return EmptyStyle.INSTANCE;
+    }
+
 
     /**
      * Two-dimensional mapping: {@link State} → ({@link Property} → {@link SynchronizedModel}).
@@ -274,6 +279,11 @@ public abstract class Style implements Entity {
      * that require a style reference but do not yet have a concrete one assigned.
      */
     private static class EmptyStyle extends Style {
+        /**
+         * The singleton instance of the empty style.
+         */
+        private static final Style INSTANCE = new EmptyStyle();
+
         @Override
         public <T> Model<T> getModel(final State state, final Property property,
                 final Class<T> type) {

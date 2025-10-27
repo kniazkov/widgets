@@ -59,7 +59,7 @@ public class CustomWidget {
             section.add(new TextWidget("You entered: "));
             final TextWidget textWidget = new TextWidget();
             section.add(textWidget);
-            textWidget.setFontWeight(FontWeight.BOLD);
+            //textWidget.setFontWeight(FontWeight.BOLD);
 
             customWidget.onTextInput(data -> {
                 if (!section.getParent().isPresent()) {

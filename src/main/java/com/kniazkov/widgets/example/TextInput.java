@@ -44,7 +44,7 @@ public class TextInput {
             root.add(outputSection);
             outputSection.add(new TextWidget("You entered: '"));
             final TextWidget echoText = new TextWidget();
-            echoText.setFontWeight(FontWeight.BOLD);
+            //echoText.setFontWeight(FontWeight.BOLD);
             outputSection.add(echoText);
             outputSection.add(new TextWidget("'"));
 

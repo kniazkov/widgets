@@ -5,46 +5,21 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.FontFace;
-import com.kniazkov.widgets.common.FontSize;
-import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.model.BooleanModel;
-import com.kniazkov.widgets.model.ColorModel;
-import com.kniazkov.widgets.model.FontFaceModel;
-import com.kniazkov.widgets.model.FontSizeModel;
-import com.kniazkov.widgets.model.FontWeightModel;
-import com.kniazkov.widgets.model.StringModel;
-import com.kniazkov.widgets.model.Binding;
+import com.kniazkov.widgets.model.ReadOnlyModel;
 import java.util.Optional;
 
 /**
- * A simple text widget.
+ * A simple text widget that displays styled textual content.
  */
 public class TextWidget extends InlineWidget implements HasStyledText, HasColor {
     /**
-     * Binding between the color model and this widget.
+     * Returns the default style instance used by text widgets.
+     *
+     * @return the singleton default {@link TextWidgetStyle} instance
      */
-    final Binding<Color> color;
-
-    /**
-     * Binding between the font face model and this widget.
-     */
-    final Binding<FontFace> fontFace;
-
-    /**
-     * Binding between the font size model and this widget.
-     */
-    final Binding<FontSize> fontSize;
-
-    /**
-     * Binding between the font weight model and this widget.
-     */
-    final Binding<FontWeight> fontWeight;
-
-    /**
-     * Binding between the italic model and this widget.
-     */
-    final Binding<Boolean> italic;
+    public static TextWidgetStyle getDefaultStyle() {
+        return DefaultStyle.INSTANCE;
+    }
 
     /**
      * Creates a new text widget with empty text.
@@ -54,58 +29,23 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     }
 
     /**
-     * Creates a new text widget with the given initial text.
+     * Creates a new text widget with the given initial text value and the default style.
      *
-     * @param text the initial text
+     * @param text the initial text to display
      */
     public TextWidget(final String text) {
-        super(Style.EMPTY_STYLE);
+        this(DefaultStyle.INSTANCE, text);
+    }
+
+    /**
+     * Creates a new text widget with the specified style and initial text.
+     *
+     * @param style the style to apply to this widget
+     * @param text  the initial text to display
+     */
+    public TextWidget(final TextWidgetStyle style, final String text) {
+        super(style);
         this.bindData(State.NORMAL, Property.TEXT, text);
-        this.color = new Binding<>(
-            new ColorModel(),
-            new ColorModelListener(this)
-        );
-        this.fontFace = new Binding<>(
-            new FontFaceModel(),
-            new FontFaceModelListener(this)
-        );
-        this.fontSize = new Binding<>(
-            new FontSizeModel(),
-            new FontSizeModelListener(this))
-        ;
-        this.fontWeight = new Binding<>(
-            new FontWeightModel(),
-            new FontWeightModelListener(this)
-        );
-        this.italic = new Binding<>(
-            new BooleanModel(),
-            new ItalicModelListener(this)
-        );
-    }
-
-    @Override
-    public Binding<Color> getColorModelBinding() {
-        return this.color;
-    }
-
-    @Override
-    public Binding<FontFace> getFontFaceModelBinding() {
-        return this.fontFace;
-    }
-
-    @Override
-    public Binding<FontSize> getFontSizeModelBinding() {
-        return this.fontSize;
-    }
-
-    @Override
-    public Binding<FontWeight> getFontWeightModelBinding() {
-        return this.fontWeight;
-    }
-
-    @Override
-    public Binding<Boolean> getItalicModelBinding() {
-        return this.italic;
     }
 
     @Override
@@ -114,7 +54,26 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     }
 
     @Override
-    public void handleEvent(String type, Optional<JsonObject> data) {
+    public void handleEvent(final String type, final Optional<JsonObject> data) {
         // no events to process
+    }
+
+    /**
+     * The default style implementation for {@link TextWidget}.
+     */
+    private static final class DefaultStyle extends TextWidgetStyle {
+
+        /**
+         * Singleton instance of the default style.
+         */
+        public static final TextWidgetStyle INSTANCE = new DefaultStyle();
+
+        /**
+         * Initializes the default text style configuration.
+         */
+        private DefaultStyle() {
+            this.bindModel(State.ANY, Property.TEXT, ReadOnlyModel.create(""));
+            this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
+        }
     }
 }

@@ -48,7 +48,7 @@ public class Button extends InlineWidget
      * @param text the button text
      */
     public Button(final String text) {
-        super(Style.EMPTY_STYLE);
+        super(Style.getEmptyStyle());
         this.child = new TextWidget(text);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
         this.clickCtrl = TypedController.stub();

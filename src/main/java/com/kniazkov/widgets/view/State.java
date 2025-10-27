@@ -8,19 +8,34 @@ package com.kniazkov.widgets.view;
  * States are used to determine which variant of a property model applies.
  */
 public enum State {
-    /** Normal state (default appearance). */
+    /**
+     * Unknown state (meaning "the described entity is suitable for all widget states").
+     */
+    ANY("any"),
+
+    /**
+     * Normal state (default appearance).
+     */
     NORMAL("normal"),
 
-    /** The pointer is hovering over the widget. */
+    /**
+     * The pointer is hovering over the widget.
+     */
     HOVER("hover"),
 
-    /** The widget is currently pressed or active. */
+    /**
+     * The widget is currently pressed or active.
+     */
     ACTIVE("active"),
 
-    /** The widget is disabled and not interactive. */
+    /**
+     * The widget is disabled and not interactive.
+     */
     DISABLED("disabled"),
 
-    /** The widget content is invalid (e.g., failed validation). */
+    /**
+     * The widget content is invalid (e.g., failed validation).
+     */
     INVALID("invalid");
 
     private final String key;

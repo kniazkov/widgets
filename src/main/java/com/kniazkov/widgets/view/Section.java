@@ -25,7 +25,7 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
      * Creates a new section.
      */
     public Section() {
-        super(Style.EMPTY_STYLE);
+        super(Style.getEmptyStyle());
     }
 
     @Override

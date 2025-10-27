@@ -57,7 +57,7 @@ public class IntegerInput {
             outputSection.add(new TextWidget("Integer model value: '"));
             final TextWidget echoText = new TextWidget();
             outputSection.add(echoText);
-            echoText.setFontWeight(FontWeight.BOLD);
+            //echoText.setFontWeight(FontWeight.BOLD);
             echoText.setTextModel(new IntegerToStringModel(intModel));
             outputSection.add(new TextWidget("'"));
         };

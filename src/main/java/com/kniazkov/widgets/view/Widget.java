@@ -9,9 +9,9 @@ import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.DefaultModel;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
+import com.kniazkov.widgets.protocol.SetProperty;
 import com.kniazkov.widgets.protocol.Subscribe;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
@@ -298,5 +298,49 @@ public abstract class Widget implements Entity {
         @SuppressWarnings("unchecked")
         final Binding<T> typed = (Binding<T>) binding;
         return typed;
+    }
+
+    /**
+     * A generic listener that reacts to model value changes
+     * and automatically sends a corresponding {@link SetProperty} update to the client.
+     *
+     * @param <T> the type of the data produced by the model
+     */
+    public static class PropertyListener<T> implements Listener<T> {
+        /**
+         * The widget that owns this listener and receives updates.
+         */
+        private final Widget widget;
+
+        /**
+         * The logical widget state to which this listener applies.
+         */
+        private final State state;
+
+        /**
+         * The property associated with the observed model.
+         */
+        private final Property property;
+
+        /**
+         * Creates a new property listener that forwards model updates
+         * to the specified widget.
+         *
+         * @param widget the target widget that should receive updates
+         * @param state the logical state of the widget
+         * @param property the property that this listener represents
+         */
+        public PropertyListener(final Widget widget, final State state, final Property property) {
+            this.widget = widget;
+            this.state = state;
+            this.property = property;
+        }
+
+        @Override
+        public void accept(final T data) {
+            this.widget.pushUpdate(
+                new SetProperty<>(this.widget.getId(), this.state, this.property, data)
+            );
+        }
     }
 }

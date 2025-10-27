@@ -48,7 +48,7 @@ public class CustomModel {
 
             outputSection.add(new TextWidget("You entered: '"));
             final TextWidget echoText = new TextWidget();
-            echoText.setFontWeight(FontWeight.BOLD);
+            //echoText.setFontWeight(FontWeight.BOLD);
             echoText.setTextModel(new MyModel(inputField.getTextModel()));
             outputSection.add(echoText);
             outputSection.add(new TextWidget("'"));

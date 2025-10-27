@@ -146,7 +146,7 @@ var actionHandlers = {
     "remove child" : removeChildWidget,
     "set text" : setText,
     "set color" : setColor,
-    "set background color" : setBackgroundColor,
+    "set bg color" : setBgColor,
     "set width" : setWidth,
     "set height" : setHeight,
     "set font face": setFontFace,

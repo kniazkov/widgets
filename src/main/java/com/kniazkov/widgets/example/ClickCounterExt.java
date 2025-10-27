@@ -70,7 +70,7 @@ public class ClickCounterExt {
             final TextWidget globalCounter = new TextWidget();
             section.add(globalCounter);
             globalCounter.setTextModel(new IntegerToStringModel(globalModel));
-            globalCounter.setFontWeight(FontWeight.BOLD);
+            //globalCounter.setFontWeight(FontWeight.BOLD);
 
             // --- Local counter section ---
             section = new Section();
@@ -79,7 +79,7 @@ public class ClickCounterExt {
             final TextWidget localCounter = new TextWidget();
             section.add(localCounter);
             localCounter.setTextModel(new IntegerToStringModel(localModel));
-            localCounter.setFontWeight(FontWeight.BOLD);
+            //localCounter.setFontWeight(FontWeight.BOLD);
         };
 
         final Application application = new Application(page);
