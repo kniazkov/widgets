@@ -7,7 +7,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.model.Model;
 
 /**
- * A {@link View} that has an associated color model.
+ * An {@link Entity} that has an associated color model.
  */
 public interface HasColor extends Entity {
     /**

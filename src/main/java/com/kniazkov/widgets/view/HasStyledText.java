@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 
 /**
- * A {@link View} that displays stylable text.
+ * An {@link Entity} that displays stylable text.
  * Extends {@link HasText} to support additional text style attributes:
  * <ul>
  *   <li><b>Font face</b> — the typeface used to render the text ({@link FontFace})</li>

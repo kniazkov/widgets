@@ -32,11 +32,11 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
      * @param text the initial text to display
      */
     public TextWidget(final String text) {
-        this(TextWidgetStyle.DEFAULT, text);
+        this(getDefaultStyle(), text);
     }
 
     /**
-     * Creates a new text widget with the specified BaseStyle and initial text.
+     * Creates a new text widget with the specified style and initial text.
      *
      * @param style the style to apply to this widget
      * @param text the initial text to display

@@ -13,7 +13,17 @@ import java.util.Optional;
  * An editable text input field widget.
  */
 public class InputField extends InlineWidget implements HasTextInput, HasStyledText, HasColor,
-    HasBgColor, ProcessesPointerEvents {
+        HasBgColor, ProcessesPointerEvents {
+
+    /**
+     * Returns the default BaseStyle instance used by text widgets.
+     *
+     * @return the singleton default {@link TextWidgetStyle} instance
+     */
+    public static InputFieldStyle getDefaultStyle() {
+        return InputFieldStyle.DEFAULT;
+    }
+
     /**
      * Controller that handles incoming text input events from the client.
      */
@@ -47,7 +57,17 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
      * @param text the initial text to display in the input field
      */
     public InputField(final String text) {
-        super(Style.getEmptyStyle());
+        this(getDefaultStyle(), text);
+    }
+
+    /**
+     * Creates a new input field with the specified style and initial text.
+     *
+     * @param style the style to apply to this widget
+     * @param text the initial text to display
+     */
+    public InputField(final InputFieldStyle style, final String text) {
+        super(style);
         this.bindData(State.NORMAL, Property.TEXT, text);
         this.textInputCtrl = TypedController.stub();
         this.clickCtrl = TypedController.stub();
@@ -111,5 +131,14 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
                 );
                 break;
         }
+    }
+
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    public void setStyle(InputFieldStyle style) {
+        super.setStyle(style);
     }
 }
