@@ -10,116 +10,204 @@ import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.ColorModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.SynchronizedModel;
 
-/**
- * Defines standard property keys used by widgets.
- * Each key represents a distinct bindable visual or behavioral property.
- */
-public enum Property {
-    /**
-     * Text content of the widget.
-     * */
-    TEXT {
-        @Override
-        public String getName() {
-            return "text";
-        }
-
-        @Override
-        public Model<?> createDefaultModel() {
-            return new StringModel();
-        }
-
-        @Override
-        public <T> JsonElement convertData(final T data) {
-            return new JsonString((String)data);
-        }
-    },
-
-    /**
-     * Foreground (text) color.
-     */
-    COLOR {
-        @Override
-        public String getName() {
-            return "color";
-        }
-
-        @Override
-        public Model<?> createDefaultModel() {
-            return new ColorModel(Color.BLACK);
-        }
-
-        @Override
-        public <T> JsonElement convertData(final T data) {
-            return ((Color)data).toJsonObject();
-        }
-    },
-
-    /** Background color. */
-    BG_COLOR {
-        @Override
-        public String getName() {
-            return "bg color";
-        }
-
-        @Override
-        public Model<?> createDefaultModel() {
-            return new ColorModel(Color.WHITE);
-        }
-
-        @Override
-        public <T> JsonElement convertData(final T data) {
-            return ((Color)data).toJsonObject();
-        }
-    };
-
-    @Override
-    public String toString() {
-        return this.getName();
-    }
-
+public abstract class Property<T> {
     /**
      * Returns the canonical name of this property.
-     * The name is a unique textual identifier used for debugging, serialization,
-     * or mapping between property keys and their visual or behavioral meanings.
+     * The name serves as a unique textual identifier used for debugging, serialization, and UI
+     * protocol updates. It typically corresponds to the property’s JSON key or declarative
+     * attribute name (e.g. {@code "text"}, {@code "color"}, {@code "width"}).
      *
      * @return the unique, human-readable name of this property
      */
     public abstract String getName();
 
     /**
-     * Creates a default {@link Model} instance appropriate for this property.
-     * Each property defines a model type that represents its expected data domain.
-     * For example, {@code TEXT} may return a {@link StringModel}, while {@code COLOR} could return
-     * a {@code Model<Color>}. Default models are used when initializing styles or widgets that
-     * do not yet have an explicitly provided model for a given property.
-     */
-    public abstract Model<?> createDefaultModel();
-
-    /**
-     * Converts the specified property value into its JSON representation.
-     * This method defines how the raw data of this property type should be serialized
-     * when preparing updates to be sent to a client or frontend.
+     * Returns the runtime Java class representing the value type managed by this property.
      *
-     * @param <T> the compile-time type of the data being serialized
-     * @param data the property data to convert (must not be {@code null})
-     * @return a {@link JsonElement} representing this property’s value
+     * @return the class of the value type associated with this property
      */
-    public abstract <T> JsonElement convertData(T data);
+    public abstract Class<T> getValueClass();
 
     /**
-     * Creates a new reactive {@link Binding} between the specified {@link Model}
-     * and this property of a {@link Widget}.
-     * @param state the logical widget state to which this binding applies
-     * @param model the reactive {@link Model} supplying data for this property
-     * @param widget the {@link Widget} instance that consumes model updates
-     * @return a new {@link Binding} connecting the model and widget
+     * Creates a default {@link Model} instance suitable for this property.
+     * Default models are used when initializing styles or widgets that have not been explicitly
+     * provided with a model for a given property.
+     *
+     * @return a new {@link Model} instance providing a default value
      */
-    public <T> Binding<?> bindModel(State state, Model<T> model, Widget widget) {
+    public abstract Model<T> createDefaultModel();
+
+    /**
+     * Converts a data value of this property to its corresponding JSON representation for
+     * serialization and client updates.
+     *
+     * @param data the value to convert
+     * @return the JSON representation of the given value
+     */
+    public abstract JsonElement convertData(T data);
+
+    /**
+     * Creates a new {@link Binding} between this property’s {@link Model}
+     * and the specified {@link Widget}.
+     * This method defines how a widget observes updates for this property. A corresponding listener
+     * is automatically attached so that whenever the model’s data changes, the widget emits
+     * an appropriate update.
+     *
+     * @param state the widget state (e.g. {@code NORMAL}, {@code HOVER})
+     * @param model the data model providing this property’s value
+     * @param widget the widget that should listen for model changes
+     * @return a new binding connecting the model to the widget
+     * @throws IllegalArgumentException if the model type is incompatible
+     */
+    public Binding<T> bindModel(State state, Model<?> model, Widget widget) {
         return new Binding<>(
-            model,
+            this.cast(model),
             new Widget.PropertyListener<>(widget, state, this)
         );
     }
+
+    /**
+     * Rebinds the given {@link Binding} to a new {@link Model} instance of the same property type.
+     * This allows updating the data source of an existing binding without recreating or reattaching
+     * listeners. The new model must be compatible with this property’s expected value type;
+     * otherwise, an {@link IllegalArgumentException} is thrown.
+     *
+     * @param binding the existing binding to update
+     * @param model the new model to attach to the binding
+     * @throws IllegalArgumentException if the binding or model type is incompatible
+     */
+    public void rebindModel(Binding<?> binding, Model<?> model) {
+        this.cast(binding).setModel(this.cast(model));
+    }
+
+    /**
+     * Safely casts a generic {@link Binding} to a typed {@link Binding} corresponding
+     * to this property.
+     *
+     * @param binding the binding to cast
+     * @return the typed binding
+     * @throws IllegalArgumentException if the binding’s model type is incompatible
+     */
+    public Binding<T> cast(final Binding<?> binding) {
+        final Object data = binding.getModel().getData();
+        if (data != null && !this.getValueClass().isInstance(data)) {
+            throw new IllegalArgumentException(
+                "Binding type mismatch for property '" + getName() + "': " +
+                data.getClass().getName() + " cannot be cast to " + getValueClass().getName()
+            );
+        }
+        @SuppressWarnings("unchecked")
+        final Binding<T> typed = (Binding<T>) binding;
+        return typed;
+    }
+
+    /**
+     * Safely casts a generic {@link Model} to a typed {@link Model} corresponding
+     * to this property.
+     *
+     * @param model the model to cast
+     * @return the typed model
+     * @throws IllegalArgumentException if the model’s data type is incompatible
+     */
+    public Model<T> cast(final Model<?> model) {
+        final Object data = model.getData();
+        if (data != null && !this.getValueClass().isInstance(data)) {
+            throw new IllegalArgumentException(
+                "Model type mismatch for property '" + getName() + "': " +
+                data.getClass().getName() + " cannot be cast to " + getValueClass().getName()
+            );
+        }
+        @SuppressWarnings("unchecked")
+        Model<T> typed = (Model<T>) model;
+        return typed;
+    }
+
+    /**
+     * Safely casts a generic {@link SynchronizedModel} to a typed {@link SynchronizedModel}
+     * corresponding to this property.
+     *
+     * @param model the synchronized model to cast
+     * @return the typed synchronized model
+     * @throws IllegalArgumentException if the model’s data type is incompatible
+     */
+    public SynchronizedModel<T> cast(final SynchronizedModel<?> model) {
+        final Object data = model.getData();
+        if (data != null && !getValueClass().isInstance(data)) {
+            throw new IllegalArgumentException(
+                "Synchronized model type mismatch for property '" + getName() + "': " +
+                data.getClass().getName() + " cannot be cast to " + getValueClass().getName()
+            );
+        }
+        @SuppressWarnings("unchecked")
+        SynchronizedModel<T> typed = (SynchronizedModel<T>) model;
+        return typed;
+    }
+
+    public static final Property<String> TEXT = new Property<String>() {
+        @Override
+        public String getName() {
+            return "text";
+        }
+
+        @Override
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+
+        @Override
+        public Model<String> createDefaultModel() {
+            return new StringModel();
+        }
+
+        @Override
+        public JsonElement convertData(final String data) {
+            return new JsonString(data);
+        }
+    };
+
+    public static final Property<Color> COLOR = new Property<Color>() {
+        @Override
+        public String getName() {
+            return "color";
+        }
+
+        @Override
+        public Class<Color> getValueClass() {
+            return Color.class;
+        }
+
+        @Override
+        public Model<Color> createDefaultModel() {
+            return new ColorModel(Color.BLACK);
+        }
+
+        @Override
+        public JsonElement convertData(final Color data) {
+            return data.toJsonObject();
+        }
+    };
+
+    public static final Property<Color> BG_COLOR = new Property<Color>() {
+        @Override
+        public String getName() {
+            return "bg color";
+        }
+
+        @Override
+        public Class<Color> getValueClass() {
+            return Color.class;
+        }
+
+        @Override
+        public Model<Color> createDefaultModel() {
+            return new ColorModel(Color.WHITE);
+        }
+
+        @Override
+        public JsonElement convertData(final Color data) {
+            return data.toJsonObject();
+        }
+    };
 }

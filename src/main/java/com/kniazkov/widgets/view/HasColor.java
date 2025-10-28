@@ -16,7 +16,7 @@ public interface HasColor extends Entity {
      * @return the color model
      */
     default Model<Color> getColorModel() {
-        return this.getModel(State.NORMAL, Property.COLOR, Color.class);
+        return this.getModel(State.NORMAL, Property.COLOR);
     }
 
     /**
@@ -25,7 +25,7 @@ public interface HasColor extends Entity {
      * @param model the color model to set
      */
     default void setColorModel(final Model<Color> model) {
-        this.setModel(State.NORMAL, Property.COLOR, Color.class, model);
+        this.setModel(State.NORMAL, Property.COLOR, model);
     }
 
     /**

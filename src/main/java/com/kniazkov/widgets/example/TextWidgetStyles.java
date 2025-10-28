@@ -69,13 +69,19 @@ public class TextWidgetStyles {
             // Section 2: derived color style
             section = new Section();
             root.add(section);
-            final TextWidgetStyle colorStyle = TextWidget.getDefaultStyle().derive();
-            colorStyle.setColor(Color.RED);
-            widget = new TextWidget(colorStyle, "Colored text");
+            final TextWidgetStyle firstStyle = TextWidget.getDefaultStyle().derive();
+            firstStyle.setColor(Color.RED);
+            widget = new TextWidget(firstStyle, "Colored text");
             section.add(widget);
             section.add(new TextWidget(" "));
-            widget = new TextWidget(colorStyle, "Blue text");
+            widget = new TextWidget(firstStyle, "Blue text");
             widget.setColor(Color.BLUE);
+            section.add(widget);
+            section.add(new TextWidget(" "));
+            final TextWidgetStyle secondStyle = TextWidget.getDefaultStyle().derive();
+            secondStyle.setColor(Color.VIOLET);
+            widget = new TextWidget("Violet text");
+            widget.setStyle(secondStyle);
             section.add(widget);
 
             // Section 3: interactive style changes
@@ -95,10 +101,10 @@ public class TextWidgetStyles {
             section.add(button);
             button.onClick(data -> {
                 if (flag.get()) {
-                    colorStyle.setColor(Color.RED);
+                    firstStyle.setColor(Color.RED);
                     flag.set(false);
                 } else {
-                    colorStyle.setColor(Color.GREEN);
+                    firstStyle.setColor(Color.GREEN);
                     flag.set(true);
                 }
             });

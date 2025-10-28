@@ -118,4 +118,84 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
             "Unsupported data type for DefaultModel: " + data.getClass().getName()
         );
     }
+
+    /**
+     * Creates a {@link StringModel} for the given string data.
+     *
+     * @param data the initial string value
+     * @return a new {@link StringModel} initialized with the given value
+     */
+    public static Model<String> create(final String data) {
+        return new StringModel(data);
+    }
+
+    /**
+     * Creates an {@link IntegerModel} for the given integer data.
+     *
+     * @param data the initial integer value
+     * @return a new {@link IntegerModel} initialized with the given value
+     */
+    public static Model<Integer> create(final Integer data) {
+        return new IntegerModel(data);
+    }
+
+    /**
+     * Creates a {@link BooleanModel} for the given boolean data.
+     *
+     * @param data the initial boolean value
+     * @return a new {@link BooleanModel} initialized with the given value
+     */
+    public static Model<Boolean> create(final Boolean data) {
+        return new BooleanModel(data);
+    }
+
+    /**
+     * Creates a {@link ColorModel} for the given {@link Color}.
+     *
+     * @param data the initial color value
+     * @return a new {@link ColorModel} initialized with the given value
+     */
+    public static Model<Color> create(final Color data) {
+        return new ColorModel(data);
+    }
+
+    /**
+     * Creates a {@link FontFaceModel} for the given {@link FontFace}.
+     *
+     * @param data the initial font face value
+     * @return a new {@link FontFaceModel} initialized with the given value
+     */
+    public static Model<FontFace> create(final FontFace data) {
+        return new FontFaceModel(data);
+    }
+
+    /**
+     * Creates a {@link FontSizeModel} for the given {@link FontSize}.
+     *
+     * @param data the initial font size value
+     * @return a new {@link FontSizeModel} initialized with the given value
+     */
+    public static Model<FontSize> create(final FontSize data) {
+        return new FontSizeModel(data);
+    }
+
+    /**
+     * Creates a {@link FontWeightModel} for the given {@link FontWeight}.
+     *
+     * @param data the initial font weight value
+     * @return a new {@link FontWeightModel} initialized with the given value
+     */
+    public static Model<FontWeight> create(final FontWeight data) {
+        return new FontWeightModel(data);
+    }
+
+    /**
+     * Creates an {@link InlineWidgetSizeModel} for the given {@link InlineWidgetSize}.
+     *
+     * @param data the initial inline widget size value
+     * @return a new {@link InlineWidgetSizeModel} initialized with the given value
+     */
+    public static Model<InlineWidgetSize> create(final InlineWidgetSize data) {
+        return new InlineWidgetSizeModel(data);
+    }
 }

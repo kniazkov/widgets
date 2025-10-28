@@ -15,7 +15,7 @@ public interface HasText extends Entity {
      * @return the text model
      */
     default Model<String> getTextModel() {
-        return this.getModel(State.ANY, Property.TEXT, String.class);
+        return this.getModel(State.ANY, Property.TEXT);
     }
 
     /**
@@ -24,7 +24,7 @@ public interface HasText extends Entity {
      * @param model the text model to set
      */
     default void setTextModel(Model<String> model) {
-        this.setModel(State.ANY, Property.TEXT, String.class, model);
+        this.setModel(State.ANY, Property.TEXT, model);
     }
 
     /**

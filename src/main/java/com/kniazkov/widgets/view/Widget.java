@@ -16,6 +16,7 @@ import com.kniazkov.widgets.protocol.Subscribe;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +51,7 @@ public abstract class Widget implements Entity {
      * a {@link Listener} that responds to model updates for a specific
      * visual or behavioral {@link Property} in a given {@link State}.
      */
-    private final Map<State, Map<Property, Binding<?>>> bindings;
+    private final Map<State, Map<Property<?>, Binding<?>>> bindings;
 
     /**
      * Creates a new widget instance initialized from the specified {@link Style}.
@@ -62,9 +63,10 @@ public abstract class Widget implements Entity {
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(State.class);
+
         style.forEachModel((state, property, model) -> {
-            Map<Property, Binding<?>> subset =
-                this.bindings.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
+            final Map<Property<?>, Binding<?>> subset =
+                this.bindings.computeIfAbsent(state, s -> new HashMap<>());
             subset.put(
                 property,
                 property.bindModel(
@@ -77,14 +79,13 @@ public abstract class Widget implements Entity {
     }
 
     @Override
-    public <T> Model<T> getModel(final State state, final Property property, final Class<T> type) {
-        return this.getBinding(state, property, type).getModel();
+    public <T> Model<T> getModel(final State state, final Property<T> property) {
+        return this.getBinding(state, property).getModel();
     }
 
     @Override
-    public <T> void setModel(final State state, final Property property, final Class<T> type,
-            final Model<T> model) {
-        final Binding<T> binding = this.getBinding(state, property, type);
+    public <T> void setModel(final State state, final Property<T> property, final Model<T> model) {
+        final Binding<T> binding = this.getBinding(state, property);
         binding.setModel(model);
     }
 
@@ -211,6 +212,26 @@ public abstract class Widget implements Entity {
     }
 
     /**
+     * Sets the widget style by replacing models inside bindings or creating new bindings.
+     *
+     * @param style new widget style
+     */
+    protected void setStyle(final Style style) {
+        style.forEachModel((state, property, model) -> {
+            final Map<Property<?>, Binding<?>> subset =
+                this.bindings.computeIfAbsent(state, s -> new HashMap<>());
+            final Model<?> fork = model.asCascading();
+            final Binding<?> binding = subset.get(property);
+            if (binding == null) {
+                subset.put(property, property.bindModel(state, fork, this));
+            }
+            else {
+                property.rebindModel(binding, fork);
+            }
+        });
+    }
+
+    /**
      * Registers a reactive binding between a {@link Model} and the widget
      * for the specified {@link State} and {@link Property}.
      * <p>
@@ -223,9 +244,10 @@ public abstract class Widget implements Entity {
      * @param model the reactive model providing data
      * @param <T> the type of data managed by the model
      */
-    protected <T> void bindModel(final State state, final Property property, final Model<T> model) {
-        Map<Property, Binding<?>> subset =
-            this.bindings.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
+    protected <T> void bindModel(final State state, final Property<T> property,
+            final Model<T> model) {
+        Map<Property<?>, Binding<?>> subset =
+            this.bindings.computeIfAbsent(state, s -> new HashMap<>());
         subset.put(property, property.bindModel(state, model, this));
     }
 
@@ -239,10 +261,13 @@ public abstract class Widget implements Entity {
      * @param state the logical widget state
      * @param property the property key
      * @param data the initial data value to bind
+     * @param <T> the type of data managed by the model
      * @throws IllegalArgumentException if {@code data} is of an unsupported type
      */
-    protected void bindData(final State state, final Property property, Object data) {
-        this.bindModel(state, property, DefaultModel.create(data));
+    protected <T> void bindData(final State state, final Property<T> property, T data) {
+        Map<Property<?>, Binding<?>> subset =
+            this.bindings.computeIfAbsent(state, s -> new HashMap<>());
+        subset.put(property, property.bindModel(state, DefaultModel.create(data), this));
     }
 
     /**
@@ -269,35 +294,22 @@ public abstract class Widget implements Entity {
      *
      * @param state the widget’s current logical state (e.g. NORMAL, HOVERED)
      * @param property the property key (e.g. TEXT, COLOR)
-     * @param type the expected data type of the bound model
      * @param <T> the type parameter of the model’s data
      * @return an existing or newly created {@link Binding} for the given property and state
      * @throws IllegalArgumentException if the existing binding has an incompatible model type
      */
-    private <T> Binding<T> getBinding(final State state, final Property property,
-            final Class<T> type) {
-        Map<Property, Binding<?>> subset = this.bindings.get(state);
-        if (subset == null) {
-            subset = new EnumMap<>(Property.class);
-            this.bindings.put(state, subset);
+    private <T> Binding<T> getBinding(final State state, final Property<T> property) {
+        Map<Property<?>, Binding<?>> subset
+            = this.bindings.computeIfAbsent(state, k -> new HashMap<>());
+        final Binding<?> existingBinding = subset.get(property);
+        if (existingBinding == null) {
+            final Model<T> defaultModel = property.createDefaultModel();
+            final Binding<T> newBinding = property.bindModel(state, defaultModel, this);
+            subset.put(property, newBinding);
+            return newBinding;
+        } else {
+            return property.cast(existingBinding);
         }
-        Binding<?> binding = subset.get(property);
-        if (binding == null) {
-            final Model<?> defaultModel = property.createDefaultModel();
-            binding = property.bindModel(state, defaultModel, this);
-            subset.put(property, binding);
-        }
-        final Object data = binding.getModel().getData();
-        if (data != null && !type.isInstance(data)) {
-            throw new IllegalArgumentException(
-                "Binding for " + property + " in state " + state +
-                    " has incompatible type: " + data.getClass().getName() +
-                    " (expected " + type.getName() + ")"
-            );
-        }
-        @SuppressWarnings("unchecked")
-        final Binding<T> typed = (Binding<T>) binding;
-        return typed;
     }
 
     /**
@@ -320,7 +332,7 @@ public abstract class Widget implements Entity {
         /**
          * The property associated with the observed model.
          */
-        private final Property property;
+        private final Property<T> property;
 
         /**
          * Creates a new property listener that forwards model updates
@@ -330,7 +342,8 @@ public abstract class Widget implements Entity {
          * @param state the logical state of the widget
          * @param property the property that this listener represents
          */
-        public PropertyListener(final Widget widget, final State state, final Property property) {
+        public PropertyListener(final Widget widget, final State state,
+                final Property<T> property) {
             this.widget = widget;
             this.state = state;
             this.property = property;

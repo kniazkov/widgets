@@ -7,6 +7,7 @@ import com.kniazkov.widgets.model.DefaultModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.SynchronizedModel;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -40,7 +41,7 @@ public abstract class Style implements Entity {
      * and safe update propagation across multiple UI components or client threads that may
      * observe or modify the same style instance simultaneously.
      */
-    private final Map<State, Map<Property, SynchronizedModel<?>>> models;
+    private final Map<State, Map<Property<?>, SynchronizedModel<?>>> models;
 
     /**
      * Creates an empty style instance intended for subclass initialization.
@@ -60,8 +61,8 @@ public abstract class Style implements Entity {
     public Style(final Style parent) {
         this.models = new EnumMap<>(State.class);
         parent.forEachModel((state, property, model) -> {
-            Map<Property, SynchronizedModel<?>> subset =
-                this.models.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
+            Map<Property<?>, SynchronizedModel<?>> subset =
+                this.models.computeIfAbsent(state, s -> new HashMap<>());
             subset.put(property, model.asCascading().asSynchronized());
         });
     }
@@ -82,7 +83,7 @@ public abstract class Style implements Entity {
          * @param property the property key identifying the visual or behavioral attribute
          * @param model the reactive model associated with this state/property pair
          */
-        void accept(State state, Property property, Model<?> model);
+        void accept(State state, Property<?> property, Model<?> model);
     }
 
     /**
@@ -93,15 +94,15 @@ public abstract class Style implements Entity {
      * @throws NullPointerException if {@code action} is {@code null}
      */
     public void forEachModel(final ModelConsumer action) {
-        for (Map.Entry<State, Map<Property, SynchronizedModel<?>>> stateRecord
+        for (Map.Entry<State, Map<Property<?>, SynchronizedModel<?>>> stateRecord
                 : this.models.entrySet()) {
             final State state = stateRecord.getKey();
-            final Map<Property, SynchronizedModel<?>> subset = stateRecord.getValue();
+            final Map<Property<?>, SynchronizedModel<?>> subset = stateRecord.getValue();
             if (subset.isEmpty()) {
                 continue;
             }
-            for (Map.Entry<Property, SynchronizedModel<?>> propRecord : subset.entrySet()) {
-                final Property property = propRecord.getKey();
+            for (Map.Entry<Property<?>, SynchronizedModel<?>> propRecord : subset.entrySet()) {
+                final Property<?> property = propRecord.getKey();
                 final Model<?> model = propRecord.getValue();
                 action.accept(state, property, model);
             }
@@ -125,14 +126,13 @@ public abstract class Style implements Entity {
      *
      * @param state the logical state (e.g. normal, hovered, disabled)
      * @param property the property to retrieve
-     * @param type the expected data type managed by the model
      * @param <T> the type of data managed by the model
      * @return the synchronized model wrapper for the given state and property
      * @throws IllegalArgumentException if no model exists or the type is incompatible
      */
     @Override
-    public <T> Model<T> getModel(final State state, final Property property, final Class<T> type) {
-        return this.getBinding(state, property, type);
+    public <T> Model<T> getModel(final State state, final Property<T> property) {
+        return this.getBinding(state, property);
     }
 
     /**
@@ -157,15 +157,13 @@ public abstract class Style implements Entity {
      *
      * @param state the logical state (e.g. normal, hovered, disabled)
      * @param property the property to update
-     * @param type the expected data type managed by the model
      * @param model the new base model to assign (must not be {@code null})
      * @param <T> the type of data managed by the model
      * @throws IllegalArgumentException if no binding exists or the type is incompatible
      */
     @Override
-    public <T> void setModel(final State state, final Property property, final Class<T> type,
-            final Model<T> model) {
-        final SynchronizedModel<T> binding = this.getBinding(state, property, type);
+    public <T> void setModel(final State state, final Property<T> property, final Model<T> model) {
+        final SynchronizedModel<T> binding = this.getBinding(state, property);
         binding.setBase(model);
     }
 
@@ -210,10 +208,12 @@ public abstract class Style implements Entity {
      * @param state the logical state of the control (e.g. normal, hovered, disabled)
      * @param property the visual or behavioral property
      * @param model the reactive model instance to associate
+     * @param <T> the type of data managed by the model
      */
-    protected void bindModel(final State state, final Property property, final Model<?> model) {
-        Map<Property, SynchronizedModel<?>> subset =
-            this.models.computeIfAbsent(state, s -> new EnumMap<>(Property.class));
+    protected <T> void bindModel(final State state, final Property<T> property,
+            final Model<T> model) {
+        Map<Property<?>, SynchronizedModel<?>> subset =
+            this.models.computeIfAbsent(state, s -> new HashMap<>());
         subset.put(property, model.asSynchronized());
     }
 
@@ -227,10 +227,13 @@ public abstract class Style implements Entity {
      * @param state the logical widget state
      * @param property the property key
      * @param data the initial data value to bind
+     * @param <T> the type of data managed by the model
      * @throws IllegalArgumentException if {@code data} is of an unsupported type
      */
-    protected void bindData(final State state, final Property property, Object data) {
-        this.bindModel(state, property, DefaultModel.create(data));
+    protected <T> void bindData(final State state, final Property<T> property, T data) {
+        Map<Property<?>, SynchronizedModel<?>> subset =
+            this.models.computeIfAbsent(state, s -> new HashMap<>());
+        subset.put(property, DefaultModel.create(data).asSynchronized());
     }
 
     /**
@@ -241,35 +244,22 @@ public abstract class Style implements Entity {
      *
      * @param state the logical state (e.g. NORMAL, DISABLED)
      * @param property the property key (e.g. TEXT, COLOR, WIDTH)
-     * @param type the expected data type of the model
      * @param <T> the type parameter of the model’s data
      * @return an existing or newly created {@link SynchronizedModel} of the correct type
      * @throws IllegalArgumentException if an existing model has an incompatible type
      */
-    private <T> SynchronizedModel<T> getBinding(final State state, final Property property,
-            final Class<T> type) {
-        Map<Property, SynchronizedModel<?>> subset = this.models.get(state);
-        if (subset == null) {
-            subset = new EnumMap<>(Property.class);
-            this.models.put(state, subset);
-        }
-        SynchronizedModel<?> model = subset.get(property);
+    private <T> SynchronizedModel<T> getBinding(final State state, final Property<T> property) {
+        Map<Property<?>, SynchronizedModel<?>> subset =
+            this.models.computeIfAbsent(state, k -> new HashMap<>());
+        final SynchronizedModel<?> model = subset.get(property);
         if (model == null) {
-            Model<?> defaultModel = property.createDefaultModel();
-            SynchronizedModel<?> sync = new SynchronizedModel<>(defaultModel);
+            Model<T> defaultModel = property.createDefaultModel();
+            SynchronizedModel<T> sync = new SynchronizedModel<>(defaultModel);
             subset.put(property, sync);
-            model = sync;
+            return sync;
+        } else {
+            return property.cast(model);
         }
-        final Object data = model.getData();
-        if (data != null && !type.isInstance(data)) {
-            throw new IllegalArgumentException(
-                "Model for " + property + " in state " + state + " has incompatible type: " +
-                data.getClass().getName() + " (expected " + type.getName() + ")"
-            );
-        }
-        @SuppressWarnings("unchecked")
-        final SynchronizedModel<T> typed = (SynchronizedModel<T>) model;
-        return typed;
     }
 
     /**
@@ -285,23 +275,12 @@ public abstract class Style implements Entity {
         private static final Style INSTANCE = new EmptyStyle();
 
         @Override
-        public <T> Model<T> getModel(final State state, final Property property,
-                final Class<T> type) {
-            final Model<?> model = property.createDefaultModel();
-            final Object data = model.getData();
-            if (data != null && !type.isInstance(data)) {
-                throw new IllegalArgumentException(
-                    "Model for " + property + " in state " + state + " has incompatible type: " +
-                        data.getClass().getName() + " (expected " + type.getName() + ")"
-                );
-            }
-            @SuppressWarnings("unchecked")
-            final Model<T> typed = (Model<T>) model;
-            return typed;
+        public <T> Model<T> getModel(final State state, final Property<T> property) {
+            return property.createDefaultModel();
         }
 
         @Override
-        public <T> void setModel(final State state, final Property property, final Class<T> type,
+        public <T> void setModel(final State state, final Property<T> property,
                 final Model<T> model) {
             // do nothing
         }

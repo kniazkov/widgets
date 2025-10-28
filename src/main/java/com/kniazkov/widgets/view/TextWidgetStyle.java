@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.model.ReadOnlyModel;
 
 /**
  * Style definition for {@link TextWidget}.
@@ -19,7 +18,6 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      * Creates the default text style.
      */
     private TextWidgetStyle() {
-        this.bindModel(State.ANY, Property.TEXT, ReadOnlyModel.create(""));
         this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
     }
 

@@ -55,4 +55,13 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     public void handleEvent(final String type, final Optional<JsonObject> data) {
         // no events to process
     }
+
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    public void setStyle(TextWidgetStyle style) {
+        super.setStyle(style);
+    }
 }

@@ -26,7 +26,7 @@ public class SetProperty<T> extends Update {
     /**
      * The property to be modified.
      */
-    private final Property property;
+    private final Property<T> property;
 
     /**
      * The new value to assign to the property.
@@ -41,7 +41,7 @@ public class SetProperty<T> extends Update {
      * @param property the {@link Property} to modify
      * @param value the new value to set for the property (must match the property’s expected type)
      */
-    public SetProperty(final UId widget, final State state, final Property property,
+    public SetProperty(final UId widget, final State state, final Property<T> property,
             final T value) {
         super(widget);
         this.state = state;

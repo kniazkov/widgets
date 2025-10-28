@@ -16,7 +16,7 @@ public interface HasBgColor extends Entity {
      * @return the background color model
      */
     default Model<Color> getBgColorModel() {
-        return this.getModel(State.NORMAL, Property.BG_COLOR, Color.class);
+        return this.getModel(State.NORMAL, Property.BG_COLOR);
     }
 
     /**
@@ -25,7 +25,7 @@ public interface HasBgColor extends Entity {
      * @param model the background color model to set
      */
     default void setBgColorModel(final Model<Color> model) {
-        this.setModel(State.NORMAL, Property.BG_COLOR, Color.class, model);
+        this.setModel(State.NORMAL, Property.BG_COLOR, model);
     }
 
     /**

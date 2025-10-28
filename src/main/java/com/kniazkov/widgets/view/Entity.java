@@ -22,12 +22,11 @@ public interface Entity {
      *
      * @param state the logical state (e.g. normal, hovered, disabled)
      * @param property the visual or behavioral property
-     * @param type the expected data type managed by the model
      * @param <T> the type of data managed by the model
      * @return the model for the specified state/property pair (never {@code null})
      * @throws IllegalArgumentException if no model exists or its type is incompatible
      */
-    <T> Model<T> getModel(State state, Property property, Class<T> type);
+    <T> Model<T> getModel(State state, Property<T> property);
 
     /**
      * Associates the specified model with the given {@link State} and {@link Property}.
@@ -41,10 +40,9 @@ public interface Entity {
      *
      * @param state the logical state (e.g. normal, hovered, disabled)
      * @param property the visual or behavioral property
-     * @param type the expected data type managed by the model
      * @param model the model to associate (must not be {@code null})
      * @param <T> the type of data managed by the model
      * @throws IllegalArgumentException if arguments are invalid or types are incompatible
      */
-    <T> void setModel(State state, Property property, Class<T> type, Model<T> model);
+    <T> void setModel(State state, Property<T> property, Model<T> model);
 }
