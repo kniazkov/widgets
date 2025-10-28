@@ -21,7 +21,7 @@ public enum State {
     /**
      * The pointer is hovering over the widget.
      */
-    HOVER("hover"),
+    HOVERED("hovered"),
 
     /**
      * The widget is currently pressed or active.

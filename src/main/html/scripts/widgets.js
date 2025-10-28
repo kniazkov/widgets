@@ -42,6 +42,13 @@ var createWidget = function(data) {
         var widget = ctor();
         widget._id = id;
         widget._events = {};
+        widget._properties = {
+            normal : {},
+            hovered: {},
+            active: {},
+            disabled: {},
+            invalid: {}
+        };
         widgets[id] = widget;
         log("Widget '" + data.type + "' created, id: " + id + '.');
         return true;
@@ -111,7 +118,7 @@ var setText = function(data) {
 
 var setColor = function(data) {
     var widget = widgets[data.widget];
-    if (widget && typeof data.color == "object") {
+    if (widget && typeof data.color == "object" && typeof data.state == "string") {
         var color = "rgb(" + data.color.r + ',' + data.color.g + ',' + data.color.b + ')';
         var flag = true;
         if (widget.setColor) {
@@ -133,7 +140,7 @@ var setBgColor = function(data) {
     if (widget && typeof rgb == "object") {
         var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
         var flag = true;
-        if (widget.setColor) {
+        if (widget.setBgColor) {
             flag = widget.setBgColor(color);
         } else {
             widget.style.backgroundColor = color;
