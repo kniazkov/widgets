@@ -3,22 +3,28 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.model.ReadOnlyModel;
+
 /**
- * A style definition for {@link TextWidget} instances.
- * This class itself does not introduce new properties — it merely aggregates style aspects
- * provided by its mixin interfaces.
+ * Style definition for {@link TextWidget}.
  */
 public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
     /**
-     * Creates an empty text style with no predefined models.
-     * This constructor is protected because styles are typically instantiated through
-     * {@link #derive()} or by subclassing.
+     * The global default text widget style.
      */
-    protected TextWidgetStyle() {
+    public static final TextWidgetStyle DEFAULT = new TextWidgetStyle();
+
+    /**
+     * Creates the default text style.
+     */
+    private TextWidgetStyle() {
+        this.bindModel(State.ANY, Property.TEXT, ReadOnlyModel.create(""));
+        this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
     }
 
     /**
-     * Creates a new text style that inherits all reactive models from the specified parent style.
+     * Creates a new text style that inherits models from the specified parent.
      *
      * @param parent the parent style to inherit from
      */

@@ -4,8 +4,6 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.model.ReadOnlyModel;
 import java.util.Optional;
 
 /**
@@ -13,12 +11,12 @@ import java.util.Optional;
  */
 public class TextWidget extends InlineWidget implements HasStyledText, HasColor {
     /**
-     * Returns the default style instance used by text widgets.
+     * Returns the default BaseStyle instance used by text widgets.
      *
      * @return the singleton default {@link TextWidgetStyle} instance
      */
     public static TextWidgetStyle getDefaultStyle() {
-        return DefaultStyle.INSTANCE;
+        return TextWidgetStyle.DEFAULT;
     }
 
     /**
@@ -29,19 +27,19 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     }
 
     /**
-     * Creates a new text widget with the given initial text value and the default style.
+     * Creates a new text widget with the given initial text value and the default BaseStyle.
      *
      * @param text the initial text to display
      */
     public TextWidget(final String text) {
-        this(DefaultStyle.INSTANCE, text);
+        this(TextWidgetStyle.DEFAULT, text);
     }
 
     /**
-     * Creates a new text widget with the specified style and initial text.
+     * Creates a new text widget with the specified BaseStyle and initial text.
      *
      * @param style the style to apply to this widget
-     * @param text  the initial text to display
+     * @param text the initial text to display
      */
     public TextWidget(final TextWidgetStyle style, final String text) {
         super(style);
@@ -56,24 +54,5 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     @Override
     public void handleEvent(final String type, final Optional<JsonObject> data) {
         // no events to process
-    }
-
-    /**
-     * The default style implementation for {@link TextWidget}.
-     */
-    private static final class DefaultStyle extends TextWidgetStyle {
-
-        /**
-         * Singleton instance of the default style.
-         */
-        public static final TextWidgetStyle INSTANCE = new DefaultStyle();
-
-        /**
-         * Initializes the default text style configuration.
-         */
-        private DefaultStyle() {
-            this.bindModel(State.ANY, Property.TEXT, ReadOnlyModel.create(""));
-            this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
-        }
     }
 }
