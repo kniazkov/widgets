@@ -29,14 +29,14 @@ public enum State {
     ACTIVE("active"),
 
     /**
-     * The widget is disabled and not interactive.
-     */
-    DISABLED("disabled"),
-
-    /**
      * The widget content is invalid (e.g., failed validation).
      */
-    INVALID("invalid");
+    INVALID("invalid"),
+
+    /**
+     * The widget is disabled and not interactive.
+     */
+    DISABLED("disabled");
 
     private final String key;
 

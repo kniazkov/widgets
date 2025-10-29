@@ -38,22 +38,81 @@ var widgetsLibrary = {
 var createWidget = function(data) {
     var ctor = widgetsLibrary[data.type];
     var id = data.widget;
-    if (ctor && id) {
-        var widget = ctor();
-        widget._id = id;
-        widget._events = {};
-        widget._properties = {
-            normal : {},
-            hovered: {},
-            active: {},
-            disabled: {},
-            invalid: {}
-        };
-        widgets[id] = widget;
-        log("Widget '" + data.type + "' created, id: " + id + '.');
-        return true;
+    if (!ctor || !id) {
+        return false;
     }
-    return false;
+    var widget = ctor();
+    widget._id = id;
+    widget._events = {};
+    widget._properties = {
+        normal: {},
+        hovered: {},
+        active: {},
+        invalid: {},
+        disabled: {}
+    };
+    widget._states = {
+        hovered : false,
+        active : false,
+        invalid : false,
+        disabled : false
+    };
+    widget._state = "normal";
+    addEvent(widget, "pointerenter", function(event) {
+        widget._states.hovered = true;
+        updateState(widget);
+    });
+    addEvent(widget, "pointerleave", function(event) {
+        widget._states.hovered = false;
+        updateState(widget);
+    });
+    addEvent(widget, "focus", function(event) {
+        widget._states.active = true;
+        updateState(widget);
+    });
+    addEvent(widget, "blur", function(event) {
+        widget._states.active = false;
+        updateState(widget);
+    });
+    widgets[id] = widget;
+    log("Widget '" + data.type + "' created, id: " + id + '.');
+    return true;
+};
+
+var updateState = function(widget) {
+    var state;
+    if (widget._states.disabled) {
+        state = "disabled";
+    } else if (widget._states.invalid) {
+        state = "invalid";
+    } else if (widget._states.active) {
+        state = "active";
+    } else if (widget._states.hovered) {
+        state = "hovered";
+    } else {
+        state = "normal";
+    }
+    if (widget._state != state) {
+        widget._state = state;
+        updateStyles(widget);
+    }
+};
+
+var updateStyles = function(widget) {
+    var set = widget._properties[widget._state];
+    for (var key in set) {
+        widget.style[key] = set[key];
+    }
+};
+
+var updateStylesIfNeed = function(widget, state) {
+    if (state != widget._state) {
+        return;
+    }
+    var set = widget._properties[widget._state];
+    for (var key in set) {
+        widget.style[key] = set[key];
+    }
 };
 
 var subscribeToEvent = function(data) {
@@ -118,17 +177,13 @@ var setText = function(data) {
 
 var setColor = function(data) {
     var widget = widgets[data.widget];
-    if (widget && typeof data.color == "object" && typeof data.state == "string") {
-        var color = "rgb(" + data.color.r + ',' + data.color.g + ',' + data.color.b + ')';
-        var flag = true;
-        if (widget.setColor) {
-            flag = widget.setColor(color);
-        } else {
-            widget.style.color = color;
-        }
-        if (flag) {
-            log("The color \"" + color + "\" has been set to the widget " + data.widget + '.');
-        }
+    var rgb = data["color"];
+    var state = data.state;
+    if (widget && typeof rgb == "object" && typeof state == "string") {
+        var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        widget._properties[state].color = color;
+        updateStylesIfNeed(widget, state);
+        log("The color \"" + color + "\" for state \"" + state + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;

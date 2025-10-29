@@ -19,6 +19,9 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor {
      */
     private InputFieldStyle() {
         this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
+        this.bindData(State.HOVERED, Property.COLOR, Color.BLUE);
+        this.bindData(State.ACTIVE, Property.COLOR, Color.RED);
+
         this.bindData(State.NORMAL, Property.BG_COLOR, Color.WHITE);
     }
 
