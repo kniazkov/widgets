@@ -26,13 +26,31 @@ var widgetsLibrary = {
         addEvent(widget, "input", function() {
             sendEventToServer(widget, "text input", { text : widget.value });
         });
+        initPointerEvents(widget);
+        initFocusEvents(widget);
         return widget;
     },
     "button" : function() {
         var widget = document.createElement("button");
-        handlePointerEvents(widget);
+        initPointerEvents(widget);
         return widget;
     }
+};
+
+var refreshWidget = function(widget) {
+    var states = widget._states;
+    var properties = widget._properties;
+    var set = { ...properties.normal };
+    if (states.disabled) {
+        Object.assign(set, properties.invalid, properties.disabled);
+    } else if (states.invalid) {
+        Object.assign(set, properties.hovered, properties.active, properties.invalid);
+    } else if (states.active) {
+        Object.assign(set, properties.hovered, properties.active);
+    } else if (states.hovered) {
+        Object.assign(set, properties.hovered);
+    }
+    Object.assign(widget.style, set);
 };
 
 var createWidget = function(data) {
@@ -57,62 +75,9 @@ var createWidget = function(data) {
         invalid : false,
         disabled : false
     };
-    widget._state = "normal";
-    addEvent(widget, "pointerenter", function(event) {
-        widget._states.hovered = true;
-        updateState(widget);
-    });
-    addEvent(widget, "pointerleave", function(event) {
-        widget._states.hovered = false;
-        updateState(widget);
-    });
-    addEvent(widget, "focus", function(event) {
-        widget._states.active = true;
-        updateState(widget);
-    });
-    addEvent(widget, "blur", function(event) {
-        widget._states.active = false;
-        updateState(widget);
-    });
     widgets[id] = widget;
     log("Widget '" + data.type + "' created, id: " + id + '.');
     return true;
-};
-
-var updateState = function(widget) {
-    var state;
-    if (widget._states.disabled) {
-        state = "disabled";
-    } else if (widget._states.invalid) {
-        state = "invalid";
-    } else if (widget._states.active) {
-        state = "active";
-    } else if (widget._states.hovered) {
-        state = "hovered";
-    } else {
-        state = "normal";
-    }
-    if (widget._state != state) {
-        widget._state = state;
-        updateStyles(widget);
-    }
-};
-
-var updateStyles = function(widget) {
-    var set = widget._properties[widget._state];
-    for (var key in set) {
-        widget.style[key] = set[key];
-    }
-};
-
-var updateStylesIfNeed = function(widget, state) {
-    if (state != widget._state) {
-        return;
-    }
-    var set = widget._properties[widget._state];
-    for (var key in set) {
-        widget.style[key] = set[key];
-    }
 };
 
 var subscribeToEvent = function(data) {
@@ -182,7 +147,7 @@ var setColor = function(data) {
     if (widget && typeof rgb == "object" && typeof state == "string") {
         var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
         widget._properties[state].color = color;
-        updateStylesIfNeed(widget, state);
+        refreshWidget(widget);
         log("The color \"" + color + "\" for state \"" + state + "\" has been set to the widget " + data.widget + '.');
         return true;
     }
@@ -310,14 +275,29 @@ var processPointerEvent = function(element, event) {
     return data;
 };
 
-var handlePointerEvents = function(widget) {
+var initPointerEvents = function(widget) {
     addEvent(widget, "click", function(event) {
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerenter", function(event) {
+        widget._states.hovered = true;
+        refreshWidget(widget);
         sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerleave", function(event) {
+        widget._states.hovered = false;
+        refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
+    });
+};
+
+var initFocusEvents = function(widget) {
+    addEvent(widget, "focus", function(event) {
+        widget._states.active = true;
+        refreshWidget(widget);
+    });
+    addEvent(widget, "blur", function(event) {
+        widget._states.active = false;
+        refreshWidget(widget);
     });
 };

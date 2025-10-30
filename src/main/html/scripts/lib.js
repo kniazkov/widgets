@@ -102,4 +102,16 @@ var escapeHtml = function(unsafe) {
 
 var log = function(message) {
     console.log(message);
-}
+};
+
+var readBit = function(number, bitIndex) {
+    return (number & (1 << bitIndex)) !== 0;
+};
+
+var setBit = function(number, bitIndex) {
+    return number | (1 << bitIndex);
+};
+
+var clearBit = function(number, bitIndex) {
+    return number & ~(1 << bitIndex);
+};
