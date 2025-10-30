@@ -9,10 +9,8 @@ import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.ResetClient;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 /**
  * The root widget of a user interface hierarchy.
@@ -28,18 +26,11 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     final List<BlockWidget> children = new ArrayList<>();
 
     /**
-     * List of handlers that are called when the root node is closed.
-     */
-    final Set<Controller> closeHandlers = new HashSet<>();
-
-    /**
      * Constructor.
      *
-     * @param client client that owns this widget
      */
-    public RootWidget(final Client client) {
+    public RootWidget() {
         super(Style.getEmptyStyle());
-        client.onClose(this::close);
     }
 
     @Override
@@ -83,26 +74,8 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
         // not yet
     }
 
-    /**
-     * Adds a handler that is called when the root node is destroyed.
-     *
-     * @param ctrl handler
-     */
-    public void onClose(Controller ctrl) {
-        this.closeHandlers.add(ctrl);
-    }
-
     @Override
     public void remove() {
         this.pushUpdate(new ResetClient());
-    }
-
-    /**
-     * Called when the client closes. This allows this event to be broadcast to subscribers.
-     */
-    private void close() {
-        for (final Controller ctrl : this.closeHandlers) {
-            ctrl.handleEvent();
-        }
     }
 }

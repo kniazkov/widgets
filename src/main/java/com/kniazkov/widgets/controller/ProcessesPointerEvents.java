@@ -8,7 +8,7 @@ import com.kniazkov.json.JsonObject;
 /**
  * An entity that can be clicked by the user.
  * This interface represents interactive elements such as buttons, icons, or clickable text.
- * It allows associating a {@link TypedController<PointerEvent>} that defines the behavior
+ * It allows associating a {@link Controller <PointerEvent>} that defines the behavior
  * to execute when a click event occurs.
  */
 public interface ProcessesPointerEvents {
@@ -18,7 +18,7 @@ public interface ProcessesPointerEvents {
      *
      * @param ctrl the controller to execute when the element is clicked
      */
-    void onClick(TypedController<PointerEvent> ctrl);
+    void onClick(Controller<PointerEvent> ctrl);
 
     /**
      * Registers a controller that will be invoked when the pointer
@@ -26,7 +26,7 @@ public interface ProcessesPointerEvents {
      *
      * @param ctrl the controller to execute on pointer enter
      */
-    void onPointerEnter(TypedController<PointerEvent> ctrl);
+    void onPointerEnter(Controller<PointerEvent> ctrl);
 
     /**
      * Registers a controller that will be invoked when the pointer
@@ -34,7 +34,7 @@ public interface ProcessesPointerEvents {
      *
      * @param ctrl the controller to execute on pointer leave
      */
-    void onPointerLeave(TypedController<PointerEvent> ctrl);
+    void onPointerLeave(Controller<PointerEvent> ctrl);
 
     /**
      * Parses a {@link PointerEvent} from a given JSON object.

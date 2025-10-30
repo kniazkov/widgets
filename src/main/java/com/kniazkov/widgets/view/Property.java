@@ -48,6 +48,11 @@ public abstract class Property<T> {
      */
     public abstract JsonElement convertData(T data);
 
+    @Override
+    public String toString() {
+        return this.getName();
+    }
+
     /**
      * Creates a new {@link Binding} between this property’s {@link Model}
      * and the specified {@link Widget}.

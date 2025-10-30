@@ -8,9 +8,7 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.controller.TypedController;
-import com.kniazkov.widgets.model.Binding;
+import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.HasTextInput;
@@ -24,7 +22,7 @@ import com.kniazkov.widgets.view.TextWidget;
  * The {@code MyWidget} class combines an {@link InputField} and a {@link Button}
  * into a reusable component that allows the user to enter text and confirm it.
  * When the button is clicked, the entered text is sent to the controller via
- * {@link HasTextInput#onTextInput(TypedController)}.
+ * {@link HasTextInput#onTextInput(Controller)}.
  * </p>
  *
  * <p>
@@ -78,7 +76,7 @@ public class CustomWidget {
      * A simple composite widget consisting of a text caption, an input field, and a button.
      * <p>
      * This widget implements {@link HasTextInput}, allowing clients to register a
-     * {@link TypedController TypedController&lt;String&gt;} that reacts to user input.
+     * {@link Controller TypedController&lt;String&gt;} that reacts to user input.
      * When the button is clicked, the text currently entered in the input field
      * is sent to the controller.
      * </p>
@@ -100,7 +98,7 @@ public class CustomWidget {
     static class MyWidget extends Section implements HasTextInput {
         private final InputField field;
 
-        private TypedController<String> ctrl = TypedController.stub();
+        private Controller<String> ctrl = Controller.stub();
 
         MyWidget(final String caption, final String buttonText) {
             this.add(new TextWidget(caption + ": "));
@@ -125,7 +123,7 @@ public class CustomWidget {
         }
 
         @Override
-        public void onTextInput(TypedController<String> ctrl) {
+        public void onTextInput(Controller<String> ctrl) {
             this.ctrl = ctrl;
         }
     }
