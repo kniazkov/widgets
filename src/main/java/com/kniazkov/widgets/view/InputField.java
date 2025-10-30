@@ -68,7 +68,7 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
      */
     public InputField(final InputFieldStyle style, final String text) {
         super(style);
-        this.bindData(State.NORMAL, Property.TEXT, text);
+        this.setText(text);
         this.textInputCtrl = TypedController.stub();
         this.clickCtrl = TypedController.stub();
         this.mouseOverCtrl = TypedController.stub();

@@ -8,7 +8,8 @@ import com.kniazkov.widgets.common.Color;
 /**
  * Style definition for {@link InputField}.
  */
-public class InputFieldStyle extends Style implements HasStyledText, HasColor {
+public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasHoverColor,
+        HasFocusColor, HasDisabledColor, HasInvalidColor, HasBgColor {
     /**
      * The global default input field style.
      */
@@ -18,11 +19,13 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor {
      * Creates the default input field style.
      */
     private InputFieldStyle() {
-        this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
-        this.bindData(State.HOVERED, Property.COLOR, Color.BLUE);
-        this.bindData(State.ACTIVE, Property.COLOR, Color.RED);
+        this.setColor(Color.BLACK);
+        this.setHoverColor(Color.BLUE);
+        this.setFocusColor(Color.ORANGE);
+        this.setInvalidColor(Color.RED);
+        this.setDisabledColor(Color.DARK_GRAY);
 
-        this.bindData(State.NORMAL, Property.BG_COLOR, Color.WHITE);
+        this.setBgColor(Color.WHITE);
     }
 
     /**

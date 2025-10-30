@@ -18,7 +18,7 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      * Creates the default text style.
      */
     private TextWidgetStyle() {
-        this.bindData(State.NORMAL, Property.COLOR, Color.BLACK);
+        this.setColor(Color.BLACK);
     }
 
     /**

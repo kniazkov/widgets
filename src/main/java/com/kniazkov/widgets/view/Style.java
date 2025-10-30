@@ -189,54 +189,6 @@ public abstract class Style implements Entity {
     public abstract Style derive();
 
     /**
-     * Registers an initial model for the specified {@link State} and {@link Property}.
-     * <p>
-     * This method is intended to be used by subclass constructors to define the base set of models
-     * that form the foundation of a specific style. Unlike inherited models, these bindings are
-     * created directly from the provided {@code model} instance and are <strong>not</strong>
-     * cascading — they represent the initial, local definitions for this style.
-     *
-     * <p>
-     * Example usage in a subclass constructor:
-     * <pre>{@code
-     * public ButtonStyle() {
-     *     bindModel(State.NORMAL, Property.BG_COLOR, new ColorModel(Color.GRAY));
-     *     bindModel(State.HOVER, Property.BG_COLOR, new ColorModel(Color.DARK_GRAY));
-     * }
-     * }</pre>
-     *
-     * @param state the logical state of the control (e.g. normal, hovered, disabled)
-     * @param property the visual or behavioral property
-     * @param model the reactive model instance to associate
-     * @param <T> the type of data managed by the model
-     */
-    protected <T> void bindModel(final State state, final Property<T> property,
-            final Model<T> model) {
-        Map<Property<?>, SynchronizedModel<?>> subset =
-            this.models.computeIfAbsent(state, s -> new HashMap<>());
-        subset.put(property, model.asSynchronized());
-    }
-
-    /**
-     * Binds a raw data value to the specified {@link Property} of this style.
-     * <p>
-     * This method acts as a convenience wrapper that automatically creates a suitable {@link Model}
-     * instance for the provided {@code data} using {@link DefaultModel#create(Object)}, and then
-     * delegates to {@link #bindModel(State, Property, Model)}.
-     *
-     * @param state the logical widget state
-     * @param property the property key
-     * @param data the initial data value to bind
-     * @param <T> the type of data managed by the model
-     * @throws IllegalArgumentException if {@code data} is of an unsupported type
-     */
-    protected <T> void bindData(final State state, final Property<T> property, T data) {
-        Map<Property<?>, SynchronizedModel<?>> subset =
-            this.models.computeIfAbsent(state, s -> new HashMap<>());
-        subset.put(property, DefaultModel.create(data).asSynchronized());
-    }
-
-    /**
      * Returns a typed, thread-safe {@link SynchronizedModel} for the given {@link State}
      * and {@link Property}, automatically creating it if missing.
      * If a model is present but its data type is incompatible with the expected

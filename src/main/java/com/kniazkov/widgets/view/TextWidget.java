@@ -43,7 +43,7 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
      */
     public TextWidget(final TextWidgetStyle style, final String text) {
         super(style);
-        this.bindData(State.NORMAL, Property.TEXT, text);
+        this.setText(text);
     }
 
     @Override
