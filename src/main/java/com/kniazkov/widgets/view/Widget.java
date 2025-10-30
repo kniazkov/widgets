@@ -6,8 +6,10 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.controller.Controller;
+import com.kniazkov.widgets.controller.Event;
+import com.kniazkov.widgets.controller.HasControllers;
 import com.kniazkov.widgets.model.Binding;
-import com.kniazkov.widgets.model.DefaultModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
@@ -29,7 +31,7 @@ import java.util.TreeSet;
  * describe how the client should create or modify its representation.
  * On creation, every widget automatically generates a {@link CreateWidget} update with its type.
  */
-public abstract class Widget implements Entity {
+public abstract class Widget implements Entity, HasControllers {
     /**
      * Widget unique Id.
      */
@@ -53,6 +55,8 @@ public abstract class Widget implements Entity {
      */
     private final Map<State, Map<Property<?>, Binding<?>>> bindings;
 
+    private final Map<Event<?>, Controller<?>> controllers;
+
     /**
      * Creates a new widget instance initialized from the specified {@link Style}.
      *
@@ -63,6 +67,7 @@ public abstract class Widget implements Entity {
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(State.class);
+        this.controllers = new HashMap<>();
 
         style.forEachModel((state, property, model) -> {
             final Map<Property<?>, Binding<?>> subset =
@@ -87,6 +92,25 @@ public abstract class Widget implements Entity {
     public <T> void setModel(final State state, final Property<T> property, final Model<T> model) {
         final Binding<T> binding = this.getBinding(state, property);
         binding.setModel(model);
+    }
+
+    @Override
+    public <T> Controller<T> getController(final Event<T> event) {
+        final Controller<?> ctrl = this.controllers.get(event);
+        if (ctrl == null) {
+            Controller<T> stub = Controller.stub();
+            this.controllers.put(event, stub);
+            return stub;
+        } else {
+            @SuppressWarnings("unchecked")
+            Controller<T> typed = (Controller<T>)ctrl;
+            return typed;
+        }
+    }
+
+    @Override
+    public <T> void setController(final Event<T> event, final Controller<T> controller) {
+        this.controllers.put(event, controller);
     }
 
     /**
