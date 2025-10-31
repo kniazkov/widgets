@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.Controller;
+import com.kniazkov.widgets.controller.HandlesTextEvents;
 
 /**
  * An entity that contains user-editable text.
@@ -11,11 +12,6 @@ import com.kniazkov.widgets.controller.Controller;
  * where the user can modify the textual content. This interface allows
  * attaching a {@link Controller} that reacts to user-driven text changes.
  */
-public interface HasTextInput extends HasText {
-    /**
-     * Sets a controller that will be triggered when the user changes the text.
-     *
-     * @param ctrl controller to invoke on text input
-     */
-    void onTextInput(Controller<String> ctrl);
+public interface HasTextInput extends HasText, HandlesTextEvents {
+
 }

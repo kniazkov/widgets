@@ -7,6 +7,7 @@ import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
+import com.kniazkov.json.JsonNull;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.protocol.Update;
@@ -175,9 +176,9 @@ public final class Client implements Comparable<Client> {
             return;
         }
         final String type = event.get("type").getStringValue();
-        final Optional<JsonObject> data = event.containsKey("data")
-            ? Optional.ofNullable(event.get("data").toJsonObject())
-            : Optional.empty();
+        final JsonObject data = event.containsKey("data")
+            ? event.get("data").toJsonObject()
+            : new JsonObject();
 
         widget.handleEvent(type, data);
         this.lastHandledEventId = eventId;

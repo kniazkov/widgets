@@ -5,7 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.controller.PointerEvent;
-import com.kniazkov.widgets.controller.ProcessesPointerEvents;
+import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.protocol.SetChild;
 import java.util.Optional;
@@ -14,26 +14,11 @@ import java.util.Optional;
  * A clickable button widget that decorates a single {@link InlineWidget}.
  */
 public class Button extends InlineWidget
-        implements Decorator<InlineWidget>, ProcessesPointerEvents {
+        implements Decorator<InlineWidget>, HandlesPointerEvents {
     /**
      * Decorated widget (displayed inside the button).
      */
     private InlineWidget child;
-
-    /**
-     * Controller that handles pointer click events.
-     */
-    private Controller<PointerEvent> clickCtrl;
-
-    /**
-     * Controller that handles pointer enter (hover) events.
-     */
-    private Controller<PointerEvent> mouseOverCtrl;
-
-    /**
-     * Controller that handles pointer leave (unhover) events.
-     */
-    private Controller<PointerEvent> mouseOutCtrl;
 
     /**
      * Creates a button with an empty text child.
@@ -51,9 +36,6 @@ public class Button extends InlineWidget
         super(Style.getEmptyStyle());
         this.child = new TextWidget(text);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
-        this.clickCtrl = Controller.stub();
-        this.mouseOverCtrl = Controller.stub();
-        this.mouseOutCtrl = Controller.stub();
     }
 
     @Override
@@ -82,41 +64,5 @@ public class Button extends InlineWidget
     @Override
     public String getType() {
         return "button";
-    }
-
-    @Override
-    public void handleEvent(final String type, final Optional<JsonObject> data) {
-        if (!data.isPresent()) {
-            return;
-        }
-        PointerEvent event = ProcessesPointerEvents.parsePointerEvent(data.get());
-        switch (type) {
-            case "click":
-                this.clickCtrl.handleEvent(event);
-                break;
-            case "pointer enter":
-                this.mouseOverCtrl.handleEvent(event);
-                break;
-            case "pointer leave":
-                this.mouseOutCtrl.handleEvent(event);
-                break;
-        }
-    }
-    @Override
-    public void onClick(final Controller<PointerEvent> ctrl) {
-        this.clickCtrl = ctrl;
-        this.subscribeToEvent("click");
-    }
-
-    @Override
-    public void onPointerEnter(final Controller<PointerEvent> ctrl) {
-        this.mouseOverCtrl = ctrl;
-        this.subscribeToEvent("pointer enter");
-    }
-
-    @Override
-    public void onPointerLeave(final Controller<PointerEvent> ctrl) {
-        this.mouseOutCtrl = ctrl;
-        this.subscribeToEvent("pointer leave");
     }
 }

@@ -70,11 +70,6 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     }
 
     @Override
-    public void handleEvent(String type, Optional<JsonObject> data) {
-        // not yet
-    }
-
-    @Override
     public void remove() {
         this.pushUpdate(new ResetClient());
     }

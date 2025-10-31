@@ -3,22 +3,23 @@
  */
 package com.kniazkov.widgets.controller;
 
-import com.kniazkov.json.JsonObject;
-
 /**
  * An entity that can be clicked by the user.
  * This interface represents interactive elements such as buttons, icons, or clickable text.
  * It allows associating a {@link Controller <PointerEvent>} that defines the behavior
  * to execute when a click event occurs.
  */
-public interface ProcessesPointerEvents {
+public interface HandlesPointerEvents extends HandlesEvents {
     /**
      * Registers a controller that will be invoked when a pointer
      * click event occurs on this element.
      *
      * @param ctrl the controller to execute when the element is clicked
      */
-    void onClick(Controller<PointerEvent> ctrl);
+    default void onClick(Controller<PointerEvent> ctrl) {
+        this.setController(Event.CLICK, ctrl);
+        this.subscribeToEvent(Event.CLICK);
+    }
 
     /**
      * Registers a controller that will be invoked when the pointer
@@ -26,7 +27,10 @@ public interface ProcessesPointerEvents {
      *
      * @param ctrl the controller to execute on pointer enter
      */
-    void onPointerEnter(Controller<PointerEvent> ctrl);
+    default void onPointerEnter(Controller<PointerEvent> ctrl) {
+        this.setController(Event.POINTER_ENTER, ctrl);
+        this.subscribeToEvent(Event.POINTER_ENTER);
+    }
 
     /**
      * Registers a controller that will be invoked when the pointer
@@ -34,15 +38,8 @@ public interface ProcessesPointerEvents {
      *
      * @param ctrl the controller to execute on pointer leave
      */
-    void onPointerLeave(Controller<PointerEvent> ctrl);
-
-    /**
-     * Parses a {@link PointerEvent} from a given JSON object.
-
-     * @param object the JSON object representing a pointer event
-     * @return the deserialized {@code PointerEvent} instance
-     */
-    static PointerEvent parsePointerEvent(final JsonObject object) {
-        return object.toJavaObject(PointerEvent.class);
+    default void onPointerLeave(Controller<PointerEvent> ctrl) {
+        this.setController(Event.POINTER_LEAVE, ctrl);
+        this.subscribeToEvent(Event.POINTER_LEAVE);
     }
 }

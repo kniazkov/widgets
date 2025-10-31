@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.Event;
-import com.kniazkov.widgets.controller.HasControllers;
+import com.kniazkov.widgets.controller.HandlesEvents;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.CreateWidget;
@@ -31,7 +31,7 @@ import java.util.TreeSet;
  * describe how the client should create or modify its representation.
  * On creation, every widget automatically generates a {@link CreateWidget} update with its type.
  */
-public abstract class Widget implements Entity, HasControllers {
+public abstract class Widget implements Entity, HandlesEvents {
     /**
      * Widget unique Id.
      */
@@ -113,6 +113,16 @@ public abstract class Widget implements Entity, HasControllers {
         this.controllers.put(event, controller);
     }
 
+    @Override
+    public void handleEvent(final Event<?> event, final JsonObject object) {
+        event.process(this, object);
+    }
+
+    @Override
+    public void subscribeToEvent(final Event<?> event) {
+        this.updates.add(new Subscribe(this.id, event.getName()));
+    }
+
     /**
      * Returns the unique identifier of this widget.
      *
@@ -133,9 +143,11 @@ public abstract class Widget implements Entity, HasControllers {
      * Handles an event received from the client for this widget.
      *
      * @param type the event type
-     * @param data optional event data
+     * @param object event data
      */
-    public abstract void handleEvent(final String type, final Optional<JsonObject> data);
+    public void handleEvent(final String type, final JsonObject object) {
+        this.handleEvent(Event.getByName(type), object);
+    }
 
     /**
      * Returns the container that currently holds this widget, if any.
@@ -262,15 +274,6 @@ public abstract class Widget implements Entity, HasControllers {
      */
     protected void pushUpdate(final Update update) {
         this.updates.add(update);
-    }
-
-    /**
-     * Adds a {@link Subscribe} update to listen for the specified event.
-     *
-     * @param event the event type to subscribe to
-     */
-    protected void subscribeToEvent(final String event) {
-        this.updates.add(new Subscribe(this.id, event));
     }
 
     /**

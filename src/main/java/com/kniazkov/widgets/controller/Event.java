@@ -6,17 +6,42 @@ package com.kniazkov.widgets.controller;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.HasText;
 import com.kniazkov.widgets.view.Widget;
-import java.util.Optional;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class Event<T> {
+
     public abstract String getName();
-    public abstract Class<T> getEventDataClass();
-    public abstract void handle(Widget widget, JsonObject data, Controller<T> ctrl);
+    public abstract T parseData(JsonObject object);
+    public void updateWidget(final Widget widget, final T data) {
+        // do nothing for default
+    }
 
     @Override
     public String toString() {
         return this.getName();
     }
+
+    public void process(final Widget widget, final JsonObject object) {
+        final Controller<T> controller = widget.getController(this);
+        final T data = this.parseData(object);
+        this.updateWidget(widget, data);
+        controller.handleEvent(data);
+    }
+
+    public static final Event<Object> STUB = new Event<Object>() {
+        @Override
+        public String getName() {
+            return "?";
+        }
+
+        @Override
+        public Object parseData(final JsonObject object) {
+            return null;
+        }
+    };
 
     public static final Event<String> TEXT_INPUT = new Event<String>() {
         @Override
@@ -25,17 +50,15 @@ public abstract class Event<T> {
         }
 
         @Override
-        public Class<String> getEventDataClass() {
-            return String.class;
+        public String parseData(final JsonObject object) {
+            return object.get("text").getStringValue();
         }
 
         @Override
-        public void handle(final Widget widget, final JsonObject data, final Controller<String> ctrl) {
-            final String value = data.get("text").getStringValue();
+        public void updateWidget(final Widget widget, final String data) {
             if (widget instanceof HasText) {
-                ((HasText) widget).getTextModel().setData(value);
+                ((HasText) widget).getTextModel().setData(data);
             }
-            ctrl.handleEvent(value);
         }
     };
 
@@ -46,14 +69,8 @@ public abstract class Event<T> {
         }
 
         @Override
-        public Class<PointerEvent> getEventDataClass() {
-            return PointerEvent.class;
-        }
-
-        @Override
-        public void handle(final Widget widget, final JsonObject data, final Controller<PointerEvent> ctrl) {
-            final PointerEvent event = ProcessesPointerEvents.parsePointerEvent(data);
-            ctrl.handleEvent(event);
+        public PointerEvent parseData(final JsonObject object) {
+            return object.toJavaObject(PointerEvent.class);
         }
     };
 
@@ -64,13 +81,8 @@ public abstract class Event<T> {
         }
 
         @Override
-        public Class<PointerEvent> getEventDataClass() {
-            return PointerEvent.class;
-        }
-
-        public void handle(final Widget widget, final JsonObject data, final Controller<PointerEvent> ctrl) {
-            final PointerEvent event = ProcessesPointerEvents.parsePointerEvent(data);
-            ctrl.handleEvent(event);
+        public PointerEvent parseData(final JsonObject object) {
+            return object.toJavaObject(PointerEvent.class);
         }
     };
 
@@ -81,13 +93,18 @@ public abstract class Event<T> {
         }
 
         @Override
-        public Class<PointerEvent> getEventDataClass() {
-            return PointerEvent.class;
-        }
-
-        public void handle(final Widget widget, final JsonObject data, final Controller<PointerEvent> ctrl) {
-            final PointerEvent event = ProcessesPointerEvents.parsePointerEvent(data);
-            ctrl.handleEvent(event);
+        public PointerEvent parseData(final JsonObject object) {
+            return object.toJavaObject(PointerEvent.class);
         }
     };
+
+    private static final Map<String, Event<?>> REGISTRY =
+        Collections.unmodifiableMap(
+            Stream.of(TEXT_INPUT, CLICK, POINTER_ENTER, POINTER_LEAVE)
+                .collect(Collectors.toMap(Event::getName, e -> e))
+        );
+
+    public static Event<?> getByName(final String name) {
+        return REGISTRY.getOrDefault(name, STUB);
+    }
 }

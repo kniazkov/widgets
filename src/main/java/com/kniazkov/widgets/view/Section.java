@@ -56,9 +56,4 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     public String getType() {
         return "section";
     }
-
-    @Override
-    public void handleEvent(String type, Optional<JsonObject> data) {
-        // not yet
-    }
 }

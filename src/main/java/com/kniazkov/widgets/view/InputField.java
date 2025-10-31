@@ -5,7 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.controller.PointerEvent;
-import com.kniazkov.widgets.controller.ProcessesPointerEvents;
+import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.controller.Controller;
 import java.util.Optional;
 
@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 public class InputField extends InlineWidget implements HasTextInput, HasStyledText, HasColor,
         HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor, HasBgColor,
-        ProcessesPointerEvents {
+    HandlesPointerEvents {
 
     /**
      * Returns the default BaseStyle instance used by text widgets.
@@ -24,26 +24,6 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     public static InputFieldStyle getDefaultStyle() {
         return InputFieldStyle.DEFAULT;
     }
-
-    /**
-     * Controller that handles incoming text input events from the client.
-     */
-    private Controller<String> textInputCtrl;
-
-    /**
-     * Controller that handles pointer click events.
-     */
-    private Controller<PointerEvent> clickCtrl;
-
-    /**
-     * Controller that handles pointer enter (hover) events.
-     */
-    private Controller<PointerEvent> mouseOverCtrl;
-
-    /**
-     * Controller that handles pointer leave (unhover) events.
-     */
-    private Controller<PointerEvent> mouseOutCtrl;
 
     /**
      * Creates a new input field with empty text.
@@ -70,68 +50,11 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     public InputField(final InputFieldStyle style, final String text) {
         super(style);
         this.setText(text);
-        this.textInputCtrl = Controller.stub();
-        this.clickCtrl = Controller.stub();
-        this.mouseOverCtrl = Controller.stub();
-        this.mouseOutCtrl = Controller.stub();
-    }
-
-    @Override
-    public void onTextInput(Controller<String> ctrl) {
-        this.textInputCtrl = ctrl;
-        // no need to subscribe to this event
-    }
-
-    @Override
-    public void onClick(final Controller<PointerEvent> ctrl) {
-        this.clickCtrl = ctrl;
-        this.subscribeToEvent("click");
-    }
-
-    @Override
-    public void onPointerEnter(final Controller<PointerEvent> ctrl) {
-        this.mouseOverCtrl = ctrl;
-        this.subscribeToEvent("pointer enter");
-    }
-
-    @Override
-    public void onPointerLeave(final Controller<PointerEvent> ctrl) {
-        this.mouseOutCtrl = ctrl;
-        this.subscribeToEvent("pointer leave");
     }
 
     @Override
     public String getType() {
         return "input field";
-    }
-
-    @Override
-    public void handleEvent(String type, Optional<JsonObject> data) {
-        if (!data.isPresent()) {
-            return;
-        }
-        switch (type) {
-            case "text input":
-                final String value = data.get().get("text").getStringValue();
-                this.getTextModel().setData(value);
-                this.textInputCtrl.handleEvent(value);
-                break;
-            case "click":
-                this.clickCtrl.handleEvent(
-                    ProcessesPointerEvents.parsePointerEvent(data.get())
-                );
-                break;
-            case "pointer enter":
-                this.mouseOverCtrl.handleEvent(
-                    ProcessesPointerEvents.parsePointerEvent(data.get())
-                );
-                break;
-            case "pointer leave":
-                this.mouseOutCtrl.handleEvent(
-                    ProcessesPointerEvents.parsePointerEvent(data.get())
-                );
-                break;
-        }
     }
 
     /**
