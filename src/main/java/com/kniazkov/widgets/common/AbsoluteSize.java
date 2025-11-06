@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Represents an absolute size (width or height) of an inline widget.
+ * Represents an absolute size (width or height) of a widget.
  * <p>
  * Stores both the original numeric value and unit (e.g., {@code "10pt"})
  * along with a precomputed pixel equivalent. This allows relative or
@@ -25,13 +25,13 @@ import java.util.Objects;
  * </ul>
  * The minimum accepted value is clamped to 0 pixels.
  */
-public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize> {
+public class AbsoluteSize implements WidgetSize, Comparable<AbsoluteSize> {
 
     /**
      * Singleton instance representing an undefined size.
      * Used when no explicit value has been assigned.
      */
-    public static final InlineWidgetSize UNDEFINED = new InlineWidgetSize(0, "px") {
+    public static final AbsoluteSize UNDEFINED = new AbsoluteSize(0, "px") {
         @Override
         public String getCSSCode() {
             return "";
@@ -64,7 +64,7 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
      * @param px size in pixels; must be ≥ 0
      * @throws IllegalArgumentException if the size is negative
      */
-    public InlineWidgetSize(final int px) {
+    public AbsoluteSize(final int px) {
         if (px < 0) {
             throw new IllegalArgumentException("InlineWidgetSize must be ≥ 0, or use UNDEFINED");
         }
@@ -80,7 +80,7 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
      * @param unit  unit suffix (e.g., "pt", "px", etc.)
      * @throws IllegalArgumentException if the value is negative or the unit unsupported
      */
-    public InlineWidgetSize(final float value, final String unit) {
+    public AbsoluteSize(final float value, final String unit) {
         if (value < 0) {
             throw new IllegalArgumentException("InlineWidgetSize must be ≥ 0, or use UNDEFINED");
         }
@@ -98,7 +98,7 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
      * @param str size string (e.g., "10pt", "24px", "1in")
      * @throws IllegalArgumentException if the input string is invalid or contains unsupported units
      */
-    public InlineWidgetSize(String str) {
+    public AbsoluteSize(String str) {
         str = str.trim().toLowerCase();
         if (str.isEmpty()) {
             throw new IllegalArgumentException("Empty size string");
@@ -174,8 +174,8 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
      * @param delta the amount to add (can be negative)
      * @return a new {@code InlineWidgetSize} instance
      */
-    public InlineWidgetSize add(final float delta) {
-        return new InlineWidgetSize(this.value + delta, this.unit);
+    public AbsoluteSize add(final float delta) {
+        return new AbsoluteSize(this.value + delta, this.unit);
     }
 
     @Override
@@ -190,8 +190,8 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof InlineWidgetSize)) return false;
-        final InlineWidgetSize other = (InlineWidgetSize) obj;
+        if (!(obj instanceof AbsoluteSize)) return false;
+        final AbsoluteSize other = (AbsoluteSize) obj;
         return Float.compare(this.value, other.value) == 0 && this.unit.equals(other.unit);
     }
 
@@ -201,7 +201,7 @@ public class InlineWidgetSize implements WidgetSize, Comparable<InlineWidgetSize
     }
 
     @Override
-    public int compareTo(final InlineWidgetSize other) {
+    public int compareTo(final AbsoluteSize other) {
         return Integer.compare(this.pixels, other.pixels);
     }
 }

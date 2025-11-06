@@ -7,7 +7,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.common.InlineWidgetSize;
+import com.kniazkov.widgets.common.AbsoluteSize;
 
 /**
  * Default in-memory implementation of {@link Model}.
@@ -81,7 +81,7 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      *   <li>{@link FontFace} → {@link FontFaceModel}</li>
      *   <li>{@link FontSize} → {@link FontSizeModel}</li>
      *   <li>{@link FontWeight} → {@link FontWeightModel}</li>
-     *   <li>{@link InlineWidgetSize} → {@link InlineWidgetSizeModel}</li>
+     *   <li>{@link AbsoluteSize} → {@link AbsoluteSizeModel}</li>
      * </ul>
      * <p>
      *
@@ -111,8 +111,8 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
         if (data instanceof FontWeight) {
             return new FontWeightModel((FontWeight) data);
         }
-        if (data instanceof InlineWidgetSize) {
-            return new InlineWidgetSizeModel((InlineWidgetSize) data);
+        if (data instanceof AbsoluteSize) {
+            return new AbsoluteSizeModel((AbsoluteSize) data);
         }
         throw new IllegalArgumentException(
             "Unsupported data type for DefaultModel: " + data.getClass().getName()
@@ -190,12 +190,12 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
     }
 
     /**
-     * Creates an {@link InlineWidgetSizeModel} for the given {@link InlineWidgetSize}.
+     * Creates an {@link AbsoluteSizeModel} for the given {@link AbsoluteSize}.
      *
      * @param data the initial inline widget size value
-     * @return a new {@link InlineWidgetSizeModel} initialized with the given value
+     * @return a new {@link AbsoluteSizeModel} initialized with the given value
      */
-    public static Model<InlineWidgetSize> create(final InlineWidgetSize data) {
-        return new InlineWidgetSizeModel(data);
+    public static Model<AbsoluteSize> create(final AbsoluteSize data) {
+        return new AbsoluteSizeModel(data);
     }
 }

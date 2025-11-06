@@ -7,10 +7,12 @@ import com.kniazkov.json.JsonBoolean;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonNumber;
 import com.kniazkov.json.JsonString;
+import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.ColorModel;
@@ -310,6 +312,50 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final Boolean data) {
             return JsonBoolean.getInstance(data);
+        }
+    };
+
+    public static final Property<AbsoluteSize> ABSOLUTE_WIDTH = new Property<AbsoluteSize>() {
+        @Override
+        public String getName() {
+            return "width";
+        }
+
+        @Override
+        public Class<AbsoluteSize> getValueClass() {
+            return AbsoluteSize.class;
+        }
+
+        @Override
+        public Model<AbsoluteSize> createDefaultModel() {
+            return new AbsoluteSizeModel();
+        }
+
+        @Override
+        public JsonElement convertData(final AbsoluteSize data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    public static final Property<AbsoluteSize> ABSOLUTE_HEIGHT = new Property<AbsoluteSize>() {
+        @Override
+        public String getName() {
+            return "height";
+        }
+
+        @Override
+        public Class<AbsoluteSize> getValueClass() {
+            return AbsoluteSize.class;
+        }
+
+        @Override
+        public Model<AbsoluteSize> createDefaultModel() {
+            return new AbsoluteSizeModel();
+        }
+
+        @Override
+        public JsonElement convertData(final AbsoluteSize data) {
+            return new JsonString(data.getCSSCode());
         }
     };
 }

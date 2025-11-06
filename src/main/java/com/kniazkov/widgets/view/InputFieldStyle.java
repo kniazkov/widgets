@@ -18,7 +18,8 @@ import com.kniazkov.widgets.model.FontWeightModel;
 public class InputFieldStyle extends Style implements
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
-        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor
+        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
+        HasAbsoluteWidth, HasAbsoluteHeight
 {
     /**
      * The global default input field style.
@@ -68,6 +69,9 @@ public class InputFieldStyle extends Style implements
         this.setFocusBgColor(Color.CYAN);
         this.setInvalidBgColor(Color.PINK);
         this.setDisabledBgColor(Color.LIGHT_GRAY);
+
+        this.setWidth("100px");
+        this.setHeight("25px");
     }
 
     /**
