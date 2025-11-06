@@ -8,8 +8,10 @@ import com.kniazkov.widgets.common.Color;
 /**
  * Style definition for {@link InputField}.
  */
-public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasHoverColor,
-        HasFocusColor, HasDisabledColor, HasInvalidColor, HasBgColor {
+public class InputFieldStyle extends Style implements HasStyledText,
+        HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
+        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor
+{
     /**
      * The global default input field style.
      */
@@ -26,6 +28,10 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setDisabledColor(Color.DARK_GRAY);
 
         this.setBgColor(Color.WHITE);
+        this.setHoverBgColor(Color.YELLOW);
+        this.setFocusBgColor(Color.CYAN);
+        this.setInvalidBgColor(Color.PINK);
+        this.setDisabledBgColor(Color.LIGHT_GRAY);
     }
 
     /**

@@ -157,17 +157,13 @@ var setColor = function(data) {
 var setBgColor = function(data) {
     var widget = widgets[data.widget];
     var rgb = data["bg color"];
-    if (widget && typeof rgb == "object") {
+    var state = data.state;
+    if (widget && typeof rgb == "object" && typeof state == "string") {
         var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-        var flag = true;
-        if (widget.setBgColor) {
-            flag = widget.setBgColor(color);
-        } else {
-            widget.style.backgroundColor = color;
-        }
-        if (flag) {
-            log("The background color \"" + color + "\" has been set to the widget " + data.widget + '.');
-        }
+        widget._properties[state].backgroundColor = color;
+        refreshWidget(widget);
+        log("The background color \"" + color + "\" for state \"" + state +
+            "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;

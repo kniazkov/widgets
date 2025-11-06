@@ -12,10 +12,11 @@ import java.util.Optional;
 /**
  * An editable text input field widget.
  */
-public class InputField extends InlineWidget implements HasTextInput, HasStyledText, HasColor,
-        HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor, HasBgColor,
-    HandlesPointerEvents {
-
+public class InputField extends InlineWidget implements HasTextInput, HasStyledText,
+        HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
+        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
+        HandlesPointerEvents
+{
     /**
      * Returns the default BaseStyle instance used by text widgets.
      *
