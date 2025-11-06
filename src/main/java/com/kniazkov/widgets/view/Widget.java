@@ -55,6 +55,11 @@ public abstract class Widget implements Entity, HandlesEvents {
      */
     private final Map<State, Map<Property<?>, Binding<?>>> bindings;
 
+    /**
+     * One-dimensional mapping: {@link Event} → {@link Controller}.
+     * Each entry defines the active {@link Controller} instance that handles
+     * a particular {@link Event} type for this widget.
+     */
     private final Map<Event<?>, Controller<?>> controllers;
 
     /**
