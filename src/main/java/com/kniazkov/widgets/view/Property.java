@@ -3,11 +3,20 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.json.JsonBoolean;
 import com.kniazkov.json.JsonElement;
+import com.kniazkov.json.JsonNumber;
 import com.kniazkov.json.JsonString;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.FontFace;
+import com.kniazkov.widgets.common.FontSize;
+import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.model.Binding;
+import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.ColorModel;
+import com.kniazkov.widgets.model.FontFaceModel;
+import com.kniazkov.widgets.model.FontSizeModel;
+import com.kniazkov.widgets.model.FontWeightModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
@@ -213,6 +222,94 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final Color data) {
             return data.toJsonObject();
+        }
+    };
+
+    public static final Property<FontFace> FONT_FACE = new Property<FontFace>() {
+        @Override
+        public String getName() {
+            return "font face";
+        }
+
+        @Override
+        public Class<FontFace> getValueClass() {
+            return FontFace.class;
+        }
+
+        @Override
+        public Model<FontFace> createDefaultModel() {
+            return new FontFaceModel();
+        }
+
+        @Override
+        public JsonElement convertData(final FontFace data) {
+            return new JsonString(data.getName());
+        }
+    };
+
+    public static final Property<FontSize> FONT_SIZE = new Property<FontSize>() {
+        @Override
+        public String getName() {
+            return "font size";
+        }
+
+        @Override
+        public Class<FontSize> getValueClass() {
+            return FontSize.class;
+        }
+
+        @Override
+        public Model<FontSize> createDefaultModel() {
+            return new FontSizeModel();
+        }
+
+        @Override
+        public JsonElement convertData(final FontSize data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    public static final Property<FontWeight> FONT_WEIGHT = new Property<FontWeight>() {
+        @Override
+        public String getName() {
+            return "font weight";
+        }
+
+        @Override
+        public Class<FontWeight> getValueClass() {
+            return FontWeight.class;
+        }
+
+        @Override
+        public Model<FontWeight> createDefaultModel() {
+            return new FontWeightModel();
+        }
+
+        @Override
+        public JsonElement convertData(final FontWeight data) {
+            return new JsonNumber(data.getWeight());
+        }
+    };
+
+    public static final Property<Boolean> ITALIC = new Property<Boolean>() {
+        @Override
+        public String getName() {
+            return "italic";
+        }
+
+        @Override
+        public Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public Model<Boolean> createDefaultModel() {
+            return new BooleanModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Boolean data) {
+            return JsonBoolean.getInstance(data);
         }
     };
 }

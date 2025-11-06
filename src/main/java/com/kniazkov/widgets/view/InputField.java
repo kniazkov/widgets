@@ -12,7 +12,8 @@ import java.util.Optional;
 /**
  * An editable text input field widget.
  */
-public class InputField extends InlineWidget implements HasTextInput, HasStyledText,
+public class InputField extends InlineWidget implements HasTextInput,
+        HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
         HandlesPointerEvents

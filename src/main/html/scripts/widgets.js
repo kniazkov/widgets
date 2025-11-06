@@ -163,7 +163,7 @@ var setBgColor = function(data) {
         widget._properties[state].backgroundColor = color;
         refreshWidget(widget);
         log("The background color \"" + color + "\" for state \"" + state +
-            "\" has been set to the widget " + data.widget + '.');
+                "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -194,12 +194,15 @@ var setHeight = function(data) {
 var setFontFace = function(data) {
     var widget = widgets[data.widget];
     var value = data["font face"];
-    if (widget && typeof value == "string") {
+    var state = data.state;
+    if (widget && typeof value == "string" && typeof state == "string") {
         if (value == "default") {
             value = DEFAULT_FONT_FACE;
         }
-        widget.style.fontFamily = value;
-        log("The font face \"" + value + "\" has been set to the widget " + data.widget + '.');
+        widget._properties[state].fontFamily = value;
+        refreshWidget(widget);
+        log("The font face \"" + value + "\" for state \"" + state +
+                "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -208,9 +211,12 @@ var setFontFace = function(data) {
 var setFontSize = function(data) {
     var widget = widgets[data.widget];
     var value = data["font size"];
-    if (widget && typeof value == "string") {
-        widget.style.fontSize = value;
-        log("The font size \"" + value + "\" has been set to the widget " + data.widget + '.');
+    var state = data.state;
+    if (widget && typeof value == "string" && typeof state == "string") {
+        widget._properties[state].fontSize = value;
+        refreshWidget(widget);
+        log("The font size \"" + value + "\" for state \"" + state +
+                "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -219,9 +225,12 @@ var setFontSize = function(data) {
 var setFontWeight = function(data) {
     var widget = widgets[data.widget];
     var value = data["font weight"];
-    if (widget && typeof value == "number") {
-        widget.style.fontWeight = value;
-        log("The font weight \"" + value + "\" has been set to the widget " + data.widget + '.');
+    var state = data.state;
+    if (widget && typeof value == "number" && typeof state == "string") {
+        widget._properties[state].fontWeight = value;
+        refreshWidget(widget);
+        log("The font weight \"" + value + "\" for state \"" + state +
+                "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;
@@ -230,9 +239,12 @@ var setFontWeight = function(data) {
 var setItalic = function(data) {
     var widget = widgets[data.widget];
     var value = data["italic"];
-    if (widget && typeof value == "boolean") {
-        widget.style.fontStyle = value ? "italic" : "normal";
-        log("The italic flag \"" + value + "\" has been set to the widget " + data.widget + '.');
+    var state = data.state;
+    if (widget && typeof value == "boolean" && typeof state == "string") {
+        widget._properties[state].fontStyle = value ? "italic" : "normal";
+        refreshWidget(widget);
+        log("The italic flag \"" + value + "\" for state \"" + state +
+                "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;

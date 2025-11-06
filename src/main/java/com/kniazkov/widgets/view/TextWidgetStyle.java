@@ -4,6 +4,9 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.FontFace;
+import com.kniazkov.widgets.common.FontSize;
+import com.kniazkov.widgets.common.FontWeight;
 
 /**
  * Style definition for {@link TextWidget}.
@@ -18,6 +21,10 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      * Creates the default text style.
      */
     private TextWidgetStyle() {
+        this.setFontFace(FontFace.DEFAULT);
+        this.setFontSize(FontSize.DEFAULT);
+        this.setFontWeight(FontWeight.NORMAL);
+        this.setItalic(false);
         this.setColor(Color.BLACK);
     }
 
