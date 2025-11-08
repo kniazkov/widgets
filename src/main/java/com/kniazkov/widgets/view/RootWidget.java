@@ -3,14 +3,10 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.base.Client;
-import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.ResetClient;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * The root widget of a user interface hierarchy.
@@ -19,7 +15,17 @@ import java.util.Optional;
  * of the interface. The root itself cannot have a parent container and represents the logical
  * entry point for traversing or updating the widget tree.
  */
-public final class RootWidget extends Widget implements TypedContainer<BlockWidget> {
+public final class RootWidget extends Widget implements TypedContainer<BlockWidget>,
+        HasBgColor {
+    /**
+     * Returns the default style instance used by root widget.
+     *
+     * @return the singleton default {@link RootWidgetStyle} instance
+     */
+    public static RootWidgetStyle getDefaultStyle() {
+        return RootWidgetStyle.DEFAULT;
+    }
+
     /**
      * List of child widgets.
      */
@@ -30,7 +36,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
      *
      */
     public RootWidget() {
-        super(Style.getEmptyStyle());
+        super(getDefaultStyle());
     }
 
     @Override
@@ -72,5 +78,14 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     @Override
     public void remove() {
         this.pushUpdate(new ResetClient());
+    }
+
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    public void setStyle(RootWidgetStyle style) {
+        super.setStyle(style);
     }
 }

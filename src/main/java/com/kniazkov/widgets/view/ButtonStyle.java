@@ -39,7 +39,7 @@ public class ButtonStyle extends Style implements
     }
 
     /**
-     * Creates a new input field style that inherits models from the specified parent.
+     * Creates a new button style that inherits models from the specified parent.
      *
      * @param parent the parent style to inherit from
      */

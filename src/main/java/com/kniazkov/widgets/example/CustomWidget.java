@@ -50,6 +50,7 @@ public class CustomWidget {
      */
     public static void main(String[] args) {
         final Page page = root -> {
+            root.setBgColor(Color.GOLD);
             final MyWidget customWidget = new MyWidget("Enter text", "Ok");
             root.add(customWidget);
 
