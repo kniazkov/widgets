@@ -20,7 +20,7 @@ public class InputField extends InlineWidget implements HasTextInput,
         HandlesPointerEvents
 {
     /**
-     * Returns the default BaseStyle instance used by text widgets.
+     * Returns the default style instance used by input fields.
      *
      * @return the singleton default {@link TextWidgetStyle} instance
      */

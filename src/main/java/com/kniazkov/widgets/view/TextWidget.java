@@ -3,15 +3,12 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
-import java.util.Optional;
-
 /**
  * A simple text widget that displays styled textual content.
  */
 public class TextWidget extends InlineWidget implements HasStyledText, HasColor {
     /**
-     * Returns the default BaseStyle instance used by text widgets.
+     * Returns the default style instance used by text widgets.
      *
      * @return the singleton default {@link TextWidgetStyle} instance
      */
@@ -27,7 +24,7 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     }
 
     /**
-     * Creates a new text widget with the given initial text value and the default BaseStyle.
+     * Creates a new text widget with the given initial text value and the default style.
      *
      * @param text the initial text to display
      */
