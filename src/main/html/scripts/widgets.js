@@ -191,6 +191,20 @@ var setHeight = function(data) {
     return false;
 };
 
+var setMargin = function(data) {
+    var widget = widgets[data.widget];
+    var obj = data.margin;
+    if (widget && typeof obj == "object") {
+        widget.style.marginLeft = obj.left;
+        widget.style.marginRight = obj.right;
+        widget.style.marginTop = obj.top;
+        widget.style.marginBottom = obj.bottom;
+        log("The margin of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\"");
+        return true;
+    }
+    return false;
+};
+
 var setFontFace = function(data) {
     var widget = widgets[data.widget];
     var value = data["font face"];

@@ -12,6 +12,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.BooleanModel;
@@ -20,6 +21,7 @@ import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
 
@@ -356,6 +358,28 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final AbsoluteSize data) {
             return new JsonString(data.getCSSCode());
+        }
+    };
+
+    public static final Property<Offset> MARGIN = new Property<Offset>() {
+        @Override
+        public String getName() {
+            return "margin";
+        }
+
+        @Override
+        public Class<Offset> getValueClass() {
+            return Offset.class;
+        }
+
+        @Override
+        public Model<Offset> createDefaultModel() {
+            return new OffsetModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Offset data) {
+            return data.toJsonObject();
         }
     };
 }

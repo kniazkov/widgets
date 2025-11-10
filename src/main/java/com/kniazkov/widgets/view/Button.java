@@ -12,7 +12,7 @@ import com.kniazkov.widgets.protocol.SetChild;
 public class Button extends InlineWidget implements
         Decorator<InlineWidget>, HandlesPointerEvents,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
-        HasAbsoluteWidth, HasAbsoluteHeight
+        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
      * Returns the default style instance used by buttons.

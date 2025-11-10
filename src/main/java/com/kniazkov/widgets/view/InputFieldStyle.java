@@ -19,7 +19,7 @@ public class InputFieldStyle extends Style implements
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
-        HasAbsoluteWidth, HasAbsoluteHeight
+        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
      * The global default input field style.
@@ -72,6 +72,7 @@ public class InputFieldStyle extends Style implements
 
         this.setWidth("100px");
         this.setHeight("25px");
+        this.setMargin("2px", "1px");
     }
 
     /**

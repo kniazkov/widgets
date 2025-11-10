@@ -149,6 +149,7 @@ var actionHandlers = {
     "set bg color" : setBgColor,
     "set width" : setWidth,
     "set height" : setHeight,
+    "set margin" : setMargin,
     "set font face": setFontFace,
     "set font size": setFontSize,
     "set font weight": setFontWeight,

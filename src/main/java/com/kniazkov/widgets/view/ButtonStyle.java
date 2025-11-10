@@ -18,7 +18,7 @@ import com.kniazkov.widgets.model.FontWeightModel;
  */
 public class ButtonStyle extends Style implements
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
-        HasAbsoluteWidth, HasAbsoluteHeight
+        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
      * The global default button style.
@@ -36,6 +36,7 @@ public class ButtonStyle extends Style implements
 
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight("25px");
+        this.setMargin("2px");
     }
 
     /**

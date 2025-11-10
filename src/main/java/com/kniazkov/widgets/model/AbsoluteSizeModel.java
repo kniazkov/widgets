@@ -6,7 +6,7 @@ package com.kniazkov.widgets.model;
 import com.kniazkov.widgets.common.AbsoluteSize;
 
 /**
- * A default inline widget size model implementation.
+ * A default absolute size model implementation.
  */
 public final class AbsoluteSizeModel extends DefaultModel<AbsoluteSize> {
     /**
@@ -19,7 +19,7 @@ public final class AbsoluteSizeModel extends DefaultModel<AbsoluteSize> {
     /**
      * Creates a new absolute size model initialized with the specified value.
      *
-     * @param data the initial inline widget size
+     * @param data the initial absolute size
      */
     public AbsoluteSizeModel(final AbsoluteSize data) {
         super(data);
