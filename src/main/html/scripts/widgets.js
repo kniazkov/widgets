@@ -264,6 +264,54 @@ var setItalic = function(data) {
     return false;
 };
 
+var setBorderColor = function(data) {
+    var widget = widgets[data.widget];
+    var rgb = data["border color"];
+    var state = data.state;
+    if (widget && typeof rgb == "object" && typeof state == "string") {
+        var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        widget._properties[state].borderColor = color;
+        refreshWidget(widget);
+        log("The border color \"" + color + "\" for state \"" + state +
+                "\" has been set to the widget " + data.widget + '.');
+        return true;
+    }
+    return false;
+};
+
+var setBorderStyle = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["border style"];
+    if (widget && typeof value == "string") {
+        widget.style.borderStyle = value;
+        log("The border style of the widget " + data.widget + " has been set to \"" + value + "\"");
+        return true;
+    }
+    return false;
+};
+
+var setBorderWidth = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["border width"];
+    if (widget && typeof value == "string") {
+        widget.style.borderWidth = value;
+        log("The border width of the widget " + data.widget + " has been set to \"" + value + "\"");
+        return true;
+    }
+    return false;
+};
+
+var setBorderRadius = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["border radius"];
+    if (widget && typeof value == "string") {
+        widget.style.borderRadius = value;
+        log("The border radius of the widget " + data.widget + " has been set to \"" + value + "\"");
+        return true;
+    }
+    return false;
+};
+
 var processPointerEvent = function(element, event) {
     var rect = element.getBoundingClientRect();
     var data = {};

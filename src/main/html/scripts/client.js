@@ -153,7 +153,11 @@ var actionHandlers = {
     "set font face": setFontFace,
     "set font size": setFontSize,
     "set font weight": setFontWeight,
-    "set italic": setItalic
+    "set italic": setItalic,
+    "set border color": setBorderColor,
+    "set border style": setBorderStyle,
+    "set border width": setBorderWidth,
+    "set border radius": setBorderRadius
 };
 
 var ALWAYS_ALLOWED_EVENTS = ["text input"];

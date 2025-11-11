@@ -1,0 +1,182 @@
+/*
+ * Copyright (c) 2025 Ivan Kniazkov
+ */
+package com.kniazkov.widgets.view;
+
+import com.kniazkov.widgets.common.AbsoluteSize;
+import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.model.Model;
+
+/**
+ * An {@link Entity} that defines visual border properties, including
+ * color, style, width, and radius (corner rounding).
+ */
+public interface HasBorder extends Entity {
+
+    /**
+     * Returns the model that stores the border color for this view.
+     *
+     * @return the border color model
+     */
+    default Model<Color> getBorderColorModel() {
+        return this.getModel(State.NORMAL, Property.BORDER_COLOR);
+    }
+
+    /**
+     * Sets a new border color model for this view.
+     *
+     * @param model the border color model to set
+     */
+    default void setBorderColorModel(final Model<Color> model) {
+        this.setModel(State.NORMAL, Property.BORDER_COLOR, model);
+    }
+
+    /**
+     * Returns the current border color from the model.
+     *
+     * @return the current border color
+     */
+    default Color getBorderColor() {
+        return this.getBorderColorModel().getData();
+    }
+
+    /**
+     * Updates the border color value in the associated model.
+     *
+     * @param color the new border color
+     */
+    default void setBorderColor(final Color color) {
+        this.getBorderColorModel().setData(color);
+    }
+
+    /**
+     * Returns the model that stores the border style for this view.
+     *
+     * @return the border style model
+     */
+    default Model<BorderStyle> getBorderStyleModel() {
+        return this.getModel(State.ANY, Property.BORDER_STYLE);
+    }
+
+    /**
+     * Sets a new border style model for this view.
+     *
+     * @param model the border style model to set
+     */
+    default void setBorderStyleModel(final Model<BorderStyle> model) {
+        this.setModel(State.ANY, Property.BORDER_STYLE, model);
+    }
+
+    /**
+     * Returns the current border style from the model.
+     *
+     * @return the current border style
+     */
+    default BorderStyle getBorderStyle() {
+        return this.getBorderStyleModel().getData();
+    }
+
+    /**
+     * Updates the border style value in the associated model.
+     *
+     * @param style the new border style
+     */
+    default void setBorderStyle(final BorderStyle style) {
+        this.getBorderStyleModel().setData(style);
+    }
+
+    /**
+     * Returns the model that stores the border width for this view.
+     *
+     * @return the border width model
+     */
+    default Model<AbsoluteSize> getBorderWidthModel() {
+        return this.getModel(State.ANY, Property.BORDER_WIDTH);
+    }
+
+    /**
+     * Sets a new border width model for this view.
+     *
+     * @param model the border width model to set
+     */
+    default void setBorderWidthModel(final Model<AbsoluteSize> model) {
+        this.setModel(State.ANY, Property.BORDER_WIDTH, model);
+    }
+
+    /**
+     * Returns the current border width from the model.
+     *
+     * @return the current border width
+     */
+    default AbsoluteSize getBorderWidth() {
+        return this.getBorderWidthModel().getData();
+    }
+
+    /**
+     * Updates the border width value in the associated model.
+     *
+     * @param width the new border width
+     */
+    default void setBorderWidth(final AbsoluteSize width) {
+        this.getBorderWidthModel().setData(width);
+    }
+
+    /**
+     * Updates the border width value in the associated model using a string-based value.
+     * <p>
+     * Example: {@code setBorderWidth("2px")}
+     *
+     * @param width the string representing the new border width
+     */
+    default void setBorderWidth(final String width) {
+        this.getBorderWidthModel().setData(new AbsoluteSize(width));
+    }
+
+    /**
+     * Returns the model that stores the border radius (corner rounding) for this view.
+     *
+     * @return the border radius model
+     */
+    default Model<AbsoluteSize> getBorderRadiusModel() {
+        return this.getModel(State.ANY, Property.BORDER_RADIUS);
+    }
+
+    /**
+     * Sets a new border radius model for this view.
+     *
+     * @param model the border radius model to set
+     */
+    default void setBorderRadiusModel(final Model<AbsoluteSize> model) {
+        this.setModel(State.ANY, Property.BORDER_RADIUS, model);
+    }
+
+    /**
+     * Returns the current border radius (corner rounding) from the model.
+     *
+     * @return the current border radius
+     */
+    default AbsoluteSize getBorderRadius() {
+        return this.getBorderRadiusModel().getData();
+    }
+
+    /**
+     * Updates the border radius (corner rounding) value in the associated model.
+     *
+     * @param radius the new border radius
+     */
+    default void setBorderRadius(final AbsoluteSize radius) {
+        this.getBorderRadiusModel().setData(radius);
+    }
+
+    /**
+     * Updates the border radius (corner rounding) value using a string-based value.
+     * <p>
+     * Example: {@code setBorderRadius("4px")}
+     *
+     * @param radius the string representing the new border radius
+     */
+    default void setBorderRadius(final String radius) {
+        this.getBorderRadiusModel().setData(new AbsoluteSize(radius));
+    }
+}

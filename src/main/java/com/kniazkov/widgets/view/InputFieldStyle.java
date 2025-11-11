@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
@@ -19,6 +20,7 @@ public class InputFieldStyle extends Style implements
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
+        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder, HasInvalidBorder,
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
@@ -69,6 +71,16 @@ public class InputFieldStyle extends Style implements
         this.setFocusBgColor(Color.CYAN);
         this.setInvalidBgColor(Color.PINK);
         this.setDisabledBgColor(Color.LIGHT_GRAY);
+
+        this.setBorderColor(Color.DARK_GRAY);
+        this.setHoverBorderColor(Color.BLACK);
+        this.setFocusBorderColor(Color.ORANGE);
+        this.setInvalidBorderColor(Color.RED);
+        this.setDisabledBorderColor(Color.LIGHT_GRAY);
+
+        this.setBorderStyle(BorderStyle.SOLID);
+        this.setBorderWidth("1px");
+        this.setBorderRadius("0px");
 
         this.setWidth("100px");
         this.setHeight("25px");

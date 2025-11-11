@@ -16,6 +16,7 @@ public class InputField extends InlineWidget implements HasTextInput,
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
+        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder, HasInvalidBorder,
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
         HandlesPointerEvents
 {

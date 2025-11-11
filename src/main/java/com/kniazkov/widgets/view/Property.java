@@ -8,6 +8,7 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonNumber;
 import com.kniazkov.json.JsonString;
 import com.kniazkov.widgets.common.AbsoluteSize;
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
@@ -16,6 +17,7 @@ import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.BooleanModel;
+import com.kniazkov.widgets.model.BorderStyleModel;
 import com.kniazkov.widgets.model.ColorModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
@@ -380,6 +382,94 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final Offset data) {
             return data.toJsonObject();
+        }
+    };
+
+    public static final Property<Color> BORDER_COLOR = new Property<Color>() {
+        @Override
+        public String getName() {
+            return "border color";
+        }
+
+        @Override
+        public Class<Color> getValueClass() {
+            return Color.class;
+        }
+
+        @Override
+        public Model<Color> createDefaultModel() {
+            return new ColorModel(Color.BLACK);
+        }
+
+        @Override
+        public JsonElement convertData(final Color data) {
+            return data.toJsonObject();
+        }
+    };
+
+    public static final Property<BorderStyle> BORDER_STYLE = new Property<BorderStyle>() {
+        @Override
+        public String getName() {
+            return "border style";
+        }
+
+        @Override
+        public Class<BorderStyle> getValueClass() {
+            return BorderStyle.class;
+        }
+
+        @Override
+        public Model<BorderStyle> createDefaultModel() {
+            return new BorderStyleModel(BorderStyle.NONE);
+        }
+
+        @Override
+        public JsonElement convertData(final BorderStyle data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    public static final Property<AbsoluteSize> BORDER_WIDTH = new Property<AbsoluteSize>() {
+        @Override
+        public String getName() {
+            return "border width";
+        }
+
+        @Override
+        public Class<AbsoluteSize> getValueClass() {
+            return AbsoluteSize.class;
+        }
+
+        @Override
+        public Model<AbsoluteSize> createDefaultModel() {
+            return new AbsoluteSizeModel("0px");
+        }
+
+        @Override
+        public JsonElement convertData(final AbsoluteSize data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    public static final Property<AbsoluteSize> BORDER_RADIUS = new Property<AbsoluteSize>() {
+        @Override
+        public String getName() {
+            return "border radius";
+        }
+
+        @Override
+        public Class<AbsoluteSize> getValueClass() {
+            return AbsoluteSize.class;
+        }
+
+        @Override
+        public Model<AbsoluteSize> createDefaultModel() {
+            return new AbsoluteSizeModel("0px");
+        }
+
+        @Override
+        public JsonElement convertData(final AbsoluteSize data) {
+            return new JsonString(data.getCSSCode());
         }
     };
 }

@@ -4,20 +4,15 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.AbsoluteSize;
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.FontFace;
-import com.kniazkov.widgets.common.FontSize;
-import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.model.BooleanModel;
-import com.kniazkov.widgets.model.FontFaceModel;
-import com.kniazkov.widgets.model.FontSizeModel;
-import com.kniazkov.widgets.model.FontWeightModel;
 
 /**
  * Style definition for {@link Button}.
  */
 public class ButtonStyle extends Style implements
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
+        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder,
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
@@ -33,6 +28,15 @@ public class ButtonStyle extends Style implements
         this.setHoverBgColor(new Color(220, 220, 220));
         this.setFocusBgColor(Color.WHITE);
         this.setDisabledBgColor(Color.DARK_GRAY);
+
+        this.setBorderColor(Color.DARK_GRAY);
+        this.setHoverBorderColor(Color.BLACK);
+        this.setFocusBorderColor(Color.ORANGE);
+        this.setDisabledBorderColor(Color.LIGHT_GRAY);
+
+        this.setBorderStyle(BorderStyle.SOLID);
+        this.setBorderWidth("1px");
+        this.setBorderRadius("3px");
 
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight("25px");
