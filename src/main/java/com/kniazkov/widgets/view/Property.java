@@ -385,6 +385,28 @@ public abstract class Property<T> {
         }
     };
 
+    public static final Property<Offset> PADDING = new Property<Offset>() {
+        @Override
+        public String getName() {
+            return "padding";
+        }
+
+        @Override
+        public Class<Offset> getValueClass() {
+            return Offset.class;
+        }
+
+        @Override
+        public Model<Offset> createDefaultModel() {
+            return new OffsetModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Offset data) {
+            return data.toJsonObject();
+        }
+    };
+
     public static final Property<Color> BORDER_COLOR = new Property<Color>() {
         @Override
         public String getName() {

@@ -13,7 +13,7 @@ import com.kniazkov.widgets.common.Color;
 public class ButtonStyle extends Style implements
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
         HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
+        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding
 {
     /**
      * The global default button style.
@@ -39,8 +39,9 @@ public class ButtonStyle extends Style implements
         this.setBorderRadius("3px");
 
         this.setWidth(AbsoluteSize.UNDEFINED);
-        this.setHeight("25px");
+        this.setHeight(AbsoluteSize.UNDEFINED);
         this.setMargin("2px");
+        this.setPadding("10px");
     }
 
     /**

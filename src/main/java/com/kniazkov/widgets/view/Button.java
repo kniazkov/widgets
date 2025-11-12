@@ -13,7 +13,7 @@ public class Button extends InlineWidget implements
         Decorator<InlineWidget>, HandlesPointerEvents,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
         HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
+        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding
 {
     /**
      * Returns the default style instance used by buttons.

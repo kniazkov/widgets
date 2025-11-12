@@ -57,7 +57,7 @@ public class ClickCounter {
             final TextWidget counter = new TextWidget();
             section.add(counter);
             counter.setTextModel(new IntegerToStringModel(model));
-            //counter.setFontWeight(FontWeight.BOLD);
+            counter.setFontWeight(FontWeight.BOLD);
         };
 
         final Application application = new Application(page);

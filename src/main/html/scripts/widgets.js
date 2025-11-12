@@ -205,6 +205,20 @@ var setMargin = function(data) {
     return false;
 };
 
+var setPadding = function(data) {
+    var widget = widgets[data.widget];
+    var obj = data.padding;
+    if (widget && typeof obj == "object") {
+        widget.style.paddingLeft = obj.left;
+        widget.style.paddingRight = obj.right;
+        widget.style.paddingTop = obj.top;
+        widget.style.paddingBottom = obj.bottom;
+        log("The padding of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\"");
+        return true;
+    }
+    return false;
+};
+
 var setFontFace = function(data) {
     var widget = widgets[data.widget];
     var value = data["font face"];

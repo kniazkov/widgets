@@ -150,6 +150,7 @@ var actionHandlers = {
     "set width" : setWidth,
     "set height" : setHeight,
     "set margin" : setMargin,
+    "set padding" : setPadding,
     "set font face": setFontFace,
     "set font size": setFontSize,
     "set font weight": setFontWeight,
