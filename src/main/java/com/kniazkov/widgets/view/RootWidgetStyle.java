@@ -4,6 +4,8 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Style definition for {@link RootWidget}.
@@ -14,6 +16,11 @@ public class RootWidgetStyle extends Style implements HasBgColor
      * The global default root widget style.
      */
     public static final RootWidgetStyle DEFAULT = new RootWidgetStyle();
+
+    /**
+     * Set of supported states.
+     */
+    private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
 
     /**
      * Creates the default root widget style.
@@ -29,6 +36,11 @@ public class RootWidgetStyle extends Style implements HasBgColor
      */
     public RootWidgetStyle(final RootWidgetStyle parent) {
         super(parent);
+    }
+
+    @Override
+    public Set<State> getSupportedStates() {
+        return SUPPORTED_STATES;
     }
 
     @Override

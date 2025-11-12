@@ -4,6 +4,8 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Represents a view-layer entity that exposes reactive {@link Model} instances associated with
@@ -13,6 +15,18 @@ import com.kniazkov.widgets.model.Model;
  * an {@link IllegalArgumentException} must be thrown.
  */
 public interface Entity {
+    /**
+     * Returns the set of supported logical states for this entity.
+     * <p>
+     * Implementations may override this method to declare which states they actually support.
+     * The default implementation returns an empty, immutable set.
+     *
+     * @return the set of supported states (never {@code null})
+     */
+    default Set<State> getSupportedStates() {
+        return Collections.emptySet();
+    }
+
     /**
      * Returns the model associated with the specified {@link State} and {@link Property}.
      * <p>
@@ -24,7 +38,8 @@ public interface Entity {
      * @param property the visual or behavioral property
      * @param <T> the type of data managed by the model
      * @return the model for the specified state/property pair (never {@code null})
-     * @throws IllegalArgumentException if no model exists or its type is incompatible
+     * @throws IllegalArgumentException if the type does not match the property or the state is
+     *  not supported
      */
     <T> Model<T> getModel(State state, Property<T> property);
 
@@ -42,7 +57,8 @@ public interface Entity {
      * @param property the visual or behavioral property
      * @param model the model to associate (must not be {@code null})
      * @param <T> the type of data managed by the model
-     * @throws IllegalArgumentException if arguments are invalid or types are incompatible
+     * @throws IllegalArgumentException if the type does not match the property or the state is
+     *  not supported
      */
     <T> void setModel(State state, Property<T> property, Model<T> model);
 }

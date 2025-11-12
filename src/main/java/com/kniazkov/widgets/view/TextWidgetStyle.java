@@ -7,6 +7,10 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Style definition for {@link TextWidget}.
@@ -16,6 +20,11 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      * The global default text widget style.
      */
     public static final TextWidgetStyle DEFAULT = new TextWidgetStyle();
+
+    /**
+     * Set of supported states.
+     */
+    private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
 
     /**
      * Creates the default text style.
@@ -35,6 +44,11 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      */
     public TextWidgetStyle(final TextWidgetStyle parent) {
         super(parent);
+    }
+
+    @Override
+    public Set<State> getSupportedStates() {
+        return SUPPORTED_STATES;
     }
 
     @Override

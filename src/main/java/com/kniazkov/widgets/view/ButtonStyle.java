@@ -6,6 +6,10 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Style definition for {@link Button}.
@@ -19,6 +23,17 @@ public class ButtonStyle extends Style implements
      * The global default button style.
      */
     public static final ButtonStyle DEFAULT = new ButtonStyle();
+
+    /**
+     * Set of supported states.
+     */
+    private static final Set<State> SUPPORTED_STATES =
+        Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            State.NORMAL,
+            State.HOVERED,
+            State.ACTIVE,
+            State.DISABLED
+        )));
 
     /**
      * Creates the default button style.
@@ -51,6 +66,11 @@ public class ButtonStyle extends Style implements
      */
     public ButtonStyle(final ButtonStyle parent) {
         super(parent);
+    }
+
+    @Override
+    public Set<State> getSupportedStates() {
+        return SUPPORTED_STATES;
     }
 
     @Override

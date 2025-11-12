@@ -38,6 +38,11 @@ public abstract class Widget implements Entity, HandlesEvents {
     private final UId id;
 
     /**
+     * Widget style.
+     */
+    private Style style;
+
+    /**
      * List of updates not yet sent to the client.
      */
     private final List<Update> updates;
@@ -69,6 +74,7 @@ public abstract class Widget implements Entity, HandlesEvents {
      */
     public Widget(final Style style) {
         this.id = UId.create();
+        this.style = style;
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(State.class);
@@ -89,12 +95,23 @@ public abstract class Widget implements Entity, HandlesEvents {
     }
 
     @Override
+    public Set<State> getSupportedStates() {
+        return this.style.getSupportedStates();
+    }
+
+    @Override
     public <T> Model<T> getModel(final State state, final Property<T> property) {
+        if (state != State.ANY && !getSupportedStates().contains(state)) {
+            throw new IllegalArgumentException("Unsupported state: " + state);
+        }
         return this.getBinding(state, property).getModel();
     }
 
     @Override
     public <T> void setModel(final State state, final Property<T> property, final Model<T> model) {
+        if (state != State.ANY && !getSupportedStates().contains(state)) {
+            throw new IllegalArgumentException("Unsupported state: " + state);
+        }
         final Binding<T> binding = this.getBinding(state, property);
         binding.setModel(model);
     }
@@ -258,6 +275,7 @@ public abstract class Widget implements Entity, HandlesEvents {
      * @param style new widget style
      */
     protected void setStyle(final Style style) {
+        this.style = style;
         style.forEachModel((state, property, model) -> {
             final Map<Property<?>, Binding<?>> subset =
                 this.bindings.computeIfAbsent(state, s -> new HashMap<>());

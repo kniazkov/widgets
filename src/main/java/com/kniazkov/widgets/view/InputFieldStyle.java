@@ -12,6 +12,10 @@ import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Style definition for {@link InputField}.
@@ -27,6 +31,18 @@ public class InputFieldStyle extends Style implements
      * The global default input field style.
      */
     public static final InputFieldStyle DEFAULT = new InputFieldStyle();
+
+    /**
+     * Set of supported states.
+     */
+    private static final Set<State> SUPPORTED_STATES =
+        Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            State.NORMAL,
+            State.HOVERED,
+            State.ACTIVE,
+            State.DISABLED,
+            State.INVALID
+        )));
 
     /**
      * Creates the default input field style.
@@ -94,6 +110,11 @@ public class InputFieldStyle extends Style implements
      */
     public InputFieldStyle(final InputFieldStyle parent) {
         super(parent);
+    }
+
+    @Override
+    public Set<State> getSupportedStates() {
+        return SUPPORTED_STATES;
     }
 
     @Override

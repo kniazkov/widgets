@@ -128,10 +128,14 @@ public abstract class Style implements Entity {
      * @param property the property to retrieve
      * @param <T> the type of data managed by the model
      * @return the synchronized model wrapper for the given state and property
-     * @throws IllegalArgumentException if no model exists or the type is incompatible
+     * @throws IllegalArgumentException if the type does not match the property or the state is
+     *  not supported
      */
     @Override
     public <T> Model<T> getModel(final State state, final Property<T> property) {
+        if (state != State.ANY && !getSupportedStates().contains(state)) {
+            throw new IllegalArgumentException("Unsupported state: " + state);
+        }
         return this.getBinding(state, property);
     }
 
@@ -159,10 +163,14 @@ public abstract class Style implements Entity {
      * @param property the property to update
      * @param model the new base model to assign (must not be {@code null})
      * @param <T> the type of data managed by the model
-     * @throws IllegalArgumentException if no binding exists or the type is incompatible
+     * @throws IllegalArgumentException if the type does not match the property or the state is
+     *  not supported
      */
     @Override
     public <T> void setModel(final State state, final Property<T> property, final Model<T> model) {
+        if (state != State.ANY && !getSupportedStates().contains(state)) {
+            throw new IllegalArgumentException("Unsupported state: " + state);
+        }
         final SynchronizedModel<T> binding = this.getBinding(state, property);
         binding.setBase(model);
     }
