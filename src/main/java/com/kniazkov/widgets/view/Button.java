@@ -9,11 +9,9 @@ import com.kniazkov.widgets.protocol.SetChild;
 /**
  * A clickable button widget that decorates a single {@link InlineWidget}.
  */
-public class Button extends InlineWidget implements
-        Decorator<InlineWidget>, HandlesPointerEvents,
-        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
-        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding
+public class Button extends InlineWidget implements Decorator<InlineWidget>,
+        HandlesPointerEvents, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
+        HasMargin, HasPadding
 {
     /**
      * Returns the default style instance used by buttons.

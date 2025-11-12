@@ -23,8 +23,8 @@ import java.util.Set;
 public class InputFieldStyle extends Style implements
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor,
-        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
-        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder, HasInvalidBorder,
+        HasBgColor,
+        HasBorder,
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
@@ -82,17 +82,17 @@ public class InputFieldStyle extends Style implements
         this.setColor(State.INVALID, Color.RED);
         this.setColor(State.DISABLED, Color.DARK_GRAY);
 
-        this.setBgColor(Color.WHITE);
-        this.setHoverBgColor(Color.YELLOW);
-        this.setFocusBgColor(Color.CYAN);
-        this.setInvalidBgColor(Color.PINK);
-        this.setDisabledBgColor(Color.LIGHT_GRAY);
+        this.setBgColor(State.NORMAL, Color.WHITE);
+        this.setBgColor(State.HOVERED, Color.YELLOW);
+        this.setBgColor(State.ACTIVE, Color.CYAN);
+        this.setBgColor(State.INVALID, Color.PINK);
+        this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
 
-        this.setBorderColor(Color.DARK_GRAY);
-        this.setHoverBorderColor(Color.BLACK);
-        this.setFocusBorderColor(Color.ORANGE);
-        this.setInvalidBorderColor(Color.RED);
-        this.setDisabledBorderColor(Color.LIGHT_GRAY);
+        this.setBorderColor(State.NORMAL, Color.DARK_GRAY);
+        this.setBorderColor(State.HOVERED, Color.BLACK);
+        this.setBorderColor(State.ACTIVE, Color.ORANGE);
+        this.setBorderColor(State.INVALID, Color.RED);
+        this.setBorderColor(State.DISABLED, Color.LIGHT_GRAY);
 
         this.setBorderStyle(BorderStyle.SOLID);
         this.setBorderWidth("1px");

@@ -13,41 +13,65 @@ import com.kniazkov.widgets.model.Model;
  * color, style, width, and radius (corner rounding).
  */
 public interface HasBorder extends Entity {
-
     /**
-     * Returns the model that stores the border color for this view.
+     * Returns the {@link Model} instance that stores the border color for the specified
+     * {@link State}.
      *
-     * @return the border color model
+     * @param state the logical state whose border color model is requested
+     * @return a non-null border color model associated with the given state
      */
-    default Model<Color> getBorderColorModel() {
-        return this.getModel(State.NORMAL, Property.BORDER_COLOR);
+    default Model<Color> getBorderColorModel(final State state) {
+        return this.getModel(state, Property.BORDER_COLOR);
     }
 
     /**
-     * Sets a new border color model for this view.
+     * Associates a new border color model with the specified {@link State}.
      *
-     * @param model the border color model to set
+     * @param state the logical state to which the model should be assigned
+     * @param model the border color model to associate (must not be {@code null})
      */
-    default void setBorderColorModel(final Model<Color> model) {
-        this.setModel(State.NORMAL, Property.BORDER_COLOR, model);
+    default void setBorderColorModel(final State state, final Model<Color> model) {
+        this.setModel(state, Property.BORDER_COLOR, model);
     }
 
     /**
-     * Returns the current border color from the model.
+     * Returns the current border color for the specified {@link State}.
      *
-     * @return the current border color
+     * @param state the logical state whose border color value is requested
+     * @return the current border color from the corresponding model
+     */
+    default Color getBorderColor(final State state) {
+        return this.getBorderColorModel(state).getData();
+    }
+
+    /**
+     * Returns the border color associated with the default {@link State#NORMAL}.
+     *
+     * @return the border color for the normal state
      */
     default Color getBorderColor() {
-        return this.getBorderColorModel().getData();
+        return this.getBorderColor(State.NORMAL);
     }
 
     /**
-     * Updates the border color value in the associated model.
+     * Updates the border color in the model associated with the specified {@link State}.
      *
-     * @param color the new border color
+     * @param state the logical state to update
+     * @param color the new border color to set
+     */
+    default void setBorderColor(final State state, final Color color) {
+        this.getBorderColorModel(state).setData(color);
+    }
+
+    /**
+     * Updates the border color for all {@link State}s supported by this entity.
+     *
+     * @param color the new border color to set for every supported state
      */
     default void setBorderColor(final Color color) {
-        this.getBorderColorModel().setData(color);
+        for (final State state : this.getSupportedStates()) {
+            this.setBorderColor(state, color);
+        }
     }
 
     /**

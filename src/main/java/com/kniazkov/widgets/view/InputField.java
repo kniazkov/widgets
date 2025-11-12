@@ -3,11 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.controller.PointerEvent;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
-import com.kniazkov.widgets.controller.Controller;
-import java.util.Optional;
 
 /**
  * An editable text input field widget.
@@ -15,8 +11,8 @@ import java.util.Optional;
 public class InputField extends InlineWidget implements HasTextInput,
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
         HasColor,
-        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
-        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder, HasInvalidBorder,
+        HasBgColor,
+        HasBorder,
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
         HandlesPointerEvents
 {

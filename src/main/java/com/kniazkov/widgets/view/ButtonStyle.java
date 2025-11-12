@@ -14,10 +14,8 @@ import java.util.Set;
 /**
  * Style definition for {@link Button}.
  */
-public class ButtonStyle extends Style implements
-        HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor,
-        HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding
+public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbsoluteWidth,
+        HasAbsoluteHeight, HasMargin, HasPadding
 {
     /**
      * Set of supported states.
@@ -39,16 +37,15 @@ public class ButtonStyle extends Style implements
      * Creates the default button style.
      */
     private ButtonStyle() {
-        this.setBgColor(new Color(200, 200, 200));
-        this.setHoverBgColor(new Color(220, 220, 220));
-        this.setFocusBgColor(Color.WHITE);
-        this.setDisabledBgColor(Color.DARK_GRAY);
+        this.setBgColor(State.NORMAL, new Color(200, 200, 200));
+        this.setBgColor(State.HOVERED, new Color(220, 220, 220));
+        this.setBgColor(State.ACTIVE, Color.WHITE);
+        this.setBgColor(State.DISABLED, Color.DARK_GRAY);
 
-        this.setBorderColor(Color.DARK_GRAY);
-        this.setHoverBorderColor(Color.BLACK);
-        this.setFocusBorderColor(Color.ORANGE);
-        this.setDisabledBorderColor(Color.LIGHT_GRAY);
-
+        this.setBorderColor(State.NORMAL, Color.DARK_GRAY);
+        this.setBorderColor(State.HOVERED, Color.BLACK);
+        this.setBorderColor(State.ACTIVE, Color.DARK_GRAY);
+        this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
         this.setBorderStyle(BorderStyle.SOLID);
         this.setBorderWidth("1px");
         this.setBorderRadius("3px");
