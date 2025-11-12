@@ -17,14 +17,14 @@ import java.util.Set;
  */
 public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
     /**
-     * The global default text widget style.
-     */
-    public static final TextWidgetStyle DEFAULT = new TextWidgetStyle();
-
-    /**
      * Set of supported states.
      */
     private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
+
+    /**
+     * The global default text widget style.
+     */
+    public static final TextWidgetStyle DEFAULT = new TextWidgetStyle();
 
     /**
      * Creates the default text style.

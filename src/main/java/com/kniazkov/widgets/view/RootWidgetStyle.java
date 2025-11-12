@@ -13,14 +13,14 @@ import java.util.Set;
 public class RootWidgetStyle extends Style implements HasBgColor
 {
     /**
-     * The global default root widget style.
-     */
-    public static final RootWidgetStyle DEFAULT = new RootWidgetStyle();
-
-    /**
      * Set of supported states.
      */
     private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
+
+    /**
+     * The global default root widget style.
+     */
+    public static final RootWidgetStyle DEFAULT = new RootWidgetStyle();
 
     /**
      * Creates the default root widget style.

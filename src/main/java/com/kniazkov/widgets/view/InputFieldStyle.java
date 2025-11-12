@@ -22,16 +22,11 @@ import java.util.Set;
  */
 public class InputFieldStyle extends Style implements
         HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
-        HasColor, HasHoverColor, HasFocusColor, HasDisabledColor, HasInvalidColor,
+        HasColor,
         HasBgColor, HasHoverBgColor, HasFocusBgColor, HasDisabledBgColor, HasInvalidBgColor,
         HasBorder, HasHoverBorder, HasFocusBorder, HasDisabledBorder, HasInvalidBorder,
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
-    /**
-     * The global default input field style.
-     */
-    public static final InputFieldStyle DEFAULT = new InputFieldStyle();
-
     /**
      * Set of supported states.
      */
@@ -43,6 +38,11 @@ public class InputFieldStyle extends Style implements
             State.DISABLED,
             State.INVALID
         )));
+
+    /**
+     * The global default input field style.
+     */
+    public static final InputFieldStyle DEFAULT = new InputFieldStyle();
 
     /**
      * Creates the default input field style.
@@ -76,11 +76,11 @@ public class InputFieldStyle extends Style implements
         this.setInvalidItalicModel(italic.asCascading());
         this.setDisabledItalicModel(italic.asCascading());
 
-        this.setColor(Color.BLACK);
-        this.setHoverColor(Color.BLUE);
-        this.setFocusColor(Color.ORANGE);
-        this.setInvalidColor(Color.RED);
-        this.setDisabledColor(Color.DARK_GRAY);
+        this.setColor(State.NORMAL, Color.BLACK);
+        this.setColor(State.HOVERED, Color.BLUE);
+        this.setColor(State.ACTIVE, Color.ORANGE);
+        this.setColor(State.INVALID, Color.RED);
+        this.setColor(State.DISABLED, Color.DARK_GRAY);
 
         this.setBgColor(Color.WHITE);
         this.setHoverBgColor(Color.YELLOW);

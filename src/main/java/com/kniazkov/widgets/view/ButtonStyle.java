@@ -20,11 +20,6 @@ public class ButtonStyle extends Style implements
         HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding
 {
     /**
-     * The global default button style.
-     */
-    public static final ButtonStyle DEFAULT = new ButtonStyle();
-
-    /**
      * Set of supported states.
      */
     private static final Set<State> SUPPORTED_STATES =
@@ -34,6 +29,11 @@ public class ButtonStyle extends Style implements
             State.ACTIVE,
             State.DISABLED
         )));
+
+    /**
+     * The global default button style.
+     */
+    public static final ButtonStyle DEFAULT = new ButtonStyle();
 
     /**
      * Creates the default button style.
