@@ -123,6 +123,32 @@ var removeChildWidget = function(data) {
     return false;
 };
 
+var setValidFlag = function(data) {
+    var widget = widgets[data.widget];
+    var flag = data.valid;
+    if (widget && typeof flag == "boolean") {
+        widget._states.invalid = !flag;
+        log("The widget " + data.widget + " has been marked as " +
+                (flag ? "valid" : "invalid") + '.');
+        refreshWidget(widget);
+        return true;
+    }
+    return false;
+};
+
+var setDisabledFlag = function(data) {
+    var widget = widgets[data.widget];
+    var flag = data.valid;
+    if (widget && typeof flag == "boolean") {
+        widget._states.disabled = flag;
+        log("The widget " + data.widget + " has been marked as " +
+                (flag ? "disabled" : "enabled") + '.');
+        refreshWidget(widget);
+        return true;
+    }
+    return false;
+};
+
 var setText = function(data) {
     var widget = widgets[data.widget];
     if (widget && typeof data.text == "string") {

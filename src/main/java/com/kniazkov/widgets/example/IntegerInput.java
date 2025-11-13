@@ -20,8 +20,7 @@ import com.kniazkov.widgets.view.TextWidget;
  * Demonstrates integer input with validation feedback.
  * <p>
  * The example shows how to connect an {@link InputField} to an {@link Integer} model
- * using {@link IntegerToStringModel}, and how to use {@link Model#getValidFlagModel()}
- * to visually indicate invalid input.
+ * using {@link IntegerToStringModel}.
  * </p>
  *
  * <b>How to use</b>
@@ -29,7 +28,7 @@ import com.kniazkov.widgets.view.TextWidget;
  *   <li>Run this program.</li>
  *   <li>Open your browser and go to
  *       <a href="http://localhost:8000">http://localhost:8000</a>.</li>
- *   <li>Type any number — invalid input will highlight the field in orange.</li>
+ *   <li>Type any number — invalid input will highlight the field.</li>
  * </ol>
  */
 public class IntegerInput {
@@ -42,7 +41,6 @@ public class IntegerInput {
         final Page page = root -> {
             final Model<Integer> intModel = new IntegerModel();
             final Model<String> stringModel = new IntegerToStringModel(intModel);
-            final Model<Boolean> validFlagModel = stringModel.getValidFlagModel();
 
             final Section inputSection = new Section();
             root.add(inputSection);
@@ -50,7 +48,6 @@ public class IntegerInput {
             InputField inputField = new InputField();
             inputSection.add(inputField);
             inputField.setTextModel(stringModel);
-            validFlagModel.addListener(flag -> inputField.setBgColor(flag ? Color.WHITE : Color.ORANGE));
 
             final Section outputSection = new Section();
             root.add(outputSection);

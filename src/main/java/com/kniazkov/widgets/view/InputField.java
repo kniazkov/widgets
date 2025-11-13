@@ -4,12 +4,14 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
+import com.kniazkov.widgets.model.Model;
 
 /**
  * An editable text input field widget.
  */
 public class InputField extends InlineWidget implements HasTextInput, HasStyledText, HasColor,
-        HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HandlesPointerEvents
+        HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
+        HasInvalidState, HasDisabledState, HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by input fields.
@@ -50,6 +52,30 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     @Override
     public String getType() {
         return "input field";
+    }
+
+    /**
+     * Sets a new text model for this input field.
+     * <p>
+     * In addition to assigning the provided {@link Model} to {@link Property#TEXT},
+     * this method also synchronizes the input field's validity state with the
+     * validity of the underlying text data.
+     * <p>
+     * The supplied text model exposes its own validity flag via {@link Model#getValidFlagModel()}.
+     * That flag is used to configure the field's {@code valid-state} model, ensuring that:
+     * <ul>
+     *   <li>If the text model contains invalid data, the widget immediately enters
+     *       the invalid visual state.</li>
+     *   <li>Subsequent validity changes in the text model automatically propagate
+     *       to the widget's invalid-state flag.</li>
+     * </ul>
+     *
+     * @param model the text model to assign
+     */
+    @Override
+    public void setTextModel(Model<String> model) {
+        this.setModel(State.ANY, Property.TEXT, model);
+        this.setModel(State.ANY, Property.VALID, model.getValidFlagModel());
     }
 
     /**

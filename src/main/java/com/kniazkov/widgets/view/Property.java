@@ -165,6 +165,50 @@ public abstract class Property<T> {
         return typed;
     }
 
+    public static final Property<Boolean> VALID = new Property<Boolean>() {
+        @Override
+        public String getName() {
+            return "valid";
+        }
+
+        @Override
+        public Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public Model<Boolean> createDefaultModel() {
+            return new BooleanModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Boolean data) {
+            return JsonBoolean.getInstance(data);
+        }
+    };
+
+    public static final Property<Boolean> DISABLED = new Property<Boolean>() {
+        @Override
+        public String getName() {
+            return "disabled";
+        }
+
+        @Override
+        public Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public Model<Boolean> createDefaultModel() {
+            return new BooleanModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Boolean data) {
+            return JsonBoolean.getInstance(data);
+        }
+    };
+
     public static final Property<String> TEXT = new Property<String>() {
         @Override
         public String getName() {
