@@ -138,12 +138,13 @@ var setValidFlag = function(data) {
 
 var setDisabledFlag = function(data) {
     var widget = widgets[data.widget];
-    var flag = data.valid;
+    var flag = data.disabled;
     if (widget && typeof flag == "boolean") {
         widget._states.disabled = flag;
         log("The widget " + data.widget + " has been marked as " +
                 (flag ? "disabled" : "enabled") + '.');
         refreshWidget(widget);
+        widget.disabled = flag;
         return true;
     }
     return false;
