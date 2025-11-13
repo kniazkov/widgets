@@ -73,22 +73,19 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setItalicModel(State.DISABLED, italic.asCascading());
 
         this.setColor(State.NORMAL, Color.BLACK);
-        this.setColor(State.HOVERED, Color.BLUE);
-        this.setColor(State.ACTIVE, Color.ORANGE);
         this.setColor(State.INVALID, Color.RED);
         this.setColor(State.DISABLED, Color.DARK_GRAY);
 
         this.setBgColor(State.NORMAL, Color.WHITE);
-        this.setBgColor(State.HOVERED, Color.YELLOW);
-        this.setBgColor(State.ACTIVE, Color.CYAN);
-        this.setBgColor(State.INVALID, Color.PINK);
+        this.setBgColor(State.HOVERED, new Color(255, 255, 230));
+        this.setBgColor(State.ACTIVE, new Color(255, 255, 204));
+        this.setBgColor(State.INVALID, new Color(255, 230, 230));
         this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
 
-        this.setBorderColor(State.NORMAL, Color.DARK_GRAY);
-        this.setBorderColor(State.HOVERED, Color.BLACK);
-        this.setBorderColor(State.ACTIVE, Color.ORANGE);
-        this.setBorderColor(State.INVALID, Color.RED);
-        this.setBorderColor(State.DISABLED, Color.LIGHT_GRAY);
+        this.setBorderColor(State.NORMAL, Color.GRAY);
+        this.setBorderColor(State.HOVERED, Color.DARK_GRAY);
+        this.setBorderColor(State.ACTIVE, Color.BLACK);
+        this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
 
         this.setBorderStyle(BorderStyle.SOLID);
         this.setBorderWidth("1px");

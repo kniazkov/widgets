@@ -62,9 +62,6 @@ public final class Color {
     /** Gold (255, 215, 0). */
     public static final Color GOLD = new Color(255, 215, 0);
 
-    /** Silver (192, 192, 192). */
-    public static final Color SILVER = new Color(192, 192, 192);
-
     /**
      * Red component in range [0, 255].
      */
