@@ -11,6 +11,7 @@ import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.Section;
+import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.TextWidget;
 
 /**
@@ -39,7 +40,7 @@ public class TextInput {
             root.add(inputSection);
             inputSection.add(new TextWidget("Enter some text: "));
             InputField inputField = new InputField();
-            inputField.setFocusFontWeight(FontWeight.BOLD);
+            inputField.setFontWeight(State.ACTIVE, FontWeight.BLACK);
             inputSection.add(inputField);
 
             final Section outputSection = new Section();

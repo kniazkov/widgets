@@ -20,12 +20,8 @@ import java.util.Set;
 /**
  * Style definition for {@link InputField}.
  */
-public class InputFieldStyle extends Style implements
-        HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
-        HasColor,
-        HasBgColor,
-        HasBorder,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
+public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasBgColor,
+        HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
 {
     /**
      * Set of supported states.
@@ -49,32 +45,32 @@ public class InputFieldStyle extends Style implements
      */
     private InputFieldStyle() {
         final FontFaceModel face = new FontFaceModel(FontFace.DEFAULT);
-        this.setFontFaceModel(face);
-        this.setHoverFontFaceModel(face.asCascading());
-        this.setFocusFontFaceModel(face.asCascading());
-        this.setInvalidFontFaceModel(face.asCascading());
-        this.setDisabledFontFaceModel(face.asCascading());
+        this.setFontFaceModel(State.NORMAL, face);
+        this.setFontFaceModel(State.HOVERED, face.asCascading());
+        this.setFontFaceModel(State.ACTIVE, face.asCascading());
+        this.setFontFaceModel(State.INVALID, face.asCascading());
+        this.setFontFaceModel(State.DISABLED, face.asCascading());
 
         final FontSizeModel size = new FontSizeModel(FontSize.DEFAULT);
-        this.setFontSizeModel(size);
-        this.setHoverFontSizeModel(size.asCascading());
-        this.setFocusFontSizeModel(size.asCascading());
-        this.setInvalidFontSizeModel(size.asCascading());
-        this.setDisabledFontSizeModel(size.asCascading());
+        this.setFontSizeModel(State.NORMAL, size);
+        this.setFontSizeModel(State.HOVERED, size.asCascading());
+        this.setFontSizeModel(State.ACTIVE, size.asCascading());
+        this.setFontSizeModel(State.INVALID, size.asCascading());
+        this.setFontSizeModel(State.DISABLED, size.asCascading());
 
         final FontWeightModel weight = new FontWeightModel(FontWeight.NORMAL);
-        this.setFontWeightModel(weight);
-        this.setHoverFontWeightModel(weight.asCascading());
-        this.setFocusFontWeightModel(weight.asCascading());
-        this.setInvalidFontWeightModel(weight.asCascading());
-        this.setDisabledFontWeightModel(weight.asCascading());
+        this.setFontWeightModel(State.NORMAL, weight);
+        this.setFontWeightModel(State.HOVERED, weight.asCascading());
+        this.setFontWeightModel(State.ACTIVE, weight.asCascading());
+        this.setFontWeightModel(State.INVALID, weight.asCascading());
+        this.setFontWeightModel(State.DISABLED, weight.asCascading());
 
         final BooleanModel italic = new BooleanModel(false);
-        this.setItalicModel(italic);
-        this.setHoverItalicModel(italic.asCascading());
-        this.setFocusItalicModel(italic.asCascading());
-        this.setInvalidItalicModel(italic.asCascading());
-        this.setDisabledItalicModel(italic.asCascading());
+        this.setItalicModel(State.NORMAL, italic);
+        this.setItalicModel(State.HOVERED, italic.asCascading());
+        this.setItalicModel(State.ACTIVE, italic.asCascading());
+        this.setItalicModel(State.INVALID, italic.asCascading());
+        this.setItalicModel(State.DISABLED, italic.asCascading());
 
         this.setColor(State.NORMAL, Color.BLACK);
         this.setColor(State.HOVERED, Color.BLUE);

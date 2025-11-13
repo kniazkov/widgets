@@ -8,13 +8,8 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
 /**
  * An editable text input field widget.
  */
-public class InputField extends InlineWidget implements HasTextInput,
-        HasStyledText, HasHoverStyledText, HasFocusStyledText, HasDisabledStyledText, HasInvalidStyledText,
-        HasColor,
-        HasBgColor,
-        HasBorder,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
-        HandlesPointerEvents
+public class InputField extends InlineWidget implements HasTextInput, HasStyledText, HasColor,
+        HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by input fields.
