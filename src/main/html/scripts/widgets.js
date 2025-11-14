@@ -322,10 +322,12 @@ var setBorderColor = function(data) {
 
 var setBorderStyle = function(data) {
     var widget = widgets[data.widget];
-    var value = data["border style"];
-    if (widget && typeof value == "string") {
-        widget.style.borderStyle = value;
-        log("The border style of the widget " + data.widget + " has been set to \"" + value + "\"");
+    var style = data["border style"];
+    var state = data.state;
+    if (widget && typeof style == "string" && typeof state == "string") {
+        widget._properties[state].borderStyle = style;
+        log("The border style \"" + style + "\" for state \"" + state +
+                "\" has been set to the widget " + data.widget + '.');
         return true;
     }
     return false;

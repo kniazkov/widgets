@@ -9,6 +9,7 @@ import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.model.BooleanModel;
+import com.kniazkov.widgets.model.BorderStyleModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
@@ -87,7 +88,13 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setBorderColor(State.ACTIVE, Color.BLACK);
         this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
 
-        this.setBorderStyle(BorderStyle.SOLID);
+        final BorderStyleModel style = new BorderStyleModel(BorderStyle.SOLID);
+        this.setBorderStyleModel(State.NORMAL, style);
+        this.setBorderStyleModel(State.HOVERED, style.asCascading());
+        this.setBorderStyleModel(State.ACTIVE, style.asCascading());
+        this.setBorderStyleModel(State.INVALID, style.asCascading());
+        this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
+
         this.setBorderWidth("1px");
         this.setBorderRadius("0px");
 

@@ -75,39 +75,64 @@ public interface HasBorder extends Entity {
     }
 
     /**
-     * Returns the model that stores the border style for this view.
+     * Returns the {@link Model} instance that stores the border style
+     * for the specified {@link State}.
      *
-     * @return the border style model
+     * @param state the logical state whose border style model is requested
+     * @return a non-null border style model associated with the given state
      */
-    default Model<BorderStyle> getBorderStyleModel() {
-        return this.getModel(State.ANY, Property.BORDER_STYLE);
+    default Model<BorderStyle> getBorderStyleModel(final State state) {
+        return this.getModel(state, Property.BORDER_STYLE);
     }
 
     /**
-     * Sets a new border style model for this view.
+     * Associates a new border style model with the specified {@link State}.
      *
-     * @param model the border style model to set
+     * @param state the logical state to which the model should be assigned
+     * @param model the border style model to associate (must not be {@code null})
      */
-    default void setBorderStyleModel(final Model<BorderStyle> model) {
-        this.setModel(State.ANY, Property.BORDER_STYLE, model);
+    default void setBorderStyleModel(final State state, final Model<BorderStyle> model) {
+        this.setModel(state, Property.BORDER_STYLE, model);
     }
 
     /**
-     * Returns the current border style from the model.
+     * Returns the current border style for the specified {@link State}.
      *
-     * @return the current border style
+     * @param state the logical state whose border style value is requested
+     * @return the current border style from the corresponding model
+     */
+    default BorderStyle getBorderStyle(final State state) {
+        return this.getBorderStyleModel(state).getData();
+    }
+
+    /**
+     * Returns the border style associated with the default {@link State#NORMAL}.
+     *
+     * @return the border style for the normal state
      */
     default BorderStyle getBorderStyle() {
-        return this.getBorderStyleModel().getData();
+        return this.getBorderStyle(State.NORMAL);
     }
 
     /**
-     * Updates the border style value in the associated model.
+     * Updates the border style in the model associated with the specified {@link State}.
      *
-     * @param style the new border style
+     * @param state the logical state to update
+     * @param style the new border style to set
+     */
+    default void setBorderStyle(final State state, final BorderStyle style) {
+        this.getBorderStyleModel(state).setData(style);
+    }
+
+    /**
+     * Updates the border style for all {@link State}s supported by this entity.
+     *
+     * @param style the new border style to set for every supported state
      */
     default void setBorderStyle(final BorderStyle style) {
-        this.getBorderStyleModel().setData(style);
+        for (final State state : this.getSupportedStates()) {
+            this.setBorderStyle(state, style);
+        }
     }
 
     /**

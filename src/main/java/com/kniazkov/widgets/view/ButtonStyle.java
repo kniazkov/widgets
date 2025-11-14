@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.model.BorderStyleModel;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -37,8 +38,8 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
      * Creates the default button style.
      */
     private ButtonStyle() {
-        this.setBgColor(State.NORMAL, new Color(208, 208, 208));
-        this.setBgColor(State.HOVERED, new Color(232, 232, 232));
+        this.setBgColor(State.NORMAL, new Color(224, 224, 224));
+        this.setBgColor(State.HOVERED, new Color(240, 240, 240));
         this.setBgColor(State.ACTIVE, Color.WHITE);
         this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
 
@@ -47,7 +48,12 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
         this.setBorderColor(State.ACTIVE, Color.BLACK);
         this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
 
-        this.setBorderStyle(BorderStyle.SOLID);
+        final BorderStyleModel style = new BorderStyleModel(BorderStyle.SOLID);
+        this.setBorderStyleModel(State.NORMAL, style);
+        this.setBorderStyleModel(State.HOVERED, style.asCascading());
+        this.setBorderStyleModel(State.ACTIVE, style.asCascading());
+        this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
+
         this.setBorderWidth("1px");
         this.setBorderRadius("5px");
 
