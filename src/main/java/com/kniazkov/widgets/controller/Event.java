@@ -159,6 +159,36 @@ public abstract class Event<T> {
     };
 
     /**
+     * Event triggered when a pointer button is pressed down over the widget.
+     */
+    public static final Event<PointerEvent> POINTER_DOWN = new Event<PointerEvent>() {
+        @Override
+        public String getName() {
+            return "pointer down";
+        }
+
+        @Override
+        public PointerEvent parseData(final JsonObject object) {
+            return object.toJavaObject(PointerEvent.class);
+        }
+    };
+
+    /**
+     * Event triggered when a pointer button is released over the widget.
+     */
+    public static final Event<PointerEvent> POINTER_UP = new Event<PointerEvent>() {
+        @Override
+        public String getName() {
+            return "pointer up";
+        }
+
+        @Override
+        public PointerEvent parseData(final JsonObject object) {
+            return object.toJavaObject(PointerEvent.class);
+        }
+    };
+
+    /**
      * Global immutable registry of all known events, keyed by their unique names.
      */
     private static final Map<String, Event<?>> REGISTRY =

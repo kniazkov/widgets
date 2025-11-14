@@ -40,7 +40,7 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
     private ButtonStyle() {
         this.setBgColor(State.NORMAL, new Color(224, 224, 224));
         this.setBgColor(State.HOVERED, new Color(240, 240, 240));
-        this.setBgColor(State.ACTIVE, Color.WHITE);
+        this.setBgColor(State.ACTIVE, new Color(255, 255, 230));
         this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
 
         this.setBorderColor(State.NORMAL, Color.GRAY);

@@ -32,6 +32,14 @@ var widgetsLibrary = {
     },
     "button" : function() {
         var widget = document.createElement("button");
+        widget.pointerDown = function() {
+            widget._states.active = true;
+            refreshWidget(widget);
+        };
+        widget.pointerUp = function() {
+            widget._states.active = false;
+            refreshWidget(widget);
+        };
         initPointerEvents(widget);
         return widget;
     }
@@ -401,6 +409,18 @@ var initPointerEvents = function(widget) {
         widget._states.hovered = false;
         refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
+    });
+    addEvent(widget, "pointerdown", function(event) {
+        if (widget.pointerDown) {
+            widget.pointerDown();
+        }
+        sendEventToServer(widget, "pointer down", processPointerEvent(widget, event));
+    });
+    addEvent(widget, "pointerup", function(event) {
+        if (widget.pointerUp) {
+            widget.pointerUp();
+        }
+        sendEventToServer(widget, "pointer up", processPointerEvent(widget, event));
     });
 };
 

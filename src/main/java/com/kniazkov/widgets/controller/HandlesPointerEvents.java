@@ -4,10 +4,9 @@
 package com.kniazkov.widgets.controller;
 
 /**
- * An entity that can be clicked by the user.
- * This interface represents interactive elements such as buttons, icons, or clickable text.
- * It allows associating a {@link Controller <PointerEvent>} that defines the behavior
- * to execute when a click event occurs.
+ * An entity capable of handling pointer-based interactions.
+ * This interface enables widgets to react to pointer events such as clicks, presses, releases,
+ * and hover transitions.
  */
 public interface HandlesPointerEvents extends HandlesEvents {
     /**
@@ -41,5 +40,27 @@ public interface HandlesPointerEvents extends HandlesEvents {
     default void onPointerLeave(Controller<PointerEvent> ctrl) {
         this.setController(Event.POINTER_LEAVE, ctrl);
         this.subscribeToEvent(Event.POINTER_LEAVE);
+    }
+
+    /**
+     * Registers a controller that will be invoked when a pointer button is pressed down over
+     * this element.
+     *
+     * @param ctrl the controller to execute on pointer down
+     */
+    default void onPointerDown(Controller<PointerEvent> ctrl) {
+        this.setController(Event.POINTER_DOWN, ctrl);
+        this.subscribeToEvent(Event.POINTER_DOWN);
+    }
+
+    /**
+     * Registers a controller that will be invoked when a pointer button is released over
+     * this element.
+     *
+     * @param ctrl the controller to execute on pointer up
+     */
+    default void onPointerUp(Controller<PointerEvent> ctrl) {
+        this.setController(Event.POINTER_UP, ctrl);
+        this.subscribeToEvent(Event.POINTER_UP);
     }
 }
