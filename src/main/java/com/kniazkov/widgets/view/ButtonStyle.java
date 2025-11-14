@@ -37,18 +37,19 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
      * Creates the default button style.
      */
     private ButtonStyle() {
-        this.setBgColor(State.NORMAL, new Color(200, 200, 200));
-        this.setBgColor(State.HOVERED, new Color(220, 220, 220));
+        this.setBgColor(State.NORMAL, new Color(208, 208, 208));
+        this.setBgColor(State.HOVERED, new Color(232, 232, 232));
         this.setBgColor(State.ACTIVE, Color.WHITE);
-        this.setBgColor(State.DISABLED, Color.DARK_GRAY);
+        this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
 
-        this.setBorderColor(State.NORMAL, Color.DARK_GRAY);
-        this.setBorderColor(State.HOVERED, Color.BLACK);
-        this.setBorderColor(State.ACTIVE, Color.DARK_GRAY);
+        this.setBorderColor(State.NORMAL, Color.GRAY);
+        this.setBorderColor(State.HOVERED, Color.DARK_GRAY);
+        this.setBorderColor(State.ACTIVE, Color.BLACK);
         this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
+
         this.setBorderStyle(BorderStyle.SOLID);
         this.setBorderWidth("1px");
-        this.setBorderRadius("3px");
+        this.setBorderRadius("5px");
 
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);

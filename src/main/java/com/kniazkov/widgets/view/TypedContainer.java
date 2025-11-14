@@ -33,4 +33,12 @@ public interface TypedContainer<T extends Widget> extends Container {
      * @param widget the widget to add
      */
     void add(T widget);
+
+    /**
+     * Synonym for {@link TypedContainer#add(Widget)}
+     * @param widget the widget to add
+     */
+    default void addWidget(final T widget) {
+        this.add(widget);
+    }
 }

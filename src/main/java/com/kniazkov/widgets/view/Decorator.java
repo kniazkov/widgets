@@ -40,4 +40,12 @@ public interface Decorator<T extends Widget> extends Container {
      * @param widget the widget to place inside the decorator
      */
     void put(T widget);
+
+    /**
+     * Synonym for {@link Decorator#put(Widget)}
+     * @param widget the widget to add
+     */
+    default void setWidget(final T widget) {
+        this.put(widget);
+    }
 }
