@@ -32,6 +32,9 @@ var widgetsLibrary = {
     },
     "button" : function() {
         var widget = document.createElement("button");
+        widget.pointerLeave = function() {
+            widget._states.active = false;
+        };
         widget.pointerDown = function() {
             widget._states.active = true;
             refreshWidget(widget);
@@ -406,6 +409,9 @@ var initPointerEvents = function(widget) {
         sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerleave", function(event) {
+        if (widget.pointerLeave) {
+            widget.pointerLeave();
+        }
         widget._states.hovered = false;
         refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
