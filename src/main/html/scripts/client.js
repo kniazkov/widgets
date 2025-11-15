@@ -160,7 +160,8 @@ var actionHandlers = {
     "set border color": setBorderColor,
     "set border style": setBorderStyle,
     "set border width": setBorderWidth,
-    "set border radius": setBorderRadius
+    "set border radius": setBorderRadius,
+    "set source": setSource
 };
 
 var ALWAYS_ALLOWED_EVENTS = ["text input"];

@@ -13,6 +13,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.ImageSource;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
@@ -22,6 +23,7 @@ import com.kniazkov.widgets.model.ColorModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
+import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.StringModel;
@@ -536,6 +538,28 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final AbsoluteSize data) {
             return new JsonString(data.getCSSCode());
+        }
+    };
+
+    public static final Property<ImageSource> IMAGE_SOURCE = new Property<ImageSource>() {
+        @Override
+        public String getName() {
+            return "source";
+        }
+
+        @Override
+        public Class<ImageSource> getValueClass() {
+            return ImageSource.class;
+        }
+
+        @Override
+        public Model<ImageSource> createDefaultModel() {
+            return new ImageSourceModel();
+        }
+
+        @Override
+        public JsonElement convertData(final ImageSource data) {
+            return new JsonString(data.toString());
         }
     };
 }

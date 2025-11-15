@@ -45,6 +45,9 @@ var widgetsLibrary = {
         };
         initPointerEvents(widget);
         return widget;
+    },
+    "image" : function() {
+        return document.createElement("img");
     }
 };
 
@@ -361,6 +364,17 @@ var setBorderRadius = function(data) {
     if (widget && typeof value == "string") {
         widget.style.borderRadius = value;
         log("The border radius of the widget " + data.widget + " has been set to \"" + value + "\"");
+        return true;
+    }
+    return false;
+};
+
+var setSource = function(data) {
+    var widget = widgets[data.widget];
+    var source = data["source"];
+    if (widget && typeof source == "string") {
+        widget.src = source;
+        log("The source " + source + " has been set to widget \"" + data.widget + "\"");
         return true;
     }
     return false;
