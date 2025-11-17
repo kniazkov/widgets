@@ -10,10 +10,12 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 /**
  * HTTP handler that routes incoming requests to appropriate action handlers
@@ -21,21 +23,32 @@ import java.util.TreeMap;
  */
 final class HttpHandler implements com.kniazkov.webserver.Handler {
     /**
+     * Logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
+
+    /**
      * Registered action handlers (e.g. "new instance", "synchronize", etc.).
      */
     private final Map<String, ActionHandler> actionHandlers;
 
     /**
+     * Various options.
+     */
+    private final Options options;
+
+    /**
      * Constructs an HTTP handler that binds application-specific logic to supported actions.
      *
      * @param application the web application
-     * @param options configuration options (e.g. logger)
+     * @param options configuration options
      */
     HttpHandler(final Application application, final Options options) {
         this.actionHandlers = new TreeMap<>();
         this.actionHandlers.put("new instance", new CreateClient(application));
         this.actionHandlers.put("synchronize", new Synchronize(application));
         this.actionHandlers.put("kill", new KillClient(application));
+        this.options = options;
     }
 
     @Override
@@ -52,28 +65,31 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
 
         // Normalize root path
         final String address = request.address.equals("/") ? "/index.html" : request.address;
+        final Path path;
 
-        // Attempt to load static resource
-        final URL url = getClass().getResource(address);
-        if (url != null) {
-            try {
-                final String contentType = getContentTypeByExtension(address);
-                final byte[] data = Files.readAllBytes(Paths.get(url.toURI()));
-
-                return new Response() {
-                    @Override
-                    public String getContentType() {
-                        return contentType;
-                    }
-
-                    @Override
-                    public byte[] getData() {
-                        return data;
-                    }
-                };
-            } catch (IOException | URISyntaxException ignored) {
-                // Log failure to load resource if needed
+        try {
+            // Attempt to load static resource
+            final URL url = getClass().getResource(address);
+            if (url != null) {
+                path = Paths.get(url.toURI());
+            } else {
+                path = Paths.get(this.options.wwwRoot, request.address);
             }
+            final byte[] data = Files.readAllBytes(path);
+            final String contentType = getContentTypeByExtension(address);
+            return new Response() {
+                @Override
+                public String getContentType() {
+                    return contentType;
+                }
+
+                @Override
+                public byte[] getData() {
+                    return data;
+                }
+            };
+        } catch (IOException | URISyntaxException ignored) {
+            LOGGER.warning("File not found: '" + request.address + "'");
         }
 
         // Resource not found

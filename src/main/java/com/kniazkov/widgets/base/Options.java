@@ -18,10 +18,19 @@ public class Options implements Cloneable {
      */
     public long clientLifetime = 3 * 60 * 1000;
 
+    /**
+     * Root directory for static files served via HTTP GET.
+     * Any request that points to a file path (including direct access from a browser address bar)
+     * is resolved relative to this directory. It should contain all project assets intended to be
+     * served as static content—HTML, JavaScript, CSS, images, and other public resources.
+     */
+    public String wwwRoot = "www";
+
     @Override
     public Options clone() {
         Options copy = new Options();
         copy.clientLifetime = this.clientLifetime;
+        copy.wwwRoot = this.wwwRoot;
         return copy;
     }
 }

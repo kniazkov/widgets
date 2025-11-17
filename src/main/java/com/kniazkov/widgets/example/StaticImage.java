@@ -13,7 +13,11 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 
 /**
- * ....
+ * Demonstrates serving a static image using the framework.
+ * <p>
+ * The program starts a server and renders a page containing a single image
+ * loaded from the application's static file directory (e.g., {@code house.png}
+ * inside the configured {@code www} folder).
  *
  * <b>How to use</b>
  * <ol>
@@ -32,12 +36,12 @@ public class StaticImage {
      */
     public static void main(String[] args) {
         final Page page = root -> {
-            root.setBgColor(Color.BLACK);
+            root.setBgColor(Color.DARK_SLATE_GRAY);
 
             final Section section = new Section();
             root.add(section);
 
-            final Image image = new Image("http://kniazkov.com/house.png");
+            final Image image = new Image("house.png");
             section.add(image);
         };
 

@@ -215,7 +215,7 @@ var setWidth = function(data) {
     var value = data.width;
     if (widget && typeof value == "string") {
         widget.style.width = value;
-        log("The width of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The width of the widget " + data.widget + " has been set to \"" + value + "\".");
         return true;
     }
     return false;
@@ -226,7 +226,7 @@ var setHeight = function(data) {
     var value = data.height;
     if (widget && typeof value == "string") {
         widget.style.height = value;
-        log("The height of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The height of the widget " + data.widget + " has been set to \"" + value + "\".");
         return true;
     }
     return false;
@@ -240,7 +240,7 @@ var setMargin = function(data) {
         widget.style.marginRight = obj.right;
         widget.style.marginTop = obj.top;
         widget.style.marginBottom = obj.bottom;
-        log("The margin of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\"");
+        log("The margin of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\".");
         return true;
     }
     return false;
@@ -254,7 +254,7 @@ var setPadding = function(data) {
         widget.style.paddingRight = obj.right;
         widget.style.paddingTop = obj.top;
         widget.style.paddingBottom = obj.bottom;
-        log("The padding of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\"");
+        log("The padding of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\".");
         return true;
     }
     return false;
@@ -352,7 +352,7 @@ var setBorderWidth = function(data) {
     var value = data["border width"];
     if (widget && typeof value == "string") {
         widget.style.borderWidth = value;
-        log("The border width of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The border width of the widget " + data.widget + " has been set to \"" + value + "\".");
         return true;
     }
     return false;
@@ -363,7 +363,7 @@ var setBorderRadius = function(data) {
     var value = data["border radius"];
     if (widget && typeof value == "string") {
         widget.style.borderRadius = value;
-        log("The border radius of the widget " + data.widget + " has been set to \"" + value + "\"");
+        log("The border radius of the widget " + data.widget + " has been set to \"" + value + "\".");
         return true;
     }
     return false;
@@ -374,7 +374,7 @@ var setSource = function(data) {
     var source = data["source"];
     if (widget && typeof source == "string") {
         widget.src = source;
-        log("The source " + source + " has been set to widget \"" + data.widget + "\"");
+        log("The source \"" + truncate(source, 100) + "\" has been set to widget \"" + data.widget + "\".");
         return true;
     }
     return false;
