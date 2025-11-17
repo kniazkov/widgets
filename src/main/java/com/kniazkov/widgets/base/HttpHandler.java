@@ -6,8 +6,9 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseJson;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,18 +66,28 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
 
         // Normalize root path
         final String address = request.address.equals("/") ? "/index.html" : request.address;
-        final Path path;
 
         try {
-            // Attempt to load static resource
             final URL url = getClass().getResource(address);
+            final byte[] data;
+
             if (url != null) {
-                path = Paths.get(url.toURI());
+                try (InputStream in = url.openStream();
+                        ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+                    byte[] tmp = new byte[4096];
+                    int count;
+                    while ((count = in.read(tmp)) >= 0) {
+                        buffer.write(tmp, 0, count);
+                    }
+                    data = buffer.toByteArray();
+                }
             } else {
-                path = Paths.get(this.options.wwwRoot, request.address);
+                Path path = Paths.get(this.options.wwwRoot, request.address);
+                data = Files.readAllBytes(path);
             }
-            final byte[] data = Files.readAllBytes(path);
+
             final String contentType = getContentTypeByExtension(address);
+
             return new Response() {
                 @Override
                 public String getContentType() {
@@ -88,8 +99,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     return data;
                 }
             };
-        } catch (IOException | URISyntaxException ignored) {
-            LOGGER.warning("File not found: '" + request.address + "'");
+
+        } catch (IOException e) {
+            LOGGER.warning("File not found or cannot be read: '" + request.address + "': " + e);
         }
 
         // Resource not found
