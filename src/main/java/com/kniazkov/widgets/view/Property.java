@@ -13,6 +13,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.ImageSource;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
@@ -23,6 +24,7 @@ import com.kniazkov.widgets.model.ColorModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
+import com.kniazkov.widgets.model.HorizontalAlignmentModel;
 import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
@@ -631,6 +633,31 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final ImageSource data) {
             return new JsonString(data.toString());
+        }
+    };
+
+    /**
+     * Property storing the horizontal alignment.
+     */
+    public static final Property<HorizontalAlignment> H_ALIGN = new Property<HorizontalAlignment>() {
+        @Override
+        public String getName() {
+            return "horz alignment";
+        }
+
+        @Override
+        public Class<HorizontalAlignment> getValueClass() {
+            return HorizontalAlignment.class;
+        }
+
+        @Override
+        public Model<HorizontalAlignment> createDefaultModel() {
+            return new HorizontalAlignmentModel();
+        }
+
+        @Override
+        public JsonElement convertData(final HorizontalAlignment data) {
+            return new JsonString(data.getCSSCode());
         }
     };
 }

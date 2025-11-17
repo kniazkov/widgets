@@ -161,7 +161,8 @@ var actionHandlers = {
     "set border style": setBorderStyle,
     "set border width": setBorderWidth,
     "set border radius": setBorderRadius,
-    "set source": setSource
+    "set source": setSource,
+    "set horz alignment": setHorzAlignment
 };
 
 var ALWAYS_ALLOWED_EVENTS = ["text input"];

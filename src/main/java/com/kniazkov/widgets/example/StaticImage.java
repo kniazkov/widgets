@@ -8,9 +8,9 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.view.Image;
 import com.kniazkov.widgets.view.Section;
-import com.kniazkov.widgets.view.TextWidget;
 
 /**
  * Demonstrates serving a static image using the framework.
@@ -40,6 +40,7 @@ public class StaticImage {
 
             final Section section = new Section();
             root.add(section);
+            section.setHorizontalAlignment(HorizontalAlignment.CENTER);
 
             final Image image = new Image("house.png");
             section.add(image);

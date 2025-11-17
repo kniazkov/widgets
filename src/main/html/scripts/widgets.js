@@ -380,6 +380,17 @@ var setSource = function(data) {
     return false;
 };
 
+var setHorzAlignment = function(data) {
+    var widget = widgets[data.widget];
+    var alignment = data["horz alignment"];
+    if (widget && typeof alignment == "string") {
+        widget.style.textAlign  = alignment;
+        log("The horizontal alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
+        return true;
+    }
+    return false;
+};
+
 var processPointerEvent = function(element, event) {
     var rect = element.getBoundingClientRect();
     var data = {};

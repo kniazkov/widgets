@@ -3,11 +3,9 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.protocol.AppendChild;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * A block-level container that holds inline widgets arranged from left to right.
@@ -15,7 +13,17 @@ import java.util.Optional;
  * to containing {@link InlineWidget}s. Widgets are appended in order and displayed
  * in a horizontal flow within the section.
  */
-public class Section extends BlockWidget implements TypedContainer<InlineWidget> {
+public class Section extends BlockWidget implements TypedContainer<InlineWidget>,
+        HasHorizontalAlignment {
+    /**
+     * Returns the default style instance used by sections.
+     *
+     * @return the singleton default {@link SectionStyle} instance
+     */
+    public static SectionStyle getDefaultStyle() {
+        return SectionStyle.DEFAULT;
+    }
+
     /**
      * List of child widgets.
      */
@@ -25,7 +33,14 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
      * Creates a new section.
      */
     public Section() {
-        super(Style.getEmptyStyle());
+        this(getDefaultStyle());
+    }
+
+    /**
+     * Creates a new section with specified style.
+     */
+    public Section(final SectionStyle style) {
+        super(style);
     }
 
     @Override
@@ -55,5 +70,14 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     @Override
     public String getType() {
         return "section";
+    }
+
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    public void setStyle(SectionStyle style) {
+        super.setStyle(style);
     }
 }
