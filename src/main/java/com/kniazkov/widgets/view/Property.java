@@ -29,6 +29,23 @@ import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
 
+/**
+ * Represents a typed declarative property that can be bound to a widget through a {@link Model}.
+ * <p>
+ * Each property defines:
+ * <ul>
+ *   <li>a unique canonical name,</li>
+ *   <li>a Java value type,</li>
+ *   <li>a default model instance,</li>
+ *   <li>a strategy for converting data to JSON for UI updates.</li>
+ * </ul>
+ * <p>
+ * Properties act as the backbone of the framework's reactive model-binding system.
+ * They allow widgets to synchronize their state with models and automatically emit updates
+ * when the underlying data changes.
+ *
+ * @param <T> the value type associated with this property
+ */
 public abstract class Property<T> {
     /**
      * Returns the canonical name of this property.
@@ -167,6 +184,9 @@ public abstract class Property<T> {
         return typed;
     }
 
+    /**
+     * Property indicating whether the widget's current state is valid.
+     */
     public static final Property<Boolean> VALID = new Property<Boolean>() {
         @Override
         public String getName() {
@@ -189,6 +209,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property controlling whether the widget is disabled and non-interactive.
+     */
     public static final Property<Boolean> DISABLED = new Property<Boolean>() {
         @Override
         public String getName() {
@@ -211,6 +234,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property representing the widget's textual content.
+     */
     public static final Property<String> TEXT = new Property<String>() {
         @Override
         public String getName() {
@@ -233,6 +259,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property specifying the widget’s foreground (text) color.
+     */
     public static final Property<Color> COLOR = new Property<Color>() {
         @Override
         public String getName() {
@@ -255,6 +284,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property specifying the widget’s background color.
+     */
     public static final Property<Color> BG_COLOR = new Property<Color>() {
         @Override
         public String getName() {
@@ -277,6 +309,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property defining the widget’s font family.
+     */
     public static final Property<FontFace> FONT_FACE = new Property<FontFace>() {
         @Override
         public String getName() {
@@ -299,6 +334,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property defining the widget’s font size.
+     */
     public static final Property<FontSize> FONT_SIZE = new Property<FontSize>() {
         @Override
         public String getName() {
@@ -321,6 +359,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property controlling the widget’s font weight (thickness).
+     */
     public static final Property<FontWeight> FONT_WEIGHT = new Property<FontWeight>() {
         @Override
         public String getName() {
@@ -343,6 +384,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property indicating whether the widget’s text is rendered in italic style.
+     */
     public static final Property<Boolean> ITALIC = new Property<Boolean>() {
         @Override
         public String getName() {
@@ -365,6 +409,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property defining the widget’s absolute width in CSS units.
+     */
     public static final Property<AbsoluteSize> ABSOLUTE_WIDTH = new Property<AbsoluteSize>() {
         @Override
         public String getName() {
@@ -387,6 +434,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property defining the widget’s absolute height in CSS units.
+     */
     public static final Property<AbsoluteSize> ABSOLUTE_HEIGHT = new Property<AbsoluteSize>() {
         @Override
         public String getName() {
@@ -409,6 +459,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property specifying the widget’s outer spacing (CSS margin).
+     */
     public static final Property<Offset> MARGIN = new Property<Offset>() {
         @Override
         public String getName() {
@@ -431,6 +484,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property specifying the widget’s inner spacing (CSS padding).
+     */
     public static final Property<Offset> PADDING = new Property<Offset>() {
         @Override
         public String getName() {
@@ -453,6 +509,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property specifying the color of the widget’s border.
+     */
     public static final Property<Color> BORDER_COLOR = new Property<Color>() {
         @Override
         public String getName() {
@@ -475,6 +534,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property defining the visual style of the widget’s border (e.g., solid, dashed).
+     */
     public static final Property<BorderStyle> BORDER_STYLE = new Property<BorderStyle>() {
         @Override
         public String getName() {
@@ -497,6 +559,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property representing the thickness of the widget’s border.
+     */
     public static final Property<AbsoluteSize> BORDER_WIDTH = new Property<AbsoluteSize>() {
         @Override
         public String getName() {
@@ -519,6 +584,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property defining the corner radius applied to the widget’s border.
+     */
     public static final Property<AbsoluteSize> BORDER_RADIUS = new Property<AbsoluteSize>() {
         @Override
         public String getName() {
@@ -541,6 +609,9 @@ public abstract class Property<T> {
         }
     };
 
+    /**
+     * Property storing the image source used by image widgets.
+     */
     public static final Property<ImageSource> IMAGE_SOURCE = new Property<ImageSource>() {
         @Override
         public String getName() {

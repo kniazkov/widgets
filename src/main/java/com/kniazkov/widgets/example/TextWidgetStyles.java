@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * to demonstrate both local and global style propagation. The UI also includes buttons that modify
  * style data at runtime, immediately updating all affected widgets.
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run the program.</li>
  *   <li>
@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   </li>
  * </ol>
  *
- * <h3>Demonstrated features</h3>
+ * <b>Demonstrated features</b>
  * <ul>
  *   <li>Creation of widgets using the default style.</li>
  *   <li>Derivation of new styles via {@link TextWidgetStyle#derive()}.</li>

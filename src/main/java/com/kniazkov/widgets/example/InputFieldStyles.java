@@ -19,7 +19,7 @@ import com.kniazkov.widgets.view.TextWidget;
  * The example creates an input field and a set of control buttons that allow
  * toggling its validity and enabled/disabled state at runtime.
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run the program.</li>
  *   <li>

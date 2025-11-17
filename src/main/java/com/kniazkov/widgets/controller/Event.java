@@ -22,7 +22,6 @@ import java.util.stream.Stream;
  *   <li>optional logic to apply to a {@link Widget} when the event is received
  *       ({@link #updateWidget(Widget, Object)}).</li>
  * </ul>
- * <p>
  *
  * @param <T> the type of the event data payload
  */

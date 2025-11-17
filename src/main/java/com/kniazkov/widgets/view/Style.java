@@ -17,7 +17,6 @@ import java.util.Map;
  * Each style may have an optional parent. When a child style is created from a parent,
  * it inherits all models from the parent using {@link Model#asCascading()},
  * so that changes in the parent propagate to children until overridden locally.
- * <p>
  */
 public abstract class Style implements Entity {
     /**
@@ -151,7 +150,7 @@ public abstract class Style implements Entity {
      * even widgets several layers down (through multiple cascading styles) continue to receive
      * updates transparently after the model change.
      *
-     * <h3>Key Benefits</h3>
+     * <b>Key Benefits</b>
      * <ul>
      *   <li>The wrapper itself never changes — clients keep their references valid.</li>
      *   <li>All updates from the new model are re-emitted through the same synchronized layer.</li>

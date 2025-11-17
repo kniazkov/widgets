@@ -17,7 +17,7 @@ import com.kniazkov.widgets.view.TextWidget;
 /**
  * Demonstrates ....
  *
- * <h3>How to use</h3>
+ * <b>How to use</b>
  * <ol>
  *   <li>Run the program.</li>
  *   <li>

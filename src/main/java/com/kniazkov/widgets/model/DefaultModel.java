@@ -83,7 +83,6 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      *   <li>{@link FontWeight} → {@link FontWeightModel}</li>
      *   <li>{@link AbsoluteSize} → {@link AbsoluteSizeModel}</li>
      * </ul>
-     * <p>
      *
      * @param data the initial data value for the model (must not be {@code null})
      * @return a new {@link Model} instance suitable for the given data type
