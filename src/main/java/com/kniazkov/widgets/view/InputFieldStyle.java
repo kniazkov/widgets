@@ -13,9 +13,6 @@ import com.kniazkov.widgets.model.BorderStyleModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -27,14 +24,13 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
     /**
      * Set of supported states.
      */
-    private static final Set<State> SUPPORTED_STATES =
-        Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            State.NORMAL,
-            State.HOVERED,
-            State.ACTIVE,
-            State.DISABLED,
-            State.INVALID
-        )));
+    private static final Set<State> SUPPORTED_STATES = State.setOf(
+        State.NORMAL,
+        State.HOVERED,
+        State.ACTIVE,
+        State.DISABLED,
+        State.INVALID
+    );
 
     /**
      * The global default input field style.

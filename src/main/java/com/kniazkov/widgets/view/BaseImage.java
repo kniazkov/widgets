@@ -34,7 +34,7 @@ public abstract class BaseImage extends InlineWidget implements HasBorder,
      *
      * @param style the {@link ImageStyle} to apply
      */
-    public void setStyle(ImageStyle style) {
+    public void setStyle(final ImageStyle style) {
         super.setStyle(style);
     }
 }

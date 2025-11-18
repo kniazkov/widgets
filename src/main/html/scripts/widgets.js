@@ -48,6 +48,9 @@ var widgetsLibrary = {
     },
     "image" : function() {
         return document.createElement("img");
+    },
+    "cell" : function() {
+        return document.createElement("td");
     }
 };
 

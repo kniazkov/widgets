@@ -7,9 +7,6 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -19,7 +16,7 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
     /**
      * Set of supported states.
      */
-    private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
+    private static final Set<State> SUPPORTED_STATES = State.setOf(State.NORMAL);
 
     /**
      * The global default text widget style.

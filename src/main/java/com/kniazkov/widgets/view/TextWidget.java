@@ -53,7 +53,7 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
      *
      * @param style new widget style
      */
-    public void setStyle(TextWidgetStyle style) {
+    public void setStyle(final TextWidgetStyle style) {
         super.setStyle(style);
     }
 }

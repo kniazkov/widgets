@@ -85,7 +85,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
      *
      * @param style new widget style
      */
-    public void setStyle(RootWidgetStyle style) {
+    public void setStyle(final RootWidgetStyle style) {
         super.setStyle(style);
     }
 }

@@ -7,9 +7,6 @@ import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.model.BorderStyleModel;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -21,13 +18,12 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
     /**
      * Set of supported states.
      */
-    private static final Set<State> SUPPORTED_STATES =
-        Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
-            State.NORMAL,
-            State.HOVERED,
-            State.ACTIVE,
-            State.DISABLED
-        )));
+    private static final Set<State> SUPPORTED_STATES = State.setOf(
+        State.NORMAL,
+        State.HOVERED,
+        State.ACTIVE,
+        State.DISABLED
+    );
 
     /**
      * The global default button style.

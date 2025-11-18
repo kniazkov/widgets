@@ -88,7 +88,7 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
      *
      * @param style new widget style
      */
-    public void setStyle(ButtonStyle style) {
+    public void setStyle(final ButtonStyle style) {
         super.setStyle(style);
     }
 }

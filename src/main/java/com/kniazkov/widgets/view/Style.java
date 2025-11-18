@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.model.DefaultModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.SynchronizedModel;
 import java.util.EnumMap;

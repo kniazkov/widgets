@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -15,7 +14,7 @@ public class RootWidgetStyle extends Style implements HasBgColor
     /**
      * Set of supported states.
      */
-    private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
+    private static final Set<State> SUPPORTED_STATES = State.setOf(State.NORMAL);
 
     /**
      * The global default root widget style.

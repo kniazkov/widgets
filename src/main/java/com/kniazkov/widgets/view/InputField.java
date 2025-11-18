@@ -83,7 +83,7 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
      *
      * @param style new widget style
      */
-    public void setStyle(InputFieldStyle style) {
+    public void setStyle(final InputFieldStyle style) {
         super.setStyle(style);
     }
 }

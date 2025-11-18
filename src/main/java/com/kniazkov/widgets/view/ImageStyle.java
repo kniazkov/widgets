@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.BorderStyle;
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -14,7 +13,7 @@ public class ImageStyle extends Style implements HasBorder {
     /**
      * Set of supported states.
      */
-    private static final Set<State> SUPPORTED_STATES = Collections.singleton(State.NORMAL);
+    private static final Set<State> SUPPORTED_STATES = State.setOf(State.NORMAL);
 
     /**
      * The global default image widget style.
