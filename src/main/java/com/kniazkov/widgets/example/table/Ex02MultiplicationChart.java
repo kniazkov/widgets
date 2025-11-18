@@ -8,7 +8,6 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.Cell;
-import com.kniazkov.widgets.view.Row;
 import com.kniazkov.widgets.view.Table;
 
 /**

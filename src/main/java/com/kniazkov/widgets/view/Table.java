@@ -100,6 +100,24 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
     }
 
     /**
+     * Returns a logical view of the column at the specified index.
+     * <p>
+     * Columns do not exist as standalone widgets in the hierarchy; instead, this method creates
+     * a lightweight {@link Column} wrapper that provides convenient access to the cells of the
+     * requested column.
+     *
+     * @param index the zero-based column index (must be >= 0)
+     * @return a {@link Column} view representing the specified column
+     * @throws IndexOutOfBoundsException if {@code index} is negative
+     */
+    public Column getColumn(final int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Column index must be >= 0");
+        }
+        return new Column(this, index);
+    }
+
+    /**
      * Returns the cell at the specified row and column.
      * <p>
      * If the row or the cell does not exist yet, missing rows and/or cells are automatically
