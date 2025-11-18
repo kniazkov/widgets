@@ -71,4 +71,30 @@ public class Row extends Widget implements TypedContainer<Cell>,
     public void setStyle(final RowStyle style) {
         super.setStyle(style);
     }
+
+    /**
+     * Returns the cell at the specified index.
+     * <p>
+     * If the index is within the current list size, the existing cell is returned.
+     * If the index is greater than or equal to the number of cells, missing cells are automatically
+     * created, appended to this row, and the newly created cell at the requested index is returned.
+     *
+     * @param index the cell index (must be >= 0)
+     * @return the existing or newly created cell at the given index
+     * @throws IndexOutOfBoundsException if {@code index} is negative
+     */
+    public Cell getCell(final int index) {
+        if (index < 0) {
+            throw new IndexOutOfBoundsException("Cell index must be >= 0");
+        }
+        if (index < this.children.size()) {
+            return this.children.get(index);
+        }
+        Cell cell;
+        do {
+            cell = new Cell();
+            this.add(cell);
+        } while (index >= this.children.size());
+        return cell;
+    }
 }
