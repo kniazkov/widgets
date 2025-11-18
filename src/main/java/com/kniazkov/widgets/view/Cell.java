@@ -11,7 +11,13 @@ import java.util.List;
  * Represents a table cell widget capable of containing {@link BlockWidget}s.
  */
 public class Cell extends Widget implements TypedContainer<BlockWidget>,
-        HasBgColor {
+        HasBgColor
+{
+    /**
+     * Returns the default style instance used by table cells.
+     *
+     * @return the singleton default {@link CellStyle} instance
+     */
     public static CellStyle getDefaultStyle() {
         return CellStyle.DEFAULT;
     }
@@ -19,7 +25,7 @@ public class Cell extends Widget implements TypedContainer<BlockWidget>,
     /**
      * List of child widgets.
      */
-    final List<BlockWidget> children = new ArrayList<>();
+    private final List<BlockWidget> children = new ArrayList<>();
 
     /**
      * Constructor.

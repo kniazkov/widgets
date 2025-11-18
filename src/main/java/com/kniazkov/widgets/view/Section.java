@@ -38,6 +38,8 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
 
     /**
      * Creates a new section with specified style.
+     *
+     * @param style section style
      */
     public Section(final SectionStyle style) {
         super(style);
