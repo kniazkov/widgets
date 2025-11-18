@@ -5,6 +5,8 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.UId;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.Deque;
 import java.util.Iterator;
@@ -69,6 +71,26 @@ public interface Container extends Iterable<Widget> {
             }
         }
         return result;
+    }
+
+    /**
+     * Removes all child widgets from this container.
+     * <p>
+     * The children are first collected into a temporary list to avoid modification
+     * during iteration, and then removed one by one using {@link #remove(Widget)}.
+     */
+    default void removeAll() {
+        final int count = this.getChildCount();
+        if (count == 0) {
+            return;
+        }
+        final List<Widget> toRemove = new ArrayList<>(count);
+        for (int index = 0; index < count; index++) {
+            toRemove.add(this.getChild(index));
+        }
+        for (final Widget widget : toRemove) {
+            this.remove(widget);
+        }
     }
 
     @Override

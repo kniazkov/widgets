@@ -51,6 +51,12 @@ var widgetsLibrary = {
     },
     "cell" : function() {
         return document.createElement("td");
+    },
+    "row" : function() {
+        return document.createElement("tr");
+    },
+    "table" : function() {
+        return document.createElement("table");
     }
 };
 

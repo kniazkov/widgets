@@ -26,6 +26,11 @@ public interface Decorator<T extends Widget> extends Container {
         return this.getChild();
     }
 
+    @Override
+    default void removeAll() {
+        this.remove(this.getChild());
+    }
+
     /**
      * Returns the widget currently wrapped by this decorator.
      * This method never returns {@code null}.

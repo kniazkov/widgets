@@ -8,23 +8,23 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a table cell widget capable of containing {@link BlockWidget}s.
+ * Represents a table row widget that contains {@link Cell} widgets.
  */
-public class Cell extends Widget implements TypedContainer<BlockWidget>,
+public class Row extends Widget implements TypedContainer<Cell>,
         HasBgColor {
-    public static CellStyle getDefaultStyle() {
-        return CellStyle.DEFAULT;
+    public static RowStyle getDefaultStyle() {
+        return RowStyle.DEFAULT;
     }
 
     /**
      * List of child widgets.
      */
-    final List<BlockWidget> children = new ArrayList<>();
+    final List<Cell> children = new ArrayList<>();
 
     /**
      * Constructor.
      */
-    public Cell() {
+    public Row() {
         super(getDefaultStyle());
     }
 
@@ -34,12 +34,12 @@ public class Cell extends Widget implements TypedContainer<BlockWidget>,
     }
 
     @Override
-    public BlockWidget getChild(int index) throws IndexOutOfBoundsException {
+    public Cell getChild(int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void add(BlockWidget widget) {
+    public void add(Cell widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
@@ -54,7 +54,7 @@ public class Cell extends Widget implements TypedContainer<BlockWidget>,
 
     @Override
     public String getType() {
-        return "cell";
+        return "row";
     }
 
     /**
@@ -62,19 +62,7 @@ public class Cell extends Widget implements TypedContainer<BlockWidget>,
      *
      * @param style new widget style
      */
-    public void setStyle(final CellStyle style) {
+    public void setStyle(final RowStyle style) {
         super.setStyle(style);
-    }
-
-    /**
-     * Replaces all content of this cell with a single text section.
-     *
-     * @param text the text to display inside the cell
-     */
-    public void setText(final String text) {
-        this.removeAll();
-        final Section section = new Section();
-        this.add(section);
-        section.add(new TextWidget(text));
     }
 }
