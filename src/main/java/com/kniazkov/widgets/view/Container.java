@@ -5,10 +5,10 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.UId;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
+import java.util.Set;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.List;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 /**
@@ -50,6 +50,26 @@ public interface Container extends Iterable<Widget> {
      * @param widget the widget to remove
      */
     void remove(Widget widget);
+
+    /**
+     * Collects all descendant widgets that are instances of the specified type.
+     * <p>
+     * The type does NOT need to be a {@link Widget}; it may be an interface or mixin
+     * implemented by widgets (e.g. {@code HasText}, {@code HasBorder}, etc.).
+     *
+     * @param klass the class object representing the desired type
+     * @param <T> the target type (not required to be a Widget)
+     * @return a set containing all descendants that implement or extend the given type
+     */
+    default <T> Set<T> collectChildren(final Class<T> klass) {
+        final Set<T> result = new HashSet<>();
+        for (final Widget widget : this) {
+            if (klass.isInstance(widget)) {
+                result.add(klass.cast(widget));
+            }
+        }
+        return result;
+    }
 
     @Override
     default Iterator<Widget> iterator() {
