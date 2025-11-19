@@ -3,16 +3,12 @@
  */
 package com.kniazkov.widgets.common;
 
-import java.util.Locale;
-import java.util.Objects;
-
 /**
  * Represents an absolute size (width or height) of a widget.
  * <p>
- * Stores both the original numeric value and unit (e.g., {@code "10pt"})
- * along with a precomputed pixel equivalent. This allows relative or
- * incremental operations on sizes while maintaining pixel precision for
- * rendering on the client.
+ * Stores both the original numeric value and unit (e.g., {@code "10pt"}) along with a precomputed
+ * pixel equivalent. This allows relative or incremental operations on sizes while maintaining
+ * pixel precision for rendering on the client.
  * <p>
  * Supported units:
  * <ul>
@@ -25,13 +21,11 @@ import java.util.Objects;
  * </ul>
  * The minimum accepted value is clamped to 0 pixels.
  */
-public class AbsoluteSize implements WidgetSize, Comparable<AbsoluteSize> {
-
+public class AbsoluteSize implements WidgetSize {
     /**
-     * Singleton instance representing an undefined size.
-     * Used when no explicit value has been assigned.
+     * Undefined absolute size.
      */
-    public static final AbsoluteSize UNDEFINED = new AbsoluteSize(0, "px") {
+    public static final AbsoluteSize UNDEFINED = new AbsoluteSize(0) {
         @Override
         public String getCSSCode() {
             return "";
@@ -39,143 +33,132 @@ public class AbsoluteSize implements WidgetSize, Comparable<AbsoluteSize> {
 
         @Override
         public String toString() {
-            return "undefined";
+            return "";
         }
     };
 
     /**
-     * Original numeric value (e.g., 12 from "12pt").
+     * Original value.
      */
     private final float value;
 
     /**
-     * Original unit string (e.g., "pt", "px", etc.).
+     * Unit.
      */
-    private final String unit;
+    private final Unit unit;
 
     /**
-     * Computed pixel equivalent (never negative).
+     * Value in pixels.
      */
     private final int pixels;
 
     /**
-     * Constructs a new inline widget size in pixels.
+     * Creates a size measured in pixels.
      *
-     * @param px size in pixels; must be ≥ 0
-     * @throws IllegalArgumentException if the size is negative
+     * @param px number of pixels (must be >= 0)
      */
     public AbsoluteSize(final int px) {
         if (px < 0) {
-            throw new IllegalArgumentException("InlineWidgetSize must be ≥ 0, or use UNDEFINED");
+            throw new IllegalArgumentException("Pixel value must be >= 0");
         }
         this.value = px;
-        this.unit = "px";
+        this.unit = Unit.PX;
         this.pixels = px;
     }
 
     /**
-     * Constructs a new inline widget size from a numeric value and a unit string.
+     * Creates a size with explicit numeric value and unit.
      *
-     * @param value numeric portion (e.g. 12)
-     * @param unit  unit suffix (e.g., "pt", "px", etc.)
-     * @throws IllegalArgumentException if the value is negative or the unit unsupported
+     * @param value numeric portion (must be >= 0)
+     * @param unit  unit of measurement
      */
-    public AbsoluteSize(final float value, final String unit) {
-        if (value < 0) {
-            throw new IllegalArgumentException("InlineWidgetSize must be ≥ 0, or use UNDEFINED");
-        }
-        if (unit == null || unit.isEmpty()) {
-            throw new IllegalArgumentException("Unit must not be null or empty");
+    public AbsoluteSize(final float value, final Unit unit) {
+        if (value < 0f) {
+            throw new IllegalArgumentException("Size value must be >= 0");
         }
         this.value = value;
-        this.unit = unit.toLowerCase();
-        this.pixels = Math.max(0, toPixels(value, this.unit));
+        this.unit = unit;
+        this.pixels = Math.max(0, toPixels(value, unit));
     }
 
     /**
-     * Constructs a new inline widget size by parsing a CSS-style string.
+     * Parses a CSS-style absolute size string (e.g. "10px", "12pt", "1in").
      *
-     * @param str size string (e.g., "10pt", "24px", "1in")
-     * @throws IllegalArgumentException if the input string is invalid or contains unsupported units
+     * @param str input string
+     * @return parsed absolute size
+     * @throws IllegalArgumentException if the string is invalid
      */
-    public AbsoluteSize(String str) {
-        str = str.trim().toLowerCase();
-        if (str.isEmpty()) {
-            throw new IllegalArgumentException("Empty size string");
+    public static AbsoluteSize parse(final String str) {
+        final String s = str.trim().toLowerCase();
+        if (s.isEmpty()) {
+            return AbsoluteSize.UNDEFINED;
         }
 
-        int unitStart = 0;
-        while (unitStart < str.length() &&
-            (Character.isDigit(str.charAt(unitStart)) || str.charAt(unitStart) == '.')) {
-            unitStart++;
+        // find start of unit suffix
+        int i = 0;
+        while (i < s.length() &&
+               (Character.isDigit(s.charAt(i)) || s.charAt(i) == '.')) {
+            i++;
         }
 
-        this.value = Float.parseFloat(str.substring(0, unitStart));
-        String parsedUnit = str.substring(unitStart).trim();
-        if (parsedUnit.isEmpty()) {
-            parsedUnit = "px";
+        if (i == 0) {
+            throw new IllegalArgumentException("Invalid size format: " + str);
         }
 
-        this.unit = parsedUnit;
-        this.pixels = Math.max(0, toPixels(this.value, this.unit));
+        final float value = Float.parseFloat(s.substring(0, i));
+        final String substr = s.substring(i).trim();
+
+        final Unit unit;
+        switch (substr) {
+            case "pt": unit = Unit.PT; break;
+            case "pc": unit = Unit.PC; break;
+            case "in": unit = Unit.IN; break;
+            case "cm": unit = Unit.CM; break;
+            case "mm": unit = Unit.MM; break;
+            case "px":
+            case ""  : unit = Unit.PX; break;
+            default:
+                throw new IllegalArgumentException("Unsupported unit: " + substr);
+        }
+
+        return new AbsoluteSize(value, unit);
     }
 
     /**
-     * Converts a given numeric value with unit to pixels.
-     *
-     * @param value numeric portion of the input
-     * @param unit  unit suffix (e.g., "pt", "px", etc.)
-     * @return converted pixel value
-     * @throws IllegalArgumentException if the unit is unsupported
+     * Converts a unit value to pixels.
      */
-    private static int toPixels(final float value, final String unit) {
+    private static int toPixels(final float value, final Unit unit) {
         switch (unit) {
-            case "px": return Math.round(value);
-            case "pt": return Math.round(value * 96f / 72f);
-            case "pc": return Math.round(value * 16f);
-            case "in": return Math.round(value * 96f);
-            case "cm": return Math.round(value * 96f / 2.54f);
-            case "mm": return Math.round(value * 96f / 25.4f);
-            default: throw new IllegalArgumentException("Unsupported unit: " + unit);
+            case PX: return Math.round(value);
+            case PT: return Math.round(value * 96f / 72f);
+            case PC: return Math.round(value * 16f);
+            case IN: return Math.round(value * 96f);
+            case CM: return Math.round(value * 96f / 2.54f);
+            case MM: return Math.round(value * 96f / 25.4f);
+            default:
+                throw new IllegalArgumentException("Unsupported unit: " + unit);
         }
     }
 
     /**
-     * Returns the numeric portion of the size.
-     *
-     * @return numeric value
+     * Returns the original numeric value.
      */
     public float getValue() {
         return this.value;
     }
 
     /**
-     * Returns the unit portion of the size.
-     *
-     * @return unit string (e.g., "px", "pt", etc.)
+     * Returns the original unit.
      */
-    public String getUnit() {
+    public Unit getUnit() {
         return this.unit;
     }
 
     /**
-     * Returns the computed pixel equivalent.
-     *
-     * @return size in pixels (≥ 0)
+     * Returns the computed pixel value.
      */
     public int getPixels() {
         return this.pixels;
-    }
-
-    /**
-     * Returns a new {@code InlineWidgetSize} larger or smaller by the given delta.
-     * The delta is applied in the same unit as the current size.
-     *
-     * @param delta the amount to add (can be negative)
-     * @return a new {@code InlineWidgetSize} instance
-     */
-    public AbsoluteSize add(final float delta) {
-        return new AbsoluteSize(this.value + delta, this.unit);
     }
 
     @Override
@@ -185,23 +168,6 @@ public class AbsoluteSize implements WidgetSize, Comparable<AbsoluteSize> {
 
     @Override
     public String toString() {
-        return String.format(Locale.ROOT, "%.2f%s", this.value, this.unit);
-    }
-
-    @Override
-    public boolean equals(final Object obj) {
-        if (!(obj instanceof AbsoluteSize)) return false;
-        final AbsoluteSize other = (AbsoluteSize) obj;
-        return Float.compare(this.value, other.value) == 0 && this.unit.equals(other.unit);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(this.value, this.unit);
-    }
-
-    @Override
-    public int compareTo(final AbsoluteSize other) {
-        return Integer.compare(this.pixels, other.pixels);
+        return value + unit.name().toLowerCase();
     }
 }

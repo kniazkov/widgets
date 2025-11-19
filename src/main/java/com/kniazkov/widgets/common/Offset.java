@@ -62,7 +62,7 @@ public class Offset {
      * @param size the string representation of the size to apply to all sides
      */
     public Offset(final String size) {
-        this(new AbsoluteSize(size));
+        this(AbsoluteSize.parse(size));
     }
 
     /**
@@ -85,7 +85,7 @@ public class Offset {
      * @param vertical   the string representing the vertical offset (top and bottom)
      */
     public Offset(final String horizontal, final String vertical) {
-        this(new AbsoluteSize(horizontal), new AbsoluteSize(vertical));
+        this(AbsoluteSize.parse(horizontal), AbsoluteSize.parse(vertical));
     }
 
     /**
@@ -117,10 +117,10 @@ public class Offset {
     public Offset(final String left, final String right,
                   final String top, final String bottom) {
         this(
-            new AbsoluteSize(left),
-            new AbsoluteSize(right),
-            new AbsoluteSize(top),
-            new AbsoluteSize(bottom)
+            AbsoluteSize.parse(left),
+            AbsoluteSize.parse(right),
+            AbsoluteSize.parse(top),
+            AbsoluteSize.parse(bottom)
         );
     }
 
@@ -230,7 +230,7 @@ public class Offset {
      * @return a new {@code Offset} with the updated left value
      */
     public Offset setLeft(final String value) {
-        return new Offset(new AbsoluteSize(value), this.right, this.top, this.bottom);
+        return new Offset(AbsoluteSize.parse(value), this.right, this.top, this.bottom);
     }
 
     /**
@@ -241,7 +241,7 @@ public class Offset {
      * @return a new {@code Offset} with the updated right value
      */
     public Offset setRight(final String value) {
-        return new Offset(this.left, new AbsoluteSize(value), this.top, this.bottom);
+        return new Offset(this.left, AbsoluteSize.parse(value), this.top, this.bottom);
     }
 
     /**
@@ -252,7 +252,7 @@ public class Offset {
      * @return a new {@code Offset} with the updated top value
      */
     public Offset setTop(final String value) {
-        return new Offset(this.left, this.right, new AbsoluteSize(value), this.bottom);
+        return new Offset(this.left, this.right, AbsoluteSize.parse(value), this.bottom);
     }
 
     /**
@@ -263,7 +263,7 @@ public class Offset {
      * @return a new {@code Offset} with the updated bottom value
      */
     public Offset setBottom(final String value) {
-        return new Offset(this.left, this.right, this.top, new AbsoluteSize(value));
+        return new Offset(this.left, this.right, this.top, AbsoluteSize.parse(value));
     }
 
     /**
@@ -274,7 +274,7 @@ public class Offset {
      * @return a new {@code Offset} with updated horizontal offsets
      */
     public Offset setHorizontal(final String value) {
-        AbsoluteSize size = new AbsoluteSize(value);
+        AbsoluteSize size = AbsoluteSize.parse(value);
         return new Offset(size, size, this.top, this.bottom);
     }
 
@@ -286,7 +286,7 @@ public class Offset {
      * @return a new {@code Offset} with updated vertical offsets
      */
     public Offset setVertical(final String value) {
-        AbsoluteSize size = new AbsoluteSize(value);
+        AbsoluteSize size = AbsoluteSize.parse(value);
         return new Offset(this.left, this.right, size, size);
     }
 

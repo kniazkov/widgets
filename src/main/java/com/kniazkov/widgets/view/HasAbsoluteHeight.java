@@ -54,6 +54,6 @@ public interface HasAbsoluteHeight extends Entity {
      * @param height the new absolute height string to parse and set
      */
     default void setHeight(final String height) {
-        this.getHeightModel().setData(new AbsoluteSize(height));
+        this.getHeightModel().setData(AbsoluteSize.parse(height));
     }
 }

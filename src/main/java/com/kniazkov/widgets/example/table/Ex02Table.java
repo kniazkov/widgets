@@ -8,7 +8,6 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.Cell;
-import com.kniazkov.widgets.view.Row;
 import com.kniazkov.widgets.view.Table;
 
 /**
@@ -27,7 +26,7 @@ import com.kniazkov.widgets.view.Table;
  *   </li>
  * </ol>
  */
-public class Ex01MultiplicationChart {
+public class Ex02Table {
     /**
      * Entry point.
      *
@@ -38,12 +37,8 @@ public class Ex01MultiplicationChart {
             final Table table = new Table();
             root.add(table);
             for (int i = 1; i <= 10; i++) {
-                final Row row = new Row();
-                table.add(row);
                 for (int j = 1; j <= 10; j++ ) {
-                    final Cell cell = new Cell();
-                    row.add(cell);
-                    cell.setText(String.valueOf(i * j));
+                    table.getCell(i - 1, j - 1).setText(String.valueOf(i * j));
                 }
             }
         };

@@ -27,14 +27,14 @@ public final class AbsoluteSizeModel extends DefaultModel<AbsoluteSize> {
 
     /**
      * Creates a new absolute size model initialized from a CSS-style string.
-     * The string is parsed according to {@link AbsoluteSize#AbsoluteSize(String)},
+     * The string is parsed according to {@link AbsoluteSize#parse(String)} (String)},
      * supporting units like {@code px}, {@code pt}, {@code in}, etc.
      *
      * @param data the size string (e.g., "10pt", "24px", "1in")
      * @throws IllegalArgumentException if the string is invalid
      */
     public AbsoluteSizeModel(final String data) {
-        this(new AbsoluteSize(data));
+        this(AbsoluteSize.parse(data));
     }
 
     @Override

@@ -34,7 +34,7 @@ import com.kniazkov.widgets.view.TextWidgetStyle;
  *   </li>
  * </ol>
  */
-public class Ex03MultiplicationChart {
+public class Ex03TableWithStyle {
     /**
      * Entry point.
      *

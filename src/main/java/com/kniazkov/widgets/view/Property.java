@@ -16,6 +16,7 @@ import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.ImageSource;
 import com.kniazkov.widgets.common.Offset;
+import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.BooleanModel;
@@ -30,6 +31,7 @@ import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
+import com.kniazkov.widgets.model.WidgetSizeModel;
 
 /**
  * Represents a typed declarative property that can be bound to a widget through a {@link Model}.
@@ -412,6 +414,31 @@ public abstract class Property<T> {
     };
 
     /**
+     * Property defining the widget’s width in CSS units.
+     */
+    public static final Property<WidgetSize> WIDTH = new Property<WidgetSize>() {
+        @Override
+        public String getName() {
+            return "width";
+        }
+
+        @Override
+        public Class<WidgetSize> getValueClass() {
+            return WidgetSize.class;
+        }
+
+        @Override
+        public Model<WidgetSize> createDefaultModel() {
+            return new WidgetSizeModel();
+        }
+
+        @Override
+        public JsonElement convertData(final WidgetSize data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    /**
      * Property defining the widget’s absolute width in CSS units.
      */
     public static final Property<AbsoluteSize> ABSOLUTE_WIDTH = new Property<AbsoluteSize>() {
@@ -432,6 +459,31 @@ public abstract class Property<T> {
 
         @Override
         public JsonElement convertData(final AbsoluteSize data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    /**
+     * Property defining the widget’s height in CSS units.
+     */
+    public static final Property<WidgetSize> HEIGHT = new Property<WidgetSize>() {
+        @Override
+        public String getName() {
+            return "height";
+        }
+
+        @Override
+        public Class<WidgetSize> getValueClass() {
+            return WidgetSize.class;
+        }
+
+        @Override
+        public Model<WidgetSize> createDefaultModel() {
+            return new WidgetSizeModel();
+        }
+
+        @Override
+        public JsonElement convertData(final WidgetSize data) {
             return new JsonString(data.getCSSCode());
         }
     };

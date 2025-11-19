@@ -18,4 +18,49 @@ public interface WidgetSize {
      * @return CSS size string (e.g., {@code "16px"}), or {@code ""} if undefined
      */
     String getCSSCode();
+
+    /**
+     * Parses a CSS-style size string (e.g. "10px", "12pt", "1in", "100%").
+     *
+     * @param str input string
+     * @return parsed size
+     * @throws IllegalArgumentException if the string is invalid
+     */
+    static WidgetSize parse(final String str) {
+        final String s = str.trim().toLowerCase();
+        if (s.isEmpty()) {
+            return AbsoluteSize.UNDEFINED;
+        }
+
+        // find start of unit suffix
+        int i = 0;
+        while (i < s.length() &&
+               (Character.isDigit(s.charAt(i)) || s.charAt(i) == '.')) {
+            i++;
+        }
+
+        if (i == 0) {
+            throw new IllegalArgumentException("Invalid size format: " + str);
+        }
+
+        final float value = Float.parseFloat(s.substring(0, i));
+        final String substr = s.substring(i).trim();
+
+        final Unit unit;
+        switch (substr) {
+            case "pt": unit = Unit.PT; break;
+            case "pc": unit = Unit.PC; break;
+            case "in": unit = Unit.IN; break;
+            case "cm": unit = Unit.CM; break;
+            case "mm": unit = Unit.MM; break;
+            case "px":
+            case ""  : unit = Unit.PX; break;
+            case "%" :
+                return new RelativeSize(value);
+            default:
+                throw new IllegalArgumentException("Unsupported unit: " + substr);
+        }
+
+        return new AbsoluteSize(value, unit);
+    }
 }

@@ -179,7 +179,7 @@ public interface HasBorder extends Entity {
      * @param width the string representing the new border width
      */
     default void setBorderWidth(final String width) {
-        this.getBorderWidthModel().setData(new AbsoluteSize(width));
+        this.getBorderWidthModel().setData(AbsoluteSize.parse(width));
     }
 
     /**
@@ -226,6 +226,6 @@ public interface HasBorder extends Entity {
      * @param radius the string representing the new border radius
      */
     default void setBorderRadius(final String radius) {
-        this.getBorderRadiusModel().setData(new AbsoluteSize(radius));
+        this.getBorderRadiusModel().setData(AbsoluteSize.parse(radius));
     }
 }

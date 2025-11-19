@@ -3,13 +3,15 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.AbsoluteSize;
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
 import java.util.Set;
 
 /**
  * Style definition for {@link Cell}.
  */
-public class CellStyle extends Style implements HasBgColor
+public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight
 {
     /**
      * Set of supported states.
@@ -30,6 +32,12 @@ public class CellStyle extends Style implements HasBgColor
      */
     private CellStyle() {
         this.setBgColor(Color.WHITE);
+        this.setBorderColor(Color.BLACK);
+        this.setBorderStyle(BorderStyle.NONE);
+        this.setBorderWidth("0px");
+        this.setBorderRadius("0px");
+        this.setWidth("");
+        this.setHeight("");
     }
 
     /**

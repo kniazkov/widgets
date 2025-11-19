@@ -55,6 +55,6 @@ public interface HasAbsoluteWidth extends Entity {
      * @param width the new absolute width string to parse and set
      */
     default void setWidth(final String width) {
-        this.getWidthModel().setData(new AbsoluteSize(width));
+        this.getWidthModel().setData(AbsoluteSize.parse(width));
     }
 }

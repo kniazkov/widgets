@@ -50,7 +50,9 @@ var widgetsLibrary = {
         return document.createElement("img");
     },
     "cell" : function() {
-        return document.createElement("td");
+        var widget = document.createElement("td");
+        initPointerEvents(widget);
+        return widget;
     },
     "row" : function() {
         return document.createElement("tr");
