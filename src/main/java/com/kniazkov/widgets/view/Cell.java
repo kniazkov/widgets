@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.protocol.AppendChild;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import java.util.List;
  * Represents a table cell widget capable of containing {@link BlockWidget}s.
  */
 public class Cell extends Widget implements TypedContainer<BlockWidget>,
-        HasBgColor, HasBorder, HasWidth, HasHeight
+        HasBgColor, HasBorder, HasWidth, HasHeight, HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by table cells.
