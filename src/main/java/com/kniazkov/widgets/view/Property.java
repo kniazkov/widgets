@@ -741,4 +741,29 @@ public abstract class Property<T> {
             return new JsonString(data.getCSSCode());
         }
     };
+
+    /**
+     * A property that indicates the space between table cells.
+     */
+    public static final Property<AbsoluteSize> CELL_SPACING = new Property<AbsoluteSize>() {
+        @Override
+        public String getName() {
+            return "cell spacing";
+        }
+
+        @Override
+        public Class<AbsoluteSize> getValueClass() {
+            return AbsoluteSize.class;
+        }
+
+        @Override
+        public Model<AbsoluteSize> createDefaultModel() {
+            return new AbsoluteSizeModel("0px");
+        }
+
+        @Override
+        public JsonElement convertData(final AbsoluteSize data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
 }

@@ -12,7 +12,7 @@ import java.util.Set;
  * Style definition for {@link Table}.
  */
 public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasMargin, HasPadding
+        HasMargin, HasPadding, HasCellSpacing
 {
     /**
      * Set of supported states.
@@ -34,6 +34,7 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
         this.setHeight(AbsoluteSize.UNDEFINED);
         this.setMargin(0);
         this.setPadding(0);
+        this.setCellSpacing(0);
     }
 
     /**

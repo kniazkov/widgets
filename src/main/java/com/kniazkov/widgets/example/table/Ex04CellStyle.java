@@ -50,6 +50,7 @@ public class Ex04CellStyle {
         final Page page = root -> {
             final Table table = new Table();
             root.add(table);
+            table.setCellSpacing(2);
             for (int j = 1; j <= 10; j++ ) {
                 table.getCell(0, j).setText(String.valueOf(j));
             }

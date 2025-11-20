@@ -51,7 +51,6 @@ var widgetsLibrary = {
     "table" : function() {
         var widget = document.createElement("table");
         widget.style.borderCollapse = "separate";
-        widget.style.borderSpacing = 0;
         return widget;
     }
 };
@@ -402,6 +401,17 @@ var setVertAlignment = function(data) {
     if (widget && typeof alignment == "string") {
         widget.style.verticalAlign = alignment;
         log("The vertical alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
+        return true;
+    }
+    return false;
+};
+
+var setCellSpacing = function(data) {
+    var widget = widgets[data.widget];
+    var value = data["cell spacing"];
+    if (widget && typeof value == "string") {
+        widget.style.borderSpacing = value;
+        log("The cell spacing of the widget " + data.widget + " has been set to \"" + value + "\".");
         return true;
     }
     return false;

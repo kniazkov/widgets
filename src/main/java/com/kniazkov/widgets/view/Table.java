@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.AbsoluteSize;
+import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.List;
  * Represents a table widget that contains {@link Row} widgets.
  */
 public class Table extends BlockWidget implements TypedContainer<Row>,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing
 {
     /**
      * Returns the default style instance used by tables.

@@ -163,7 +163,8 @@ var actionHandlers = {
     "set border radius": setBorderRadius,
     "set source": setSource,
     "set horz alignment": setHorzAlignment,
-    "set vert alignment": setVertAlignment
+    "set vert alignment": setVertAlignment,
+    "set cell spacing": setCellSpacing
 };
 
 var ALWAYS_ALLOWED_EVENTS = ["text input"];
