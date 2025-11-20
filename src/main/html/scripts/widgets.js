@@ -32,18 +32,7 @@ var widgetsLibrary = {
     },
     "button" : function() {
         var widget = document.createElement("button");
-        widget.pointerLeave = function() {
-            widget._states.active = false;
-        };
-        widget.pointerDown = function() {
-            widget._states.active = true;
-            refreshWidget(widget);
-        };
-        widget.pointerUp = function() {
-            widget._states.active = false;
-            refreshWidget(widget);
-        };
-        initPointerEvents(widget);
+        initPointerEvents(widget, true);
         return widget;
     },
     "image" : function() {
@@ -51,7 +40,7 @@ var widgetsLibrary = {
     },
     "cell" : function() {
         var widget = document.createElement("td");
-        initPointerEvents(widget);
+        initPointerEvents(widget, true);
         return widget;
     },
     "row" : function() {
@@ -438,7 +427,7 @@ var processPointerEvent = function(element, event) {
     return data;
 };
 
-var initPointerEvents = function(widget) {
+var initPointerEvents = function(widget, activeOnPointerDown) {
     addEvent(widget, "click", function(event) {
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
     });
@@ -448,22 +437,24 @@ var initPointerEvents = function(widget) {
         sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerleave", function(event) {
-        if (widget.pointerLeave) {
-            widget.pointerLeave();
+        if (activeOnPointerDown) {
+            widget._states.active = false;
         }
         widget._states.hovered = false;
         refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerdown", function(event) {
-        if (widget.pointerDown) {
-            widget.pointerDown();
+        if (activeOnPointerDown) {
+            widget._states.active = true;
+            refreshWidget(widget);
         }
         sendEventToServer(widget, "pointer down", processPointerEvent(widget, event));
     });
     addEvent(widget, "pointerup", function(event) {
-        if (widget.pointerUp) {
-            widget.pointerUp();
+        if (activeOnPointerDown) {
+            widget._states.active = false;
+            refreshWidget(widget);
         }
         sendEventToServer(widget, "pointer up", processPointerEvent(widget, event));
     });

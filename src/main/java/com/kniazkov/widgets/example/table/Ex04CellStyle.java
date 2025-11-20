@@ -69,8 +69,9 @@ public class Ex04CellStyle {
             CellStyle cellStyle = Cell.getDefaultStyle().derive();
             cellStyle.setWidth(35);
             cellStyle.setHeight(25);
-            cellStyle.setBgColor(State.NORMAL, Color.CYAN);
+            cellStyle.setBgColor(State.NORMAL, Color.LIGHT_GRAY);
             cellStyle.setBgColor(State.HOVERED, Color.YELLOW);
+            cellStyle.setBgColor(State.ACTIVE, Color.ORANGE);
             cellStyle.setBorderWidth(1);
             cellStyle.setBorderStyle(BorderStyle.SOLID);
             cellStyle.setBorderColor(State.NORMAL, Color.WHITE);
