@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.protocol.AppendChild;
+import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,19 +52,20 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     }
 
     @Override
-    public InlineWidget getChild(int index) throws IndexOutOfBoundsException {
+    public InlineWidget getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void remove(Widget widget) {
+    public void remove(final Widget widget) {
         if (this.children.remove(widget)) {
+            this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
         }
     }
 
     @Override
-    public void add(InlineWidget widget) {
+    public void add(final InlineWidget widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));

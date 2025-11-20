@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.protocol.AppendChild;
+import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,20 +41,21 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
     }
 
     @Override
-    public Row getChild(int index) throws IndexOutOfBoundsException {
+    public Row getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void add(Row widget) {
+    public void add(final Row widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
-    public void remove(Widget widget) {
+    public void remove(final Widget widget) {
         if (this.children.remove(widget)) {
+            this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
         }
     }

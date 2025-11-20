@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
+import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.SetChild;
 
 /**
@@ -61,7 +62,7 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
     }
 
     @Override
-    public void put(InlineWidget widget) {
+    public void put(final InlineWidget widget) {
         if (this.child == widget) {
             return;
         }
@@ -72,8 +73,13 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
     }
 
     @Override
-    public void remove(Widget widget) {
-        this.child.setParent(null);
+    public void remove(final Widget widget) {
+        if (widget != this.child) {
+            return;
+        }
+        final InlineWidget old = this.child;
+        this.child = null;
+        old.setParent(null);
         this.child = new TextWidget();
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }

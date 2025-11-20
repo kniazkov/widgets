@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.protocol.AppendChild;
+import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,24 +41,24 @@ public class Row extends Widget implements TypedContainer<Cell>,
     }
 
     @Override
-    public Cell getChild(int index) throws IndexOutOfBoundsException {
+    public Cell getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void add(Cell widget) {
+    public void add(final Cell widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
-    public void remove(Widget widget) {
+    public void remove(final Widget widget) {
         if (this.children.remove(widget)) {
+            this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
         }
     }
-
     @Override
     public String getType() {
         return "row";

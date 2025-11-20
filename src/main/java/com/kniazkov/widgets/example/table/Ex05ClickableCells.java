@@ -14,6 +14,7 @@ import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CellStyle;
 import com.kniazkov.widgets.view.InputField;
+import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.Table;
@@ -61,14 +62,15 @@ public class Ex05ClickableCells {
             for (final TextWidget widget : table.getColumn(0).collectChildren(TextWidget.class)) {
                 widget.setStyle(textStyle);
             }
-            CellStyle cellStyle = Cell.getDefaultStyle().derive();
+            final CellStyle cellStyle = Cell.getDefaultStyle().derive();
             cellStyle.setWidth("35px");
             cellStyle.setHeight("25px");
             cellStyle.setBgColor(State.HOVERED, InputField.getDefaultStyle().getBgColor(State.HOVERED));
             cellStyle.setBorderWidth("1px");
-            cellStyle.setBorderStyle(BorderStyle.SOLID);
-            cellStyle.setBorderColor(State.NORMAL, Color.WHITE);
-            cellStyle.setBorderColor(State.HOVERED, Color.GRAY);
+            final InputFieldStyle inputStyle = InputField.getDefaultStyle().derive();
+            inputStyle.setWidth("35px");
+            inputStyle.setHeight("25px");
+            inputStyle.setMargin("0");
             for (final Cell cell : table.collectChildren(Cell.class)) {
                 cell.setStyle(cellStyle);
                 cell.onClick(data -> {
@@ -85,6 +87,7 @@ public class Ex05ClickableCells {
                     Model<String> model = textWidget.getTextModel();
                     final InputField field = new InputField();
                     field.setTextModel(model);
+                    field.setStyle(inputStyle);
                     section.removeAll();
                     section.add(field);
                 });

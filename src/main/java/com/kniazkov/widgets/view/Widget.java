@@ -247,9 +247,10 @@ public abstract class Widget implements Entity, HandlesEvents {
     void setParent(final Container container) {
         if (container == null) {
             if (this.parent != null) {
-                this.updates.add(new RemoveChild(this.id, this.parent.getId()));
+                final Container exParent = this.parent;
+                this.parent = null;
+                exParent.remove(this);
             }
-            this.parent = null;
             return;
         }
         Set<Update> pending = new TreeSet<>();
