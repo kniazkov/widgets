@@ -16,6 +16,7 @@ import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.ImageSource;
 import com.kniazkov.widgets.common.Offset;
+import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
@@ -31,6 +32,7 @@ import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
+import com.kniazkov.widgets.model.VerticalAlignmentModel;
 import com.kniazkov.widgets.model.WidgetSizeModel;
 
 /**
@@ -691,7 +693,8 @@ public abstract class Property<T> {
     /**
      * Property storing the horizontal alignment.
      */
-    public static final Property<HorizontalAlignment> H_ALIGN = new Property<HorizontalAlignment>() {
+    public static final Property<HorizontalAlignment> HORIZONTAL_ALIGNMENT =
+            new Property<HorizontalAlignment>() {
         @Override
         public String getName() {
             return "horz alignment";
@@ -709,6 +712,32 @@ public abstract class Property<T> {
 
         @Override
         public JsonElement convertData(final HorizontalAlignment data) {
+            return new JsonString(data.getCSSCode());
+        }
+    };
+
+    /**
+     * Property storing the vertical alignment.
+     */
+    public static final Property<VerticalAlignment> VERTICAL_ALIGNMENT =
+            new Property<VerticalAlignment>() {
+        @Override
+        public String getName() {
+            return "vert alignment";
+        }
+
+        @Override
+        public Class<VerticalAlignment> getValueClass() {
+            return VerticalAlignment.class;
+        }
+
+        @Override
+        public Model<VerticalAlignment> createDefaultModel() {
+            return new VerticalAlignmentModel();
+        }
+
+        @Override
+        public JsonElement convertData(final VerticalAlignment data) {
             return new JsonString(data.getCSSCode());
         }
     };

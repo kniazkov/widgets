@@ -396,6 +396,17 @@ var setHorzAlignment = function(data) {
     return false;
 };
 
+var setVertAlignment = function(data) {
+    var widget = widgets[data.widget];
+    var alignment = data["vert alignment"];
+    if (widget && typeof alignment == "string") {
+        widget.style.verticalAlign = alignment;
+        log("The vertical alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
+        return true;
+    }
+    return false;
+};
+
 var processPointerEvent = function(element, event) {
     var rect = element.getBoundingClientRect();
     var data = {};

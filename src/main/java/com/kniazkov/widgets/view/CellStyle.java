@@ -6,13 +6,14 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.VerticalAlignment;
 import java.util.Set;
 
 /**
  * Style definition for {@link Cell}.
  */
 public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasPadding
+        HasPadding, HasVerticalAlignment
 {
     /**
      * Set of supported states.
@@ -37,6 +38,7 @@ public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth,
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);
         this.setPadding(0);
+        this.setVerticalAlignment(VerticalAlignment.MIDDLE);
     }
 
     /**

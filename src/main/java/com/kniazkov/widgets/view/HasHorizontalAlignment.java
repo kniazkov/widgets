@@ -17,7 +17,7 @@ public interface HasHorizontalAlignment extends Entity {
      * @return the horizontal alignment model
      */
     default Model<HorizontalAlignment> getHorizontalAlignmentModel() {
-        return this.getModel(State.ANY, Property.H_ALIGN);
+        return this.getModel(State.ANY, Property.HORIZONTAL_ALIGNMENT);
     }
 
     /**
@@ -26,7 +26,7 @@ public interface HasHorizontalAlignment extends Entity {
      * @param model the alignment model to set
      */
     default void setHorizontalAlignmentModel(Model<HorizontalAlignment> model) {
-        this.setModel(State.ANY, Property.H_ALIGN, model);
+        this.setModel(State.ANY, Property.HORIZONTAL_ALIGNMENT, model);
     }
 
     /**
