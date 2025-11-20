@@ -11,7 +11,8 @@ import java.util.Set;
 /**
  * Style definition for {@link Cell}.
  */
-public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight
+public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
+        HasPadding
 {
     /**
      * Set of supported states.
@@ -35,6 +36,7 @@ public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth,
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);
+        this.setPadding(0);
     }
 
     /**

@@ -13,7 +13,8 @@ import java.util.List;
  * Represents a table cell widget capable of containing {@link BlockWidget}s.
  */
 public class Cell extends Widget implements TypedContainer<BlockWidget>,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HandlesPointerEvents
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding,
+        HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by table cells.

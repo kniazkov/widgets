@@ -12,7 +12,7 @@ import java.util.List;
  * Represents a table widget that contains {@link Row} widgets.
  */
 public class Table extends BlockWidget implements TypedContainer<Row>,
-        HasBgColor, HasBorder
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding
 {
     /**
      * Returns the default style instance used by tables.

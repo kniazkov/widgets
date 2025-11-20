@@ -23,7 +23,16 @@ import com.kniazkov.widgets.view.TextWidgetStyle;
 import com.kniazkov.widgets.view.Widget;
 
 /**
- * Demonstrates ....
+ * Demonstrates interactive table cells that turn into editable input fields when clicked.
+ * <p>
+ * The example constructs a 10×10 multiplication table, applies custom styling to the header
+ * row and column, and assigns a click handler to every data cell. When a user clicks a cell,
+ * its content (a {@link TextWidget}) is replaced with an {@link InputField} that shares
+ * the same text model, allowing the user to edit the numeric value in place.
+ * <p>
+ * This demonstrates how widgets can dynamically replace each other at runtime while
+ * preserving underlying models, as well as how interaction events can be used to
+ * transform static UI elements into editable ones.
  *
  * <b>How to use</b>
  * <ol>
@@ -63,13 +72,13 @@ public class Ex05ClickableCells {
                 widget.setStyle(textStyle);
             }
             final CellStyle cellStyle = Cell.getDefaultStyle().derive();
-            cellStyle.setWidth(35);
-            cellStyle.setHeight(25);
+            cellStyle.setWidth(45);
+            cellStyle.setHeight(32);
             cellStyle.setBgColor(State.HOVERED, InputField.getDefaultStyle().getBgColor(State.HOVERED));
             cellStyle.setBorderWidth(1);
             final InputFieldStyle inputStyle = InputField.getDefaultStyle().derive();
-            inputStyle.setWidth(35);
-            inputStyle.setHeight(25);
+            inputStyle.setWidth(38);
+            inputStyle.setHeight(28);
             inputStyle.setMargin(0);
             for (final Cell cell : table.collectChildren(Cell.class)) {
                 cell.setStyle(cellStyle);

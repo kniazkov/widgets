@@ -3,13 +3,16 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.AbsoluteSize;
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
 import java.util.Set;
 
 /**
  * Style definition for {@link Table}.
  */
-public class TableStyle extends Style implements HasBgColor, HasBorder
+public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
+        HasMargin, HasPadding
 {
     /**
      * Set of supported states.
@@ -26,6 +29,11 @@ public class TableStyle extends Style implements HasBgColor, HasBorder
      */
     private TableStyle() {
         this.setBgColor(Color.WHITE);
+        this.setBorderStyle(BorderStyle.NONE);
+        this.setWidth(AbsoluteSize.UNDEFINED);
+        this.setHeight(AbsoluteSize.UNDEFINED);
+        this.setMargin(0);
+        this.setPadding(0);
     }
 
     /**

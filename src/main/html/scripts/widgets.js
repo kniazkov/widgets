@@ -58,7 +58,10 @@ var widgetsLibrary = {
         return document.createElement("tr");
     },
     "table" : function() {
-        return document.createElement("table");
+        var widget = document.createElement("table");
+        widget.style.borderCollapse = "separate";
+        widget.style.borderSpacing = 0;
+        return widget;
     }
 };
 
