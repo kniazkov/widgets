@@ -12,6 +12,8 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CellStyle;
+import com.kniazkov.widgets.view.Row;
+import com.kniazkov.widgets.view.RowStyle;
 import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.Table;
 import com.kniazkov.widgets.view.TextWidget;
@@ -57,7 +59,7 @@ public class Ex04CellStyle {
                     table.getCell(i, j).setText(String.valueOf(i * j));
                 }
             }
-            TextWidgetStyle textStyle = TextWidget.getDefaultStyle().derive();
+             final TextWidgetStyle textStyle = TextWidget.getDefaultStyle().derive();
             textStyle.setColor(Color.BLUE);
             textStyle.setFontWeight(FontWeight.BOLD);
             for (final TextWidget widget : table.getRow(0).collectChildren(TextWidget.class)) {
@@ -66,10 +68,9 @@ public class Ex04CellStyle {
             for (final TextWidget widget : table.getColumn(0).collectChildren(TextWidget.class)) {
                 widget.setStyle(textStyle);
             }
-            CellStyle cellStyle = Cell.getDefaultStyle().derive();
+            final CellStyle cellStyle = Cell.getDefaultStyle().derive();
             cellStyle.setWidth(35);
             cellStyle.setHeight(25);
-            cellStyle.setBgColor(State.NORMAL, Color.LIGHT_GRAY);
             cellStyle.setBgColor(State.HOVERED, Color.YELLOW);
             cellStyle.setBgColor(State.ACTIVE, Color.ORANGE);
             cellStyle.setBorderWidth(1);
@@ -79,6 +80,12 @@ public class Ex04CellStyle {
             cellStyle.setPadding(3);
             for (final Cell cell : table.collectChildren(Cell.class)) {
                 cell.setStyle(cellStyle);
+            }
+            final RowStyle rowStyle = Row.getDefaultStyle().derive();
+            rowStyle.setBgColor(State.HOVERED, Color.LIGHT_GRAY);
+            rowStyle.setBgColor(State.ACTIVE, Color.GRAY);
+            for (final Row row : table.collectChildren(Row.class)) {
+                row.setStyle(rowStyle);
             }
         };
 

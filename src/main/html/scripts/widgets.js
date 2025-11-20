@@ -44,7 +44,9 @@ var widgetsLibrary = {
         return widget;
     },
     "row" : function() {
-        return document.createElement("tr");
+        var widget = document.createElement("tr");
+        initPointerEvents(widget, true);
+        return widget;
     },
     "table" : function() {
         var widget = document.createElement("table");

@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.List;
  * Represents a table row widget that contains {@link Cell} widgets.
  */
 public class Row extends Widget implements TypedContainer<Cell>,
-        HasBgColor
+        HasBgColor, HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by table rows.
