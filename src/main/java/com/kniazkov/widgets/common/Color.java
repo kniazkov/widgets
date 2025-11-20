@@ -7,10 +7,13 @@ import com.kniazkov.json.JsonObject;
 
 /**
  * Immutable RGB color representation.
- * This class encapsulates a color using three integer components: red, green, and blue,
+ * This class encapsulates a color using three integer components: red, green, blue, and alpha
  * each in the range [0, 255]. Values outside this range are clamped automatically.
  */
 public final class Color {
+    /** Fully transparent (0, 0, 0, 0). */
+    public static final Color TRANSPARENT = new Color(0, 0, 0, 0);
+
     /** Black (0, 0, 0). */
     public static final Color BLACK = new Color(0, 0, 0);
 
@@ -78,6 +81,27 @@ public final class Color {
     private final int blue;
 
     /**
+     * Alpha channel in range [0, 255] (transparency, 0 = fully transparent).
+     */
+    private final int alpha;
+
+    /**
+     * Constructs a new color with the specified RGBA components.
+     * Any component outside the range [0, 255] is clamped automatically.
+     *
+     * @param red red component
+     * @param green green component
+     * @param blue blue component
+     * @param alpha alpha component
+     */
+    public Color(final int red, final int green, final int blue, final int alpha) {
+        this.red = fix(red);
+        this.green = fix(green);
+        this.blue = fix(blue);
+        this.alpha = fix(alpha);
+    }
+
+    /**
      * Constructs a new color with the specified RGB components.
      * Any component outside the range [0, 255] is clamped automatically.
      *
@@ -86,9 +110,10 @@ public final class Color {
      * @param blue blue component
      */
     public Color(final int red, final int green, final int blue) {
-        this.red = fixColor(red);
-        this.green = fixColor(green);
-        this.blue = fixColor(blue);
+        this.red = fix(red);
+        this.green = fix(green);
+        this.blue = fix(blue);
+        this.alpha = 255;
     }
 
     /**
@@ -101,6 +126,9 @@ public final class Color {
         obj.addNumber("r", this.red);
         obj.addNumber("g", this.green);
         obj.addNumber("b", this.blue);
+        if (this.alpha < 255) {
+            obj.addNumber("a", this.getAlphaAsPercent());
+        }
         return obj;
     }
 
@@ -111,6 +139,10 @@ public final class Color {
      */
     @Override
     public String toString() {
+        if (this.alpha < 255) {
+            return "rgba(" + this.red + ',' + this.green + ',' + this.blue + ','
+                + this.getAlphaAsPercent() + ')';
+        }
         return "rgb(" + this.red + ',' + this.green + ',' + this.blue + ')';
     }
 
@@ -124,7 +156,8 @@ public final class Color {
     public boolean equals(final Object obj) {
         if (obj instanceof Color) {
             final Color other = (Color) obj;
-            return this.red == other.red && this.green == other.green && this.blue == other.blue;
+            return this.red == other.red && this.green == other.green && this.blue == other.blue
+                && this.alpha == other.alpha;
         }
         return false;
     }
@@ -136,9 +169,10 @@ public final class Color {
      */
     @Override
     public int hashCode() {
-        int result = red;
-        result = 31 * result + green;
-        result = 31 * result + blue;
+        int result = this.red;
+        result = 31 * result + this.green;
+        result = 31 * result + this.blue;
+        result = 31 * result + this.alpha;
         return result;
     }
 
@@ -148,9 +182,17 @@ public final class Color {
      * @param value the input component value
      * @return clamped value
      */
-    private static int fixColor(final int value) {
+    private static int fix(final int value) {
         if (value < 0) return 0;
         if (value > 255) return 255;
         return value;
+    }
+
+    /**
+     * Reads alpha channel value in the range [0, 1].
+     * @return alpha channel value in the range [0, 1]
+     */
+    private double getAlphaAsPercent() {
+        return (double)Math.round((double)this.alpha / 2.55) / 100;
     }
 }

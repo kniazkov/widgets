@@ -32,7 +32,7 @@ public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth,
      * Creates the default cell style.
      */
     private CellStyle() {
-        this.setBgColor(Color.WHITE);
+        this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);

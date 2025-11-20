@@ -189,7 +189,7 @@ var setColor = function(data) {
     var rgb = data["color"];
     var state = data.state;
     if (widget && typeof rgb == "object" && typeof state == "string") {
-        var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        var color = composeColor(rgb);
         widget._properties[state].color = color;
         refreshWidget(widget);
         log("The color \"" + color + "\" for state \"" + state + "\" has been set to the widget " + data.widget + '.');
@@ -203,7 +203,7 @@ var setBgColor = function(data) {
     var rgb = data["bg color"];
     var state = data.state;
     if (widget && typeof rgb == "object" && typeof state == "string") {
-        var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        var color = composeColor(rgb);
         widget._properties[state].backgroundColor = color;
         refreshWidget(widget);
         log("The background color \"" + color + "\" for state \"" + state +
@@ -327,7 +327,7 @@ var setBorderColor = function(data) {
     var rgb = data["border color"];
     var state = data.state;
     if (widget && typeof rgb == "object" && typeof state == "string") {
-        var color = "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        var color = composeColor(rgb);
         widget._properties[state].borderColor = color;
         refreshWidget(widget);
         log("The border color \"" + color + "\" for state \"" + state +
@@ -469,4 +469,12 @@ var initFocusEvents = function(widget) {
         widget._states.active = false;
         refreshWidget(widget);
     });
+};
+
+var composeColor = function(rgb) {
+    if (typeof rgb.a == "number") {
+        return "rgba(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + rgb.a + ')';
+    } else {
+        return "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+    }
 };

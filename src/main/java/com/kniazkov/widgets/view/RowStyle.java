@@ -29,7 +29,7 @@ public class RowStyle extends Style implements HasBgColor
      * Creates the default row style.
      */
     private RowStyle() {
-        this.setBgColor(Color.WHITE);
+        this.setBgColor(Color.TRANSPARENT);
     }
 
     /**

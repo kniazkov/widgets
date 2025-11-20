@@ -28,7 +28,7 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
      * Creates the default table style.
      */
     private TableStyle() {
-        this.setBgColor(Color.WHITE);
+        this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);
