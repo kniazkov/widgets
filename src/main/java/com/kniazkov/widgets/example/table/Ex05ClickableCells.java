@@ -63,14 +63,14 @@ public class Ex05ClickableCells {
                 widget.setStyle(textStyle);
             }
             final CellStyle cellStyle = Cell.getDefaultStyle().derive();
-            cellStyle.setWidth("35px");
-            cellStyle.setHeight("25px");
+            cellStyle.setWidth(35);
+            cellStyle.setHeight(25);
             cellStyle.setBgColor(State.HOVERED, InputField.getDefaultStyle().getBgColor(State.HOVERED));
-            cellStyle.setBorderWidth("1px");
+            cellStyle.setBorderWidth(1);
             final InputFieldStyle inputStyle = InputField.getDefaultStyle().derive();
-            inputStyle.setWidth("35px");
-            inputStyle.setHeight("25px");
-            inputStyle.setMargin("0");
+            inputStyle.setWidth(35);
+            inputStyle.setHeight(25);
+            inputStyle.setMargin(0);
             for (final Cell cell : table.collectChildren(Cell.class)) {
                 cell.setStyle(cellStyle);
                 cell.onClick(data -> {

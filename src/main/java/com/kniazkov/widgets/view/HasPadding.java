@@ -103,6 +103,15 @@ public interface HasPadding extends Entity {
     }
 
     /**
+     * Updates the padding with a uniform pixel-based size for all sides.
+     *
+     * @param px the padding in pixels (must be ≥ 0)
+     */
+    default void setPadding(final int px) {
+        this.setPadding(new Offset(px));
+    }
+
+    /**
      * Updates the padding with horizontal and vertical sizes.
      *
      * @param horizontal the horizontal padding (left and right)
@@ -119,6 +128,16 @@ public interface HasPadding extends Entity {
      * @param vertical   the string representing the vertical padding (top and bottom)
      */
     default void setPadding(final String horizontal, final String vertical) {
+        this.setPadding(new Offset(horizontal, vertical));
+    }
+
+    /**
+     * Updates the padding with horizontal and vertical pixel-based sizes.
+     *
+     * @param horizontal the horizontal padding in pixels (left and right), must be ≥ 0
+     * @param vertical   the vertical padding in pixels (top and bottom), must be ≥ 0
+     */
+    default void setPadding(final int horizontal, final int vertical) {
         this.setPadding(new Offset(horizontal, vertical));
     }
 
@@ -149,6 +168,19 @@ public interface HasPadding extends Entity {
     }
 
     /**
+     * Updates the padding with explicit pixel-based values for all four sides.
+     *
+     * @param left   the left padding in pixels (must be ≥ 0)
+     * @param right  the right padding in pixels (must be ≥ 0)
+     * @param top    the top padding in pixels (must be ≥ 0)
+     * @param bottom the bottom padding in pixels (must be ≥ 0)
+     */
+    default void setPadding(final int left, final int right,
+            final int top, final int bottom) {
+        this.setPadding(new Offset(left, right, top, bottom));
+    }
+
+    /**
      * Updates the left padding offset.
      *
      * @param value the new left padding
@@ -166,6 +198,16 @@ public interface HasPadding extends Entity {
     default void setLeftPadding(final String value) {
         final Model<Offset> model = this.getPaddingModel();
         model.setData(model.getData().setLeft(value));
+    }
+
+    /**
+     * Updates the left padding offset using a pixel-based value.
+     *
+     * @param px the new left padding in pixels (must be ≥ 0)
+     */
+    default void setLeftPadding(final int px) {
+        final Model<Offset> model = this.getPaddingModel();
+        model.setData(model.getData().setLeft(px));
     }
 
     /**
@@ -189,6 +231,16 @@ public interface HasPadding extends Entity {
     }
 
     /**
+     * Updates the right padding offset using a pixel-based value.
+     *
+     * @param px the new right padding in pixels (must be ≥ 0)
+     */
+    default void setRightPadding(final int px) {
+        final Model<Offset> model = this.getPaddingModel();
+        model.setData(model.getData().setRight(px));
+    }
+
+    /**
      * Updates the top padding offset.
      *
      * @param value the new top padding
@@ -206,6 +258,16 @@ public interface HasPadding extends Entity {
     default void setTopPadding(final String value) {
         final Model<Offset> model = this.getPaddingModel();
         model.setData(model.getData().setTop(value));
+    }
+
+    /**
+     * Updates the top padding offset using a pixel-based value.
+     *
+     * @param px the new top padding in pixels (must be ≥ 0)
+     */
+    default void setTopPadding(final int px) {
+        final Model<Offset> model = this.getPaddingModel();
+        model.setData(model.getData().setTop(px));
     }
 
     /**
@@ -229,6 +291,16 @@ public interface HasPadding extends Entity {
     }
 
     /**
+     * Updates the bottom padding offset using a pixel-based value.
+     *
+     * @param px the new bottom padding in pixels (must be ≥ 0)
+     */
+    default void setBottomPadding(final int px) {
+        final Model<Offset> model = this.getPaddingModel();
+        model.setData(model.getData().setBottom(px));
+    }
+
+    /**
      * Updates both left and right padding offsets with the same value.
      *
      * @param value the new horizontal padding
@@ -249,6 +321,16 @@ public interface HasPadding extends Entity {
     }
 
     /**
+     * Updates both left and right padding offsets using a pixel-based value.
+     *
+     * @param px the new horizontal padding in pixels (must be ≥ 0)
+     */
+    default void setHorizontalPadding(final int px) {
+        final Model<Offset> model = this.getPaddingModel();
+        model.setData(model.getData().setHorizontal(px));
+    }
+
+    /**
      * Updates both top and bottom padding offsets with the same value.
      *
      * @param value the new vertical padding
@@ -266,5 +348,15 @@ public interface HasPadding extends Entity {
     default void setVerticalPadding(final String value) {
         final Model<Offset> model = this.getPaddingModel();
         model.setData(model.getData().setVertical(value));
+    }
+
+    /**
+     * Updates both top and bottom padding offsets using a pixel-based value.
+     *
+     * @param px the new vertical padding in pixels (must be ≥ 0)
+     */
+    default void setVerticalPadding(final int px) {
+        final Model<Offset> model = this.getPaddingModel();
+        model.setData(model.getData().setVertical(px));
     }
 }

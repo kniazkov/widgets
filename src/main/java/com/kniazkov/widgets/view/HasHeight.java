@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
 
@@ -60,5 +61,14 @@ public interface HasHeight extends Entity {
      */
     default void setHeight(final String height) {
         this.getHeightModel().setData(WidgetSize.parse(height));
+    }
+
+    /**
+     * Updates the height value in the associated model using a pixel value.
+     *
+     * @param px the new height in pixels (must be ≥ 0)
+     */
+    default void setHeight(final int px) {
+        this.getHeightModel().setData(new AbsoluteSize(px));
     }
 }

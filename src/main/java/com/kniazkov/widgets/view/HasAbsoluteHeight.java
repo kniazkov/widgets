@@ -56,4 +56,13 @@ public interface HasAbsoluteHeight extends Entity {
     default void setHeight(final String height) {
         this.getHeightModel().setData(AbsoluteSize.parse(height));
     }
+
+    /**
+     * Updates the absolute height value in the associated model using a pixel value.
+     *
+     * @param px the new height in pixels (must be ≥ 0)
+     */
+    default void setHeight(final int px) {
+        this.getHeightModel().setData(new AbsoluteSize(px));
+    }
 }

@@ -66,6 +66,15 @@ public class Offset {
     }
 
     /**
+     * Creates a uniform offset using the same pixel value for all four sides.
+     *
+     * @param px the pixel value applied to all sides (must be ≥ 0)
+     */
+    public Offset(final int px) {
+        this(new AbsoluteSize(px));
+    }
+
+    /**
      * Creates an offset with the same horizontal size (left and right)
      * and the same vertical size (top and bottom).
      *
@@ -86,6 +95,17 @@ public class Offset {
      */
     public Offset(final String horizontal, final String vertical) {
         this(AbsoluteSize.parse(horizontal), AbsoluteSize.parse(vertical));
+    }
+
+    /**
+     * Creates an offset with the same horizontal pixel value (left and right)
+     * and the same vertical pixel value (top and bottom).
+     *
+     * @param horizontal the horizontal offset in pixels (left and right), must be ≥ 0
+     * @param vertical   the vertical offset in pixels (top and bottom), must be ≥ 0
+     */
+    public Offset(final int horizontal, final int vertical) {
+        this(new AbsoluteSize(horizontal), new AbsoluteSize(vertical));
     }
 
     /**
@@ -121,6 +141,23 @@ public class Offset {
             AbsoluteSize.parse(right),
             AbsoluteSize.parse(top),
             AbsoluteSize.parse(bottom)
+        );
+    }
+
+    /**
+     * Creates an offset with explicit pixel values for all four sides.
+     *
+     * @param left   the left offset in pixels (must be ≥ 0)
+     * @param right  the right offset in pixels (must be ≥ 0)
+     * @param top    the top offset in pixels (must be ≥ 0)
+     * @param bottom the bottom offset in pixels (must be ≥ 0)
+     */
+    public Offset(final int left, final int right, final int top, final int bottom) {
+        this(
+            new AbsoluteSize(left),
+            new AbsoluteSize(right),
+            new AbsoluteSize(top),
+            new AbsoluteSize(bottom)
         );
     }
 
@@ -287,6 +324,74 @@ public class Offset {
      */
     public Offset setVertical(final String value) {
         AbsoluteSize size = AbsoluteSize.parse(value);
+        return new Offset(this.left, this.right, size, size);
+    }
+
+    /**
+     * Returns a new {@code Offset} instance with the specified left offset
+     * provided as a pixel value.
+     *
+     * @param px the new left offset in pixels (must be ≥ 0)
+     * @return a new {@code Offset} with the updated left value
+     */
+    public Offset setLeft(final int px) {
+        return new Offset(new AbsoluteSize(px), this.right, this.top, this.bottom);
+    }
+
+    /**
+     * Returns a new {@code Offset} instance with the specified right offset
+     * provided as a pixel value.
+     *
+     * @param px the new right offset in pixels (must be ≥ 0)
+     * @return a new {@code Offset} with the updated right value
+     */
+    public Offset setRight(final int px) {
+        return new Offset(this.left, new AbsoluteSize(px), this.top, this.bottom);
+    }
+
+    /**
+     * Returns a new {@code Offset} instance with the specified top offset
+     * provided as a pixel value.
+     *
+     * @param px the new top offset in pixels (must be ≥ 0)
+     * @return a new {@code Offset} with the updated top value
+     */
+    public Offset setTop(final int px) {
+        return new Offset(this.left, this.right, new AbsoluteSize(px), this.bottom);
+    }
+
+    /**
+     * Returns a new {@code Offset} instance with the specified bottom offset
+     * provided as a pixel value.
+     *
+     * @param px the new bottom offset in pixels (must be ≥ 0)
+     * @return a new {@code Offset} with the updated bottom value
+     */
+    public Offset setBottom(final int px) {
+        return new Offset(this.left, this.right, this.top, new AbsoluteSize(px));
+    }
+
+    /**
+     * Returns a new {@code Offset} instance with updated horizontal offsets
+     * (left and right) set to the given pixel value.
+     *
+     * @param px the new horizontal offset in pixels (must be ≥ 0)
+     * @return a new {@code Offset} with updated horizontal offsets
+     */
+    public Offset setHorizontal(final int px) {
+        final AbsoluteSize size = new AbsoluteSize(px);
+        return new Offset(size, size, this.top, this.bottom);
+    }
+
+    /**
+     * Returns a new {@code Offset} instance with updated vertical offsets
+     * (top and bottom) set to the given pixel value.
+     *
+     * @param px the new vertical offset in pixels (must be ≥ 0)
+     * @return a new {@code Offset} with updated vertical offsets
+     */
+    public Offset setVertical(final int px) {
+        final AbsoluteSize size = new AbsoluteSize(px);
         return new Offset(this.left, this.right, size, size);
     }
 

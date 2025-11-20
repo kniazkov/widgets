@@ -32,12 +32,9 @@ public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth,
      */
     private CellStyle() {
         this.setBgColor(Color.WHITE);
-        this.setBorderColor(Color.BLACK);
         this.setBorderStyle(BorderStyle.NONE);
-        this.setBorderWidth("0px");
-        this.setBorderRadius("0px");
-        this.setWidth("");
-        this.setHeight("");
+        this.setWidth(AbsoluteSize.UNDEFINED);
+        this.setHeight(AbsoluteSize.UNDEFINED);
     }
 
     /**

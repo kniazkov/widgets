@@ -50,13 +50,13 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
         this.setBorderStyleModel(State.ACTIVE, style.asCascading());
         this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
 
-        this.setBorderWidth("1px");
-        this.setBorderRadius("5px");
+        this.setBorderWidth(1);
+        this.setBorderRadius(5);
 
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);
-        this.setMargin("2px");
-        this.setPadding("10px");
+        this.setMargin(2);
+        this.setPadding(10);
     }
 
     /**

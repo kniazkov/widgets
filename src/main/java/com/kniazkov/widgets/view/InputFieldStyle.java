@@ -91,12 +91,12 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setBorderStyleModel(State.INVALID, style.asCascading());
         this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
 
-        this.setBorderWidth("1px");
-        this.setBorderRadius("0px");
+        this.setBorderWidth(1);
+        this.setBorderRadius(0);
 
-        this.setWidth("100px");
-        this.setHeight("25px");
-        this.setMargin("2px", "1px");
+        this.setWidth(100);
+        this.setHeight(25);
+        this.setMargin(2, 1);
     }
 
     /**

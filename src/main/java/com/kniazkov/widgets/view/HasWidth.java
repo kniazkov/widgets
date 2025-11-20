@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.model.Model;
 
@@ -55,5 +56,14 @@ public interface HasWidth extends Entity {
      */
     default void setWidth(final String width) {
         this.getWidthModel().setData(WidgetSize.parse(width));
+    }
+
+    /**
+     * Updates the width value in the associated model using a pixel value.
+     *
+     * @param px the new width in pixels (must be ≥ 0)
+     */
+    default void setWidth(final int px) {
+        this.getWidthModel().setData(new AbsoluteSize(px));
     }
 }

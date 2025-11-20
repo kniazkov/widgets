@@ -57,4 +57,13 @@ public interface HasAbsoluteWidth extends Entity {
     default void setWidth(final String width) {
         this.getWidthModel().setData(AbsoluteSize.parse(width));
     }
+
+    /**
+     * Updates the absolute width value in the associated model using a pixel value.
+     *
+     * @param px the new height in pixels (must be ≥ 0)
+     */
+    default void setWidth(final int px) {
+        this.getWidthModel().setData(new AbsoluteSize(px));
+    }
 }

@@ -183,6 +183,15 @@ public interface HasBorder extends Entity {
     }
 
     /**
+     * Updates the border width value in the associated model using a pixel value.
+     *
+     * @param px the new width in pixels (must be ≥ 0)
+     */
+    default void setBorderWidth(final int px) {
+        this.getBorderWidthModel().setData(new AbsoluteSize(px));
+    }
+
+    /**
      * Returns the model that stores the border radius (corner rounding) for this view.
      *
      * @return the border radius model
@@ -216,6 +225,15 @@ public interface HasBorder extends Entity {
      */
     default void setBorderRadius(final AbsoluteSize radius) {
         this.getBorderRadiusModel().setData(radius);
+    }
+
+    /**
+     * Updates the border radius value in the associated model using a pixel value.
+     *
+     * @param px the new radius in pixels (must be ≥ 0)
+     */
+    default void setBorderRadius(final int px) {
+        this.getBorderRadiusModel().setData(new AbsoluteSize(px));
     }
 
     /**

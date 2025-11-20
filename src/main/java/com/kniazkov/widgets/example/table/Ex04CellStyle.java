@@ -67,10 +67,10 @@ public class Ex04CellStyle {
                 widget.setStyle(textStyle);
             }
             CellStyle cellStyle = Cell.getDefaultStyle().derive();
-            cellStyle.setWidth("35px");
-            cellStyle.setHeight("25px");
+            cellStyle.setWidth(35);
+            cellStyle.setHeight(25);
             cellStyle.setBgColor(State.HOVERED, Color.YELLOW);
-            cellStyle.setBorderWidth("1px");
+            cellStyle.setBorderWidth(1);
             cellStyle.setBorderStyle(BorderStyle.SOLID);
             cellStyle.setBorderColor(State.NORMAL, Color.WHITE);
             cellStyle.setBorderColor(State.HOVERED, Color.GRAY);
