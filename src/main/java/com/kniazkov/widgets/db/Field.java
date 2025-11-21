@@ -10,6 +10,6 @@ public interface Field<T> {
     String getName();
     Class<T> getValueClass();
     Model<T> createModel();
+    Model<T> createModel(JsonElement element);
     JsonElement toJson(T data);
-    T fromJson(JsonElement element);
 }

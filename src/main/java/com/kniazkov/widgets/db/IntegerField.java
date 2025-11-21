@@ -33,12 +33,12 @@ public class IntegerField implements Field<Integer> {
     }
 
     @Override
-    public JsonElement toJson(final Integer data) {
-        return new JsonNumber(data);
+    public Model<Integer> createModel(final JsonElement element) {
+        return new IntegerModel(element.getIntValue());
     }
 
     @Override
-    public Integer fromJson(JsonElement element) {
-        return element.getIntValue();
+    public JsonElement toJson(final Integer data) {
+        return new JsonNumber(data);
     }
 }

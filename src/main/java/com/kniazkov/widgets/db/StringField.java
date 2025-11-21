@@ -31,12 +31,12 @@ public class StringField implements Field<String> {
     }
 
     @Override
-    public JsonElement toJson(final String data) {
-        return new JsonString(data);
+    public Model<String> createModel(final JsonElement element) {
+        return new StringModel(element.getStringValue());
     }
 
     @Override
-    public String fromJson(JsonElement element) {
-        return element.getStringValue();
+    public JsonElement toJson(final String data) {
+        return new JsonString(data);
     }
 }

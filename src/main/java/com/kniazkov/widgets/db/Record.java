@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.db;
 
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.widgets.model.Model;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,6 +20,11 @@ public class Record {
 
     public UUID getId() {
         return this.id;
+    }
+
+    void createModel(final Field<?> field, JsonElement element) {
+        final Model<?> model = field.createModel(element);
+        this.data.put(field.getName(), model.asSynchronized());
     }
 
     public <T> Model<T> getModel(final Field<T> field) {
