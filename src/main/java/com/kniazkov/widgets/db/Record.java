@@ -4,8 +4,6 @@
 package com.kniazkov.widgets.db;
 
 import com.kniazkov.json.JsonElement;
-import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.Model;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,7 +25,7 @@ public class Record {
     }
 
     void createModel(final Field<?> field, JsonElement element) {
-        final Model<?> model = field.createModel(element);
+        final Model<?> model = field.createModel(element, this);
         this.data.put(field.getName(), model.asSynchronized());
     }
 
@@ -52,7 +50,7 @@ public class Record {
             final Model<T> typed = (Model<T>) existing;
             return typed;
         } else {
-            final Model<T> created = field.createModel().asSynchronized();
+            final Model<T> created = field.createModel(null, this).asSynchronized();
             this.data.put(key, created);
             return created;
         }
