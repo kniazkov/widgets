@@ -4,6 +4,8 @@
 package com.kniazkov.widgets.db;
 
 import com.kniazkov.json.JsonElement;
+import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.Model;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,10 +13,12 @@ import java.util.UUID;
 
 public class Record {
     private final UUID id;
+    private final Store store;
     private final Map<String, Model<?>> data;
 
-    public Record(final UUID id) {
+    public Record(final UUID id, final Store store) {
         this.id = id;
+        this.store = store;
         this.data = new TreeMap<>();
     }
 
@@ -25,6 +29,10 @@ public class Record {
     void createModel(final Field<?> field, JsonElement element) {
         final Model<?> model = field.createModel(element);
         this.data.put(field.getName(), model.asSynchronized());
+    }
+
+    public boolean hasModel(final Field<?> field) {
+        return this.data.containsKey(field.getName());
     }
 
     public <T> Model<T> getModel(final Field<T> field) {
@@ -48,5 +56,9 @@ public class Record {
             this.data.put(key, created);
             return created;
         }
+    }
+
+    public void save() {
+        this.store.save();
     }
 }
