@@ -78,10 +78,6 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      *   <li>{@link Integer} → {@link IntegerModel}</li>
      *   <li>{@link Boolean} → {@link BooleanModel}</li>
      *   <li>{@link Color} → {@link ColorModel}</li>
-     *   <li>{@link FontFace} → {@link FontFaceModel}</li>
-     *   <li>{@link FontSize} → {@link FontSizeModel}</li>
-     *   <li>{@link FontWeight} → {@link FontWeightModel}</li>
-     *   <li>{@link AbsoluteSize} → {@link AbsoluteSizeModel}</li>
      * </ul>
      *
      * @param data the initial data value for the model (must not be {@code null})
@@ -101,100 +97,8 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
         if (data instanceof Color) {
             return new ColorModel((Color) data);
         }
-        if (data instanceof FontFace) {
-            return new FontFaceModel((FontFace) data);
-        }
-        if (data instanceof FontSize) {
-            return new FontSizeModel((FontSize) data);
-        }
-        if (data instanceof FontWeight) {
-            return new FontWeightModel((FontWeight) data);
-        }
-        if (data instanceof AbsoluteSize) {
-            return new AbsoluteSizeModel((AbsoluteSize) data);
-        }
         throw new IllegalArgumentException(
             "Unsupported data type for DefaultModel: " + data.getClass().getName()
         );
-    }
-
-    /**
-     * Creates a {@link StringModel} for the given string data.
-     *
-     * @param data the initial string value
-     * @return a new {@link StringModel} initialized with the given value
-     */
-    public static Model<String> create(final String data) {
-        return new StringModel(data);
-    }
-
-    /**
-     * Creates an {@link IntegerModel} for the given integer data.
-     *
-     * @param data the initial integer value
-     * @return a new {@link IntegerModel} initialized with the given value
-     */
-    public static Model<Integer> create(final Integer data) {
-        return new IntegerModel(data);
-    }
-
-    /**
-     * Creates a {@link BooleanModel} for the given boolean data.
-     *
-     * @param data the initial boolean value
-     * @return a new {@link BooleanModel} initialized with the given value
-     */
-    public static Model<Boolean> create(final Boolean data) {
-        return new BooleanModel(data);
-    }
-
-    /**
-     * Creates a {@link ColorModel} for the given {@link Color}.
-     *
-     * @param data the initial color value
-     * @return a new {@link ColorModel} initialized with the given value
-     */
-    public static Model<Color> create(final Color data) {
-        return new ColorModel(data);
-    }
-
-    /**
-     * Creates a {@link FontFaceModel} for the given {@link FontFace}.
-     *
-     * @param data the initial font face value
-     * @return a new {@link FontFaceModel} initialized with the given value
-     */
-    public static Model<FontFace> create(final FontFace data) {
-        return new FontFaceModel(data);
-    }
-
-    /**
-     * Creates a {@link FontSizeModel} for the given {@link FontSize}.
-     *
-     * @param data the initial font size value
-     * @return a new {@link FontSizeModel} initialized with the given value
-     */
-    public static Model<FontSize> create(final FontSize data) {
-        return new FontSizeModel(data);
-    }
-
-    /**
-     * Creates a {@link FontWeightModel} for the given {@link FontWeight}.
-     *
-     * @param data the initial font weight value
-     * @return a new {@link FontWeightModel} initialized with the given value
-     */
-    public static Model<FontWeight> create(final FontWeight data) {
-        return new FontWeightModel(data);
-    }
-
-    /**
-     * Creates an {@link AbsoluteSizeModel} for the given {@link AbsoluteSize}.
-     *
-     * @param data the initial inline widget size value
-     * @return a new {@link AbsoluteSizeModel} initialized with the given value
-     */
-    public static Model<AbsoluteSize> create(final AbsoluteSize data) {
-        return new AbsoluteSizeModel(data);
     }
 }
