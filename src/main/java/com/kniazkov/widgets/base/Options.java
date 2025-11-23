@@ -26,11 +26,17 @@ public class Options implements Cloneable {
      */
     public String wwwRoot = "www";
 
+    /**
+     * The HTTP port number on which the server will run.
+     */
+    public int port = 80;
+
     @Override
     public Options clone() {
         Options copy = new Options();
         copy.clientLifetime = this.clientLifetime;
         copy.wwwRoot = this.wwwRoot;
+        copy.port = this.port;
         return copy;
     }
 }

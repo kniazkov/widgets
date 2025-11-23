@@ -3,7 +3,7 @@
  */
 
 var clientId = null;
-var period = 250;
+var period = 2500; //250;
 var mainCycleTask = null;
 var events = [];
 var lastEventId = 0;

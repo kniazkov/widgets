@@ -35,7 +35,7 @@ public final class Server {
         application.setOptions(cloned);
 
         // Start the underlying HTTP server
-        com.kniazkov.webserver.Server.start(getWebServerOptions(), handler);
+        com.kniazkov.webserver.Server.start(getWebServerOptions(cloned), handler);
 
         // Log startup
         LOGGER.info("Server started.");
@@ -45,9 +45,13 @@ public final class Server {
      * Returns configuration options for the underlying web server.
      * This method may be extended in the future.
      *
-     * @return default web server options
+     * @param o1 configuration options for widget application
+     * @return web server options
      */
-    private static com.kniazkov.webserver.Options getWebServerOptions() {
-        return new com.kniazkov.webserver.Options();
+    private static com.kniazkov.webserver.Options getWebServerOptions(Options o1) {
+        final com.kniazkov.webserver.Options o2 = new com.kniazkov.webserver.Options();
+        o2.port = o1.port;
+        o2.timeout = 5000;
+        return o2;
     }
 }
