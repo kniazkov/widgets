@@ -3,31 +3,20 @@
  */
 package com.kniazkov.widgets.db;
 
-import com.kniazkov.json.JsonElement;
-import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.model.Model;
+public class Field<T> {
+    private final Type<T> type;
+    private final String name;
 
-public interface Field<T> {
-    String getName();
-    Class<T> getValueClass();
-    Model<T> createModel();
-    Model<T> createModel(JsonElement element);
-    JsonElement toJson(T data);
-
-    default JsonElement toJson(final Record record) {
-        final Model<T> model = record.getModel(this);
-        return this.toJson(model.getData());
+    public Field(final Type<T> type, final String name) {
+        this.type = type;
+        this.name = name;
     }
 
-    default Model<T> createModel(final JsonElement element, final Record record) {
-        final Model<T> model;
-        if (element != null) {
-            model = this.createModel(element);
-        } else {
-            model = this.createModel();
-        }
-        model.addListener(data -> record.save());
-        return model;
+    public Type<T> getType() {
+        return this.type;
+    }
+
+    public String getName() {
+        return this.name;
     }
 }

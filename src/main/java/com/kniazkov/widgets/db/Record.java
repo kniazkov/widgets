@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets.db;
 
-import com.kniazkov.json.JsonElement;
 import com.kniazkov.widgets.model.Model;
 import java.util.Map;
 import java.util.TreeMap;
@@ -14,7 +13,7 @@ public class Record {
     private final Store store;
     private final Map<String, Model<?>> data;
 
-    public Record(final UUID id, final Store store) {
+    Record(final UUID id, final Store store) {
         this.id = id;
         this.store = store;
         this.data = new TreeMap<>();
@@ -22,11 +21,6 @@ public class Record {
 
     public UUID getId() {
         return this.id;
-    }
-
-    void createModel(final Field<?> field, JsonElement element) {
-        final Model<?> model = field.createModel(element, this);
-        this.data.put(field.getName(), model.asSynchronized());
     }
 
     public boolean hasModel(final Field<?> field) {
@@ -38,19 +32,19 @@ public class Record {
         final Model<?> existing = this.data.get(key);
         if (existing != null) {
             final Object value = existing.getData();
-            final Class<T> expected = field.getValueClass();
+            final Class<T> expected = field.getType().getValueClass();
             if (!expected.isInstance(value)) {
                 throw new IllegalStateException(
-                        "Field '" + key + "' has model with incompatible data type: "
-                        + value.getClass().getName()
-                        + " expected: " + expected.getName()
+                    "Field '" + key + "' has model with incompatible data type: "
+                    + value.getClass().getName()
+                    + " expected: " + expected.getName()
                 );
             }
             @SuppressWarnings("unchecked")
             final Model<T> typed = (Model<T>) existing;
             return typed;
         } else {
-            final Model<T> created = field.createModel(null, this).asSynchronized();
+            final Model<T> created = field.getType().createModel().asSynchronized();
             this.data.put(key, created);
             return created;
         }

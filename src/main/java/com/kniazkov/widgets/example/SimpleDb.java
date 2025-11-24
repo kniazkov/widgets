@@ -9,10 +9,11 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
-import com.kniazkov.widgets.db.IntegerField;
+import com.kniazkov.widgets.db.Field;
+import com.kniazkov.widgets.db.JsonStore;
 import com.kniazkov.widgets.db.Record;
 import com.kniazkov.widgets.db.Store;
-import com.kniazkov.widgets.db.StringField;
+import com.kniazkov.widgets.db.Type;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Cell;
@@ -37,12 +38,13 @@ import java.util.Arrays;
  * </ol>
  */
 public class SimpleDb {
-    static final StringField NAME = new StringField("name");
-    static final IntegerField AGE = new IntegerField("age");
-    static final Store STORE = Store.load(new File("database.json"), Arrays.asList(
-        NAME,
-        AGE
+    static final Field<String> name = new Field<>(Type.STRING, "name");
+    static final Field<Integer> age = new Field<>(Type.INTEGER, "age");
+    static final Store store = JsonStore.load(new File("database.json"), Arrays.asList(
+        name,
+        age
     ));
+
     /**
      * Entry point.
      *
@@ -64,21 +66,8 @@ public class SimpleDb {
                 text.setFontWeight(FontWeight.BOLD);
             }
 
-            for(final Record record : STORE.getAllRecords()) {
-                final Row row = new Row();
-                table.add(row);
-                Cell cell = row.getCell(0);
-                Section section = new Section();
-                cell.add(section);
-                InputField field = new InputField();
-                section.add(field);
-                field.setTextModel(record.getModel(NAME));
-                cell = row.getCell(1);
-                section = new Section();
-                cell.add(section);
-                field = new InputField();
-                section.add(field);
-                field.setTextModel(new IntegerToStringModel(record.getModel(AGE)));
+            for(final Record record : store.getAllRecords()) {
+                createRowFromRecord(table, record);
             }
 
             final Section buttonSection = new Section();
@@ -86,32 +75,36 @@ public class SimpleDb {
             final Button createRecord = new Button("Create record");
             buttonSection.add(createRecord);
             createRecord.onClick(evt -> {
-                final Record record = STORE.createRecord();
-                final Row row = new Row();
-                table.add(row);
-                Cell cell = row.getCell(0);
-                Section section = new Section();
-                cell.add(section);
-                InputField field = new InputField();
-                section.add(field);
-                field.setTextModel(record.getModel(NAME));
-                cell = row.getCell(1);
-                section = new Section();
-                cell.add(section);
-                field = new InputField();
-                section.add(field);
-                field.setTextModel(new IntegerToStringModel(record.getModel(AGE)));
+                final Record record = store.createRecord();
+                createRowFromRecord(table, record);
             });
 
             final Button save = new Button("Save");
             buttonSection.add(save);
             save.onClick(evt -> {
-                STORE.save();
+                store.save();
             });
         };
 
         final Application application = new Application(page);
         final Options options = new Options();
         Server.start(application, options);
+    }
+
+    public static void createRowFromRecord(final Table table, final Record record) {
+        final Row row = new Row();
+        table.add(row);
+        Cell cell = row.getCell(0);
+        Section section = new Section();
+        cell.add(section);
+        InputField field = new InputField();
+        section.add(field);
+        field.setTextModel(record.getModel(name));
+        cell = row.getCell(1);
+        section = new Section();
+        cell.add(section);
+        field = new InputField();
+        section.add(field);
+        field.setTextModel(new IntegerToStringModel(record.getModel(age)));
     }
 }
