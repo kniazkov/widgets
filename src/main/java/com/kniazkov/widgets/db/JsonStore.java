@@ -14,34 +14,89 @@ import com.kniazkov.widgets.model.Model;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * A {@link Store} implementation that persists records in a JSON file.
+ * <p>
+ * Each record is stored as a JSON object with:
+ * <ul>
+ *     <li>{@code id} – the UUID of the record;</li>
+ *     <li>one entry per field that has an associated model.</li>
+ * </ul>
+ *
+ * <p>
+ * The JSON file contains a single root {@link JsonArray} where each element represents
+ * one {@link Record}.
+ * <br>
+ * Saving always rewrites the entire file.
+ */
 public class JsonStore extends Store {
+    /**
+     * A type-specific serializer/deserializer for converting values between JSON representation
+     * and model data. Each handler corresponds to exactly one {@link Type}, and is responsible for
+     * both parsing JSON and serializing values back into JSON.
+     *
+     * @param <T> the Java type handled by this serializer
+     */
     private static abstract class Handler<T> {
+        /**
+         * Parses a JSON element into a Java value of type {@code T}.
+         *
+         * @param element the JSON element to parse
+         * @return the parsed value
+         */
         protected abstract T parse(JsonElement element);
 
+        /**
+         * Converts a Java value into its JSON representation.
+         *
+         * @param data the value to serialize
+         * @return a JSON element representing the value
+         */
         protected abstract JsonElement serialize(T data);
 
+        /**
+         * Reads the value for the given field from JSON and writes it into the appropriate
+         * {@link Model} of the target record.
+         */
         @SuppressWarnings("unchecked")
-        private void createFieldFromJsonElement(final Record record, final Field<?> field,
-                final JsonElement element) {
-            Model<T> model = record.getModel((Field<T>)field);
+        private void createFieldFromJsonElement(
+            final Record record,
+            final Field<?> field,
+            final JsonElement element) {
+
+            Model<T> model = record.getModel((Field<T>) field);
             model.setData(this.parse(element));
         }
 
+        /**
+         * Reads the value of a field from the record's model and returns its JSON representation.
+         */
         @SuppressWarnings("unchecked")
-        private JsonElement createJsonElementFromField(final Record record, final Field<?> field) {
-            Model<T> model = record.getModel((Field<T>)field);
+        private JsonElement createJsonElementFromField(
+            final Record record,
+            final Field<?> field) {
+
+            Model<T> model = record.getModel((Field<T>) field);
             return this.serialize(model.getData());
         }
     }
 
-    private static Map<Type<?>, Handler<?>> initHandlers() {
-        Map<Type<?>, Handler<?>> map = new HashMap<>();
-        map.put(Type.STRING, new Handler<String>(){
+    /**
+     * The global mapping of {@link Type} to {@link Handler} instances.
+     */
+    private static final Map<Type<?>, Handler<?>> HANDLERS;
+
+    static {
+        Map<Type<?>, Handler<?>> m = new HashMap<>();
+
+        // String handler
+        m.put(Type.STRING, new Handler<String>() {
             @Override
             protected String parse(final JsonElement element) {
                 return element.getStringValue();
@@ -52,7 +107,9 @@ public class JsonStore extends Store {
                 return new JsonString(data);
             }
         });
-        map.put(Type.INTEGER, new Handler<Integer>(){
+
+        // Integer handler
+        m.put(Type.INTEGER, new Handler<Integer>() {
             @Override
             protected Integer parse(final JsonElement element) {
                 return element.getIntValue();
@@ -63,32 +120,58 @@ public class JsonStore extends Store {
                 return new JsonNumber(data);
             }
         });
-        return map;
+
+        HANDLERS = Collections.unmodifiableMap(m);
     }
 
-    private static final Map<Type<?>, Handler<?>> HANDLERS = initHandlers();
-
+    /**
+     * Returns the handler associated with the given {@link Type}.
+     *
+     * @param type the value type
+     * @return the corresponding handler
+     * @throws IllegalStateException if the type is not supported
+     */
     private static Handler<?> getHandler(final Type<?> type) {
         Handler<?> handler = HANDLERS.get(type);
         if (handler == null) {
-            throw new IllegalStateException("Unsupported type: " + type.getValueClass().getName());
+            throw new IllegalStateException(
+                "Unsupported type: " + type.getValueClass().getName()
+            );
         }
         return handler;
     }
 
+    /**
+     * The file where all records are serialized.
+     */
     private final File file;
 
+    /**
+     * Creates a JSON-backed store with the specified output file and schema.
+     *
+     * @param file   the JSON file used for persistence
+     * @param fields the list of fields describing the schema
+     */
     public JsonStore(final File file, final List<Field<?>> fields) {
         super(fields);
         this.file = file;
     }
 
+    /**
+     * Saves all records to the backing JSON file.
+     * <p>
+     * The entire file is rewritten. Each record becomes one object in the resulting JSON array.
+     *
+     * @throws IllegalStateException if writing fails
+     */
     @Override
     public void save() {
         final JsonArray array = new JsonArray();
+
         for (final Record record : this.getAllRecords()) {
             final JsonObject object = array.createObject();
             object.addString("id", record.getId().toString());
+
             for (final Field<?> field : this.getFields()) {
                 if (record.hasModel(field)) {
                     final Handler<?> handler = getHandler(field.getType());
@@ -99,53 +182,67 @@ public class JsonStore extends Store {
                 }
             }
         }
+
         final String json = array.toText("  ");
-        try {
-            final FileWriter writer = new FileWriter(this.file);
+
+        try (FileWriter writer = new FileWriter(this.file)) {
             writer.write(json);
-            writer.close();
-        } catch (final IOException ignored) {
-            throw new IllegalStateException("Can't write '" + this.file.getAbsolutePath() + '\'');
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                "Can't write '" + this.file.getAbsolutePath() + '\''
+            );
         }
     }
 
+    /**
+     * Loads a JSON file and constructs a {@link JsonStore} instance populated
+     * with the stored records.
+     * <p>
+     * Unsupported fields or malformed entries are silently skipped.
+     *
+     * @param file   the JSON file to read
+     * @param fields the schema to use when interpreting records
+     * @return a fully populated store instance
+     */
     public static Store load(final File file, final List<Field<?>> fields) {
         final Store store = new JsonStore(file, fields);
 
         try {
-            do {
-                final JsonElement root = Json.parse(file);
-                if (root == null) {
-                    break;
+            final JsonElement root = Json.parse(file);
+            if (root == null) {
+                return store;
+            }
+
+            final JsonArray array = root.toJsonArray();
+            if (array == null) {
+                return store;
+            }
+
+            for (final JsonElement entry : array) {
+                final JsonObject object = entry.toJsonObject();
+                if (object == null) {
+                    continue;
                 }
 
-                final JsonArray array = root.toJsonArray();
-                if (array == null) {
-                    break;
+                final JsonElement idStr = object.get("id");
+                if (idStr == null || !idStr.isString()) {
+                    continue;
                 }
 
-                for (final JsonElement entry : array) {
-                    final JsonObject object = entry.toJsonObject();
-                    if (object == null) {
+                final UUID id = UUID.fromString(idStr.getStringValue());
+                final Record record = store.createRecord(id);
+
+                for (final Field<?> field : fields) {
+                    final JsonElement element = object.getElement(field.getName());
+                    if (element == null) {
                         continue;
                     }
-                    final JsonElement idStr = object.get("id");
-                    if (idStr == null || !idStr.isString()) {
-                        continue;
-                    }
-                    final UUID id = UUID.fromString(idStr.getStringValue());
-                    final Record record = store.createRecord(id);
-                    for (final Field<?> field : fields) {
-                        final JsonElement element = object.getElement(field.getName());
-                        if (element == null) {
-                            continue;
-                        }
-                        Handler<?> handler = getHandler(field.getType());
-                        handler.createFieldFromJsonElement(record, field, element);
-                    }
+
+                    Handler<?> handler = getHandler(field.getType());
+                    handler.createFieldFromJsonElement(record, field, element);
                 }
-            } while (false);
-        } catch (final JsonException ignored) {
+            }
+        } catch (JsonException ignored) {
         }
 
         return store;

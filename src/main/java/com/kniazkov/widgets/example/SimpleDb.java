@@ -26,7 +26,23 @@ import java.io.File;
 import java.util.Arrays;
 
 /**
- * .....
+ * A minimal demonstration program showcasing the usage of the primitive database,
+ * JSON persistence, and UI components working together in a simple editable table.
+ *
+ * <p>
+ * The application:
+ * <ul>
+ *     <li>loads a small database from a JSON file,</li>
+ *     <li>displays all records as editable rows in a table,</li>
+ *     <li>allows creating new records dynamically,</li>
+ *     <li>allows editing all fields directly in the browser,</li>
+ *     <li>saves all changes back to the JSON file on demand.</li>
+ * </ul>
+ *
+ * <p>
+ * Each row in the UI corresponds to one {@link Record}. The models stored
+ * inside the record are directly bound to input widgets, so any modifications in the browser
+ * update the underlying database models immediately.
  *
  * <b>How to use</b>
  * <ol>
@@ -35,7 +51,14 @@ import java.util.Arrays;
  *     Open your browser and go to
  *     <a href="http://localhost:8000">http://localhost:8000</a>.
  *   </li>
+ *   <li>Edit the cells or click “Create record” to add new rows;</li>
+ *   <li>Press “Save” to write all records to {@code database.json}.</li>
  * </ol>
+ *
+ * <p>
+ * This example is intentionally minimal:
+ * it demonstrates the interaction between records, models, stores, and widgets
+ * without additional abstractions, validation logic, or styling.
  */
 public class SimpleDb {
     static final Field<String> name = new Field<>(Type.STRING, "name");
@@ -91,7 +114,7 @@ public class SimpleDb {
         Server.start(application, options);
     }
 
-    public static void createRowFromRecord(final Table table, final Record record) {
+    private static void createRowFromRecord(final Table table, final Record record) {
         final Row row = new Row();
         table.add(row);
         Cell cell = row.getCell(0);

@@ -128,6 +128,17 @@ public interface Model<T> {
         return new SynchronizedModel<>(this);
     }
 
+    /**
+     * Attempts to update this model’s data using an untyped {@code Object}.
+     * <p>
+     * If the provided object is an instance of the model’s data type {@code T},it is cast safely
+     * and passed to {@link #setData(Object)}. If the object is not compatible with {@code T},
+     * the method does nothing and returns {@code false}.
+     *
+     * @param object the new value to apply to this model
+     * @return {@code true} if the object was type-compatible, cast successfully,
+     *  and written to the model; {@code false} otherwise
+     */
     default boolean setObject(final Object object) {
         if (!this.getData().getClass().isInstance(object)) {
             return false;

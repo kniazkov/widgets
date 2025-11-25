@@ -142,6 +142,8 @@ public class AbsoluteSize implements WidgetSize {
 
     /**
      * Returns the original numeric value.
+     *
+     * @return the original numeric value
      */
     public float getValue() {
         return this.value;
@@ -149,6 +151,8 @@ public class AbsoluteSize implements WidgetSize {
 
     /**
      * Returns the original unit.
+     *
+     * @return the original unit
      */
     public Unit getUnit() {
         return this.unit;
@@ -156,6 +160,8 @@ public class AbsoluteSize implements WidgetSize {
 
     /**
      * Returns the computed pixel value.
+     *
+     * @return the computed pixel value
      */
     public int getPixels() {
         return this.pixels;
