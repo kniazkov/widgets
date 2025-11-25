@@ -32,7 +32,7 @@ final class CreateClient extends ActionHandler {
     @Override
     JsonElement process(final Map<String, String> data) {
         // Create a new client and obtain its ID
-        String id = this.application.createClient().toString();
+        String id = this.application.createClient(data.get("address")).toString();
 
         // Build a response JSON object with the new client ID
         JsonObject obj = new JsonObject();

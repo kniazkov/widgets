@@ -29,6 +29,11 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
     /**
+     * Application.
+     */
+    private final Application application;
+
+    /**
      * Registered action handlers (e.g. "new instance", "synchronize", etc.).
      */
     private final Map<String, ActionHandler> actionHandlers;
@@ -45,6 +50,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      * @param options configuration options
      */
     HttpHandler(final Application application, final Options options) {
+        this.application = application;
         this.actionHandlers = new TreeMap<>();
         this.actionHandlers.put("new instance", new CreateClient(application));
         this.actionHandlers.put("synchronize", new Synchronize(application));
@@ -64,8 +70,21 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             return null;
         }
 
-        // Normalize root path
-        final String address = request.address.equals("/") ? "/index.html" : request.address;
+        final String address;
+        final boolean replaceAddress;
+
+        if (this.application.hasPage(request.address)) {
+            /*
+                For all pages of the project, we actually load the same index.html page, replacing
+                the target page address in it, which is sent to the server when a new client
+                is initialized.
+             */
+            address = "/index.html";
+            replaceAddress = true;
+        } else {
+            address = request.address;
+            replaceAddress = false;
+        }
 
         try {
             final URL url = getClass().getResource(address);
@@ -79,7 +98,13 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     while ((count = in.read(tmp)) >= 0) {
                         buffer.write(tmp, 0, count);
                     }
-                    data = buffer.toByteArray();
+                    if (replaceAddress) {
+                        data = new String(buffer.toByteArray())
+                            .replace("{address}", request.address)
+                            .getBytes();
+                    } else {
+                        data = buffer.toByteArray();
+                    }
                 }
             } else {
                 Path path = Paths.get(this.options.wwwRoot, request.address);

@@ -67,6 +67,33 @@ public final class Application {
     }
 
     /**
+     * Registers an additional page in the application under the given address.
+     * <p>
+     * The resulting page becomes available at the URL:
+     * <pre>
+     *   http://&lt;host&gt;/address
+     * </pre>
+     * For example, calling {@code addPage("name", page)} makes the page accessible at
+     * <code>http://localhost:8000/name</code>.
+     *
+     * @param address the URL path segment without the leading slash
+     * @param page    the page instance to register
+     */
+    public void addPage(final String address, final Page page) {
+        this.pages.put("/" + address, page);
+    }
+
+    /**
+     * Checks whether a page is registered under the specified address.
+     *
+     * @param address the full URL path (including the leading slash)
+     * @return {@code true} if a page exists for that address, otherwise {@code false}
+     */
+    boolean hasPage(final String address) {
+        return this.pages.containsKey(address);
+    }
+
+    /**
      * Sets configuration options for this application.
      *
      * @param options application options
@@ -78,9 +105,10 @@ public final class Application {
     /**
      * Creates a new client and initializes its page.
      *
+     * @param address page address
      * @return the unique identifier of the created client
      */
-    UId createClient() {
+    UId createClient(final String address) {
         this.counter++;
         final Client client = new Client();
         client.timer = this.options.clientLifetime;
@@ -89,7 +117,8 @@ public final class Application {
         this.clients.put(id, client);
 
         final RootWidget root = client.getRootWidget();
-        this.pages.get("/").create(root);
+        final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
+        page.create(root);
 
         return id;
     }
