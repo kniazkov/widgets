@@ -34,7 +34,7 @@ public abstract class Store {
     }
 
     public Record createRecord(final UUID id) {
-        final Record record = new Record(id, this);
+        final Record record = new PermanentRecord(id, this);
         this.records.put(id, record);
         return record;
     }

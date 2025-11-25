@@ -8,14 +8,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
-public class Record {
+public abstract class Record {
     private final UUID id;
-    private final Store store;
-    private final Map<String, Model<?>> data;
 
-    Record(final UUID id, final Store store) {
+    protected final Map<String, Model<?>> data;
+
+    Record(final UUID id) {
         this.id = id;
-        this.store = store;
         this.data = new TreeMap<>();
     }
 
@@ -50,7 +49,9 @@ public class Record {
         }
     }
 
-    public void save() {
-        this.store.save();
+    public Record edit() {
+        return new TemporaryRecord(this);
     }
+
+    public abstract void save();
 }

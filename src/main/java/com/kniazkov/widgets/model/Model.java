@@ -127,4 +127,13 @@ public interface Model<T> {
     default SynchronizedModel<T> asSynchronized() {
         return new SynchronizedModel<>(this);
     }
+
+    default boolean setObject(final Object object) {
+        if (!this.getData().getClass().isInstance(object)) {
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        final T data = (T)object;
+        return this.setData(data);
+    }
 }
