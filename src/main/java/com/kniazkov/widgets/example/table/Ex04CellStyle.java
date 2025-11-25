@@ -47,7 +47,7 @@ public class Ex04CellStyle {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Table table = new Table();
             root.add(table);
             table.setCellSpacing(2);

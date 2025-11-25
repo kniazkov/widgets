@@ -42,7 +42,7 @@ public class EmailInput {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             Section section = new Section();
             root.add(section);
             section.add(new TextWidget("Enter email: "));

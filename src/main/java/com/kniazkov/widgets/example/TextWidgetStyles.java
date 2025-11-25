@@ -59,7 +59,7 @@ public class TextWidgetStyles {
      * @param args program arguments (unused)
      */
     public static void main(final String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             // Section 1: text with default style
             Section section = new Section();
             root.add(section);

@@ -10,6 +10,7 @@ import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
+import java.util.Map;
 
 /**
  * Demonstrates how to create a web application with multiple pages.
@@ -59,7 +60,7 @@ public class TwoPages {
 
     private static final class IndexPage implements Page {
         @Override
-        public void create(final RootWidget root) {
+        public void create(final RootWidget root, final Map<String, String> parameters) {
             final Section section = new Section();
             root.add(section);
 
@@ -70,7 +71,7 @@ public class TwoPages {
 
     private static final class AboutPage implements Page {
         @Override
-        public void create(final RootWidget root) {
+        public void create(final RootWidget root, final Map<String, String> parameters) {
             final Section section = new Section();
             root.add(section);
 

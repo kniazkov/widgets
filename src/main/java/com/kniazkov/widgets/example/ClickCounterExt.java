@@ -47,7 +47,7 @@ public class ClickCounterExt {
     public static void main(String[] args) {
         final Model<Integer> globalModel = new IntegerModel().asSynchronized();
 
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             System.gc();
             final Model<Integer> localModel = new IntegerModel();
 

@@ -41,7 +41,7 @@ public class ClickCounter {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Model<Integer> model = new IntegerModel();
             final Section section = new Section();
             root.add(section);

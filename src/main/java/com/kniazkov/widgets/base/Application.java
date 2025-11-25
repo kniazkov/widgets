@@ -106,9 +106,10 @@ public final class Application {
      * Creates a new client and initializes its page.
      *
      * @param address page address
+     * @param parameters parameters that are passed through the address line
      * @return the unique identifier of the created client
      */
-    UId createClient(final String address) {
+    UId createClient(final String address, final Map<String, String> parameters) {
         this.counter++;
         final Client client = new Client();
         client.timer = this.options.clientLifetime;
@@ -118,7 +119,7 @@ public final class Application {
 
         final RootWidget root = client.getRootWidget();
         final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
-        page.create(root);
+        page.create(root, parameters);
 
         return id;
     }

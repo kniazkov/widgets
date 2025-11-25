@@ -38,7 +38,7 @@ public class IntegerInput {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Model<Integer> intModel = new IntegerModel();
             final Model<String> stringModel = new IntegerToStringModel(intModel);
 

@@ -35,7 +35,7 @@ public class TextInput {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Section inputSection = new Section();
             root.add(inputSection);
             inputSection.add(new TextWidget("Enter some text: "));

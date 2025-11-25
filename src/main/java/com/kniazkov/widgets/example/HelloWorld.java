@@ -7,8 +7,10 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
+import java.util.Map;
 
 /**
  * A minimal example of a web application built using the widget-based framework.
@@ -34,7 +36,7 @@ public class HelloWorld {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Section section = new Section();
             root.add(section);
 

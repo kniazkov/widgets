@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.base;
 
+import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonObject;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseJson;
@@ -59,7 +61,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     @Override
-    public Response handle(Request request) {
+    public Response handle(final Request request) {
         // Handle action requests: /?action=...
         if (request.address.startsWith("/?")) {
             final String action = request.formData.get("action");
@@ -73,7 +75,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         final String address;
         final boolean replaceAddress;
 
-        if (this.application.hasPage(request.address)) {
+        if (this.application.hasPage(request.path)) {
             /*
                 For all pages of the project, we actually load the same index.html page, replacing
                 the target page address in it, which is sent to the server when a new client
@@ -82,7 +84,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             address = "/index.html";
             replaceAddress = true;
         } else {
-            address = request.address;
+            address = request.path;
             replaceAddress = false;
         }
 
@@ -99,15 +101,20 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                         buffer.write(tmp, 0, count);
                     }
                     if (replaceAddress) {
+                        final JsonObject obj = new JsonObject();
+                        for (final String key : request.formData.keySet()) {
+                            obj.addString(key, request.formData.get(key));
+                        }
                         data = new String(buffer.toByteArray())
-                            .replace("{address}", request.address)
+                            .replace("{address}", request.path)
+                            .replace("{data}", obj.toString())
                             .getBytes();
                     } else {
                         data = buffer.toByteArray();
                     }
                 }
             } else {
-                Path path = Paths.get(this.options.wwwRoot, request.address);
+                Path path = Paths.get(this.options.wwwRoot, request.path);
                 data = Files.readAllBytes(path);
             }
 

@@ -50,7 +50,7 @@ public class Ex05ClickableCells {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Table table = new Table();
             root.add(table);
             for (int j = 1; j <= 10; j++ ) {

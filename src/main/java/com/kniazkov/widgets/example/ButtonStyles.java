@@ -34,7 +34,7 @@ public class ButtonStyles {
      * @param args program arguments (unused)
      */
     public static void main(final String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             Section section = new Section();
             root.add(section);
             final Button button = new Button();

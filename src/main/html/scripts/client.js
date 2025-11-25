@@ -20,7 +20,7 @@ var parseId = function(str) {
     return num;
 }
 
-var initClient = function(address) {
+var initClient = function(address, data) {
     window.addEventListener("beforeunload", function() {
         if (clientId != null) {
             sendRequest(
@@ -31,15 +31,15 @@ var initClient = function(address) {
             );
         }
     });
-    startClient(address);
+    startClient(address, data);
 };
 
-var startClient = function(address) {
+var startClient = function(address, data) {
+    var request = { ...data };
+    request.action = "new instance";
+    request.address = address;
     sendRequest(
-        {
-            action : "new instance",
-            address : address
-        },
+        request,
         function(data) {
             var json = JSON.parse(data);
             clientId = json.id;

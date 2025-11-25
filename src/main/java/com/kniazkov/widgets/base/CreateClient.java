@@ -6,7 +6,9 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 /**
@@ -31,8 +33,16 @@ final class CreateClient extends ActionHandler {
 
     @Override
     JsonElement process(final Map<String, String> data) {
+        // Prepare a collection of parameters that are passed through the address line
+        final Map<String, String> parameters = new TreeMap<>(data);
+        parameters.remove("action");
+        parameters.remove("address");
+
         // Create a new client and obtain its ID
-        String id = this.application.createClient(data.get("address")).toString();
+        String id = this.application.createClient(
+            data.get("address"),
+            Collections.unmodifiableMap(parameters)
+        ).toString();
 
         // Build a response JSON object with the new client ID
         JsonObject obj = new JsonObject();

@@ -34,7 +34,7 @@ public class Ex01Table {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             final Table table = new Table();
             root.add(table);
             for (int i = 1; i <= 10; i++) {

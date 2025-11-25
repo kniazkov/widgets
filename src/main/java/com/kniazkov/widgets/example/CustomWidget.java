@@ -49,7 +49,7 @@ public class CustomWidget {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             root.setBgColor(Color.GOLD);
             final MyWidget customWidget = new MyWidget("Enter text", "Ok");
             root.add(customWidget);

@@ -35,7 +35,7 @@ public class StaticImage {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Page page = root -> {
+        final Page page = (root, parameters) -> {
             root.setBgColor(Color.DARK_SLATE_GRAY);
 
             final Section section = new Section();
