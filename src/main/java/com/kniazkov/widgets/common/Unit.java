@@ -27,4 +27,23 @@ public enum Unit {
 
     /** Millimeters. */
     MM;
+
+    /**
+     * Parses unit from string
+     * @param s unit as a string
+     * @return Unit
+     */
+    static Unit fromString(final String s) {
+        switch (s.toLowerCase()) {
+            case "pt": return PT;
+            case "pc": return PC;
+            case "in": return IN;
+            case "cm": return CM;
+            case "mm": return MM;
+            case "px":
+            case "":   return PX;
+            default:
+                throw new IllegalArgumentException("Unsupported font unit: " + s);
+        }
+    }
 }

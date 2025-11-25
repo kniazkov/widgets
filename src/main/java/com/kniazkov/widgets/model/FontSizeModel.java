@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.FontSize;
+import com.kniazkov.widgets.common.Unit;
 
 /**
  * A default font size model implementation.
@@ -26,14 +27,13 @@ public final class FontSizeModel extends DefaultModel<FontSize> {
 
     /**
      * Creates a new font size model initialized from a CSS-style string.
-     * The string is parsed according to {@link FontSize#FontSize(String)},
      * supporting units like {@code px}, {@code pt}, {@code in}, etc.
      *
      * @param data the font size string (e.g., "12pt", "14px", "1in")
      * @throws IllegalArgumentException if the string is invalid
      */
     public FontSizeModel(String data) {
-        this(new FontSize(data));
+        this(FontSize.parse(data));
     }
 
     @Override

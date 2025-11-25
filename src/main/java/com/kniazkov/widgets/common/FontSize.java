@@ -7,177 +7,152 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Represents a CSS-compatible font size using absolute units.
+ * Represents an absolute, CSS-compatible font size.
  * <p>
- * Internally stores both the original numeric value and unit (as specified or parsed),
- * along with a precomputed pixel equivalent. This allows operations such as creating
- * relative sizes (e.g., "one unit larger") while still providing pixel precision for the client.
+ * Stores both the original numeric value and unit (e.g., {@code "12pt"}) along
+ * with a precomputed pixel equivalent. A minimum pixel size of 3px is enforced.
  * <p>
  * Supported units:
  * <ul>
  *     <li>{@code px} — pixels</li>
  *     <li>{@code pt} — points (1pt = 1/72 inch)</li>
- *     <li>{@code pc} — picas (1pc = 12pt)</li>
+ *     <li>{@code pc} — picas (1pc = 12pt = 16px)</li>
  *     <li>{@code in} — inches</li>
  *     <li>{@code cm} — centimeters</li>
  *     <li>{@code mm} — millimeters</li>
  * </ul>
- * If no unit is provided when parsing a string, {@code px} is assumed.
- * The resolved pixel value is always clamped to a minimum of 3.
  */
 public final class FontSize implements Comparable<FontSize> {
     /**
-     * Default font size used when none is explicitly specified.
-     * Equivalent to {@code 12pt} or {@code 16px}.
+     * Default font size = 12pt (≈ 16px).
      */
-    public static final FontSize DEFAULT = new FontSize("12pt");
+    public static final FontSize DEFAULT = new FontSize(12f, Unit.PT);
 
     /**
-     * Original numeric value provided or parsed (e.g. 12 from "12pt").
+     * Original numeric value.
      */
     private final float value;
 
     /**
-     * Original unit string (e.g. "pt", "px", etc.).
+     * Original unit.
      */
-    private final String unit;
+    private final Unit unit;
 
     /**
-     * Cached pixel equivalent.
+     * Precomputed pixel value (minimum 3).
      */
     private final int pixels;
 
     /**
-     * Constructs a font size from a CSS-style string such as "12pt", "1in", or "16px".
-     * If no unit is specified, pixels are assumed.
+     * Parses a CSS-style font size: "12px", "1.2in", "15pt".
+     * If unit is omitted, "px" is assumed.
      *
-     * @param str font size string to parse
-     * @throws IllegalArgumentException if the input is invalid or contains unsupported units
+     * @param str input string
+     * @throws IllegalArgumentException if invalid format
      */
-    public FontSize(final String str) {
-        String s = str.trim().toLowerCase();
+    public static FontSize parse(final String str) {
+        if (str == null) {
+            throw new IllegalArgumentException("Font size string is null");
+        }
+        final String s = str.trim().toLowerCase();
         if (s.isEmpty()) {
             throw new IllegalArgumentException("Empty font size");
         }
 
-        int unitStart = 0;
-        while (unitStart < s.length() &&
-                (Character.isDigit(s.charAt(unitStart)) || s.charAt(unitStart) == '.')) {
-            unitStart++;
+        int i = 0;
+        while (i < s.length() &&
+            (Character.isDigit(s.charAt(i)) || s.charAt(i) == '.')) {
+            i++;
         }
 
-        if (unitStart == 0) {
-            throw new IllegalArgumentException("No numeric part in font size: " + s);
+        if (i == 0) {
+            throw new IllegalArgumentException("Invalid font size format: " + str);
         }
 
-        this.value = Float.parseFloat(s.substring(0, unitStart));
-        String parsedUnit = s.substring(unitStart).trim();
-        if (parsedUnit.isEmpty()) {
-            parsedUnit = "px";
-        }
+        final float value = Float.parseFloat(s.substring(0, i));
+        final Unit unit = Unit.fromString(s.substring(i).trim());
 
-        this.unit = parsedUnit;
-        this.pixels = clamp(toPixels(this.value, this.unit));
+        return new FontSize(value, unit);
     }
 
     /**
-     * Constructs a font size directly from a numeric value and unit string.
+     * Creates a font size.
      *
-     * @param value numeric font size (e.g. 12)
-     * @param unit  unit string (e.g. "pt", "px", "cm", etc.)
-     * @throws IllegalArgumentException if the unit is unsupported
+     * @param value value ≥ 0
+     * @param unit  absolute unit
      */
-    public FontSize(final float value, final String unit) {
-        if (unit == null || unit.isEmpty()) {
-            throw new IllegalArgumentException("Unit must not be null or empty");
+    public FontSize(final float value, final Unit unit) {
+        if (value < 0f) {
+            throw new IllegalArgumentException("Font size value must be >= 0");
         }
         this.value = value;
-        this.unit = unit.toLowerCase();
-        this.pixels = clamp(toPixels(this.value, this.unit));
+        this.unit = Objects.requireNonNull(unit, "Unit must not be null");
+        this.pixels = clamp(toPixels(value, unit));
     }
 
     /**
-     * Converts a given numeric value with unit to pixels.
-     *
-     * @param value numeric portion of the input
-     * @param unit  unit suffix (e.g., "pt", "px", etc.)
-     * @return converted pixel value
-     * @throws IllegalArgumentException If the unit is unsupported
+     * Converts an absolute unit value to pixels.
      */
-    private static int toPixels(final float value, final String unit) {
+    private static int toPixels(final float value, final Unit unit) {
         switch (unit) {
-            case "px": return Math.round(value);
-            case "pt": return Math.round(value * 96f / 72f);
-            case "pc": return Math.round(value * 16f); // 1pc = 12pt = 16px
-            case "in": return Math.round(value * 96f);
-            case "cm": return Math.round(value * 96f / 2.54f);
-            case "mm": return Math.round(value * 96f / 25.4f);
-            default: throw new IllegalArgumentException("Unsupported unit: " + unit);
+            case PX: return Math.round(value);
+            case PT: return Math.round(value * 96f / 72f);
+            case PC: return Math.round(value * 16f);
+            case IN: return Math.round(value * 96f);
+            case CM: return Math.round(value * 96f / 2.54f);
+            case MM: return Math.round(value * 96f / 25.4f);
+            default:
+                throw new IllegalArgumentException("Unsupported unit: " + unit);
         }
     }
 
     /**
-     * Ensures that the pixel value is not below 3.
-     *
-     * @param px pixel value
-     * @return clamped pixel value (minimum 3)
+     * Minimum allowed pixel value for legibility.
      */
     private static int clamp(final int px) {
         return Math.max(3, px);
     }
 
-    /**
-     * Returns the numeric portion of the font size as originally specified.
-     *
-     * @return the numeric value (e.g. 12)
-     */
+    /** Returns the original numeric value. */
     public float getValue() {
         return this.value;
     }
 
-    /**
-     * Returns the unit portion of the font size as originally specified.
-     *
-     * @return the unit string (e.g. "pt")
-     */
-    public String getUnit() {
+    /** Returns the original unit. */
+    public Unit getUnit() {
         return this.unit;
     }
 
-    /**
-     * Returns the computed size in pixels.
-     *
-     * @return pixel value (minimum 3)
-     */
+    /** Returns the computed pixel value (≥ 3). */
     public int getPixels() {
         return this.pixels;
     }
 
     /**
-     * Returns a new {@code FontSize} object that is larger by the specified delta.
-     * The change is applied in the same unit as the current size.
-     *
-     * @param delta the amount to increase or decrease (e.g. +1 or -2)
-     * @return a new {@code FontSize} instance with adjusted value
+     * Returns a new FontSize with modified value, preserving unit.
      */
     public FontSize add(final float delta) {
-        return new FontSize(this.value + delta, this.unit);
+        final float v = this.value + delta;
+        if (v < 0f) {
+            return new FontSize(0f, this.unit);
+        }
+        return new FontSize(v, this.unit);
     }
 
     /**
-     * Returns the size as a CSS-compatible string, preserving the original unit.
-     *
-     * @return CSS size string (e.g., {@code "12pt"})
+     * Returns CSS code in original units.
      */
     @Override
     public String toString() {
-        return String.format(Locale.ROOT, "%.2f%s", this.value, this.unit);
+        // Two decimals only if needed
+        if (value == (long) value) {
+            return String.format(Locale.ROOT, "%d%s", (long) value, unit);
+        }
+        return String.format(Locale.ROOT, "%.2f%s", value, unit);
     }
 
     /**
-     * Returns the size formatted in pixel units for client rendering.
-     *
-     * @return CSS size string in pixels (e.g., {@code "16px"})
+     * Returns CSS code in pixel units.
      */
     public String getCSSCode() {
         return this.pixels + "px";
@@ -187,14 +162,17 @@ public final class FontSize implements Comparable<FontSize> {
     public boolean equals(final Object obj) {
         if (!(obj instanceof FontSize)) return false;
         final FontSize other = (FontSize) obj;
-        return Float.compare(this.value, other.value) == 0 && this.unit.equals(other.unit);
+        return Float.compare(this.value, other.value) == 0 && this.unit == other.unit;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.value, this.unit);
+        return Objects.hash(value, unit);
     }
 
+    /**
+     * Order by pixel size.
+     */
     @Override
     public int compareTo(final FontSize other) {
         return Integer.compare(this.pixels, other.pixels);

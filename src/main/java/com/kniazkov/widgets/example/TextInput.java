@@ -49,7 +49,7 @@ public class TextInput {
             final TextWidget echoText = new TextWidget();
             echoText.setFontWeight(FontWeight.BOLD);
             echoText.setItalic(true);
-            echoText.setFontSize(new FontSize("14pt"));
+            echoText.setFontSize("14pt");
             outputSection.add(echoText);
             outputSection.add(new TextWidget("'"));
 

@@ -130,6 +130,16 @@ public interface HasStyledText extends HasText {
     }
 
     /**
+     * Updates the font size for the specified {@link State}.
+     *
+     * @param state the logical state to update
+     * @param size the new font size represented as a string (for example, {@code 12pt})
+     */
+    default void setFontSize(final State state, final String size) {
+        this.setFontSize(state, FontSize.parse(size));
+    }
+
+    /**
      * Updates the font size for all supported states.
      *
      * @param size the new font size to assign to every supported state
@@ -138,6 +148,15 @@ public interface HasStyledText extends HasText {
         for (final State state : this.getSupportedStates()) {
             this.setFontSize(state, size);
         }
+    }
+
+    /**
+     * Updates the font size for all supported states.
+     *
+     * @param size the new font size represented as a string (for example, {@code 12pt})
+     */
+    default void setFontSize(final String size) {
+        this.setFontSize(FontSize.parse(size));
     }
 
     /**
