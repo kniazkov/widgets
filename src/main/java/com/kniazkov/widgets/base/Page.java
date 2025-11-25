@@ -18,7 +18,7 @@ import java.util.Map;
  * <p>
  * Pages may also receive URL query parameters. For example, accessing:
  * <pre>
- *   http://host:port/page?id=123&mode=edit
+ *   http://host:port/page?id=123&amp;mode=edit
  * </pre>
  * makes the following entries available inside {@code parameters}:
  * <ul>
@@ -42,7 +42,7 @@ public interface Page {
      * The {@code parameters} map contains query string parameters extracted
      * from the request URL. For example, a request like:
      * <pre>
-     *   /profile?id=42&tab=info
+     *   /profile?id=42&amp;tab=info
      * </pre>
      * will result in:
      * <ul>
