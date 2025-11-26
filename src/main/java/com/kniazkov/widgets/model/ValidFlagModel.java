@@ -49,4 +49,13 @@ public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
     public Boolean getData() {
         return this.base.isValid();
     }
+
+    /**
+     * Returns a model that represents the logical negation of this model’s boolean value.
+     *
+     * @return a new model exposing {@code !getData()}
+     */
+    public Model<Boolean> invert() {
+        return new InvertModel(this);
+    }
 }

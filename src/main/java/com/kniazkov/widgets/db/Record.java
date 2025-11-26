@@ -3,7 +3,11 @@
  */
 package com.kniazkov.widgets.db;
 
+import com.kniazkov.widgets.model.ConjunctionModel;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.ReadOnlyModel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -97,6 +101,27 @@ public abstract class Record {
             this.data.put(key, created);
             return created;
         }
+    }
+
+    /**
+     * Returns a model representing whether all fields in this record are valid.
+     * <p>
+     * If the record contains no fields, the returned model always evaluates to
+     * {@code true}. Otherwise, the method collects the validity-flag models of all
+     * contained field models and combines them into a single {@link ConjunctionModel},
+     * which reflects {@code true} only when every field is valid.
+     *
+     * @return a boolean model that becomes {@code true} only when all fields are valid
+     */
+    public Model<Boolean> getValidFlagModel() {
+        if (this.data.isEmpty()) {
+            return ReadOnlyModel.create(true);
+        }
+        final List<Model<Boolean>> list = new ArrayList<>(this.data.size());
+        for (final Model<?> model : this.data.values()) {
+            list.add(model.getValidFlagModel());
+        }
+        return new ConjunctionModel(list);
     }
 
     /**
