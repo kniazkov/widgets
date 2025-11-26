@@ -95,8 +95,7 @@ public class JsonStore extends Store {
     static {
         Map<Type<?>, Handler<?>> m = new HashMap<>();
 
-        // String handler
-        m.put(Type.STRING, new Handler<String>() {
+        final Handler<String> stringHandler = new Handler<String>() {
             @Override
             protected String parse(final JsonElement element) {
                 return element.getStringValue();
@@ -104,12 +103,13 @@ public class JsonStore extends Store {
 
             @Override
             protected JsonElement serialize(final String data) {
-                return new JsonString(data);
+                return new JsonString(data.trim());
             }
-        });
+        };
+        m.put(Type.STRING, stringHandler);
+        m.put(Type.NOT_EMPTY_STRING, stringHandler);
 
-        // Integer handler
-        m.put(Type.INTEGER, new Handler<Integer>() {
+        final Handler<Integer> integerHandler = new Handler<Integer>() {
             @Override
             protected Integer parse(final JsonElement element) {
                 return element.getIntValue();
@@ -119,7 +119,23 @@ public class JsonStore extends Store {
             protected JsonElement serialize(final Integer data) {
                 return new JsonNumber(data);
             }
-        });
+        };
+        m.put(Type.INTEGER, integerHandler);
+        m.put(Type.POSITIVE_INTEGER, integerHandler);
+
+        final Handler<Double> realNumberHandler = new Handler<Double>() {
+            @Override
+            protected Double parse(final JsonElement element) {
+                return element.getDoubleValue();
+            }
+
+            @Override
+            protected JsonElement serialize(final Double data) {
+                return new JsonNumber(data);
+            }
+        };
+        m.put(Type.REAL, realNumberHandler);
+        m.put(Type.POSITIVE_REAL, realNumberHandler);
 
         HANDLERS = Collections.unmodifiableMap(m);
     }

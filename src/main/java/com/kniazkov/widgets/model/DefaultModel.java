@@ -76,6 +76,7 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      * <ul>
      *   <li>{@link String} → {@link StringModel}</li>
      *   <li>{@link Integer} → {@link IntegerModel}</li>
+     *   <li>{@link Double} → {@link RealNumberModel}</li>
      *   <li>{@link Boolean} → {@link BooleanModel}</li>
      *   <li>{@link Color} → {@link ColorModel}</li>
      * </ul>
@@ -90,6 +91,9 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
         }
         if (data instanceof Integer) {
             return new IntegerModel((Integer) data);
+        }
+        if (data instanceof Double) {
+            return new RealNumberModel((Double) data);
         }
         if (data instanceof Boolean) {
             return new BooleanModel((Boolean) data);

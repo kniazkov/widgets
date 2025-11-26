@@ -6,49 +6,46 @@ package com.kniazkov.widgets.model;
 import com.kniazkov.widgets.common.Listener;
 
 /**
- * A model adapter that converts an {@link Integer}-based model to a {@link String}-based one.
+ * A model adapter that converts a {@link Double}-based model to a {@link String}-based one.
  * <p>
- * This model provides a textual representation of an integer value, making it suitable for
- * text input fields that display numbers as strings. It keeps the base integer model
- * and the string representation synchronized in both directions.
+ * This model provides a textual representation of a real (double-precision) number,
+ * keeping the base model and the string representation synchronized in both directions.
  * </p>
  *
  * <p>
  * When the base model changes, this adapter updates its own string value and notifies listeners.
- * When the string changes, it tries to parse the value as an integer and write it back
- * to the base model. If parsing fails, the adapter becomes invalid until a valid integer string
- * is provided again.
+ * When the string changes, it attempts to parse it as a Double. If parsing succeeds, the new
+ * numeric value is written back to the base model. If parsing fails, the adapter becomes invalid
+ * until a valid floating-point string is provided again.
  * </p>
  */
-public final class IntegerToStringModel extends SingleThreadModel<String> {
+public final class RealToStringModel extends SingleThreadModel<String> {
     /**
-     * The underlying integer-based model.
+     * The underlying double-based model.
      */
-    private final Model<Integer> base;
+    private final Model<Double> base;
 
     /**
      * A listener that forwards updates from the base model to this wrapper’s listeners.
-     * It must be stored in a field, not in a local variable, so that the garbage collector
-     * does not remove the listener from the base model while this wrapper exists.
      */
-    private final Listener<Integer> forwarder;
+    private final Listener<Double> forwarder;
 
     /**
-     * The current string representation of the integer value.
+     * The current string representation of the double value.
      */
     private String string;
 
     /**
-     * Indicates whether the current string value is valid (i.e., can be parsed as an integer).
+     * Indicates whether the current string value is valid (i.e., can be parsed as a double).
      */
     private boolean valid;
 
     /**
-     * Creates a new adapter over the specified integer model.
+     * Creates a new adapter over the specified real-number model.
      *
-     * @param base the base integer model
+     * @param base the base {@code Double}-backed model
      */
-    public IntegerToStringModel(final Model<Integer> base) {
+    public RealToStringModel(final Model<Double> base) {
         this.base = base;
         this.forwarder = data -> {
             final String value = data.toString();
@@ -79,13 +76,15 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
             return false;
         }
         this.string = data;
+
         try {
-            int value = Integer.parseInt(data);
+            double value = Double.parseDouble(data);
             this.base.setData(value);
             this.valid = true;
         } catch (NumberFormatException ignored) {
             this.valid = false;
         }
+
         this.notifyListeners(data);
         return true;
     }

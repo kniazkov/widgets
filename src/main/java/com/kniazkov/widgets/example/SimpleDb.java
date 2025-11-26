@@ -62,7 +62,7 @@ import java.util.Arrays;
  */
 public class SimpleDb {
     static final Field<String> name = new Field<>(Type.STRING, "name");
-    static final Field<Integer> age = new Field<>(Type.INTEGER, "age");
+    static final Field<Integer> age = new Field<>(Type.POSITIVE_INTEGER, "age");
     static final Store store = JsonStore.load(new File("database.json"), Arrays.asList(
         name,
         age
