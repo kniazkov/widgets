@@ -48,6 +48,7 @@ public final class FontSize implements Comparable<FontSize> {
      * If unit is omitted, "px" is assumed.
      *
      * @param str input string
+     * @return parsed font size
      * @throws IllegalArgumentException if invalid format
      */
     public static FontSize parse(final String str) {
@@ -113,23 +114,38 @@ public final class FontSize implements Comparable<FontSize> {
         return Math.max(3, px);
     }
 
-    /** Returns the original numeric value. */
+    /**
+     * Returns the original numeric value.
+     *
+     * @return the original numeric value
+     */
     public float getValue() {
         return this.value;
     }
 
-    /** Returns the original unit. */
+    /**
+     * Returns the original unit.
+     *
+     * @return the original unit
+     */
     public Unit getUnit() {
         return this.unit;
     }
 
-    /** Returns the computed pixel value (≥ 3). */
+    /**
+     * Returns the computed pixel value (≥ 3).
+     *
+     * @return the computed pixel value
+     */
     public int getPixels() {
         return this.pixels;
     }
 
     /**
      * Returns a new FontSize with modified value, preserving unit.
+     *
+     * @param delta diff between the current value and new one
+     * @return new font size
      */
     public FontSize add(final float delta) {
         final float v = this.value + delta;
@@ -139,9 +155,6 @@ public final class FontSize implements Comparable<FontSize> {
         return new FontSize(v, this.unit);
     }
 
-    /**
-     * Returns CSS code in original units.
-     */
     @Override
     public String toString() {
         // Two decimals only if needed
@@ -153,6 +166,8 @@ public final class FontSize implements Comparable<FontSize> {
 
     /**
      * Returns CSS code in pixel units.
+     *
+     * @return CSS code
      */
     public String getCSSCode() {
         return this.pixels + "px";
@@ -170,9 +185,6 @@ public final class FontSize implements Comparable<FontSize> {
         return Objects.hash(value, unit);
     }
 
-    /**
-     * Order by pixel size.
-     */
     @Override
     public int compareTo(final FontSize other) {
         return Integer.compare(this.pixels, other.pixels);

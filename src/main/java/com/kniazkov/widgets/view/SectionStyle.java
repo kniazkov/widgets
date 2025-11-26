@@ -8,7 +8,7 @@ import com.kniazkov.widgets.common.HorizontalAlignment;
 /**
  * Style definition for {@link Section}.
  */
-public class SectionStyle extends Style implements HasHorizontalAlignment {
+public class SectionStyle extends Style implements HasHorizontalAlignment, HasMargin, HasPadding {
     /**
      * The global default section style.
      */
@@ -19,6 +19,8 @@ public class SectionStyle extends Style implements HasHorizontalAlignment {
      */
     private SectionStyle() {
         this.setHorizontalAlignment(HorizontalAlignment.LEFT);
+        this.setMargin(0);
+        this.setPadding(0);
     }
 
     /**
