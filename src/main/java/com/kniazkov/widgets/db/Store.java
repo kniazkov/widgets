@@ -1,5 +1,7 @@
 package com.kniazkov.widgets.db;
 
+import com.kniazkov.widgets.model.IntegerModel;
+import com.kniazkov.widgets.model.Model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,6 +43,11 @@ public abstract class Store {
     private final Map<UUID, PermanentRecord> records;
 
     /**
+     * Model containing records count.
+     */
+    private final Model<Integer> count;
+
+    /**
      * Creates a new store with the specified list of fields.
      *
      * @param fields the list of fields describing the schema for this store
@@ -48,6 +55,7 @@ public abstract class Store {
     public Store(final List<Field<?>> fields) {
         this.fields = Collections.unmodifiableList(fields);
         this.records = new TreeMap<>();
+        this.count = new IntegerModel().asSynchronized();
     }
 
     /**
@@ -77,8 +85,18 @@ public abstract class Store {
      */
     protected Record createRecord(final UUID id) {
         final PermanentRecord record = new PermanentRecord(id, this);
-        this.records.put(id, record);
+        this.registerRecord(record);
         return record;
+    }
+
+    /**
+     * Adds record to the records collection and updates the record counter.
+     *
+     * @param record the record to register
+     */
+    private void registerRecord(final PermanentRecord record) {
+        this.records.put(record.getId(), record);
+        this.count.setData(this.records.size());
     }
 
     /**
@@ -104,6 +122,15 @@ public abstract class Store {
     }
 
     /**
+     * Returns model that contains record counter.
+     *
+     * @return record counter model
+     */
+    public Model<Integer> getRecordCounter() {
+        return this.count;
+    }
+
+    /**
      * Saves all records managed by this store.
      * <p>
      * The implementation defines what “saving” means —
@@ -118,7 +145,7 @@ public abstract class Store {
      * @param record the record to be saved
      */
     public void save(final PermanentRecord record) {
-        this.records.put(record.getId(), record);
+        this.registerRecord(record);
         this.save();
     }
 }
