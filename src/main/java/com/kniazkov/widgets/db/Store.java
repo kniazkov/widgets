@@ -65,7 +65,8 @@ public abstract class Store {
      * @return the newly created record
      */
     public Record createRecord() {
-        return this.createRecord(UUID.randomUUID());
+        final UUID id = UUID.randomUUID();
+        return new PermanentRecord(id, this);
     }
 
     /**
@@ -74,7 +75,7 @@ public abstract class Store {
      * @param id the UUID to assign to the new record
      * @return the newly created persistent record
      */
-    public Record createRecord(final UUID id) {
+    protected Record createRecord(final UUID id) {
         final PermanentRecord record = new PermanentRecord(id, this);
         this.records.put(id, record);
         return record;
@@ -109,4 +110,15 @@ public abstract class Store {
      * writing to disk, syncing to remote storage, flushing caches, etc.
      */
     public abstract void save();
+
+    /**
+     * Saves one record managed by this store.
+     * By default, adds the record to record set and saves the whole store.
+     *
+     * @param record the record to be saved
+     */
+    public void save(final PermanentRecord record) {
+        this.records.put(record.getId(), record);
+        this.save();
+    }
 }

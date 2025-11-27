@@ -39,6 +39,6 @@ public class PermanentRecord extends Record {
      */
     @Override
     public void save() {
-        this.store.save();
+        this.store.save(this);
     }
 }
