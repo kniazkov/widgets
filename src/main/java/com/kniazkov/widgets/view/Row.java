@@ -30,10 +30,19 @@ public class Row extends Widget implements TypedContainer<Cell>,
     private final List<Cell> children = new ArrayList<>();
 
     /**
-     * Constructor.
+     * Creates a new row using the default row style.
      */
     public Row() {
         super(getDefaultStyle());
+    }
+
+    /**
+     * Creates a new row with the specified style.
+     *
+     * @param style the style to apply to this row
+     */
+    public Row(final RowStyle style) {
+        super(style);
     }
 
     @Override

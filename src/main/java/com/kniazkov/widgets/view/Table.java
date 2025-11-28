@@ -3,8 +3,6 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.AbsoluteSize;
-import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
@@ -16,6 +14,11 @@ import java.util.List;
 public class Table extends BlockWidget implements TypedContainer<Row>,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing
 {
+    /**
+     * The default style applied to new rows created by this table.
+     */
+    private RowStyle rowStyle = Row.getDefaultStyle();
+
     /**
      * Returns the default style instance used by tables.
      *
@@ -31,10 +34,19 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
     private final List<Row> children = new ArrayList<>();
 
     /**
-     * Constructor.
+     * Constructs a new Table with the default style.
      */
     public Table() {
         super(getDefaultStyle());
+    }
+
+    /**
+     * Constructs a new Table with the specified style.
+     *
+     * @param style the table style to use
+     */
+    public Table(final TableStyle style) {
+        super(style);
     }
 
     @Override
@@ -76,6 +88,10 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
         super.setStyle(style);
     }
 
+    public void setDefaultRowStyle(final RowStyle style) {
+        this.rowStyle = style;
+    }
+
     /**
      * Returns the row at the specified index.
      * <p>
@@ -97,7 +113,7 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
         }
         Row row;
         do {
-            row = new Row();
+            row = new Row(this.rowStyle);
             this.add(row);
         } while (index >= this.children.size());
         return row;
