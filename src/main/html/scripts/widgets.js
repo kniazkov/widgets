@@ -52,6 +52,11 @@ var widgetsLibrary = {
         var widget = document.createElement("table");
         widget.style.borderCollapse = "separate";
         return widget;
+    },
+    "inline block" : function() {
+        var widget = document.createElement("div");
+        widget.style.display = "inline-block";
+        return widget;
     }
 };
 

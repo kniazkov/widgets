@@ -10,19 +10,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a table cell widget capable of containing {@link BlockWidget}s.
+ * A widget that behaves as an inline element in the flow of text but can contain
+ * block-level widgets as children, similar to the CSS {@code display: inline-block} behavior.
+ * <p>
+ * This widget combines the characteristics of inline and block elements:
+ * <ul>
+ *   <li>It flows with surrounding text and other inline elements</li>
+ *   <li>It can have width, height, padding, and other block-level properties</li>
+ *   <li>It can contain block-level widgets as children</li>
+ *   <li>It creates a block formatting context for its children</li>
+ * </ul>
+ * This makes it useful for creating complex inline elements that need to contain
+ * block-level content while maintaining inline positioning in the document flow.
  */
-public class Cell extends Widget implements BlockContainer,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding, HasVerticalAlignment,
+public class InlineBlock extends InlineWidget implements BlockContainer,
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasVerticalAlignment,
         HandlesPointerEvents
 {
     /**
-     * Returns the default style instance used by table cells.
+     * Returns the default style instance used by inline blocks.
      *
-     * @return the singleton default {@link CellStyle} instance
+     * @return the singleton default {@link InlineBlockStyle} instance
      */
-    public static CellStyle getDefaultStyle() {
-        return CellStyle.DEFAULT;
+    public static InlineBlockStyle getDefaultStyle() {
+        return InlineBlockStyle.DEFAULT;
     }
 
     /**
@@ -31,18 +42,18 @@ public class Cell extends Widget implements BlockContainer,
     private final List<BlockWidget> children = new ArrayList<>();
 
     /**
-     * Constructs a new cell with the default style.
+     * Constructs a new inline block with the default style.
      */
-    public Cell() {
+    public InlineBlock() {
         super(getDefaultStyle());
     }
 
     /**
-     * Constructs a new cell with the specified style.
+     * Constructs a new inline block with the specified style.
      *
-     * @param style the cell style to use
+     * @param style the block style to use
      */
-    public Cell(final CellStyle style) {
+    public InlineBlock(final InlineBlockStyle style) {
         super(style);
     }
 
@@ -73,7 +84,7 @@ public class Cell extends Widget implements BlockContainer,
 
     @Override
     public String getType() {
-        return "cell";
+        return "inline block";
     }
 
     /**
