@@ -3,9 +3,12 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.ResetClient;
+import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,5 +92,47 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
      */
     public void setStyle(final RootWidgetStyle style) {
         super.setStyle(style);
+    }
+
+    /**
+     * Requests immediate client-side navigation to the specified page.
+     *
+     * @param href the target page URL to navigate to
+     */
+    public void goToPage(final String href) {
+        this.pushUpdate(new GoToPage(href));
+    }
+
+    /**
+     * Instruction sent to the client to trigger an immediate navigation to another page.
+     */
+    private static final class GoToPage extends Update {
+
+        private final String href;
+
+        /**
+         * Creates a new navigation instruction that redirects the client to the specified URL.
+         *
+         * @param href the target page URL to navigate to
+         */
+        public GoToPage(final String href) {
+            super(UId.INVALID);
+            this.href = href;
+        }
+
+        @Override
+        public Update clone() {
+            return new GoToPage(this.href);
+        }
+
+        @Override
+        protected String getAction() {
+            return "go to page";
+        }
+
+        @Override
+        protected void fillJsonObject(final JsonObject obj) {
+            obj.addString("href", this.href);
+        }
     }
 }

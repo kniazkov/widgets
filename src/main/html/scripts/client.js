@@ -138,9 +138,18 @@ var reset = function() {
     startClient();
 };
 
+var goToPage = function(data) {
+    var href = data.href;
+    if (typeof href == "string") {
+        log("The server initiated a switch to another page: '" + href + "'.");
+        window.location.href = href;
+    }
+};
+
 var actionHandlers = {
     "create widget" : createWidget,
     "reset" : reset,
+    "go to page" : goToPage,
     "subscribe" : subscribeToEvent,
     "set child" : setChildWidget,
     "append child" : appendChildWidget,
