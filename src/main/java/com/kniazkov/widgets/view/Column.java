@@ -24,6 +24,11 @@ public class Column implements TypedContainer<Cell> {
     private final int number;
 
     /**
+     * The default style applied to new cells created by this column.
+     */
+    private CellStyle cellStyle = Cell.getDefaultStyle();
+
+    /**
      * Creates a new column wrapper for the given table and column index.
      *
      * @param table  the parent table
@@ -63,5 +68,24 @@ public class Column implements TypedContainer<Cell> {
         for (int index = 0; index < this.table.getChildCount(); index++) {
             this.table.getChild(index).remove(widget);
         }
+    }
+
+    /**
+     * Sets the default style for new cells created in this column.
+     * This style will be applied to all cells created after this method is called.
+     *
+     * @param style the cell style to set as default
+     */
+    public void setDefaultCellStyle(final CellStyle style) {
+        this.cellStyle = style;
+    }
+
+    /**
+     * Returns the default style used for new cells in this column.
+     *
+     * @return the current default cell style
+     */
+    public CellStyle getDefaultCellStyle() {
+        return this.cellStyle;
     }
 }

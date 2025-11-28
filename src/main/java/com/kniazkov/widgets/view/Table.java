@@ -7,6 +7,8 @@ import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Represents a table widget that contains {@link Row} widgets.
@@ -14,11 +16,6 @@ import java.util.List;
 public class Table extends BlockWidget implements TypedContainer<Row>,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing
 {
-    /**
-     * The default style applied to new rows created by this table.
-     */
-    private RowStyle rowStyle = Row.getDefaultStyle();
-
     /**
      * Returns the default style instance used by tables.
      *
@@ -32,6 +29,22 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
      * List of child widgets.
      */
     private final List<Row> children = new ArrayList<>();
+
+    /**
+     * Cache of column views, indexed by column index.
+     * Uses TreeMap to maintain columns in sorted order by their index.
+     */
+    private final Map<Integer, Column> columns = new TreeMap<>();
+
+    /**
+     * The default style applied to new rows created by this table.
+     */
+    private RowStyle rowStyle = Row.getDefaultStyle();
+
+    /**
+     * The default style applied to new cells created by this table.
+     */
+    private CellStyle cellStyle = Cell.getDefaultStyle();
 
     /**
      * Constructs a new Table with the default style.
@@ -88,8 +101,41 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
         super.setStyle(style);
     }
 
+    /**
+     * Sets the default style for new rows created in this table.
+     * This style will be applied to all rows created after this method is called.
+     *
+     * @param style the row style to set as default
+     */
     public void setDefaultRowStyle(final RowStyle style) {
         this.rowStyle = style;
+    }
+
+    /**
+     * Sets the default style for new cells created in this table.
+     * This style will be applied to all cells created after this method is called.
+     *
+     * @param style the cell style to set as default
+     */
+    public void setDefaultCellStyle(final CellStyle style) {
+        this.cellStyle = style;
+    }
+
+    /**
+     * Returns the default cell style for the specified column.
+     * If a custom style is defined for the column, returns that style; otherwise returns the
+     * table's default cell style.
+     *
+     * @param columnIndex the index of the column to get the style for
+     * @return the default cell style for the specified column
+     */
+    public CellStyle getDefaultCellStyle(final int columnIndex) {
+        final Column column = this.columns.get(columnIndex);
+        if (column == null) {
+            return this.cellStyle;
+        } else {
+            return column.getDefaultCellStyle();
+        }
     }
 
     /**
@@ -134,7 +180,7 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
         if (index < 0) {
             throw new IndexOutOfBoundsException("Column index must be >= 0");
         }
-        return new Column(this, index);
+        return this.columns.computeIfAbsent(index, x -> new Column(this, index));
     }
 
     /**

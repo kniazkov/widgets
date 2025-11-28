@@ -8,6 +8,7 @@ import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a table row widget that contains {@link Cell} widgets.
@@ -101,11 +102,24 @@ public class Row extends Widget implements TypedContainer<Cell>,
         if (index < this.children.size()) {
             return this.children.get(index);
         }
-        Cell cell;
-        do {
-            cell = new Cell();
-            this.add(cell);
-        } while (index >= this.children.size());
-        return cell;
+        final Optional<Container> parent = this.getParent();
+        if (parent.isPresent() && parent.get() instanceof Table) {
+            final Table table = (Table) parent.get();
+            Cell cell;
+            int currIndex;
+            do {
+                currIndex = this.children.size();
+                cell = new Cell(table.getDefaultCellStyle(currIndex));
+                this.add(cell);
+            } while (index > currIndex);
+            return cell;
+        } else {
+            Cell cell;
+            do {
+                cell = new Cell();
+                this.add(cell);
+            } while (index >= this.children.size());
+            return cell;
+        }
     }
 }

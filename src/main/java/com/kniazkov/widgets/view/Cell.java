@@ -31,10 +31,19 @@ public class Cell extends Widget implements TypedContainer<BlockWidget>,
     private final List<BlockWidget> children = new ArrayList<>();
 
     /**
-     * Constructor.
+     * Constructs a new Cell with the default style.
      */
     public Cell() {
         super(getDefaultStyle());
+    }
+
+    /**
+     * Constructs a new Cell with the specified style.
+     *
+     * @param style the cell style to use
+     */
+    public Cell(final CellStyle style) {
+        super(style);
     }
 
     @Override
