@@ -38,7 +38,7 @@ public class Ex02Table {
             root.add(table);
             for (int i = 1; i <= 10; i++) {
                 for (int j = 1; j <= 10; j++ ) {
-                    table.getCell(i - 1, j - 1).setText(String.valueOf(i * j));
+                    table.getCell(i - 1, j - 1).createText(String.valueOf(i * j));
                 }
             }
         };

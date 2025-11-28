@@ -80,8 +80,8 @@ public class SimpleDb {
 
             final Row header = new Row();
             table.add(header);
-            header.getCell(0).setText("Name");
-            header.getCell(1).setText("Age");
+            header.getCell(0).createText("Name");
+            header.getCell(1).createText("Age");
             for (final Section section : header.collectChildren(Section.class)) {
                 section.setHorizontalAlignment(HorizontalAlignment.CENTER);
             }

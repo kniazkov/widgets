@@ -43,7 +43,7 @@ public class Ex01Table {
                 for (int j = 1; j <= 10; j++ ) {
                     final Cell cell = new Cell();
                     row.add(cell);
-                    cell.setText(String.valueOf(i * j));
+                    cell.createText(String.valueOf(i * j));
                 }
             }
         };

@@ -45,12 +45,12 @@ public class Ex03TableWithStyle {
             final Table table = new Table();
             root.add(table);
             for (int j = 1; j <= 10; j++ ) {
-                table.getCell(0, j).setText(String.valueOf(j));
+                table.getCell(0, j).createText(String.valueOf(j));
             }
             for (int i = 1; i <= 10; i++) {
-                table.getCell(i, 0).setText(String.valueOf(i));
+                table.getCell(i, 0).createText(String.valueOf(i));
                 for (int j = 1; j <= 10; j++ ) {
-                    table.getCell(i, j).setText(String.valueOf(i * j));
+                    table.getCell(i, j).createText(String.valueOf(i * j));
                 }
             }
             TextWidgetStyle style = TextWidget.getDefaultStyle().derive();

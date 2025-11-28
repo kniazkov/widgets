@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Represents a table cell widget capable of containing {@link BlockWidget}s.
  */
-public class Cell extends Widget implements TypedContainer<BlockWidget>,
+public class Cell extends Widget implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding, HasVerticalAlignment,
         HandlesPointerEvents
 {
@@ -83,17 +83,5 @@ public class Cell extends Widget implements TypedContainer<BlockWidget>,
      */
     public void setStyle(final CellStyle style) {
         super.setStyle(style);
-    }
-
-    /**
-     * Replaces all content of this cell with a single text section.
-     *
-     * @param text the text to display inside the cell
-     */
-    public void setText(final String text) {
-        this.removeAll();
-        final Section section = new Section();
-        this.add(section);
-        section.add(new TextWidget(text));
     }
 }
