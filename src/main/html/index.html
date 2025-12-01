@@ -14,7 +14,9 @@
     </head>
     <body>
         <script>
-            initClient("{address}", {data});
+            addEvent(window, "load", function() {
+                initClient("{address}", {data});
+            });
         </script>
     </body>
 </html>
