@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.db;
 
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -26,11 +27,12 @@ public class PermanentRecord extends Record {
     /**
      * Creates a new permanent record with the given identifier and backing store.
      *
-     * @param id    the unique identifier of the record
+     * @param id the unique identifier of the record
+     * @param timestamp the creation timestamp (must not be {@code null})
      * @param store the storage backend responsible for saving this record
      */
-    public PermanentRecord(final UUID id, final Store store) {
-        super(id);
+    public PermanentRecord(final UUID id, final Instant timestamp, final Store store) {
+        super(id, timestamp);
         this.store = store;
     }
 

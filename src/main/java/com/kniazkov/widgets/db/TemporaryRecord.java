@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.db;
 
 import com.kniazkov.widgets.model.Model;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -36,7 +37,7 @@ public class TemporaryRecord extends Record {
      * @param parent the record to derive from
      */
     public TemporaryRecord(Record parent) {
-        super(UUID.randomUUID());
+        super(UUID.randomUUID(), Instant.now());
         this.parent = parent;
 
         for (final String key : parent.data.keySet()) {

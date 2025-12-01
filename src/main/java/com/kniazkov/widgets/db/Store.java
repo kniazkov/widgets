@@ -2,8 +2,10 @@ package com.kniazkov.widgets.db;
 
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -74,17 +76,18 @@ public abstract class Store {
      */
     public Record createRecord() {
         final UUID id = UUID.randomUUID();
-        return new PermanentRecord(id, this);
+        return new PermanentRecord(id, Instant.now(), this);
     }
 
     /**
-     * Creates a new record with the specified unique identifier.
+     * Creates a new persistent record with the specified unique identifier and timestamp.
      *
-     * @param id the UUID to assign to the new record
+     * @param id the UUID to assign to the new record (must not be {@code null})
+     * @param timestamp the creation timestamp for the record (must not be {@code null})
      * @return the newly created persistent record
      */
-    protected Record createRecord(final UUID id) {
-        final PermanentRecord record = new PermanentRecord(id, this);
+    protected Record createRecord(final UUID id, final Instant timestamp) {
+        final PermanentRecord record = new PermanentRecord(id, timestamp, this);
         this.registerRecord(record);
         return record;
     }
@@ -97,6 +100,25 @@ public abstract class Store {
     private void registerRecord(final PermanentRecord record) {
         this.records.put(record.getId(), record);
         this.count.setData(this.records.size());
+    }
+
+    /**
+     * Saves all records managed by this store.
+     * <p>
+     * The implementation defines what “saving” means —
+     * writing to disk, syncing to remote storage, flushing caches, etc.
+     */
+    public abstract void save();
+
+    /**
+     * Saves one record managed by this store.
+     * By default, adds the record to record set and saves the whole store.
+     *
+     * @param record the record to be saved
+     */
+    public void save(final PermanentRecord record) {
+        this.registerRecord(record);
+        this.save();
     }
 
     /**
@@ -131,21 +153,26 @@ public abstract class Store {
     }
 
     /**
-     * Saves all records managed by this store.
-     * <p>
-     * The implementation defines what “saving” means —
-     * writing to disk, syncing to remote storage, flushing caches, etc.
+     * Returns all records sorted by creation time in chronological order
+     * (oldest first).
+     *
+     * @return a list of records sorted from oldest to newest
      */
-    public abstract void save();
+    public List<Record> getRecordsChronological() {
+        List<Record> sortedRecords = getAllRecords();
+        sortedRecords.sort(Comparator.comparing(Record::getTimestamp));
+        return sortedRecords;
+    }
 
     /**
-     * Saves one record managed by this store.
-     * By default, adds the record to record set and saves the whole store.
+     * Returns all records sorted by creation time in reverse chronological order
+     * (newest first).
      *
-     * @param record the record to be saved
+     * @return a list of records sorted from newest to oldest
      */
-    public void save(final PermanentRecord record) {
-        this.registerRecord(record);
-        this.save();
+    public List<Record> getRecordsReverseChronological() {
+        List<Record> sortedRecords = getAllRecords();
+        sortedRecords.sort(Comparator.comparing(Record::getTimestamp).reversed());
+        return sortedRecords;
     }
 }

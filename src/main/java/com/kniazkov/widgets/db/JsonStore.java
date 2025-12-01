@@ -14,6 +14,7 @@ import com.kniazkov.widgets.model.Model;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -187,6 +188,7 @@ public class JsonStore extends Store {
         for (final Record record : this.getAllRecords()) {
             final JsonObject object = array.createObject();
             object.addString("id", record.getId().toString());
+            object.addString("timestamp", record.getTimestamp().toString());
 
             for (final Field<?> field : this.getFields()) {
                 if (record.hasModel(field)) {
@@ -241,12 +243,14 @@ public class JsonStore extends Store {
                 }
 
                 final JsonElement idStr = object.get("id");
-                if (idStr == null || !idStr.isString()) {
+                final JsonElement tsStr = object.get("timestamp");
+                if (idStr == null || !idStr.isString() || tsStr == null || !tsStr.isString()) {
                     continue;
                 }
 
                 final UUID id = UUID.fromString(idStr.getStringValue());
-                final Record record = store.createRecord(id);
+                final Instant timestamp = Instant.parse(tsStr.getStringValue());
+                final Record record = store.createRecord(id, timestamp);
 
                 for (final Field<?> field : fields) {
                     final JsonElement element = object.getElement(field.getName());

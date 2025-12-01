@@ -6,6 +6,7 @@ package com.kniazkov.widgets.db;
 import com.kniazkov.widgets.model.ConjunctionModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.ReadOnlyModel;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,12 @@ public abstract class Record {
     private final UUID id;
 
     /**
+     * The timestamp when this record was created.
+     * Represents a specific moment in UTC time zone.
+     */
+    private final Instant timestamp;
+
+    /**
      * Internal storage for all field models belonging to this record.
      */
     protected final Map<String, Model<?>> data;
@@ -38,9 +45,11 @@ public abstract class Record {
      * Creates a new record with the given identifier.
      *
      * @param id the unique identifier of this record (must not be {@code null})
+     * @param timestamp the creation timestamp (must not be {@code null})
      */
-    Record(final UUID id) {
+    Record(final UUID id, final Instant timestamp) {
         this.id = id;
+        this.timestamp = timestamp;
         this.data = new TreeMap<>();
     }
 
@@ -51,6 +60,15 @@ public abstract class Record {
      */
     public UUID getId() {
         return this.id;
+    }
+
+    /**
+     * Returns the timestamp when this record was created.
+     *
+     * @return the record's timestamp
+     */
+    public Instant getTimestamp() {
+        return this.timestamp;
     }
 
     /**

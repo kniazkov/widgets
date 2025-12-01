@@ -89,7 +89,7 @@ public class SimpleDb {
                 text.setFontWeight(FontWeight.BOLD);
             }
 
-            for(final Record record : store.getAllRecords()) {
+            for(final Record record : store.getRecordsChronological()) {
                 createRowFromRecord(table, record);
             }
 
@@ -129,5 +129,13 @@ public class SimpleDb {
         field = new InputField();
         section.add(field);
         field.setTextModel(new IntegerToStringModel(record.getModel(age)));
+        cell = row.getCell(2);
+        section = new Section();
+        cell.add(section);
+        final Button button = new Button("Save");
+        section.add(button);
+        button.onClick(data -> {
+            record.save();
+        });
     }
 }
