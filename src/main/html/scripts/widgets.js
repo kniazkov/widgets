@@ -30,6 +30,22 @@ var widgetsLibrary = {
         initFocusEvents(widget);
         return widget;
     },
+    "text area" : function() {
+        var widget = document.createElement("textarea");
+        widget.setText = function(text) {
+            if (widget.value != text) {
+                widget.value = text;
+                return true;
+            }
+            return false;
+        }
+        addEvent(widget, "input", function() {
+            sendEventToServer(widget, "text input", { text : widget.value });
+        });
+        initPointerEvents(widget);
+        initFocusEvents(widget);
+        return widget;
+    },
     "button" : function() {
         var widget = document.createElement("button");
         initPointerEvents(widget, true);
