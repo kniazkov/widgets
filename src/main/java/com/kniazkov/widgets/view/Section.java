@@ -15,7 +15,7 @@ import java.util.List;
  * in a horizontal flow within the section.
  */
 public class Section extends BlockWidget implements TypedContainer<InlineWidget>,
-        HasHorizontalAlignment, HasMargin, HasPadding {
+        HasHorizontalAlignment, HasMargin, HasPadding, HasHiddenState {
     /**
      * Returns the default style instance used by sections.
      *

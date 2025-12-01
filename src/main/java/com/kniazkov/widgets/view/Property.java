@@ -241,6 +241,31 @@ public abstract class Property<T> {
     };
 
     /**
+     * Property controlling whether the widget is hidden.
+     */
+    public static final Property<Boolean> HIDDEN = new Property<Boolean>() {
+        @Override
+        public String getName() {
+            return "hidden";
+        }
+
+        @Override
+        public Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public Model<Boolean> createDefaultModel() {
+            return new BooleanModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Boolean data) {
+            return JsonBoolean.getInstance(data);
+        }
+    };
+
+    /**
      * Property representing the widget's textual content.
      */
     public static final Property<String> TEXT = new Property<String>() {

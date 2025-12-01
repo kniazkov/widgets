@@ -156,6 +156,7 @@ var actionHandlers = {
     "remove child" : removeChildWidget,
     "set valid" : setValidFlag,
     "set disabled" : setDisabledFlag,
+    "set hidden" : setHiddenFlag,
     "set text" : setText,
     "set color" : setColor,
     "set bg color" : setBgColor,
