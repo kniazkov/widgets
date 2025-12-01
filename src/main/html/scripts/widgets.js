@@ -191,7 +191,7 @@ var setDisabledFlag = function(data) {
 
 var setHiddenFlag = function(data) {
     var widget = widgets[data.widget];
-    var flag = data.disabled;
+    var flag = data.hidden;
     if (widget && typeof flag == "boolean") {
         widget.style.display = flag ? "none" : "";
         log("The widget " + data.widget + " is" + (flag ? "" : " not") + " hidden.");
