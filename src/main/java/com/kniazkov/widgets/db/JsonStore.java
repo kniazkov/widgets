@@ -203,6 +203,10 @@ public class JsonStore extends Store {
 
         final String json = array.toText("  ");
 
+        final File parentDir = this.file.getParentFile();
+        if (parentDir != null && !parentDir.exists()) {
+            parentDir.mkdirs();
+        }
         try (FileWriter writer = new FileWriter(this.file)) {
             writer.write(json);
         } catch (IOException e) {
