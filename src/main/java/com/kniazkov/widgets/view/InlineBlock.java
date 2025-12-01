@@ -24,7 +24,7 @@ import java.util.List;
  * block-level content while maintaining inline positioning in the document flow.
  */
 public class InlineBlock extends InlineWidget implements BlockContainer,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasVerticalAlignment,
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
         HandlesPointerEvents
 {
     /**

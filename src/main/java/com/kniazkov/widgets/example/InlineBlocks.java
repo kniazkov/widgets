@@ -16,7 +16,11 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 
 /**
- * ......
+ * A demonstration class showcasing the use of {@link InlineBlock} widgets.
+ * <p>
+ * This example creates a series of colored inline blocks with text labels, demonstrating how
+ * inline blocks flow in the document while maintaining block-level styling properties like width,
+ * height, padding, and borders.
  *
  * <b>How to use</b>
  * <ol>
@@ -27,6 +31,7 @@ import com.kniazkov.widgets.view.TextWidget;
  *   </li>
  * </ol>
  */
+
 public class InlineBlocks {
     /**
      * Entry point.
@@ -42,11 +47,11 @@ public class InlineBlocks {
             style.setWidth(100);
             style.setHeight(150);
             style.setMargin(2);
+            style.setPadding(5, 2);
             style.setBorderColor(Color.BLACK);
             style.setBorderStyle(BorderStyle.SOLID);
             style.setBorderWidth(1);
             style.setBorderRadius(5);
-            style.setVerticalAlignment(VerticalAlignment.MIDDLE);
 
             InlineBlock block = new InlineBlock(style);
             section.add(block);
