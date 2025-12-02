@@ -261,6 +261,16 @@ public interface HasMargin extends Entity {
     }
 
     /**
+     * Updates the top margin offset using a pixel-based value.
+     *
+     * @param px the new top margin in pixels (must be ≥ 0)
+     */
+    default void setTopMargin(final int px) {
+        final Model<Offset> model = this.getMarginModel();
+        model.setData(model.getData().setTop(px));
+    }
+
+    /**
      * Updates the bottom margin offset.
      *
      * @param value the new bottom margin
