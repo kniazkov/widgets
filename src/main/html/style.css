@@ -7,3 +7,7 @@ input:focus, textarea:focus, select:focus {
     outline: none !important;
     box-shadow: none !important;
 }
+
+textarea {
+    vertical-align: top;
+}
