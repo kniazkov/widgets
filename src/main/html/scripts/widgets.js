@@ -72,6 +72,7 @@ var widgetsLibrary = {
     "inline block" : function() {
         var widget = document.createElement("div");
         widget.style.display = "inline-block";
+        initPointerEvents(widget, true);
         return widget;
     }
 };
