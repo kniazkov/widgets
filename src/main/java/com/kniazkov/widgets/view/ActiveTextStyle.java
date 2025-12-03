@@ -37,7 +37,7 @@ public class ActiveTextStyle extends Style implements HasStyledText, HasColor {
         this.setItalic(false);
         this.setColor(State.NORMAL, Color.BLACK);
         this.setColor(State.HOVERED, Color.NAVY);
-        this.setColor(State.HOVERED, Color.BLUE);
+        this.setColor(State.ACTIVE, Color.BLUE);
     }
 
     /**

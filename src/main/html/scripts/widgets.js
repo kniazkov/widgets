@@ -494,6 +494,9 @@ var initPointerEvents = function(widget, activeOnPointerDown) {
     });
     addEvent(widget, "pointerenter", function(event) {
         widget._states.hovered = true;
+        if (widget._events.click) {
+            widget.style.cursor = "pointer";
+        }
         refreshWidget(widget);
         sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
@@ -502,6 +505,9 @@ var initPointerEvents = function(widget, activeOnPointerDown) {
             widget._states.active = false;
         }
         widget._states.hovered = false;
+        if (widget._events.click) {
+            widget.style.cursor = "default";
+        }
         refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
     });

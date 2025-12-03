@@ -12,7 +12,11 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 
 /**
- * ....
+ * A demonstration of the {@link ActiveText} widget with clickable text functionality.
+ * <p>
+ * This example creates an interactive text element that, when clicked,
+ * redirects the user to an external URL. It showcases how to make text
+ * responsive to user interactions and handle click events.
  *
  * <b>How to use</b>
  * <ol>

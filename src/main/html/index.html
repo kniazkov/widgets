@@ -17,6 +17,12 @@
             addEvent(window, "load", function() {
                 initClient("{address}", {data});
             });
+
+            addEvent(window, "pageshow", function(evt) {
+                if (evt.persisted) {
+                    window.location.reload();
+                }
+            });
         </script>
     </body>
 </html>
