@@ -29,7 +29,7 @@ public class Options implements Cloneable {
     /**
      * The HTTP port number on which the server will run.
      */
-    public int port = 80;
+    public int port = 8000;
 
     @Override
     public Options clone() {

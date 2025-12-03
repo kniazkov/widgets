@@ -47,6 +47,9 @@ public final class Color {
     /** Cyan (0, 255, 255). */
     public static final Color CYAN = new Color(0, 255, 255);
 
+    /** Navy (0, 0, 127). */
+    public static final Color NAVY = new Color(0, 0, 127);
+
     /** Blue (0, 0, 255). */
     public static final Color BLUE = new Color(0, 0, 255);
 

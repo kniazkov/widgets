@@ -14,6 +14,11 @@ var widgetsLibrary = {
     "text" : function() {
         return document.createElement("span");
     },
+    "active text" : function() {
+        var widget = document.createElement("span");
+        initPointerEvents(widget, true);
+        return widget;
+    },
     "input field" : function() {
         var widget = document.createElement("input");
         widget.setText = function(text) {
