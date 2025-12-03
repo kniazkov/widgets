@@ -791,4 +791,29 @@ public abstract class Property<T> {
             return new JsonString(data.getCSSCode());
         }
     };
+
+    /**
+     * Property controlling whether the widget (checkbox) is checked.
+     */
+    public static final Property<Boolean> CHECKED = new Property<Boolean>() {
+        @Override
+        public String getName() {
+            return "checked";
+        }
+
+        @Override
+        public Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public Model<Boolean> createDefaultModel() {
+            return new BooleanModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Boolean data) {
+            return JsonBoolean.getInstance(data);
+        }
+    };
 }

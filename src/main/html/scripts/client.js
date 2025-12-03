@@ -175,10 +175,11 @@ var actionHandlers = {
     "set source": setSource,
     "set horz alignment": setHorzAlignment,
     "set vert alignment": setVertAlignment,
-    "set cell spacing": setCellSpacing
+    "set cell spacing": setCellSpacing,
+    "set checked": setCheckedFlag
 };
 
-var ALWAYS_ALLOWED_EVENTS = ["text input"];
+var ALWAYS_ALLOWED_EVENTS = ["text input", "check"];
 
 var sendEventToServer = function(widget, type, data) {
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {

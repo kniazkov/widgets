@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.controller;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasText;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Collections;
@@ -113,6 +114,28 @@ public abstract class Event<T> {
     };
 
     /**
+     * Event triggered when a widget's checked state changes.
+     */
+    public static final Event<Boolean> CHECK = new Event<Boolean>() {
+        @Override
+        public String getName() {
+            return "check";
+        }
+
+        @Override
+        public Boolean parseData(final JsonObject object) {
+            return object.get("state").getBooleanValue();
+        }
+
+        @Override
+        public void updateWidget(final Widget widget, final Boolean data) {
+            if (widget instanceof HasCheckedState) {
+                ((HasCheckedState) widget).getCheckedStateModel().setData(data);
+            }
+        }
+    };
+
+    /**
      * Event triggered when a pointer click occurs on a widget.
      */
     public static final Event<PointerEvent> CLICK = new Event<PointerEvent>() {
@@ -194,6 +217,7 @@ public abstract class Event<T> {
         Collections.unmodifiableMap(
             Stream.of(
                 TEXT_INPUT,
+                CHECK,
                 CLICK,
                 POINTER_ENTER,
                 POINTER_LEAVE

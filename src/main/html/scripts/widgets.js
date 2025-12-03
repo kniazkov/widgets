@@ -82,6 +82,14 @@ var widgetsLibrary = {
     },
     "margin decorator" : function() {
         return document.createElement("span");
+    },
+    "checkbox": function() {
+        var widget = document.createElement("input");
+        widget.type = "checkbox";
+        addEvent(widget, "change", function() {
+            sendEventToServer(widget, "check", { state: widget.checked });
+        });
+        return widget;
     }
 };
 
@@ -453,6 +461,17 @@ var setCellSpacing = function(data) {
     if (widget && typeof value == "string") {
         widget.style.borderSpacing = value;
         log("The cell spacing of the widget " + data.widget + " has been set to \"" + value + "\".");
+        return true;
+    }
+    return false;
+};
+
+var setCheckedFlag = function(data) {
+    var widget = widgets[data.widget];
+    var flag = data.checked;
+    if (widget && typeof flag == "boolean") {
+        widget.checked = flag;
+        log("The widget " + data.widget + " has been " + (flag ? "checked" : "unchecked") + '.');
         return true;
     }
     return false;
