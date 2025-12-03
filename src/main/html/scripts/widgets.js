@@ -79,6 +79,9 @@ var widgetsLibrary = {
         widget.style.display = "inline-block";
         initPointerEvents(widget, true);
         return widget;
+    },
+    "margin decorator" : function() {
+        return document.createElement("span");
     }
 };
 
