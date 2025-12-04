@@ -98,8 +98,10 @@ public abstract class Store {
      * @param record the record to register
      */
     private void registerRecord(final PermanentRecord record) {
-        this.records.put(record.getId(), record);
-        this.count.setData(this.records.size());
+        synchronized (this.records) {
+            this.records.put(record.getId(), record);
+            this.count.setData(this.records.size());
+        }
     }
 
     /**
@@ -130,7 +132,9 @@ public abstract class Store {
      * @return a list of all stored records
      */
     public List<Record> getAllRecords() {
-        return new ArrayList<>(this.records.values());
+        synchronized (this.records) {
+            return new ArrayList<>(this.records.values());
+        }
     }
 
     /**
@@ -140,7 +144,9 @@ public abstract class Store {
      * @return the record with the given ID, or {@code null} if not found
      */
     public Record getRecordById(final UUID id) {
-        return this.records.get(id);
+        synchronized (this.records) {
+            return this.records.get(id);
+        }
     }
 
     /**
@@ -158,7 +164,9 @@ public abstract class Store {
      * @return the total count of records
      */
     public int getRecordCount() {
-        return this.records.size();
+        synchronized (this.records) {
+            return this.records.size();
+        }
     }
 
     /**
