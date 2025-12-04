@@ -153,6 +153,15 @@ public abstract class Store {
     }
 
     /**
+     * Returns the current number of records stored in this table.
+     *
+     * @return the total count of records
+     */
+    public int getRecordCount() {
+        return this.records.size();
+    }
+
+    /**
      * Returns all records sorted by creation time in chronological order
      * (oldest first).
      *
