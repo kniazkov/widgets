@@ -3,13 +3,16 @@
  */
 package com.kniazkov.widgets.db;
 
+import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.NotEmptyStringModel;
 import com.kniazkov.widgets.model.RealNumberModel;
 import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.UuidModel;
 import com.kniazkov.widgets.model.ValidatedIntegerModel;
 import com.kniazkov.widgets.model.ValidatedRealNumberModel;
+import java.util.UUID;
 
 /**
  * Represents a logical data type used by the primitive database layer.
@@ -30,6 +33,21 @@ public abstract class Type<T> {
      * @return a new model associated with this type
      */
     abstract Model<T> createModel();
+
+    /**
+     * A built-in {@code Type} representing boolean values.
+     */
+    public static final Type<Boolean> BOOLEAN = new Type<Boolean>() {
+        @Override
+        Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        Model<Boolean> createModel() {
+            return new BooleanModel();
+        }
+    };
 
     /**
      * A built-in {@code Type} representing textual values.
@@ -119,6 +137,21 @@ public abstract class Type<T> {
         @Override
         Model<Double> createModel() {
             return new ValidatedRealNumberModel(ValidatedRealNumberModel.POSITIVE);
+        }
+    };
+
+    /**
+     * A built-in {@code Type} representing unique identifiers.
+     */
+    public static final Type<UUID> IDENTIFIER = new Type<UUID>() {
+        @Override
+        Class<UUID> getValueClass() {
+            return UUID.class;
+        }
+
+        @Override
+        Model<UUID> createModel() {
+            return new UuidModel();
         }
     };
 }

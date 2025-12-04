@@ -5,6 +5,7 @@ package com.kniazkov.widgets.db;
 
 import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonArray;
+import com.kniazkov.json.JsonBoolean;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonNumber;
@@ -96,6 +97,19 @@ public class JsonStore extends Store {
     static {
         Map<Type<?>, Handler<?>> m = new HashMap<>();
 
+        final Handler<Boolean> booleanHandler = new Handler<Boolean>() {
+            @Override
+            protected Boolean parse(final JsonElement element) {
+                return element.getBooleanValue();
+            }
+
+            @Override
+            protected JsonElement serialize(final Boolean data) {
+                return JsonBoolean.getInstance(data);
+            }
+        };
+        m.put(Type.BOOLEAN, booleanHandler);
+
         final Handler<String> stringHandler = new Handler<String>() {
             @Override
             protected String parse(final JsonElement element) {
@@ -137,6 +151,19 @@ public class JsonStore extends Store {
         };
         m.put(Type.REAL, realNumberHandler);
         m.put(Type.POSITIVE_REAL, realNumberHandler);
+
+        final Handler<UUID> identifierHandler = new Handler<UUID>() {
+            @Override
+            protected UUID parse(final JsonElement element) {
+                return UUID.fromString(element.getStringValue());
+            }
+
+            @Override
+            protected JsonElement serialize(final UUID data) {
+                return new JsonString(data.toString());
+            }
+        };
+        m.put(Type.IDENTIFIER, identifierHandler);
 
         HANDLERS = Collections.unmodifiableMap(m);
     }
