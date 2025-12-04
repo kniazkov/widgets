@@ -47,4 +47,15 @@ public class Field<T> {
     public String getName() {
         return this.name;
     }
+
+    /**
+     * Creates a filter that matches records where this field's value exactly matches
+     * the specified value.
+     *
+     * @param value the value to compare against
+     * @return a filter that returns {@code true} for records with matching field value
+     */
+    public Filter is(final T value) {
+        return record -> record.getModel(this).getData().equals(value);
+    }
 }

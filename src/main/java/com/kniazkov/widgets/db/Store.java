@@ -26,7 +26,7 @@ import java.util.UUID;
  * in memory, on disk, or via a remote protocol. The {@code Store} itself
  * provides fundamental record management operations, including creation and lookup.
  */
-public abstract class Store {
+public abstract class Store extends RecordSet {
     /**
      * The list of fields supported by this store.
      * <p>
@@ -124,6 +124,18 @@ public abstract class Store {
     }
 
     /**
+     * Returns the current number of records stored in this table.
+     *
+     * @return the total count of records
+     */
+    @Override
+    public int getRecordCount() {
+        synchronized (this.records) {
+            return this.records.size();
+        }
+    }
+
+    /**
      * Returns all records currently stored in this backend.
      * <p>
      * The returned list is a defensive copy so that callers cannot mutate
@@ -131,6 +143,7 @@ public abstract class Store {
      *
      * @return a list of all stored records
      */
+    @Override
     public List<Record> getAllRecords() {
         synchronized (this.records) {
             return new ArrayList<>(this.records.values());
@@ -156,40 +169,5 @@ public abstract class Store {
      */
     public Model<Integer> getRecordCounter() {
         return this.count;
-    }
-
-    /**
-     * Returns the current number of records stored in this table.
-     *
-     * @return the total count of records
-     */
-    public int getRecordCount() {
-        synchronized (this.records) {
-            return this.records.size();
-        }
-    }
-
-    /**
-     * Returns all records sorted by creation time in chronological order
-     * (oldest first).
-     *
-     * @return a list of records sorted from oldest to newest
-     */
-    public List<Record> getRecordsChronological() {
-        List<Record> sortedRecords = getAllRecords();
-        sortedRecords.sort(Comparator.comparing(Record::getTimestamp));
-        return sortedRecords;
-    }
-
-    /**
-     * Returns all records sorted by creation time in reverse chronological order
-     * (newest first).
-     *
-     * @return a list of records sorted from newest to oldest
-     */
-    public List<Record> getRecordsReverseChronological() {
-        List<Record> sortedRecords = getAllRecords();
-        sortedRecords.sort(Comparator.comparing(Record::getTimestamp).reversed());
-        return sortedRecords;
     }
 }
