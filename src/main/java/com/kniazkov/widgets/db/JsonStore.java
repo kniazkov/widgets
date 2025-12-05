@@ -212,7 +212,7 @@ public class JsonStore extends Store {
     public void save() {
         final JsonArray array = new JsonArray();
 
-        for (final Record record : this.getAllRecords()) {
+        for (final Record record : this.getRecords()) {
             final JsonObject object = array.createObject();
             object.addString("id", record.getId().toString());
             object.addString("timestamp", record.getTimestamp().toString());

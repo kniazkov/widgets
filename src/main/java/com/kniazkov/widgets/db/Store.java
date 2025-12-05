@@ -144,7 +144,7 @@ public abstract class Store extends RecordSet {
      * @return a list of all stored records
      */
     @Override
-    public List<Record> getAllRecords() {
+    public List<Record> getRecords() {
         synchronized (this.records) {
             return new ArrayList<>(this.records.values());
         }
