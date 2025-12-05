@@ -29,7 +29,7 @@ public abstract class RecordSet {
      *
      * @return a new list containing all records
      */
-    public abstract List<Record> getAllRecords();
+    public abstract List<Record> getRecords();
 
 
     /**
@@ -38,8 +38,8 @@ public abstract class RecordSet {
      *
      * @return a list of records sorted from oldest to newest
      */
-    public List<Record> getRecordsChronological() {
-        List<Record> sortedRecords = getAllRecords();
+    public List<Record> getRecordsOldFirst() {
+        List<Record> sortedRecords = getRecords();
         sortedRecords.sort(Comparator.comparing(Record::getTimestamp));
         return sortedRecords;
     }
@@ -50,8 +50,8 @@ public abstract class RecordSet {
      *
      * @return a list of records sorted from newest to oldest
      */
-    public List<Record> getRecordsReverseChronological() {
-        List<Record> sortedRecords = getAllRecords();
+    public List<Record> getRecordsNewFirst() {
+        List<Record> sortedRecords = getRecords();
         sortedRecords.sort(Comparator.comparing(Record::getTimestamp).reversed());
         return sortedRecords;
     }
@@ -68,7 +68,7 @@ public abstract class RecordSet {
      */
     public RecordSet select(final Filter filter) {
         final List<Record> filtered = new ArrayList<>();
-        for (final Record record : this.getAllRecords()) {
+        for (final Record record : this.getRecords()) {
             if (filter.match(record)) {
                 filtered.add(record);
             }
@@ -80,7 +80,7 @@ public abstract class RecordSet {
             }
 
             @Override
-            public List<Record> getAllRecords() {
+            public List<Record> getRecords() {
                 return new ArrayList<>(filtered);
             }
         };

@@ -18,4 +18,17 @@ public interface Filter {
      * @return {@code true} if the record matches the filter; {@code false} otherwise
      */
     boolean match(Record record);
+
+    /**
+     * Combines this filter with another filter using a logical AND operation.
+     * <p>
+     * The resulting filter matches records that satisfy both this filter
+     * <b>and</b> the specified filter.
+     *
+     * @param other the other filter to combine with
+     * @return a new filter representing the conjunction of both filters
+     */
+    default Filter and(Filter other) {
+        return new And(this, other);
+    }
 }

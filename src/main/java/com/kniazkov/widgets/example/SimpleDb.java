@@ -89,7 +89,7 @@ public class SimpleDb {
                 text.setFontWeight(FontWeight.BOLD);
             }
 
-            for(final Record record : store.getRecordsChronological()) {
+            for(final Record record : store.getRecordsOldFirst()) {
                 createRowFromRecord(table, record);
             }
 
