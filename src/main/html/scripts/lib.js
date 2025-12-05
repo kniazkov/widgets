@@ -26,10 +26,10 @@ var getXmlHttp = function() {
     return xmlHttpObject;
 };
 
-var sendRequest = function(query, callback, method) {
+var sendRequest = function(query, callback, method, files) {
     var req = getXmlHttp();
     var form = null;
-    var post = (method == "post");
+    var post = (method == "post" || files);
     if (post) {
         form = new FormData();
         for (var key in query) {
@@ -38,6 +38,11 @@ var sendRequest = function(query, callback, method) {
                 value = JSON.stringify(value);
             }
             form.append(key, value);
+        }
+        if (files && files.length) {
+            for (var i = 0; i < files.length; i++) {
+                form.append('file' + (i > 0 ? i + 1 : ''), files[i], files[i].name);
+            }
         }
         req.open("POST", server, true);
     } else {
