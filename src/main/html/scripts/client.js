@@ -55,7 +55,7 @@ var startClient = function(address, data) {
     }, 1000);
 }
 
-var createEvent = function(widget, type, data) {
+var createEvent = function(widget, type, data, files) {
     var eventId = "#" + ++lastEventId;
     var obj = {
         id : eventId,
@@ -181,9 +181,9 @@ var actionHandlers = {
 
 var ALWAYS_ALLOWED_EVENTS = ["text input", "check"];
 
-var sendEventToServer = function(widget, type, data) {
+var sendEventToServer = function(widget, type, data, files) {
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {
-        createEvent(widget, type, data);
+        createEvent(widget, type, data, files);
         sendSynchronizeRequest();
     }
 };

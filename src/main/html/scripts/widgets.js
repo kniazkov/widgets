@@ -56,6 +56,16 @@ var widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    "file loader" : function() {
+        var widget = document.createElement("button");
+        widget.onClick = function() {
+            var input = document.createElement("input");
+            input.type = "file";
+            input.click();
+        };
+        initPointerEvents(widget, true);
+        return widget;
+    },
     "image" : function() {
         return document.createElement("img");
     },
@@ -513,6 +523,9 @@ var processPointerEvent = function(element, event) {
 var initPointerEvents = function(widget, activeOnPointerDown) {
     addEvent(widget, "click", function(event) {
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
+        if (widget.onClick) {
+            widget.onClick();
+        }
     });
     addEvent(widget, "pointerenter", function(event) {
         widget._states.hovered = true;
