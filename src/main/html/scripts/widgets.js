@@ -61,6 +61,20 @@ var widgetsLibrary = {
         widget.onClick = function() {
             var input = document.createElement("input");
             input.type = "file";
+            addEvent(input, "change", function(evt) {
+                var files = evt.target.files;
+                if (!files) return;
+                for (var index = 0; index < files.length; index++) {
+                    var file = files[index];
+                    var reader = new FileReader();
+                    addEvent(reader, "load", function(evt) {
+                        var hexContent = arrayBufferToHex(evt.target.result);
+                        log(hexContent);
+                        return;
+                    });
+                    reader.readAsArrayBuffer(file);
+                }
+            });
             input.click();
         };
         initPointerEvents(widget, true);
