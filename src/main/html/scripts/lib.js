@@ -127,18 +127,3 @@ var truncate = function(text, maxLength) {
     }
     return text.slice(0, maxLength - 3) + "..."
 };
-
-var _hex = '0123456789abcdef';
-
-var arrayBufferToHex = function(buffer) {
-    var bytes = new Uint8Array(buffer);
-    var result = new Array(bytes.length * 2);
-
-    for (var index = 0; index < bytes.length; index++) {
-        var byte = bytes[index];
-        result[index * 2] = _hex[byte >> 4];
-        result[index * 2 + 1] = _hex[byte & 0xF];
-    }
-
-    return result.join('');
-}

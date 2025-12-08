@@ -4,6 +4,40 @@
 
 var widgets = { };
 
+var int2hex = '0123456789abcdef';
+var arrayBufferToHex = function(buffer) {
+    var bytes = new Uint8Array(buffer);
+    var result = [];
+    var chunk = [];
+    var size = 0;
+    for (var index = 0; index < bytes.length; index++) {
+        var byte = bytes[index];
+        chunk.push(int2hex[byte >> 4]);
+        chunk.push(int2hex[byte & 0xF]);
+        size++;
+        if (size == MAX_UPLOAD_CHUNK_SIZE) {
+            result.push(chunk.join(""));
+            chunk = [];
+            size = 0;
+        }
+    }
+    result.push(chunk.join(""));
+    return result;
+}
+
+var loadFile = function(widget, file) {
+    var reader = new FileReader();
+    addEvent(reader, "load", function(evt) {
+        widget._files.push({
+            name : file.name,
+            type : file.type,
+            size : file.size,
+            content : arrayBufferToHex(evt.target.result)
+        });
+    });
+    reader.readAsArrayBuffer(file);
+};
+
 var widgetsLibrary = {
     "root" : function() {
         return document.body;
@@ -58,6 +92,7 @@ var widgetsLibrary = {
     },
     "file loader" : function() {
         var widget = document.createElement("button");
+        widget._files = [];
         widget.onClick = function() {
             var input = document.createElement("input");
             input.type = "file";
@@ -65,14 +100,7 @@ var widgetsLibrary = {
                 var files = evt.target.files;
                 if (!files) return;
                 for (var index = 0; index < files.length; index++) {
-                    var file = files[index];
-                    var reader = new FileReader();
-                    addEvent(reader, "load", function(evt) {
-                        var hexContent = arrayBufferToHex(evt.target.result);
-                        log(hexContent);
-                        return;
-                    });
-                    reader.readAsArrayBuffer(file);
+                    loadFile(widget, files[index]);
                 }
             });
             input.click();
