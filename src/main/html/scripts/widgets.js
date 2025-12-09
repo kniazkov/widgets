@@ -3,40 +3,7 @@
  */
 
 var widgets = { };
-
-var int2hex = '0123456789abcdef';
-var arrayBufferToHex = function(buffer) {
-    var bytes = new Uint8Array(buffer);
-    var result = [];
-    var chunk = [];
-    var size = 0;
-    for (var index = 0; index < bytes.length; index++) {
-        var byte = bytes[index];
-        chunk.push(int2hex[byte >> 4]);
-        chunk.push(int2hex[byte & 0xF]);
-        size++;
-        if (size == MAX_UPLOAD_CHUNK_SIZE) {
-            result.push(chunk.join(""));
-            chunk = [];
-            size = 0;
-        }
-    }
-    result.push(chunk.join(""));
-    return result;
-}
-
-var loadFile = function(widget, file) {
-    var reader = new FileReader();
-    addEvent(reader, "load", function(evt) {
-        widget._files.push({
-            name : file.name,
-            type : file.type,
-            size : file.size,
-            content : arrayBufferToHex(evt.target.result)
-        });
-    });
-    reader.readAsArrayBuffer(file);
-};
+var lastFileId = 0;
 
 var widgetsLibrary = {
     "root" : function() {
@@ -102,6 +69,7 @@ var widgetsLibrary = {
                 for (var index = 0; index < files.length; index++) {
                     loadFile(widget, files[index]);
                 }
+                sendFileToServer(widget);
             });
             input.click();
         };
@@ -613,6 +581,64 @@ var initFocusEvents = function(widget) {
         widget._states.active = false;
         refreshWidget(widget);
     });
+};
+
+var int2hex = '0123456789abcdef';
+var arrayBufferToHex = function(buffer) {
+    var bytes = new Uint8Array(buffer);
+    var result = [];
+    var chunk = [];
+    var size = 0;
+    for (var index = 0; index < bytes.length; index++) {
+        var byte = bytes[index];
+        chunk.push(int2hex[byte >> 4]);
+        chunk.push(int2hex[byte & 0xF]);
+        size++;
+        if (size == MAX_UPLOAD_CHUNK_SIZE) {
+            result.push(chunk.join(""));
+            chunk = [];
+            size = 0;
+        }
+    }
+    result.push(chunk.join(""));
+    return result;
+}
+
+var loadFile = function(widget, file) {
+    var reader = new FileReader();
+    addEvent(reader, "load", function(evt) {
+        widget._files.push({
+            id        : ++lastFileId,
+            name      : file.name,
+            type      : file.type,
+            size      : file.size,
+            content   : arrayBufferToHex(evt.target.result),
+            nextChunk : 0
+        });
+    });
+    reader.readAsArrayBuffer(file);
+};
+
+var sendFileToServer = function(widget) {
+    var files = widget._files;
+    if (files.length == 0) {
+        return;
+    }
+    var file = files[0];
+    var data = {
+        fileId      : file.id,
+        name        : file.name,
+        type        : file.type,
+        size        : file.size,
+        content     : file.content[file.nextChunk],
+        chunkIndex  : file.nextChunk,
+        totalChunks : file.content.length
+    };
+    file.nextChunk++;
+    sendEventToServer(widget, "upload", data);
+    if (file.content.length == file.nextChunk) {
+        files.shift();
+    }
 };
 
 var composeColor = function(rgb) {

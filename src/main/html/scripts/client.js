@@ -55,7 +55,7 @@ var startClient = function(address, data) {
     }, 1000);
 }
 
-var createEvent = function(widget, type, data, files) {
+var createEvent = function(widget, type, data) {
     var eventId = "#" + ++lastEventId;
     var obj = {
         id : eventId,
@@ -179,11 +179,11 @@ var actionHandlers = {
     "set checked": setCheckedFlag
 };
 
-var ALWAYS_ALLOWED_EVENTS = ["text input", "check"];
+var ALWAYS_ALLOWED_EVENTS = ["text input", "check", "upload"];
 
-var sendEventToServer = function(widget, type, data, files) {
+var sendEventToServer = function(widget, type, data) {
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {
-        createEvent(widget, type, data, files);
+        createEvent(widget, type, data);
         sendSynchronizeRequest();
     }
 };
