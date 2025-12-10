@@ -176,7 +176,8 @@ var actionHandlers = {
     "set horz alignment": setHorzAlignment,
     "set vert alignment": setVertAlignment,
     "set cell spacing": setCellSpacing,
-    "set checked": setCheckedFlag
+    "set checked": setCheckedFlag,
+    "next chunk": sendNextChunk
 };
 
 var ALWAYS_ALLOWED_EVENTS = ["text input", "check", "upload"];

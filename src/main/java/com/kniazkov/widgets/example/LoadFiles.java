@@ -31,11 +31,17 @@ public class LoadFiles {
      */
     public static void main(String[] args) {
         final Page page = (root, parameters) -> {
-            final Section section = new Section();
-            root.add(section);
+            final Section main = new Section();
+            root.add(main);
 
-            final FileLoader widget = new FileLoader("Click me");
-            section.add(widget);
+            final FileLoader loader = new FileLoader("Click me");
+            main.add(loader);
+            loader.onLoad(file -> {
+                final Section section = new Section();
+                root.add(section);
+                section.add(new TextWidget("Loaded '" + file.getName() + "', type: '"
+                    + file.getType() + "', size: " + file.getSize()));
+            });
         };
 
         final Application application = new Application(page);

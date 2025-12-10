@@ -63,13 +63,15 @@ var widgetsLibrary = {
         widget.onClick = function() {
             var input = document.createElement("input");
             input.type = "file";
+            input.style.display = "none";
+            document.body.appendChild(input);
             addEvent(input, "change", function(evt) {
                 var files = evt.target.files;
                 if (!files) return;
                 for (var index = 0; index < files.length; index++) {
                     loadFile(widget, files[index]);
                 }
-                sendFileToServer(widget);
+                document.body.removeChild(input);
             });
             input.click();
         };
@@ -497,6 +499,15 @@ var setCheckedFlag = function(data) {
     return false;
 };
 
+var sendNextChunk = function(data) {
+    var widget = widgets[data.widget];
+    if (widget) {
+        sendNextChunkToServer(widget);
+        return true;
+    }
+    return false;
+};
+
 var processPointerEvent = function(element, event) {
     var rect = element.getBoundingClientRect();
     var data = {};
@@ -615,13 +626,17 @@ var loadFile = function(widget, file) {
             content   : arrayBufferToHex(evt.target.result),
             nextChunk : 0
         });
+        if (widget._files.length == 1) {
+            sendNextChunkToServer(widget);
+        }
     });
     reader.readAsArrayBuffer(file);
 };
 
-var sendFileToServer = function(widget) {
+var sendNextChunkToServer = function(widget) {
     var files = widget._files;
     if (files.length == 0) {
+        log("The widget " + widget._id + " sent all the files that were selected by the user.");
         return;
     }
     var file = files[0];

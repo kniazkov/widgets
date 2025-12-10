@@ -2,6 +2,9 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets.common;
+
+import java.nio.charset.StandardCharsets;
+
 /**
  * Represents a file that has been successfully uploaded.
  */
@@ -40,7 +43,7 @@ public class UploadedFile {
      * @return the filename
      */
     public String getName() {
-        return name;
+        return this.name;
     }
 
     /**
@@ -49,7 +52,7 @@ public class UploadedFile {
      * @return the MIME type
      */
     public String getType() {
-        return type;
+        return this.type;
     }
 
     /**
@@ -58,6 +61,23 @@ public class UploadedFile {
      * @return a copy of the file content as a byte array
      */
     public byte[] getContent() {
-        return content.clone();
+        return this.content.clone();
+    }
+
+    /**
+     * Return the size of the uploaded file, in bytes.
+     *
+     * @return the size of the uploaded file
+     */
+    public int getSize() {
+        return this.content.length;
+    }
+
+    @Override
+    public String toString() {
+        if (this.type != null && this.type.startsWith("text/")) {
+            return new String(this.content, StandardCharsets.UTF_8);
+        }
+        return this.type;
     }
 }
