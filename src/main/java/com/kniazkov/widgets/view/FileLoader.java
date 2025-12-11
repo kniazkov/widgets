@@ -16,7 +16,7 @@ import java.util.TreeMap;
  * assembling them into complete files, and providing progress tracking.
  * It automatically requests the next chunk after processing each received chunk.
  */
-public class FileLoader extends Button {
+public class FileLoader extends Button implements HasMultipleInput {
     /**
      * Map of currently uploading files, keyed by their unique file ID.
      */

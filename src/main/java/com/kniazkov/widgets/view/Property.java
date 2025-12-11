@@ -816,4 +816,58 @@ public abstract class Property<T> {
             return JsonBoolean.getInstance(data);
         }
     };
+
+    /**
+     * Property controlling whether a widget accepts multiple selections.
+     */
+    public static final Property<Boolean> MULTIPLE_INPUT = new Property<Boolean>() {
+        @Override
+        public String getName() {
+            return "multiple input";
+        }
+
+        @Override
+        public Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+        @Override
+        public Model<Boolean> createDefaultModel() {
+            return new BooleanModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Boolean data) {
+            return JsonBoolean.getInstance(data);
+        }
+    };
+
+    /**
+     * Property specifying the accepted file types for a file input widget.
+     * <p>
+     * The value is a comma-separated list of file extensions or MIME types that the widget should
+     * accept (e.g., ".pdf,.docx" or "image/*,audio/*"). This property controls the browser's file
+     * selection filter.
+     */
+    public static final Property<String> ACCEPTED_FILES = new Property<String>() {
+        @Override
+        public String getName() {
+            return "accepted files";
+        }
+
+        @Override
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+
+        @Override
+        public Model<String> createDefaultModel() {
+            return new StringModel();
+        }
+
+        @Override
+        public JsonElement convertData(final String data) {
+            return new JsonString(data);
+        }
+    };
 }

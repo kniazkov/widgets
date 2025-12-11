@@ -46,6 +46,7 @@ public class LoadFiles {
 
             final FileLoader loader = new FileLoader("Click me");
             main.add(loader);
+            loader.setMultipleInputFlag(true);
             loader.onSelect(descriptor -> {
                 final Section section = new Section();
                 root.add(section);

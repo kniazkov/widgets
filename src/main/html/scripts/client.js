@@ -182,6 +182,7 @@ var actionHandlers = {
     "set vert alignment": setVertAlignment,
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
+    "set multiple input": setMultipleInput,
     "next chunk": sendNextChunk
 };
 

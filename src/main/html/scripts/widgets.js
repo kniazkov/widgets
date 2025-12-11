@@ -60,10 +60,12 @@ var widgetsLibrary = {
     "file loader" : function() {
         var widget = document.createElement("button");
         widget._files = [];
+        widget._multiple = false;
         widget.onClick = function() {
             var input = document.createElement("input");
             input.type = "file";
             input.style.display = "none";
+            input.multiple = widget._multiple;
             document.body.appendChild(input);
             addEvent(input, "change", function(evt) {
                 var files = evt.target.files;
@@ -494,6 +496,17 @@ var setCheckedFlag = function(data) {
     if (widget && typeof flag == "boolean") {
         widget.checked = flag;
         log("The widget " + data.widget + " has been " + (flag ? "checked" : "unchecked") + '.');
+        return true;
+    }
+    return false;
+};
+
+var setMultipleInput = function(data) {
+    var widget = widgets[data.widget];
+    var flag = data["multiple input"];
+    if (widget && typeof flag == "boolean") {
+        widget._multiple = flag;
+        log("The multiple input flag has been " + ( flag ? "set" : "cleared" ) + " on the widget " + data.widget + '.');
         return true;
     }
     return false;
