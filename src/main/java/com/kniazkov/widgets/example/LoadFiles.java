@@ -7,6 +7,9 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
@@ -37,11 +40,33 @@ public class LoadFiles {
             final FileLoader loader = new FileLoader("Click me");
             main.add(loader);
             loader.onSelect(descriptor -> {
+                final Section section = new Section();
+                root.add(section);
+                final TextWidget loading = new TextWidget("Loading");
+                section.add(loading);
+                section.add(new TextWidget(" '"));
+                final TextWidget name = new TextWidget(descriptor.getName());
+                name.setFontWeight(FontWeight.BOLD);
+                section.add(name);
+                section.add(new TextWidget("', type: '"));
+                final TextWidget type = new TextWidget(descriptor.getType());
+                type.setFontWeight(FontWeight.BOLD);
+                section.add(type);
+                section.add(new TextWidget("', "));
+                final TextWidget percent = new TextWidget();
+                percent.setFontWeight(FontWeight.BOLD);
+                percent.setTextModel(
+                    new IntegerToStringModel(descriptor.getLoadingPercentageModel())
+                );
+                section.add(percent);
+                section.add(new TextWidget("%"));
                 descriptor.onLoad(file-> {
-                    final Section section = new Section();
-                    root.add(section);
-                    section.add(new TextWidget("Loaded '" + file.getName() + "', type: '"
-                            + file.getType() + "', size: " + file.getSize()));
+                    section.add(new TextWidget(", size: "));
+                    final TextWidget size = new TextWidget(String.valueOf(file.getSize()));
+                    size.setFontWeight(FontWeight.BOLD);
+                    section.add(size);
+                    loading.setText("Loaded");
+                    percent.setColor(Color.BLUE);
                 });
             });
         };

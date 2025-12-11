@@ -6,6 +6,8 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.UploadedFile;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
+import com.kniazkov.widgets.model.IntegerModel;
+import com.kniazkov.widgets.model.Model;
 
 /**
  * ...
@@ -53,6 +55,11 @@ public class UploadingFile {
 
     /**
      * ...
+     */
+    private Model<Integer> percentage = null;
+
+    /**
+     * ...
      * @param event
      */
     UploadingFile(final UploadEvent event) {
@@ -74,6 +81,30 @@ public class UploadingFile {
 
     /**
      * ...
+     * @return
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * ...
+     * @return
+     */
+    public String getType() {
+        return this.type;
+    }
+
+    /**
+     * ...
+     * @return
+     */
+    public int getSize() {
+        return this.size;
+    }
+
+    /**
+     * ...
      * @param ctrl
      */
     public void onLoad(final Controller<UploadedFile> ctrl) {
@@ -85,12 +116,28 @@ public class UploadingFile {
 
     /**
      * ...
+     * @return
+     */
+    public Model<Integer> getLoadingPercentageModel() {
+        if (this.percentage == null) {
+            this.percentage = new IntegerModel();
+            this.percentage.setData(this.uploadedChunksCount * 100 / this.totalChunks);
+        }
+        return this.percentage;
+    }
+
+    /**
+     * ...
      * @param event
      */
     void handleUploadEvent(final UploadEvent event) {
-        if (event.chunkIndex >= 0 && event.chunkIndex < this.totalChunks && this.content[event.chunkIndex] == null) {
+        if (event.chunkIndex >= 0 && event.chunkIndex < this.totalChunks
+                    && this.content[event.chunkIndex] == null) {
             this.content[event.chunkIndex] = event.content;
             this.uploadedChunksCount++;
+            if (this.percentage != null) {
+                this.percentage.setData(this.uploadedChunksCount * 100 / this.totalChunks);
+            }
             if (this.uploadedChunksCount == this.totalChunks) {
                 this.fullyUploadedFile = this.createFile();
                 this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
@@ -105,7 +152,9 @@ public class UploadingFile {
     private UploadedFile createFile() {
         final byte[] data = decode(this.content);
         if (data.length != this.size) {
-            throw new IllegalStateException("The size of the uploaded file does not match the declared");
+            throw new IllegalStateException(
+                "The size of the uploaded file does not match the declared"
+            );
         }
         return new UploadedFile(this.name, this.type, data);
     }
