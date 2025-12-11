@@ -10,57 +10,62 @@ import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
 
 /**
- * ...
+ * Manages the state and assembly of a file being uploaded in chunks.
+ * <p>
+ * This class tracks the progress of a multi-chunk file upload, assembles the chunks
+ * in the correct order, decodes Base16 (hex) encoded content, and notifies listeners
+ * when the complete file is available.
  */
 public class UploadingFile {
     /**
-     * ...
+     * Original filename of the file being uploaded.
      */
     private final String name;
 
     /**
-     * ...
+     * MIME type of the file being uploaded.
      */
     private final String type;
 
     /**
-     * ...
+     * Total declared size of the complete file in bytes.
      */
     private final int size;
 
     /**
-     * ...
+     * Array storing Base16-encoded content chunks in their original order.
      */
     private final String[] content;
 
     /**
-     * ...
+     * Number of chunks that have been successfully received so far.
      */
     private int uploadedChunksCount;
 
     /**
-     * ...
+     * Total number of chunks expected for this file.
      */
     private final int totalChunks;
 
     /**
-     *
+     * The fully assembled file, available once all chunks are received.
      */
     private UploadedFile fullyUploadedFile = null;
 
     /**
-     * ...
+     * Controller to notify when the file is completely uploaded.
      */
     private Controller<UploadedFile> onLoadCtrl = Controller.stub();
 
     /**
-     * ...
+     * Model tracking the upload progress as a percentage (0-100).
      */
     private Model<Integer> percentage = null;
 
     /**
-     * ...
-     * @param event
+     * Constructs a new UploadingFile instance from the initial upload event.
+     *
+     * @param event the first upload event containing file metadata and possibly the first chunk
      */
     UploadingFile(final UploadEvent event) {
         this.name = event.name;
@@ -80,32 +85,37 @@ public class UploadingFile {
     }
 
     /**
-     * ...
-     * @return
+     * Returns the original filename of the file being uploaded.
+     *
+     * @return the filename
      */
     public String getName() {
         return this.name;
     }
 
     /**
-     * ...
-     * @return
+     * Returns the MIME type of the file being uploaded.
+     *
+     * @return the MIME type
      */
     public String getType() {
         return this.type;
     }
 
     /**
-     * ...
-     * @return
+     * Returns the total declared size of the file in bytes.
+     *
+     * @return the file size
      */
     public int getSize() {
         return this.size;
     }
 
     /**
-     * ...
-     * @param ctrl
+     * Registers a controller to be notified when the file is completely uploaded.
+     * If the file is already fully uploaded, the controller is invoked immediately.
+     *
+     * @param ctrl the controller to notify upon completion
      */
     public void onLoad(final Controller<UploadedFile> ctrl) {
         this.onLoadCtrl = ctrl;
@@ -115,8 +125,10 @@ public class UploadingFile {
     }
 
     /**
-     * ...
-     * @return
+     * Returns a model that tracks the upload progress as a percentage (0-100).
+     * The model is created lazily upon first request.
+     *
+     * @return a model containing the current upload percentage
      */
     public Model<Integer> getLoadingPercentageModel() {
         if (this.percentage == null) {
@@ -127,8 +139,10 @@ public class UploadingFile {
     }
 
     /**
-     * ...
-     * @param event
+     * Processes an incoming upload event containing a file chunk.
+     * Updates progress tracking and assembles the complete file when all chunks are received.
+     *
+     * @param event the upload event containing a chunk of the file
      */
     void handleUploadEvent(final UploadEvent event) {
         if (event.chunkIndex >= 0 && event.chunkIndex < this.totalChunks
@@ -146,8 +160,10 @@ public class UploadingFile {
     }
 
     /**
-     * ...
-     * @return
+     * Assembles the complete file from all received chunks and decodes the Base16 content.
+     *
+     * @return the fully assembled UploadedFile
+     * @throws IllegalStateException if the decoded data size doesn't match the declared size
      */
     private UploadedFile createFile() {
         final byte[] data = decode(this.content);
@@ -160,9 +176,10 @@ public class UploadingFile {
     }
 
     /**
-     * ...
-     * @param content
-     * @return
+     * Decodes an array of Base16 (hex) encoded strings into a single byte array.
+     *
+     * @param content array of Base16-encoded strings, one per chunk
+     * @return the concatenated and decoded byte array
      */
     private static byte[] decode(String[] content) {
         int size = 0;

@@ -13,9 +13,16 @@ import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
- * ....
+ * A demonstration program showcasing the {@link FileLoader} widget for file uploads.
+ * <p>
+ * This example creates a file upload button that, when clicked, allows users to
+ * select and upload files. The program displays real-time upload progress for each file
+ * and saves completed files to the server's filesystem upon successful upload.
  *
  * <b>How to use</b>
  * <ol>
@@ -67,6 +74,10 @@ public class LoadFiles {
                     section.add(size);
                     loading.setText("Loaded");
                     percent.setColor(Color.BLUE);
+                    try {
+                        Files.write(Paths.get(file.getName()), file.getContent());
+                    } catch (IOException ignored) {
+                    }
                 });
             });
         };
