@@ -36,11 +36,13 @@ public class LoadFiles {
 
             final FileLoader loader = new FileLoader("Click me");
             main.add(loader);
-            loader.onLoad(file -> {
-                final Section section = new Section();
-                root.add(section);
-                section.add(new TextWidget("Loaded '" + file.getName() + "', type: '"
-                    + file.getType() + "', size: " + file.getSize()));
+            loader.onSelect(descriptor -> {
+                descriptor.onLoad(file-> {
+                    final Section section = new Section();
+                    root.add(section);
+                    section.add(new TextWidget("Loaded '" + file.getName() + "', type: '"
+                            + file.getType() + "', size: " + file.getSize()));
+                });
             });
         };
 
