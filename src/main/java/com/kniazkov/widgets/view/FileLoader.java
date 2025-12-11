@@ -76,7 +76,9 @@ public class FileLoader extends Button {
         } else {
             file.handleUploadEvent(event);
         }
-        this.pushUpdate(new RequestNextChunk(this.getId()));
+        if (event.chunkIndex >= 0) {
+            this.pushUpdate(new RequestNextChunk(this.getId()));
+        }
     }
 
     /**

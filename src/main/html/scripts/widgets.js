@@ -617,22 +617,25 @@ var arrayBufferToHex = function(buffer) {
     return result;
 }
 
-var loadFile = function(widget, file) {
+var loadFile = function(widget, descr) {
     var reader = new FileReader();
     addEvent(reader, "load", function(evt) {
-        widget._files.push({
+        var file = {
             id        : ++lastFileId,
-            name      : file.name,
-            type      : file.type,
-            size      : file.size,
+            name      : descr.name,
+            type      : descr.type,
+            size      : descr.size,
             content   : arrayBufferToHex(evt.target.result),
             nextChunk : 0
-        });
+        };
+        widget._files.push(file);
         if (widget._files.length == 1) {
             sendNextChunkToServer(widget);
+        } else {
+            sendEmptyChunkToServer(widget, file);
         }
     });
-    reader.readAsArrayBuffer(file);
+    reader.readAsArrayBuffer(descr);
 };
 
 var sendNextChunkToServer = function(widget) {
@@ -656,6 +659,19 @@ var sendNextChunkToServer = function(widget) {
     if (file.content.length == file.nextChunk) {
         files.shift();
     }
+};
+
+var sendEmptyChunkToServer = function(widget, file) {
+    var data = {
+        fileId      : file.id,
+        name        : file.name,
+        type        : file.type,
+        size        : file.size,
+        content     : "",
+        chunkIndex  : -1,
+        totalChunks : file.content.length
+    };
+    createEvent(widget, "upload", data);
 };
 
 var composeColor = function(rgb) {
