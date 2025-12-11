@@ -502,7 +502,9 @@ var setCheckedFlag = function(data) {
 var sendNextChunk = function(data) {
     var widget = widgets[data.widget];
     if (widget) {
-        sendNextChunkToServer(widget);
+        setTimeout(function() {
+            sendNextChunkToServer(widget);
+        }, 0);
         return true;
     }
     return false;

@@ -89,6 +89,9 @@ var processUpdates = function(updates) {
         var handler = actionHandlers[update.action];
         if (handler) {
             result = handler(update);
+            if (!result) {
+                log("Update " + update.id + " was not processed due to incorrect data.");
+            }
         } else {
             log("Unknown action: '" + update.action + "'.");
         }
@@ -136,6 +139,7 @@ var reset = function() {
     clearInterval(mainCycleTask);
     document.body.innerHTML = "";
     startClient();
+    return true;
 };
 
 var goToPage = function(data) {
@@ -144,6 +148,7 @@ var goToPage = function(data) {
         log("The server initiated a switch to another page: '" + href + "'.");
         window.location.href = href;
     }
+    return true;
 };
 
 var actionHandlers = {
