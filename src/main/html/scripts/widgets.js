@@ -61,11 +61,13 @@ var widgetsLibrary = {
         var widget = document.createElement("button");
         widget._files = [];
         widget._multiple = false;
+        widget._accept = "";
         widget.onClick = function() {
             var input = document.createElement("input");
             input.type = "file";
             input.style.display = "none";
             input.multiple = widget._multiple;
+            input.accept = widget._accept;
             document.body.appendChild(input);
             addEvent(input, "change", function(evt) {
                 var files = evt.target.files;
@@ -507,6 +509,21 @@ var setMultipleInput = function(data) {
     if (widget && typeof flag == "boolean") {
         widget._multiple = flag;
         log("The multiple input flag has been " + ( flag ? "set" : "cleared" ) + " on the widget " + data.widget + '.');
+        return true;
+    }
+    return false;
+};
+
+var setAcceptedFiles = function(data) {
+    var widget = widgets[data.widget];
+    var files = data["accepted files"];
+    if (widget && typeof files == "string") {
+        widget._accept = files;
+        if (files == "") {
+            log("The widget " + data.widget + " can accept all files");
+        } else {
+            log("The widget " + data.widget + " can accept files: '" + files + "'.");
+        }
         return true;
     }
     return false;

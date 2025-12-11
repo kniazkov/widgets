@@ -183,6 +183,7 @@ var actionHandlers = {
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
     "set multiple input": setMultipleInput,
+    "set accepted files": setAcceptedFiles,
     "next chunk": sendNextChunk
 };
 

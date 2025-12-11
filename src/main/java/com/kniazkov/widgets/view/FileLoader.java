@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
+import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.RequestNextChunk;
 import java.util.Map;
 import java.util.TreeMap;
@@ -88,5 +89,59 @@ public class FileLoader extends Button implements HasMultipleInput {
      */
     public void onSelect(final Controller<UploadingFile> ctrl) {
         this.onSelectCtrl = ctrl;
+    }
+
+    /**
+     * Returns the model that stores the accepted files pattern for this view.
+     *
+     * @return the accepted files model
+     */
+    public Model<String> getAcceptedFilesModel() {
+        return this.getModel(State.ANY, Property.ACCEPTED_FILES);
+    }
+
+    /**
+     * Sets a new accepted files model for this view.
+     *
+     * @param model the accepted files model to set
+     */
+    public void setAcceptedFilesModel(Model<String> model) {
+        this.setModel(State.ANY, Property.ACCEPTED_FILES, model);
+    }
+
+    /**
+     * Returns the current accepted files pattern from the model.
+     *
+     * @return the current accepted files pattern (e.g., ".pdf,.docx" or "image/*")
+     */
+    public String getAcceptedFiles() {
+        return this.getAcceptedFilesModel().getData();
+    }
+
+    /**
+     * Updates the accepted files pattern in the model.
+     *
+     * @param pattern the new accepted files pattern
+     */
+    public void setAcceptedFiles(String pattern) {
+        this.getAcceptedFilesModel().setData(pattern);
+    }
+
+    /**
+     * Configures this view to accept all file types.
+     * <p>
+     * Equivalent to setting an empty pattern or wildcard, allowing any file to be selected.
+     */
+    public void acceptAllFiles() {
+        this.setAcceptedFiles("");
+    }
+
+    /**
+     * Configures this view to accept only image files.
+     * <p>
+     * Sets the pattern to "image/*", allowing all image MIME types (JPEG, PNG, GIF, etc.).
+     */
+    public void acceptImagesOnly() {
+        this.setAcceptedFiles("image/*");
     }
 }
