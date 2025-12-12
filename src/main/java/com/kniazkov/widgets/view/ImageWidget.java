@@ -13,13 +13,13 @@ import com.kniazkov.widgets.model.Model;
  * The image source is stored in a {@link Model} and bound to the
  * {@link Property#IMAGE_SOURCE} property.
  */
-public class Image extends BaseImage {
+public class ImageWidget extends BaseImageWidget {
     /**
      * Creates a new image initialized with the specified source.
      *
      * @param source the image source to use
      */
-    public Image(final ImageSource source) {
+    public ImageWidget(final ImageSource source) {
         this.setSourceModel(new ImageSourceModel(source));
     }
 
@@ -28,7 +28,7 @@ public class Image extends BaseImage {
      *
      * @param href the raw hyperlink pointing to the image
      */
-    public Image(final String href) {
+    public ImageWidget(final String href) {
         this.setSourceModel(new ImageSourceModel(ImageSource.fromHyperlink(href)));
     }
 

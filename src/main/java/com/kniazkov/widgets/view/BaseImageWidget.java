@@ -6,35 +6,35 @@ package com.kniazkov.widgets.view;
 /**
  * Base class for all image widgets.
  * <p>
- * This class defines that every image uses an {@link ImageStyle} and provides the default style
+ * This class defines that every image uses an {@link ImageWidgetStyle} and provides the default style
  * applied at construction time. Subclasses inherit the styling mechanism and can override
  * or adjust the assigned style as needed.
  */
-public abstract class BaseImage extends InlineWidget implements HasBorder,
+public abstract class BaseImageWidget extends InlineWidget implements HasBorder,
         HasAbsoluteWidth, HasAbsoluteHeight {
 
     /**
      * Returns the default style applied to all images.
      *
-     * @return the default {@link ImageStyle}
+     * @return the default {@link ImageWidgetStyle}
      */
-    public static ImageStyle getDefaultStyle() {
-        return ImageStyle.DEFAULT;
+    public static ImageWidgetStyle getDefaultStyle() {
+        return ImageWidgetStyle.DEFAULT;
     }
 
     /**
      * Creates a new image widget initialized with the default style.
      */
-    public BaseImage() {
+    public BaseImageWidget() {
         super(getDefaultStyle());
     }
 
     /**
      * Sets the style used to render this image.
      *
-     * @param style the {@link ImageStyle} to apply
+     * @param style the {@link ImageWidgetStyle} to apply
      */
-    public void setStyle(final ImageStyle style) {
+    public void setStyle(final ImageWidgetStyle style) {
         super.setStyle(style);
     }
 }

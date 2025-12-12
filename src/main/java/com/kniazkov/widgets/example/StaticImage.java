@@ -9,7 +9,7 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.HorizontalAlignment;
-import com.kniazkov.widgets.view.Image;
+import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Section;
 
 /**
@@ -42,7 +42,7 @@ public class StaticImage {
             root.add(section);
             section.setHorizontalAlignment(HorizontalAlignment.CENTER);
 
-            final Image image = new Image("house.png");
+            final ImageWidget image = new ImageWidget("house.png");
             section.add(image);
         };
 

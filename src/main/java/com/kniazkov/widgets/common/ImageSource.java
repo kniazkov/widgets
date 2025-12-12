@@ -36,4 +36,14 @@ public interface ImageSource {
             return "#";
         }
     };
+
+    /**
+     * An {@link ImageSource} containing one transparent pixel.
+     */
+    ImageSource TRANSPARENT_PIXEL = new ImageSource() {
+        @Override
+        public String toString() {
+            return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
+        }
+    };
 }

@@ -7,9 +7,9 @@ import com.kniazkov.widgets.common.BorderStyle;
 import java.util.Set;
 
 /**
- * Style definition for {@link BaseImage}.
+ * Style definition for {@link BaseImageWidget}.
  */
-public class ImageStyle extends Style implements HasBorder {
+public class ImageWidgetStyle extends Style implements HasBorder {
     /**
      * Set of supported states.
      */
@@ -18,12 +18,12 @@ public class ImageStyle extends Style implements HasBorder {
     /**
      * The global default image widget style.
      */
-    public static final ImageStyle DEFAULT = new ImageStyle();
+    public static final ImageWidgetStyle DEFAULT = new ImageWidgetStyle();
 
     /**
      * Creates the default image style.
      */
-    private ImageStyle() {
+    private ImageWidgetStyle() {
         this.setBorderStyle(BorderStyle.NONE);
     }
 
@@ -32,7 +32,7 @@ public class ImageStyle extends Style implements HasBorder {
      *
      * @param parent the parent style to inherit from
      */
-    public ImageStyle(final ImageStyle parent) {
+    public ImageWidgetStyle(final ImageWidgetStyle parent) {
         super(parent);
     }
 
@@ -42,7 +42,7 @@ public class ImageStyle extends Style implements HasBorder {
     }
 
     @Override
-    public ImageStyle derive() {
-        return new ImageStyle(this);
+    public ImageWidgetStyle derive() {
+        return new ImageWidgetStyle(this);
     }
 }
