@@ -180,6 +180,50 @@ public final class Color {
     }
 
     /**
+     * Returns the red component of this color.
+     *
+     * @return red value in the range [0, 255]
+     */
+    public int getRed() {
+        return this.red;
+    }
+
+    /**
+     * Returns the green component of this color.
+     *
+     * @return green value in the range [0, 255]
+     */
+    public int getGreen() {
+        return this.green;
+    }
+
+    /**
+     * Returns the blue component of this color.
+     *
+     * @return blue value in the range [0, 255]
+     */
+    public int getBlue() {
+        return this.blue;
+    }
+
+    /**
+     * Returns the alpha (transparency) component of this color.
+     *
+     * @return alpha value in the range [0, 255], where 0 is fully transparent
+     */
+    public int getAlpha() {
+        return this.alpha;
+    }
+
+    /**
+     * Reads alpha channel value in the range [0, 1].
+     * @return alpha channel value in the range [0, 1]
+     */
+    public double getAlphaAsPercent() {
+        return (double)Math.round((double)this.alpha / 2.55) / 100;
+    }
+
+    /**
      * Ensures that a color component is within the valid range [0, 255].
      *
      * @param value the input component value
@@ -189,13 +233,5 @@ public final class Color {
         if (value < 0) return 0;
         if (value > 255) return 255;
         return value;
-    }
-
-    /**
-     * Reads alpha channel value in the range [0, 1].
-     * @return alpha channel value in the range [0, 1]
-     */
-    private double getAlphaAsPercent() {
-        return (double)Math.round((double)this.alpha / 2.55) / 100;
     }
 }

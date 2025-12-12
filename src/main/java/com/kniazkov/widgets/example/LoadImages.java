@@ -7,11 +7,12 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
-import com.kniazkov.widgets.common.BufferedImageSource;
+import com.kniazkov.widgets.view.BufferedImageSource;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.ImageSource;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
+import com.kniazkov.widgets.view.MonochromaticImageSource;
 import com.kniazkov.widgets.view.Section;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -55,7 +56,9 @@ public class LoadImages {
             loader.setMultipleInputFlag(true);
             loader.acceptImagesOnly();
             loader.onSelect(descriptor -> {
-                final ImageWidget widget = new ImageWidget(ImageSource.TRANSPARENT_PIXEL);
+                final ImageWidget widget = new ImageWidget(
+                    new MonochromaticImageSource(Color.PINK, 300, 300)
+                );
                 images.add(widget);
                 widget.setWidth(300);
                 widget.setHeight(300);
