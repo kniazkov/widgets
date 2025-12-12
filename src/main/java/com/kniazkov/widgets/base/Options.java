@@ -31,12 +31,18 @@ public class Options implements Cloneable {
      */
     public int port = 8080;
 
+    /**
+     * Outputs debug messages to the log on both the client and the server.
+     */
+    public boolean debug = true;
+
     @Override
     public Options clone() {
         Options copy = new Options();
         copy.clientLifetime = this.clientLifetime;
         copy.wwwRoot = this.wwwRoot;
         copy.port = this.port;
+        copy.debug = this.debug;
         return copy;
     }
 }

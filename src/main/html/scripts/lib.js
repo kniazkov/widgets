@@ -106,7 +106,7 @@ var escapeHtml = function(unsafe) {
 };
 
 var log = function(message) {
-    console.log(message);
+    console["log"](message);
 };
 
 var readBit = function(number, bitIndex) {

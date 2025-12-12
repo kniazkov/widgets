@@ -88,6 +88,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             replaceAddress = false;
         }
 
+        final String contentType = getContentTypeByExtension(address);
+        final boolean removeLogs = contentType.equals("text/javascript") && !options.debug;
+
         try {
             final URL url = getClass().getResource(address);
             final byte[] data;
@@ -100,15 +103,24 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     while ((count = in.read(tmp)) >= 0) {
                         buffer.write(tmp, 0, count);
                     }
-                    if (replaceAddress) {
-                        final JsonObject obj = new JsonObject();
-                        for (final String key : request.formData.keySet()) {
-                            obj.addString(key, request.formData.get(key));
+                    if (replaceAddress || removeLogs) {
+                        String code = buffer.toString();
+                        if (replaceAddress) {
+                            final JsonObject obj = new JsonObject();
+                            for (final String key : request.formData.keySet()) {
+                                obj.addString(key, request.formData.get(key));
+                            }
+                            code = code
+                                .replace("{address}", request.path)
+                                .replace("{data}", obj.toString());
                         }
-                        data = new String(buffer.toByteArray())
-                            .replace("{address}", request.path)
-                            .replace("{data}", obj.toString())
-                            .getBytes();
+                        if (removeLogs) {
+                            code = code.replaceAll(
+                                "\\blog\\([^;]*\\)\\s*;",
+                                "/* $0 */"
+                            );
+                        }
+                        data = code.getBytes();
                     } else {
                         data = buffer.toByteArray();
                     }
@@ -117,8 +129,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 Path path = Paths.get(this.options.wwwRoot, request.path);
                 data = Files.readAllBytes(path);
             }
-
-            final String contentType = getContentTypeByExtension(address);
 
             return new Response() {
                 @Override
