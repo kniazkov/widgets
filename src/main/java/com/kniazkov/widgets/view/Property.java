@@ -14,7 +14,7 @@ import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
-import com.kniazkov.widgets.common.ImageSource;
+import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;

@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.ImageSource;
+import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
 

@@ -7,12 +7,12 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
-import com.kniazkov.widgets.view.BufferedImageSource;
+import com.kniazkov.widgets.images.BufferedImageSource;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.ImageSource;
+import com.kniazkov.widgets.images.CircleProgressBarCreator;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
-import com.kniazkov.widgets.view.MonochromaticImageSource;
+import com.kniazkov.widgets.images.MonochromaticImageSource;
 import com.kniazkov.widgets.view.Section;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -51,19 +51,31 @@ public class LoadImages {
             final Section images = new Section();
             root.add(images);
 
+            final CircleProgressBarCreator progress = new CircleProgressBarCreator(
+                300,
+                300,
+                100,
+                Color.TRANSPARENT,
+                Color.GRAY,
+                Color.NAVY
+            );
+
             final FileLoader loader = new FileLoader("Click me");
             main.add(loader);
             loader.setMultipleInputFlag(true);
             loader.acceptImagesOnly();
             loader.onSelect(descriptor -> {
                 final ImageWidget widget = new ImageWidget(
-                    new MonochromaticImageSource(Color.PINK, 300, 300)
+                    progress.getImageSource(0)
                 );
                 images.add(widget);
                 widget.setWidth(300);
                 widget.setHeight(300);
                 widget.setBorderWidth(1);
                 widget.setBorderColor(Color.BLACK);
+                descriptor.getLoadingPercentageModel().addListener(percent -> {
+                    widget.setSource(progress.getImageSource(percent));
+                });
                 descriptor.onLoad(file-> {
                     try {
                         final ByteArrayInputStream inputStream = new ByteArrayInputStream(

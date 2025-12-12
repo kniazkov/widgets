@@ -1,9 +1,9 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets.view;
+package com.kniazkov.widgets.images;
 
-import com.kniazkov.widgets.common.ImageSource;
+import com.kniazkov.widgets.images.ImageSource;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

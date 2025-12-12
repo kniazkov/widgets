@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.model;
 
-import com.kniazkov.widgets.common.ImageSource;
+import com.kniazkov.widgets.images.ImageSource;
 
 /**
  * A model that stores an {@link ImageSource} value.

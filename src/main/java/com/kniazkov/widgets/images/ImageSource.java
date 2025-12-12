@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2025 Ivan Kniazkov
  */
-package com.kniazkov.widgets.common;
+package com.kniazkov.widgets.images;
 
 /**
  * Represents a source of an image. Any implementation must be convertible to a string
