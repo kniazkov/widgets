@@ -6,21 +6,35 @@ import java.net.URLEncoder;
 public class CircleProgressBarCreator {
     private final int width;
     private final int height;
-    private final int diameter;
-    private final Color bgColor;
-    private final Color circleColor;
-    private final Color progressColor;
+    private int diameter;
+    private Color bgColor = Color.TRANSPARENT;
+    private Color circleColor = Color.LIGHT_GRAY;
+    private Color progressColor = Color.BLACK;
+
     private final ImageSource[] sources;
 
-    public CircleProgressBarCreator(final int width, final int height, final int diameter,
-            final Color bgColor, final Color circleColor, final Color progressColor) {
+    public CircleProgressBarCreator(final int width, final int height) {
         this.width = width;
         this.height = height;
-        this.diameter = diameter;
-        this.bgColor = bgColor;
-        this.circleColor = circleColor;
-        this.progressColor = progressColor;
+        this.diameter = Math.min(width, height) / 3;
         this.sources = new ImageSource[101];
+    }
+
+    public void setDiameter(int value) {
+        int maxDiam = Math.min(this.width, this.height);
+        this.diameter = Math.min(maxDiam, value);
+    }
+
+    public void setBgColor(Color value) {
+        this.bgColor = value;
+    }
+
+    public void setCircleColor(Color value) {
+        this.circleColor = value;
+    }
+
+    public void setProgressColor(Color value) {
+        this.progressColor = value;
     }
 
     public ImageSource getImageSource(int percent) {
@@ -40,84 +54,64 @@ public class CircleProgressBarCreator {
     private class ProgressBar implements ImageSource {
         final int percent;
 
-
         private ProgressBar(final int percent) {
             this.percent = percent;
         }
 
         @Override
         public String toString() {
-            int centerX = width / 2;
-            int centerY = height / 2;
-
-            int circleRadius = diameter / 2;
-
-            int strokeWidth = Math.max(1, circleRadius / 8);
-            int progressRadius = circleRadius - strokeWidth / 2;
-
-            // Calculate progress arc
-            double circumference = 2 * Math.PI * progressRadius;
-            double progressLength = ((double) percent / 100.0) * circumference;
-            double dashOffset = circumference - progressLength;
-
-            StringBuilder svg = new StringBuilder();
-            svg.append("<svg xmlns='http://www.w3.org/2000/svg' ")
-               .append("width='").append(width).append("' ")
-               .append("height='").append(height).append("' ")
-               .append("viewBox='0 0 ").append(width).append(" ").append(height).append("'>");
-
-            if (bgColor.getAlpha() == 0) {
-                svg.append("<rect width='100%' height='100%' fill='transparent'/>");
+            final String header = String.format(
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" " +
+                    "viewBox=\"0 0 %d %d\">",
+                width,
+                height,
+                width,
+                height
+            );
+            final String background = String.format(
+                "<rect width=\"%d\" height=\"%d\" fill=\"%s\"/>",
+                width,
+                height,
+                bgColor.getAlpha() == 0 ? "transparent" : bgColor.toString()
+            );
+            final int cX = width / 2;
+            final int cY = height / 2;
+            final int radius = diameter / 2;
+            final String circle = String.format(
+                "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" " +
+                    "stroke-width=\"2\"/>",
+                cX,
+                cY,
+                radius,
+                circleColor.toString()
+            );
+            final String progress;
+            if (this.percent > 0) {
+                final double circumference = 2 * Math.PI * radius;
+                final double progressLength = ((double) this.percent / 100.0) * circumference;
+                progress = String.format(
+                    "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" " +
+                        "stroke-width=\"5\" stroke-linecap=\"round\" " +
+                        "stroke-dasharray=\"%f %f\" " +
+                        "transform=\"rotate(-90 %d %d)\"/>",
+                    cX,
+                    cY,
+                    radius,
+                    progressColor.toString(),
+                    progressLength,
+                    circumference,
+                    cX,
+                    cY
+                );
             } else {
-                svg.append("<rect width='100%' height='100%' fill='").append(bgColor.toString()).append("'/>");
+                progress = "";
             }
-
-            svg.append("<circle cx='").append(centerX)
-               .append("' cy='").append(centerY)
-               .append("' r='").append(progressRadius)
-               .append("' fill='none' stroke='").append(circleColor.toString())
-               .append("' stroke-width='").append(strokeWidth).append("'/>");
-
-            if (percent > 0) {
-                if (percent < 5) {
-                    progressLength = Math.max(circumference * 0.05, strokeWidth * 2);
-                    dashOffset = circumference - progressLength;
-                }
-
-                svg.append("<circle cx='").append(centerX)
-                   .append("' cy='").append(centerY)
-                   .append("' r='").append(progressRadius)
-                   .append("' fill='none' stroke='").append(progressColor.toString())
-                   .append("' stroke-width='").append(strokeWidth)
-                   .append("' stroke-linecap='round")
-                   .append("' stroke-dasharray='").append(progressLength).append(" ").append(circumference)
-                   .append("' stroke-dashoffset='").append(dashOffset)
-                   .append("' transform='rotate(-90 ").append(centerX).append(" ").append(centerY).append(")'/>");
-            }
-
-            // Percentage text (center of circle)
-            int fontSize = Math.max(8, circleRadius / 2);
-            int textX = centerX;
-            int textY = centerY + fontSize / 3;
-
-            // Choose text color with good contrast
-            String textColor = circleColor.toString();
-
-            svg.append("<text x='").append(textX)
-               .append("' y='").append(textY)
-               .append("' text-anchor='middle'")
-               .append(" font-family='Arial, sans-serif' font-size='").append(fontSize)
-               .append("' fill='").append(textColor)
-               .append("' font-weight='bold'>")
-               .append(percent).append("%")
-               .append("</text>");
-
-            svg.append("</svg>");
-
+            final String footer = "</svg>";
             // URL encode and return as data URL
-            String encodedSvg = URLEncoder.encode(svg.toString())
-                .replaceAll("\\+", "%20");
-            return "data:image/svg+xml," + encodedSvg;
+            String svg = URLEncoder.encode(
+                header + background + circle + progress + footer
+            ).replaceAll("\\+", "%20");
+            return "data:image/svg+xml," + svg;
         }
     }
 }

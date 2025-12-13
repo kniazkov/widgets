@@ -53,11 +53,7 @@ public class LoadImages {
 
             final CircleProgressBarCreator progress = new CircleProgressBarCreator(
                 300,
-                300,
-                100,
-                Color.TRANSPARENT,
-                Color.GRAY,
-                Color.NAVY
+                300
             );
 
             final FileLoader loader = new FileLoader("Click me");
