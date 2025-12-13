@@ -7,18 +7,20 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.images.BufferedImageSource;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.images.CircleProgressBarCreator;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
-import com.kniazkov.widgets.images.MonochromaticImageSource;
 import com.kniazkov.widgets.view.Section;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import javax.imageio.ImageIO;
 
 /**
@@ -44,6 +46,7 @@ public class LoadImages {
      * @param args program arguments
      */
     public static void main(String[] args) {
+        final Set<Listener<Integer>> listeners = new HashSet<>();
         final Page page = (root, parameters) -> {
             final Section main = new Section();
             root.add(main);
@@ -69,9 +72,10 @@ public class LoadImages {
                 widget.setHeight(300);
                 widget.setBorderWidth(1);
                 widget.setBorderColor(Color.BLACK);
-                descriptor.getLoadingPercentageModel().addListener(percent -> {
-                    widget.setSource(progress.getImageSource(percent));
-                });
+                final Listener<Integer> listener =
+                    percent -> widget.setSource(progress.getImageSource(percent));
+                listeners.add(listener);
+                descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file-> {
                     try {
                         final ByteArrayInputStream inputStream = new ByteArrayInputStream(
@@ -114,9 +118,11 @@ public class LoadImages {
                             null
                         );
                         g2d.dispose();
-                        widget.setSource(new BufferedImageSource(croppedImage));
+                        widget.setSource(new BufferedImageSource(resizedImage));
                     } catch (final IOException ignored) {
                         images.remove(widget);
+                    } finally {
+                        listeners.remove(listener);
                     }
                 });
             });
