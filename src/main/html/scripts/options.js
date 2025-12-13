@@ -3,4 +3,4 @@
  */
 
 var DEFAULT_FONT_FACE = "Inter";
-var MAX_UPLOAD_CHUNK_SIZE = 1024;
+var MAX_UPLOAD_CHUNK_SIZE = 1024 * 64;

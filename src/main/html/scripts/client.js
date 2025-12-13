@@ -125,7 +125,8 @@ var sendSynchronizeRequest = function() {
             var json = JSON.parse(data);
             processUpdates(json.updates);
             removeProcessedEvents(json.lastEvent);
-        }
+        },
+        "post"
     );
 };
 

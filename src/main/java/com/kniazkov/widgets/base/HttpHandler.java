@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.webserver.Method;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseJson;
@@ -63,7 +64,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     @Override
     public Response handle(final Request request) {
         // Handle action requests: /?action=...
-        if (request.address.startsWith("/?")) {
+        if (request.method == Method.POST || request.address.startsWith("/?")) {
             final String action = request.formData.get("action");
             final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
