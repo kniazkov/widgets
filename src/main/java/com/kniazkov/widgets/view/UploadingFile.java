@@ -151,9 +151,6 @@ public class UploadingFile {
             this.uploadedChunksCount++;
             if (this.percentage != null) {
                 int percent = this.uploadedChunksCount * 100 / this.totalChunks;
-                if (percent == 99) {
-                    percent = 100;
-                }
                 this.percentage.setData(percent);
             }
             if (this.uploadedChunksCount == this.totalChunks) {
