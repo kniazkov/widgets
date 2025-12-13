@@ -150,7 +150,11 @@ public class UploadingFile {
             this.content[event.chunkIndex] = event.content;
             this.uploadedChunksCount++;
             if (this.percentage != null) {
-                this.percentage.setData(this.uploadedChunksCount * 100 / this.totalChunks);
+                int percent = this.uploadedChunksCount * 100 / this.totalChunks;
+                if (percent == 99) {
+                    percent = 100;
+                }
+                this.percentage.setData(percent);
             }
             if (this.uploadedChunksCount == this.totalChunks) {
                 this.fullyUploadedFile = this.createFile();
