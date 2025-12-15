@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.base;
 
+import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.webserver.Method;
@@ -16,7 +17,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -89,7 +89,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             replaceAddress = false;
         }
 
-        final String contentType = getContentTypeByExtension(address);
+        final String contentType = Utils.getContentTypeByExtension(address);
         final boolean removeLogs = contentType.equals("text/javascript") && !options.debug;
 
         try {
@@ -149,30 +149,5 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
 
         // Resource not found
         return null;
-    }
-
-    /**
-     * Infers HTTP content type based on file extension.
-     *
-     * @param path Resource file path
-     * @return MIME Type string
-     */
-    private static String getContentTypeByExtension(String path) {
-        int index = path.lastIndexOf('.');
-        if (index < 0) return "application/unknown";
-
-        String ext = path.substring(index + 1).toLowerCase(Locale.ROOT);
-        switch (ext) {
-            case "txt":  return "text/plain";
-            case "htm":
-            case "html": return "text/html";
-            case "css":  return "text/css";
-            case "js":   return "text/javascript";
-            case "jpg":
-            case "jpeg":
-            case "png":
-            case "gif":  return "image/" + ext;
-            default:     return "application/" + ext;
-        }
     }
 }

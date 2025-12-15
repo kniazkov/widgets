@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.widgets.common.UploadedFile;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
@@ -69,7 +70,7 @@ public class UploadingFile {
      */
     UploadingFile(final UploadEvent event) {
         this.name = event.name;
-        this.type = event.type;
+        this.type = event.type.isEmpty() ? Utils.getContentTypeByExtension(event.name) : event.type;
         this.size = event.size;
         this.content = new String[event.totalChunks];
         if (event.chunkIndex >= 0 && event.chunkIndex < event.totalChunks) {
