@@ -3,6 +3,11 @@
  */
 package com.kniazkov.widgets.images;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,9 +44,86 @@ public class ImageLoader {
             result.setRGB(0, 0, width, height, pixels, 0, width);
         } else {
             final ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
-            result = ImageIO.read(inputStream);
+            final BufferedImage image = ImageIO.read(inputStream);
+            int orientation = 1;
+            try (final ByteArrayInputStream metaIn = new ByteArrayInputStream(data)) {
+                final Metadata metadata = ImageMetadataReader.readMetadata(metaIn);
+                final ExifIFD0Directory dir = metadata.getFirstDirectoryOfType(
+                    ExifIFD0Directory.class
+                );
+                if (dir != null && dir.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+                    orientation = dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+                }
+            } catch (final Exception ignore) {
+            }
+            result = applyExifOrientation(image, orientation);
         }
         return result;
+    }
+
+    /**
+     * Applies an EXIF orientation transformation to an image.
+     * The orientation value corresponds to the TIFF/EXIF 2.31 specification.
+     *
+     * @param img the original image to transform
+     * @param orientation the EXIF orientation tag value (1-8), where 1 means "normal"
+     * @return a new {@link BufferedImage} with the orientation applied,
+     *  or the original image if orientation is 1 or has an unsupported value
+     */
+    private static BufferedImage applyExifOrientation(final BufferedImage img,
+            final int orientation) {
+        if (orientation == 1) {
+            return img;
+        }
+        final int w = img.getWidth();
+        final int h = img.getHeight();
+        final AffineTransform tx = new AffineTransform();
+        int ww = w, hh = h;
+        switch (orientation) {
+            case 2: // flip X
+                tx.scale(-1, 1);
+                tx.translate(-w, 0);
+                break;
+            case 3: // 180
+                tx.translate(w, h);
+                tx.rotate(Math.PI);
+                break;
+            case 4: // flip Y
+                tx.scale(1, -1);
+                tx.translate(0, -h);
+                break;
+            case 5: // transpose
+                tx.rotate(Math.PI / 2);
+                tx.scale(1, -1);
+                ww = h; hh = w;
+                tx.translate(0, -w);
+                break;
+            case 6: // 90 CW
+                tx.translate(h, 0);
+                tx.rotate(Math.PI / 2);
+                ww = h; hh = w;
+                break;
+            case 7: // transverse
+                tx.rotate(-Math.PI / 2);
+                tx.scale(1, -1);
+                ww = h; hh = w;
+                tx.translate(-h, -w);
+                break;
+            case 8: // 90 CCW
+                tx.translate(0, w);
+                tx.rotate(-Math.PI / 2);
+                ww = h; hh = w;
+                break;
+            default:
+                return img;
+        }
+
+        final BufferedImage out = new BufferedImage(ww, hh, BufferedImage.TYPE_INT_ARGB);
+        final Graphics2D g = out.createGraphics();
+        g.setTransform(tx);
+        g.drawImage(img, 0, 0, null);
+        g.dispose();
+        return out;
     }
 
     /**
@@ -49,7 +131,7 @@ public class ImageLoader {
      * Provides read-only, seekable access to the underlying data. Used to feed HEIC image data
      * to the Openize.HEIC library.
      */
-    public static class ByteArrayIOStream implements IOStream {
+    private static class ByteArrayIOStream implements IOStream {
         /**
          * The underlying byte array containing the data.
          */
@@ -70,7 +152,7 @@ public class ImageLoader {
          *
          * @param data the byte array to be used as the data source
          */
-        public ByteArrayIOStream(byte[] data) {
+        ByteArrayIOStream(byte[] data) {
             this.data = data;
             this.position = 0;
             this.closed = false;
