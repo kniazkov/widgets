@@ -172,16 +172,6 @@ public abstract class Widget implements Entity, HandlesEvents {
     }
 
     /**
-     * Returns the container that currently holds this widget, if any.
-     *
-     * @return an {@link Optional} containing the parent container, or empty if the widget
-     *  has no parent
-     */
-    public Optional<Container> getParent() {
-        return Optional.ofNullable(this.parent);
-    }
-
-    /**
      * Removes this widget from its parent container.
      * This effectively removes the widget from the UI hierarchy. After removal, this widget
      * is considered "detached" - it will no longer receive updates or events from the client.
@@ -199,6 +189,29 @@ public abstract class Widget implements Entity, HandlesEvents {
     public void getUpdates(final Set<Update> set) {
         set.addAll(this.updates);
         this.updates.clear();
+    }
+
+    /**
+     * Returns the container that currently holds this widget, if any.
+     *
+     * @return an {@link Optional} containing the parent container, or empty if the widget
+     *  has no parent
+     */
+    public Optional<Container> getParent() {
+        return Optional.ofNullable(this.parent);
+    }
+
+    /**
+     * Returns the root widget, recursively traversing all widgets up the parent chain.
+     *
+     * @return a reference to the root widget or an empty {@link Optional} if the given widget
+     *  is not in the widget tree and, accordingly, the root widget is not accessible
+     */
+    public Optional<RootWidget> getRootWidget() {
+        if (!(this.parent instanceof Widget)) {
+            return Optional.empty();
+        }
+        return ((Widget) this.parent).getRootWidget();
     }
 
     /**
