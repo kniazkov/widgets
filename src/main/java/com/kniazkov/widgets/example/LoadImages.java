@@ -17,7 +17,6 @@ import com.kniazkov.widgets.view.Section;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferInt;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Objects;
@@ -98,10 +97,7 @@ public class LoadImages {
                             final int[] pixels = image.getInt32Array(PixelFormat.Argb32);
                             System.out.println("Get array");
                             originalImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                            final int[] imageBuffer = ((DataBufferInt) originalImage.getRaster().getDataBuffer()).getData();
-                            System.out.println("Get dst buffer");
-                            System.arraycopy(pixels, 0, imageBuffer, 0, pixels.length);
-                            System.out.println("Data copied");
+                            originalImage.setRGB(0, 0, width, height, pixels, 0, width);
                         } else {
                             final ByteArrayInputStream inputStream = new ByteArrayInputStream(
                                 file.getContent()
