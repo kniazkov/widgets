@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.images;
 
+import java.awt.image.BufferedImage;
+
 /**
  * Represents a source of an image. Any implementation must be convertible to a string
  * so that it can be written into the {@code src} attribute of an {@code <img>} element.
@@ -24,6 +26,17 @@ public interface ImageSource {
                 return href;
             }
         };
+    }
+
+    /**
+     * Creates an {@link ImageSource} backed by a {@link BufferedImage} object.
+     * The image data will be converted to an internal representation (e.g., a data URL).
+     *
+     * @param image the {@code BufferedImage} object to be used as the source
+     * @return an {@code ImageSource} that contains the converted image data
+     */
+    static ImageSource fromImage(final BufferedImage image) {
+        return new BufferedImageSource(image);
     }
 
     /**
