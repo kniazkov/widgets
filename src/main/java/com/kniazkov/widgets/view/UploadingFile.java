@@ -121,7 +121,9 @@ public class UploadingFile {
     public void onLoad(final Controller<UploadedFile> ctrl) {
         this.onLoadCtrl = ctrl;
         if (this.fullyUploadedFile != null) {
-            ctrl.handleEvent(this.fullyUploadedFile);
+            new Thread(() -> {
+                this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
+            }).start();
         }
     }
 
@@ -156,7 +158,9 @@ public class UploadingFile {
             }
             if (this.uploadedChunksCount == this.totalChunks) {
                 this.fullyUploadedFile = this.createFile();
-                this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
+                new Thread(() -> {
+                    this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
+                }).start();
             }
         }
     }
