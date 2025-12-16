@@ -12,6 +12,7 @@ import com.kniazkov.widgets.images.BufferedImageSource;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.images.CircleProgressBarCreator;
 import com.kniazkov.widgets.images.ImageLoader;
+import com.kniazkov.widgets.images.ImageProcessor;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Section;
@@ -77,44 +78,16 @@ public class LoadImages {
                 descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file-> {
                     try {
-                        final BufferedImage originalImage = ImageLoader.load(file.getType(), file.getContent());
-                        int minSize = Math.min(originalImage.getWidth(), originalImage.getHeight());
-                        int x = (originalImage.getWidth() - minSize) / 2;
-                        int y = (originalImage.getHeight() - minSize) / 2;
-                        final BufferedImage croppedImage = originalImage.getSubimage(
-                            x,
-                            y,
-                            minSize,
-                            minSize
+                        final BufferedImage original = ImageLoader.load(
+                            file.getType(),
+                            file.getContent()
                         );
-                        final BufferedImage resizedImage = new BufferedImage(
-                            300,
-                            300,
-                            BufferedImage.TYPE_INT_ARGB
+                        final BufferedImage cropped = ImageProcessor.cropToSquare(original);
+                        final BufferedImage resized = ImageProcessor.resizeToFit(
+                            cropped,
+                            300
                         );
-                        Graphics2D g2d = resizedImage.createGraphics();
-                        g2d.setRenderingHint(
-                            RenderingHints.KEY_INTERPOLATION,
-                            RenderingHints.VALUE_INTERPOLATION_BICUBIC)
-                        ;
-                        g2d.setRenderingHint(
-                            RenderingHints.KEY_RENDERING,
-                            RenderingHints.VALUE_RENDER_QUALITY
-                        );
-                        g2d.setRenderingHint(
-                            RenderingHints.KEY_ANTIALIASING,
-                            RenderingHints.VALUE_ANTIALIAS_ON
-                        );
-                        g2d.drawImage(
-                            croppedImage,
-                            0,
-                            0,
-                            300,
-                            300,
-                            null
-                        );
-                        g2d.dispose();
-                        widget.setSource(new BufferedImageSource(resizedImage));
+                        widget.setSource(new BufferedImageSource(resized));
                     } catch (final IOException ignored) {
                         images.remove(widget);
                     } finally {
