@@ -21,7 +21,13 @@ import openize.io.IOStream;
  * Utility class for loading images from byte arrays.
  * Supports standard formats (via ImageIO) and HEIC format (via the Openize.HEIC library).
  */
-public class ImageLoader {
+public final class ImageLoader {
+    /**
+     * Private constructor.
+     */
+    private ImageLoader() {
+    }
+
     /**
      * Loads a {@link BufferedImage} from raw byte data and a specified MIME type.
      * For standard image formats (JPEG, PNG, etc.), uses {@link ImageIO}.
