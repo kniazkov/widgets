@@ -91,13 +91,13 @@ public class Row extends Widget implements TypedContainer<Cell>,
      * If the index is greater than or equal to the number of cells, missing cells are automatically
      * created, appended to this row, and the newly created cell at the requested index is returned.
      *
-     * @param index the cell index (must be >= 0)
+     * @param index the cell index (must be &gt;= 0)
      * @return the existing or newly created cell at the given index
      * @throws IndexOutOfBoundsException if {@code index} is negative
      */
     public Cell getCell(final int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Cell index must be >= 0");
+            throw new IndexOutOfBoundsException("Cell index must be &gt;= 0");
         }
         if (index < this.children.size()) {
             return this.children.get(index);

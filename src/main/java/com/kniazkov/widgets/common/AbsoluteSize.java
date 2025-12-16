@@ -55,11 +55,11 @@ public class AbsoluteSize implements WidgetSize {
     /**
      * Creates a size measured in pixels.
      *
-     * @param px number of pixels (must be >= 0)
+     * @param px number of pixels (must be &gt;= 0)
      */
     public AbsoluteSize(final int px) {
         if (px < 0) {
-            throw new IllegalArgumentException("Pixel value must be >= 0");
+            throw new IllegalArgumentException("Pixel value must be &gt;= 0");
         }
         this.value = px;
         this.unit = Unit.PX;
@@ -69,12 +69,12 @@ public class AbsoluteSize implements WidgetSize {
     /**
      * Creates a size with explicit numeric value and unit.
      *
-     * @param value numeric portion (must be >= 0)
+     * @param value numeric portion (must be &gt;= 0)
      * @param unit  unit of measurement
      */
     public AbsoluteSize(final float value, final Unit unit) {
         if (value < 0f) {
-            throw new IllegalArgumentException("Size value must be >= 0");
+            throw new IllegalArgumentException("Size value must be &gt;= 0");
         }
         this.value = value;
         this.unit = unit;

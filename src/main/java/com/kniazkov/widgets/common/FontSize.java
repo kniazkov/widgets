@@ -84,7 +84,7 @@ public final class FontSize implements Comparable<FontSize> {
      */
     public FontSize(final float value, final Unit unit) {
         if (value < 0f) {
-            throw new IllegalArgumentException("Font size value must be >= 0");
+            throw new IllegalArgumentException("Font size value must be &gt;= 0");
         }
         this.value = value;
         this.unit = Objects.requireNonNull(unit, "Unit must not be null");

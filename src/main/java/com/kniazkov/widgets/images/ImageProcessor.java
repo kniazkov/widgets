@@ -66,7 +66,7 @@ public final class ImageProcessor {
 
     public static BufferedImage resizeToFit(final BufferedImage src, final int maxSize,
             final boolean allowUpscale) {
-        if (maxSize <= 0) throw new IllegalArgumentException("maxSize must be > 0");
+        if (maxSize <= 0) throw new IllegalArgumentException("maxSize must be &gt; 0");
         int w = src.getWidth();
         int h = src.getHeight();
         if (!allowUpscale && w <= maxSize && h <= maxSize) {

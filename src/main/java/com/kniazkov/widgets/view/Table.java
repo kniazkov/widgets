@@ -146,13 +146,13 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
      * created, appended to this table, and the newly created row at the requested index
      * is returned.
      *
-     * @param index the row index (must be >= 0)
+     * @param index the row index (must be &gt;= 0)
      * @return the existing or newly created cell at the given index
      * @throws IndexOutOfBoundsException if {@code index} is negative
      */
     public Row getRow(final int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Row index must be >= 0");
+            throw new IndexOutOfBoundsException("Row index must be &gt;= 0");
         }
         if (index < this.children.size()) {
             return this.children.get(index);
@@ -172,13 +172,13 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
      * a lightweight {@link Column} wrapper that provides convenient access to the cells of the
      * requested column.
      *
-     * @param index the zero-based column index (must be >= 0)
+     * @param index the zero-based column index (must be &gt;= 0)
      * @return a {@link Column} view representing the specified column
      * @throws IndexOutOfBoundsException if {@code index} is negative
      */
     public Column getColumn(final int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Column index must be >= 0");
+            throw new IndexOutOfBoundsException("Column index must be &gt;= 0");
         }
         return this.columns.computeIfAbsent(index, x -> new Column(this, index));
     }
@@ -190,8 +190,8 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
      * created. This allows dynamic construction of tables without needing to pre-allocate rows
      * and columns manually.
      *
-     * @param row the row index (must be >= 0)
-     * @param column the column index (must be >= 0)
+     * @param row the row index (must be &gt;= 0)
+     * @param column the column index (must be &gt;= 0)
      * @return the existing or newly created cell at the given coordinates
      * @throws IndexOutOfBoundsException if {@code row} is negative or {@code column} is negative
      */
