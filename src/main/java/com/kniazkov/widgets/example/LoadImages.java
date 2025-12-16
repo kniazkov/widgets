@@ -7,12 +7,14 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.images.BufferedImageSource;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.images.CircleProgressBarCreator;
 import com.kniazkov.widgets.images.ImageLoader;
 import com.kniazkov.widgets.images.ImageProcessor;
+import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Section;
@@ -72,6 +74,8 @@ public class LoadImages {
                 widget.setHeight(300);
                 widget.setBorderWidth(1);
                 widget.setBorderColor(Color.BLACK);
+                widget.setBorderStyle(BorderStyle.DASHED);
+                widget.setMargin(5);
                 final Listener<Integer> listener =
                     percent -> widget.setSource(progress.getImageSource(percent));
                 listeners.add(listener);
@@ -87,7 +91,8 @@ public class LoadImages {
                             cropped,
                             300
                         );
-                        widget.setSource(new BufferedImageSource(resized));
+                        widget.setSource(ImageSource.fromImage(resized));
+                        widget.setBorderStyle(BorderStyle.SOLID);
                     } catch (final IOException ignored) {
                         images.remove(widget);
                     } finally {

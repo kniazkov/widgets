@@ -10,7 +10,7 @@ package com.kniazkov.widgets.view;
  * applied at construction time. Subclasses inherit the styling mechanism and can override
  * or adjust the assigned style as needed.
  */
-public abstract class BaseImageWidget extends InlineWidget implements HasBorder,
+public abstract class BaseImageWidget extends InlineWidget implements HasBorder, HasMargin,
         HasAbsoluteWidth, HasAbsoluteHeight {
 
     /**
