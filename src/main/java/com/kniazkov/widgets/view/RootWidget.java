@@ -11,6 +11,7 @@ import com.kniazkov.widgets.protocol.ResetClient;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * The root widget of a user interface hierarchy.
@@ -41,6 +42,11 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
      */
     public RootWidget() {
         super(getDefaultStyle());
+    }
+
+    @Override
+    public Optional<RootWidget> getRootWidget() {
+        return Optional.of(this);
     }
 
     @Override

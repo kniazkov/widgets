@@ -3,11 +3,13 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.widgets.common.UploadedFile;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
+import java.util.Optional;
 
 /**
  * Manages the state and assembly of a file being uploaded in chunks.
@@ -17,6 +19,11 @@ import com.kniazkov.widgets.model.Model;
  * when the complete file is available.
  */
 public class UploadingFile {
+    /**
+     * Widget used to download the file.
+     */
+    private final Widget widget;
+
     /**
      * Original filename of the file being uploaded.
      */
@@ -65,11 +72,13 @@ public class UploadingFile {
     /**
      * Constructs a new UploadingFile instance from the initial upload event.
      *
+     * @param widget Widget used to download the file
      * @param event the first upload event containing file metadata and possibly the first chunk
      */
-    UploadingFile(final UploadEvent event) {
+    UploadingFile(final Widget widget, final UploadEvent event) {
+        this.widget = widget;
         this.name = event.name;
-        this.type = event.type;
+        this.type = event.type.isEmpty() ? Utils.getContentTypeByExtension(event.name) : event.type;
         this.size = event.size;
         this.content = new String[event.totalChunks];
         if (event.chunkIndex >= 0 && event.chunkIndex < event.totalChunks) {
@@ -120,7 +129,7 @@ public class UploadingFile {
     public void onLoad(final Controller<UploadedFile> ctrl) {
         this.onLoadCtrl = ctrl;
         if (this.fullyUploadedFile != null) {
-            ctrl.handleEvent(this.fullyUploadedFile);
+                this.runOnLoadHandler();
         }
     }
 
@@ -155,7 +164,7 @@ public class UploadingFile {
             }
             if (this.uploadedChunksCount == this.totalChunks) {
                 this.fullyUploadedFile = this.createFile();
-                this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
+                this.runOnLoadHandler();
             }
         }
     }
@@ -174,6 +183,22 @@ public class UploadingFile {
             );
         }
         return new UploadedFile(this.name, this.type, data);
+    }
+
+    /**
+     * Launches a handler (callback) asynchronously, passing it the uploaded file.
+     * The handler will not begin its work until the current synchronization thread with the client
+     * has completed.
+     */
+    private void runOnLoadHandler() {
+        Optional<RootWidget> root = this.widget.getRootWidget();
+        if (root.isPresent()) {
+            synchronized (root.get()) {
+                new Thread(() -> {
+                    this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
+                }).start();
+            }
+        }
     }
 
     /**

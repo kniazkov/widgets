@@ -7,21 +7,23 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.images.BufferedImageSource;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.images.CircleProgressBarCreator;
+import com.kniazkov.widgets.images.ImageLoader;
+import com.kniazkov.widgets.images.ImageProcessor;
+import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Section;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import javax.imageio.ImageIO;
 
 /**
  * A demonstration program that allows uploading and displaying multiple images.
@@ -72,53 +74,25 @@ public class LoadImages {
                 widget.setHeight(300);
                 widget.setBorderWidth(1);
                 widget.setBorderColor(Color.BLACK);
+                widget.setBorderStyle(BorderStyle.DASHED);
+                widget.setMargin(5);
                 final Listener<Integer> listener =
                     percent -> widget.setSource(progress.getImageSource(percent));
                 listeners.add(listener);
                 descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file-> {
                     try {
-                        final ByteArrayInputStream inputStream = new ByteArrayInputStream(
+                        final BufferedImage original = ImageLoader.load(
+                            file.getType(),
                             file.getContent()
                         );
-                        final BufferedImage originalImage = ImageIO.read(inputStream);
-                        int minSize = Math.min(originalImage.getWidth(), originalImage.getHeight());
-                        int x = (originalImage.getWidth() - minSize) / 2;
-                        int y = (originalImage.getHeight() - minSize) / 2;
-                        final BufferedImage croppedImage = originalImage.getSubimage(
-                            x,
-                            y,
-                            minSize,
-                            minSize
+                        final BufferedImage cropped = ImageProcessor.cropToSquare(original);
+                        final BufferedImage resized = ImageProcessor.resizeToFit(
+                            cropped,
+                            300
                         );
-                        final BufferedImage resizedImage = new BufferedImage(
-                            300,
-                            300,
-                            BufferedImage.TYPE_INT_ARGB
-                        );
-                        Graphics2D g2d = resizedImage.createGraphics();
-                        g2d.setRenderingHint(
-                            RenderingHints.KEY_INTERPOLATION,
-                            RenderingHints.VALUE_INTERPOLATION_BICUBIC)
-                        ;
-                        g2d.setRenderingHint(
-                            RenderingHints.KEY_RENDERING,
-                            RenderingHints.VALUE_RENDER_QUALITY
-                        );
-                        g2d.setRenderingHint(
-                            RenderingHints.KEY_ANTIALIASING,
-                            RenderingHints.VALUE_ANTIALIAS_ON
-                        );
-                        g2d.drawImage(
-                            croppedImage,
-                            0,
-                            0,
-                            300,
-                            300,
-                            null
-                        );
-                        g2d.dispose();
-                        widget.setSource(new BufferedImageSource(resizedImage));
+                        widget.setSource(ImageSource.fromImage(resized));
+                        widget.setBorderStyle(BorderStyle.SOLID);
                     } catch (final IOException ignored) {
                         images.remove(widget);
                     } finally {

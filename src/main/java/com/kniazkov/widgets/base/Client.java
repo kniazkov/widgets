@@ -91,7 +91,7 @@ public final class Client implements Comparable<Client> {
      * <ul>
      *     <li>
      *         Processes the list of incoming events (if present) and dispatches them
-     *         to the corresponding widgets using {@link Widget#handleEvent(String, Optional)}.
+     *         to the corresponding widgets using {@link Widget#handleEvent(String, JsonObject)}.
      *         Events that have already been handled (based on {@code lastHandledEventId})
      *         are skipped.
      *     </li>
@@ -107,9 +107,11 @@ public final class Client implements Comparable<Client> {
      *  processed event ID
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
-        this.processEvents(request);
-        this.collectUpdates(request);
-        this.serializeUpdates(response);
+        synchronized (this.root) {
+            this.processEvents(request);
+            this.collectUpdates(request);
+            this.serializeUpdates(response);
+        }
     }
 
     /**

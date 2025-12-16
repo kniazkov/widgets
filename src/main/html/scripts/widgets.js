@@ -419,6 +419,7 @@ var setBorderStyle = function(data) {
     var state = data.state;
     if (widget && typeof style == "string" && typeof state == "string") {
         widget._properties[state].borderStyle = style;
+        refreshWidget(widget);
         log("The border style \"" + style + "\" for state \"" + state +
                 "\" has been set to the widget " + data.widget + '.');
         return true;

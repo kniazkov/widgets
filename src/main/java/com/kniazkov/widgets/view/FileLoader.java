@@ -71,7 +71,7 @@ public class FileLoader extends Button implements HasMultipleInput {
     public void handleUploadEvent(final UploadEvent event) {
         UploadingFile file = this.uploading.get(event.fileId);
         if (file == null) {
-            file = new UploadingFile(event);
+            file = new UploadingFile(this, event);
             this.uploading.put(event.fileId, file);
             this.onSelectCtrl.handleEvent(file);
         } else {
