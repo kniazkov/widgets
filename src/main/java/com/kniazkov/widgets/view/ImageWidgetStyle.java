@@ -9,7 +9,8 @@ import java.util.Set;
 /**
  * Style definition for {@link BaseImageWidget}.
  */
-public class ImageWidgetStyle extends Style implements HasBorder, HasMargin {
+public class ImageWidgetStyle extends Style implements HasBorder, HasMargin,
+        HasAbsoluteWidth, HasAbsoluteHeight {
     /**
      * Set of supported states.
      */
