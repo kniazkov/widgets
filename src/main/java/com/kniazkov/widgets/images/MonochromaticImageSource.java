@@ -4,7 +4,10 @@
 package com.kniazkov.widgets.images;
 
 import com.kniazkov.widgets.common.Color;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * An {@link ImageSource} implementation that generates a monochromatic (single-color) image
@@ -51,7 +54,14 @@ public class MonochromaticImageSource implements ImageSource {
             "</svg>",
             this.width, this.height, this.color.toString()
         );
-        final String encodedSvg = URLEncoder.encode(svg).replaceAll("\\+", "%20");
+        String encodedSvg = "";
+        try {
+            encodedSvg = URLEncoder.encode(
+                svg,
+                StandardCharsets.UTF_8.name()
+            ).replaceAll("\\+", "%20");
+        } catch (final UnsupportedEncodingException ignored) {
+        }
         return "data:image/svg+xml," + encodedSvg;
     }
 }
