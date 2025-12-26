@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.widgets.common.Utils;
-import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.webserver.Method;
 import com.kniazkov.webserver.Request;

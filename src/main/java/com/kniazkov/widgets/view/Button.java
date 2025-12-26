@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
-import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.SetChild;
 
 /**

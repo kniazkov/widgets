@@ -9,7 +9,6 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.ActiveText;
 import com.kniazkov.widgets.view.Section;
-import com.kniazkov.widgets.view.TextWidget;
 
 /**
  * A demonstration of the {@link ActiveText} widget with clickable text functionality.

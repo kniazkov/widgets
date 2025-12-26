@@ -10,7 +10,6 @@ import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.view.Button;
-import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 

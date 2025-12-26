@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.images;
 
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.images.ImageSource;
 import java.net.URLEncoder;
 
 /**
