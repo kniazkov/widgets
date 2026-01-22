@@ -224,6 +224,17 @@ public final class Color {
     }
 
     /**
+     * Packs the color components (alpha, red, green, blue) into a single 32-bit integer
+     * in ARGB format.
+     * The resulting integer has the structure: {@code 0xAARRGGBB}.
+     *
+     * @return the packed ARGB value as a 32-bit integer
+     */
+    public int pack() {
+        return (this.alpha << 24) | (this.red << 16) | (this.green << 8) | this.blue;
+    }
+
+    /**
      * Parses a color from various string representations.
      * Supported formats:
      * <ul>
