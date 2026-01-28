@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -111,6 +112,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 obj.addString(key, request.formData.get(key));
                             }
                             code = code
+                                .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", request.path)
                                 .replace("{data}", obj.toString());
                         }

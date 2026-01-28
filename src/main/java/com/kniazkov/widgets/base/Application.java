@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -106,10 +107,12 @@ public final class Application {
      * Creates a new client and initializes its page.
      *
      * @param address page address
+     * @paran browserId unique identifier of the client browser
      * @param parameters parameters that are passed through the address line
      * @return the unique identifier of the created client
      */
-    UId createClient(final String address, final Map<String, String> parameters) {
+    UId createClient(final String address, final UUID browserId,
+            final Map<String, String> parameters) {
         this.counter++;
         final Client client = new Client();
         client.timer = this.options.clientLifetime;
