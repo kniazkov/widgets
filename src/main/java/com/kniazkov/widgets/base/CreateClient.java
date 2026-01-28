@@ -9,6 +9,7 @@ import com.kniazkov.json.JsonObject;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -37,11 +38,17 @@ final class CreateClient extends ActionHandler {
         final Map<String, String> parameters = new TreeMap<>(data);
         parameters.remove("action");
         parameters.remove("address");
+        parameters.remove("browserId");
+
+        // Prepare a container for request-specific settings passed to a page
+        final PageSettings settings = new PageSettings();
+        settings.browserId = UUID.fromString(data.get("browserId"));
+        settings.parameters = Collections.unmodifiableMap(parameters);
 
         // Create a new client and obtain its ID
         String id = this.application.createClient(
             data.get("address"),
-            Collections.unmodifiableMap(parameters)
+            settings
         ).toString();
 
         // Build a response JSON object with the new client ID

@@ -6,6 +6,7 @@ package com.kniazkov.widgets.example;
 import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
+import com.kniazkov.widgets.base.PageSettings;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Section;
@@ -60,7 +61,7 @@ public class TwoPages {
 
     private static final class IndexPage implements Page {
         @Override
-        public void create(final RootWidget root, final Map<String, String> parameters) {
+        public void create(final RootWidget root, final PageSettings settings) {
             final Section section = new Section();
             root.add(section);
 
@@ -71,7 +72,7 @@ public class TwoPages {
 
     private static final class AboutPage implements Page {
         @Override
-        public void create(final RootWidget root, final Map<String, String> parameters) {
+        public void create(final RootWidget root, final PageSettings settings) {
             final Section section = new Section();
             root.add(section);
 
