@@ -10,7 +10,9 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import javax.imageio.ImageIO;
 import openize.heic.decoder.HeicImage;
 import openize.heic.decoder.PixelFormat;
@@ -65,6 +67,62 @@ public final class ImageLoader {
             result = applyExifOrientation(image, orientation);
         }
         return result;
+    }
+
+    /**
+     * Loads a {@link BufferedImage} from a file, preserving transparency if present.
+     * Automatically detects the MIME type based on the file extension.
+     *
+     * @param file the file to load the image from
+     * @return a {@code BufferedImage} containing the decoded image with preserved transparency
+     * @throws IOException if an error occurs during reading or decoding the image
+     * @throws IllegalArgumentException if the file is null, doesn't exist, or has an
+     *  unsupported format
+     */
+    public static BufferedImage load(final File file) throws IOException {
+        if (file == null) {
+            throw new IllegalArgumentException("File cannot be null");
+        }
+        if (!file.exists()) {
+            throw new IllegalArgumentException("File does not exist: " + file.getPath());
+        }
+        if (!file.isFile()) {
+            throw new IllegalArgumentException("Path is not a file: " + file.getPath());
+        }
+        final byte[] data = Files.readAllBytes(file.toPath());
+        final String fileName = file.getName().toLowerCase();
+        final String type;
+        if (fileName.endsWith(".heic") || fileName.endsWith(".heif")) {
+            type = "image/heic";
+        } else if (fileName.endsWith(".png")) {
+            type = "image/png";
+        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            type = "image/jpeg";
+        } else if (fileName.endsWith(".gif")) {
+            type = "image/gif";
+        } else if (fileName.endsWith(".bmp")) {
+            type = "image/bmp";
+        } else if (fileName.endsWith(".tif") || fileName.endsWith(".tiff")) {
+            type = "image/tiff";
+        } else if (fileName.endsWith(".webp")) {
+            type = "image/webp";
+        } else {
+            try {
+                final String detectedType = ImageIO.getImageReaders(
+                    ImageIO.createImageInputStream(new ByteArrayInputStream(data))
+                ).next().getFormatName().toLowerCase();
+                if (detectedType.contains("heic") || detectedType.contains("heif")) {
+                    type = "image/heic";
+                } else {
+                    type = "image/" + detectedType;
+                }
+            } catch (Exception e) {
+                throw new IllegalArgumentException(
+                    "Unsupported image format for file: " + file.getPath(), e
+                );
+            }
+        }
+        return load(type, data);
     }
 
     /**

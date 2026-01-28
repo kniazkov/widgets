@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets.images;
 
-import com.kniazkov.widgets.images.ImageSource;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

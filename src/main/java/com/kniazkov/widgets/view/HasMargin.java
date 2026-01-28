@@ -44,7 +44,7 @@ public interface HasMargin extends Entity {
      *
      * @return the left margin value
      */
-    default AbsoluteSize getMarginLeft() {
+    default AbsoluteSize getLeftMargin() {
         return this.getMargin().getLeft();
     }
 
@@ -53,7 +53,7 @@ public interface HasMargin extends Entity {
      *
      * @return the right margin value
      */
-    default AbsoluteSize getMarginRight() {
+    default AbsoluteSize getRightMargin() {
         return this.getMargin().getRight();
     }
 
@@ -62,7 +62,7 @@ public interface HasMargin extends Entity {
      *
      * @return the top margin value
      */
-    default AbsoluteSize getMarginTop() {
+    default AbsoluteSize getTopMargin() {
         return this.getMargin().getTop();
     }
 
@@ -71,7 +71,7 @@ public interface HasMargin extends Entity {
      *
      * @return the bottom margin value
      */
-    default AbsoluteSize getMarginBottom() {
+    default AbsoluteSize getBottomMargin() {
         return this.getMargin().getBottom();
     }
 

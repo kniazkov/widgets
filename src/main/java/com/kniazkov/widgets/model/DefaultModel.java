@@ -4,10 +4,6 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.FontFace;
-import com.kniazkov.widgets.common.FontSize;
-import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.common.AbsoluteSize;
 
 /**
  * Default in-memory implementation of {@link Model}.

@@ -11,7 +11,6 @@ import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;

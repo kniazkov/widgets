@@ -6,7 +6,6 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.VerticalAlignment;
 import java.util.Set;
 
 /**
