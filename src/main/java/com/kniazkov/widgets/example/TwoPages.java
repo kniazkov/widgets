@@ -6,12 +6,11 @@ package com.kniazkov.widgets.example;
 import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
-import com.kniazkov.widgets.base.PageSettings;
+import com.kniazkov.widgets.base.PageContext;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
-import java.util.Map;
 
 /**
  * Demonstrates how to create a web application with multiple pages.
@@ -61,7 +60,7 @@ public class TwoPages {
 
     private static final class IndexPage implements Page {
         @Override
-        public void create(final RootWidget root, final PageSettings settings) {
+        public void create(final RootWidget root, final PageContext settings) {
             final Section section = new Section();
             root.add(section);
 
@@ -72,7 +71,7 @@ public class TwoPages {
 
     private static final class AboutPage implements Page {
         @Override
-        public void create(final RootWidget root, final PageSettings settings) {
+        public void create(final RootWidget root, final PageContext settings) {
             final Section section = new Section();
             root.add(section);
 

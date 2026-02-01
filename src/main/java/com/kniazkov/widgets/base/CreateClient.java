@@ -41,14 +41,14 @@ final class CreateClient extends ActionHandler {
         parameters.remove("browserId");
 
         // Prepare a container for request-specific settings passed to a page
-        final PageSettings settings = new PageSettings();
-        settings.browserId = UUID.fromString(data.get("browserId"));
-        settings.parameters = Collections.unmodifiableMap(parameters);
+        final PageContext context = new PageContext();
+        context.browserId = UUID.fromString(data.get("browserId"));
+        context.parameters = Collections.unmodifiableMap(parameters);
 
         // Create a new client and obtain its ID
         String id = this.application.createClient(
             data.get("address"),
-            settings
+            context
         ).toString();
 
         // Build a response JSON object with the new client ID

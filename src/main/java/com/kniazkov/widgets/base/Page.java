@@ -11,7 +11,7 @@ import com.kniazkov.widgets.view.RootWidget;
  * Every application must implement at least one page that declares its content
  * using widgets. A page is a <b>stateless</b> declarative definition describing what the client
  * UI should contain. When a new client session starts, the framework creates a {@link RootWidget}
- * and invokes {@link #create(RootWidget, PageSettings)} to populate it with widgets and build the
+ * and invokes {@link #create(RootWidget, PageContext)} to populate it with widgets and build the
  * visual structure of the page.
  */
 public interface Page {
@@ -23,8 +23,8 @@ public interface Page {
      * is requested.
      *
      * @param root the root widget of the page
-     * @param settings the page settings containing browser identifier and URL parameters;
+     * @param context the page settings containing initial data such as URL parameters;
      *  never {@code null}
      */
-    void create(RootWidget root, PageSettings settings);
+    void create(RootWidget root, PageContext context);
 }

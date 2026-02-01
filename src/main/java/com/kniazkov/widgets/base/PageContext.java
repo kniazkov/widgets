@@ -7,9 +7,13 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Container for request-specific settings passed to a {@link Page}.
+ * Context of a page creation request.
+ * <p>
+ * Provides request- and client-specific information available when a {@link Page}
+ * builds its widget tree. A new {@code PageContext} instance is created for each
+ * page request.
  */
-public class PageSettings {
+public class PageContext {
     /**
      * A unique identifier for the browser/client instance.
      * <p>
