@@ -4,11 +4,12 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.Color;
+import java.util.UUID;
 
 /**
  * Default in-memory implementation of {@link Model}.
  * This class provides a simple and reliable data model suitable for most use cases
- * where the model only needs to store data in memory and does not require
+ * where the model only needs to store data in memory and, as a rule, does not require
  * validation, persistence, or complex synchronization logic.
  *
  * @param <T> the type of the data managed by this model
@@ -75,6 +76,7 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      *   <li>{@link Double} → {@link RealNumberModel}</li>
      *   <li>{@link Boolean} → {@link BooleanModel}</li>
      *   <li>{@link Color} → {@link ColorModel}</li>
+     *   <li>{@link UUID} → {@link UuidModel}</li>
      * </ul>
      *
      * @param data the initial data value for the model (must not be {@code null})
@@ -96,6 +98,9 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
         }
         if (data instanceof Color) {
             return new ColorModel((Color) data);
+        }
+        if (data instanceof UUID) {
+            return new UuidModel((UUID) data);
         }
         throw new IllegalArgumentException(
             "Unsupported data type for DefaultModel: " + data.getClass().getName()

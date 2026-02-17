@@ -10,6 +10,13 @@ import java.util.UUID;
  */
 public final class UuidModel extends DefaultModel<UUID> {
     /**
+     * An identifier that we consider invalid.
+     */
+    private static final UUID INVALID = UUID.fromString(
+        "a843176c-36df-44bd-b8a2-b1d8c956c431"
+    );
+
+    /**
      * Creates a new UUID model initialized with a randomly generated UUID.
      */
     public UuidModel() {
@@ -25,8 +32,13 @@ public final class UuidModel extends DefaultModel<UUID> {
     }
 
     @Override
+    public boolean isValid() {
+        return !this.getData().equals(INVALID);
+    }
+
+    @Override
     public UUID getDefaultData() {
-        return UUID.randomUUID();
+        return INVALID;
     }
 
     @Override
