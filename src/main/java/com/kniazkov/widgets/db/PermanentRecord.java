@@ -18,7 +18,12 @@ import java.util.UUID;
  * is called, the record delegates the persistence operation to the store, ensuring that all
  * reactive model values are flushed to permanent storage.
  */
-public class PermanentRecord extends Record {
+class PermanentRecord extends Record {
+    /**
+     * A unique identifier of this record.
+     */
+    private final UUID id;
+
     /**
      * The storage backend that manages persistence for this record.
      */
@@ -32,8 +37,14 @@ public class PermanentRecord extends Record {
      * @param store the storage backend responsible for saving this record
      */
     public PermanentRecord(final UUID id, final Instant timestamp, final Store store) {
-        super(id, timestamp);
+        super(timestamp);
+        this.id = id;
         this.store = store;
+    }
+
+    @Override
+    public UUID getId() {
+        return this.id;
     }
 
     /**
