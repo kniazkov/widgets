@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.images;
 
+import com.kniazkov.widgets.common.Color;
 import org.imgscalr.Scalr;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -13,7 +14,6 @@ import java.awt.image.BufferedImage;
  * such as cropping and resizing. All methods work with and return {@link BufferedImage}
  * objects in the ARGB pixel format for consistency.
  */
-
 public final class ImageProcessor {
     /**
      * Private constructor.
@@ -109,5 +109,72 @@ public final class ImageProcessor {
         g.drawImage(src, 0, 0, null);
         g.dispose();
         return dst;
+    }
+
+    /**
+     * Replaces all pixels of a specified source color with a target color in an image.
+     * Only pixels that exactly match the source color (including alpha) will be replaced.
+     * The operation preserves the original image's dimensions and transparency information.
+     *
+     * @param image the source image with ARGB format (will be copied, not modified)
+     * @param sourceColor the color to replace (including alpha component)
+     * @param targetColor the color to replace with (including alpha component)
+     * @return a new {@link BufferedImage} with the specified color replaced
+     */
+    public static BufferedImage replaceColor(final BufferedImage image,
+            final Color sourceColor, final Color targetColor) {
+        final BufferedImage result = copyAsARGB(image);
+        final int sourceRGB = sourceColor.pack();
+        final int targetRGB = targetColor.pack();
+        final int width = result.getWidth();
+        final int height = result.getHeight();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final int pixel = result.getRGB(x, y);
+                if (pixel == sourceRGB) {
+                    result.setRGB(x, y, targetRGB);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Replaces all pixels of a specified source color with a target color in an image,
+     * ignoring alpha channel during color matching. Only the RGB components are compared,
+     * while alpha transparency is preserved from the original pixel.
+     * @param image the source image with ARGB format (will be copied, not modified)
+     * @param sourceColor the color to replace (alpha component is ignored during matching)
+     * @param targetColor the color to replace with (alpha component will be combined with original)
+     * @return a new {@link BufferedImage} with the specified color replaced
+     */
+    public static BufferedImage replaceColorIgnoreAlpha(final BufferedImage image,
+            final Color sourceColor, final Color targetColor) {
+        final BufferedImage result = copyAsARGB(image);
+        final int mask = 0x00FFFFFF;
+        final int sourceRGB = sourceColor.pack() & mask;
+        final int targetRGB = targetColor.pack() & mask;
+        final int targetAlpha = targetColor.getAlpha();
+        final int width = result.getWidth();
+        final int height = result.getHeight();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                final int pixel = result.getRGB(x, y);
+                if ((pixel & mask) == sourceRGB) {
+                    final int origAlpha = (pixel >>> 24) & 0xFF;
+                    if (origAlpha == 0) {
+                        continue;
+                    }
+                    final int finalAlpha = (origAlpha * targetAlpha + 127) / 255;
+                    if (targetAlpha == 0) {
+                        result.setRGB(x, y, 0x00000000);
+                    } else {
+                        int finalColor = (finalAlpha << 24) | targetRGB;
+                        result.setRGB(x, y, finalColor);
+                    }
+                }
+            }
+        }
+        return result;
     }
 }

@@ -56,6 +56,7 @@ public class ConjunctionModel extends ReadOnlyModel<Boolean> {
      *
      * @param base the models whose boolean values are combined
      */
+    @SafeVarargs
     public ConjunctionModel(final Model<Boolean>... base) {
         this(Arrays.asList(base));
     }

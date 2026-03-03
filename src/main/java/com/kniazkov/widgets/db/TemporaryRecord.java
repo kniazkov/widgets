@@ -25,7 +25,7 @@ import java.util.UUID;
  * <br>
  * When {@link #save()} is called, all modified fields are merged back into the parent.
  */
-public class TemporaryRecord extends Record {
+class TemporaryRecord extends Record {
     /**
      * The original record from which this temporary record was created.
      */
@@ -36,14 +36,19 @@ public class TemporaryRecord extends Record {
      *
      * @param parent the record to derive from
      */
-    public TemporaryRecord(Record parent) {
-        super(UUID.randomUUID(), Instant.now());
+    public TemporaryRecord(final Record parent) {
+        super(Instant.now());
         this.parent = parent;
 
         for (final String key : parent.data.keySet()) {
             Model<?> model = parent.data.get(key);
             this.data.put(key, model.asCascading());
         }
+    }
+
+    @Override
+    public UUID getId() {
+        return this.parent.getId();
     }
 
     /**
@@ -60,5 +65,6 @@ public class TemporaryRecord extends Record {
                 dst.setObject(src.getData());
             }
         }
+        this.parent.save();
     }
 }

@@ -9,11 +9,9 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.InlineBlockStyle;
 import com.kniazkov.widgets.view.Section;
-import com.kniazkov.widgets.view.TextWidget;
 
 /**
  * A demonstration class showcasing the use of {@link InlineBlock} widgets.

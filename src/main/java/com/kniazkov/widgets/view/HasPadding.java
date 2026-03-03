@@ -44,7 +44,7 @@ public interface HasPadding extends Entity {
      *
      * @return the left padding value
      */
-    default AbsoluteSize getPaddingLeft() {
+    default AbsoluteSize getLeftPadding() {
         return this.getPadding().getLeft();
     }
 
@@ -53,7 +53,7 @@ public interface HasPadding extends Entity {
      *
      * @return the right padding value
      */
-    default AbsoluteSize getPaddingRight() {
+    default AbsoluteSize getRightPadding() {
         return this.getPadding().getRight();
     }
 
@@ -62,7 +62,7 @@ public interface HasPadding extends Entity {
      *
      * @return the top padding value
      */
-    default AbsoluteSize getPaddingTop() {
+    default AbsoluteSize getTopPadding() {
         return this.getPadding().getTop();
     }
 
@@ -71,7 +71,7 @@ public interface HasPadding extends Entity {
      *
      * @return the bottom padding value
      */
-    default AbsoluteSize getPaddingBottom() {
+    default AbsoluteSize getBottomPadding() {
         return this.getPadding().getBottom();
     }
 

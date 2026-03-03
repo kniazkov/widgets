@@ -8,6 +8,6 @@ input:focus, textarea:focus, select:focus {
     box-shadow: none !important;
 }
 
-textarea {
+img, textarea, button {
     vertical-align: top;
 }

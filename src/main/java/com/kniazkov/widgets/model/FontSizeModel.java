@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.model;
 
 import com.kniazkov.widgets.common.FontSize;
-import com.kniazkov.widgets.common.Unit;
 
 /**
  * A default font size model implementation.

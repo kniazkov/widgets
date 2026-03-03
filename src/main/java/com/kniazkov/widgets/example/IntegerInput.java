@@ -7,8 +7,6 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
-import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.model.Model;

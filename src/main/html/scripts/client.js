@@ -3,6 +3,7 @@
  */
 
 var clientId = null;
+var browserId = null;
 var period = 2500; //250;
 var mainCycleTask = null;
 var events = [];
@@ -20,7 +21,12 @@ var parseId = function(str) {
     return num;
 }
 
-var initClient = function(address, data) {
+var initClient = function(sessionId, address, data) {
+    browserId = localStorage.getItem("browserId");
+    if (!browserId) {
+        browserId = sessionId;
+        localStorage.setItem("browserId", browserId);
+    }
     window.addEventListener("beforeunload", function() {
         if (clientId != null) {
             sendRequest(
@@ -38,6 +44,7 @@ var startClient = function(address, data) {
     var request = { ...data };
     request.action = "new instance";
     request.address = address;
+    request.browserId = browserId;
     sendRequest(
         request,
         function(data) {
@@ -50,7 +57,7 @@ var startClient = function(address, data) {
     );
     setTimeout(function() {
         if (clientId == null) {
-            startClient();
+            startClient(address, data);
         }
     }, 1000);
 }

@@ -85,6 +85,26 @@ var widgetsLibrary = {
     "image" : function() {
         return document.createElement("img");
     },
+    "active image" : function() {
+        var widget = document.createElement("img");
+        widget._sources = {
+            normal: "#",
+            hovered: "#",
+            active: "#"
+        };
+        widget.refresh = function() {
+            var states = widget._states;
+            if (states.active) {
+                widget.src = widget._sources.active;
+            } else if (states.hovered) {
+                widget.src = widget._sources.hovered;
+            } else {
+                widget.src = widget._sources.normal;
+            }
+        };
+        initPointerEvents(widget, true);
+        return widget;
+    },
     "cell" : function() {
         var widget = document.createElement("td");
         initPointerEvents(widget, true);
@@ -133,6 +153,9 @@ var refreshWidget = function(widget) {
         Object.assign(set, properties.hovered);
     }
     Object.assign(widget.style, set);
+    if (widget.refresh) {
+        widget.refresh();
+    }
 };
 
 var createWidget = function(data) {
@@ -453,8 +476,16 @@ var setSource = function(data) {
     var widget = widgets[data.widget];
     var source = data["source"];
     if (widget && typeof source == "string") {
-        widget.src = source;
-        log("The source \"" + truncate(source, 100) + "\" has been set to widget \"" + data.widget + "\".");
+        var state = data.state;
+        if (typeof state == "string") {
+            widget._sources[state] = source;
+            refreshWidget(widget);
+            log("The source \"" + truncate(source, 100) + "\" for state \"" + state +
+                    "\" has been set to the widget " + data.widget + '.');
+        } else {
+            widget.src = source;
+            log("The source \"" + truncate(source, 100) + "\" has been set to widget \"" + data.widget + "\".");
+        }
         return true;
     }
     return false;

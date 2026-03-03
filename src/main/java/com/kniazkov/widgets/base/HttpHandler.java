@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.widgets.common.Utils;
-import com.kniazkov.json.Json;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.webserver.Method;
 import com.kniazkov.webserver.Request;
@@ -19,6 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 /**
@@ -112,6 +112,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 obj.addString(key, request.formData.get(key));
                             }
                             code = code
+                                .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", request.path)
                                 .replace("{data}", obj.toString());
                         }

@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.model.Model;
+
 /**
  * A simple text widget that displays styled textual content.
  */
@@ -41,6 +43,17 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     public TextWidget(final TextWidgetStyle style, final String text) {
         super(style);
         this.setText(text);
+    }
+
+    /**
+     * Creates a new text widget with the specified style and model.
+     *
+     * @param style the style to apply to this widget
+     * @param model the model containing initial text
+     */
+    public TextWidget(final TextWidgetStyle style, final Model<String> model) {
+        super(style);
+        this.setTextModel(model);
     }
 
     @Override

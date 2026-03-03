@@ -870,4 +870,29 @@ public abstract class Property<T> {
             return new JsonString(data);
         }
     };
+
+    /**
+     * Property specifying the widget’s absolute position.
+     */
+    public static final Property<Offset> ABSOLUTE_POSITION = new Property<Offset>() {
+        @Override
+        public String getName() {
+            return "abs position";
+        }
+
+        @Override
+        public Class<Offset> getValueClass() {
+            return Offset.class;
+        }
+
+        @Override
+        public Model<Offset> createDefaultModel() {
+            return new OffsetModel();
+        }
+
+        @Override
+        public JsonElement convertData(final Offset data) {
+            return data.toJsonObject();
+        }
+    };
 }

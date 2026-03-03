@@ -26,11 +26,6 @@ import java.util.UUID;
  */
 public abstract class Record {
     /**
-     * A unique identifier of this record.
-     */
-    private final UUID id;
-
-    /**
      * The timestamp when this record was created.
      * Represents a specific moment in UTC time zone.
      */
@@ -44,11 +39,9 @@ public abstract class Record {
     /**
      * Creates a new record with the given identifier.
      *
-     * @param id the unique identifier of this record (must not be {@code null})
      * @param timestamp the creation timestamp (must not be {@code null})
      */
-    Record(final UUID id, final Instant timestamp) {
-        this.id = id;
+    Record(final Instant timestamp) {
         this.timestamp = timestamp;
         this.data = new TreeMap<>();
     }
@@ -58,9 +51,7 @@ public abstract class Record {
      *
      * @return the record's UUID
      */
-    public UUID getId() {
-        return this.id;
-    }
+    public abstract UUID getId();
 
     /**
      * Returns the timestamp when this record was created.
