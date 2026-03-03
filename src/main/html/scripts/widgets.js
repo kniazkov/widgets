@@ -33,7 +33,7 @@ var widgetsLibrary = {
             sendEventToServer(widget, "text input", { text : widget.value });
         });
         initPointerEvents(widget);
-        initFocusEvents(widget);
+        initFocusEvents(widget, "active");
         return widget;
     },
     "text area" : function() {
@@ -49,12 +49,13 @@ var widgetsLibrary = {
             sendEventToServer(widget, "text input", { text : widget.value });
         });
         initPointerEvents(widget);
-        initFocusEvents(widget);
+        initFocusEvents(widget, "active");
         return widget;
     },
     "button" : function() {
         var widget = document.createElement("button");
         initPointerEvents(widget, true);
+        initFocusEvents(widget, "hovered");
         return widget;
     },
     "file loader" : function() {
@@ -650,13 +651,13 @@ var initPointerEvents = function(widget, activeOnPointerDown) {
     });
 };
 
-var initFocusEvents = function(widget) {
+var initFocusEvents = function(widget, state) {
     addEvent(widget, "focus", function(event) {
-        widget._states.active = true;
+        widget._states[state] = true;
         refreshWidget(widget);
     });
     addEvent(widget, "blur", function(event) {
-        widget._states.active = false;
+        widget._states[state] = false;
         refreshWidget(widget);
     });
 };
