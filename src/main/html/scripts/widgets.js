@@ -143,14 +143,17 @@ var refreshWidget = function(widget) {
     var states = widget._states;
     var properties = widget._properties;
     var set = { ...properties.normal };
-    if (states.disabled) {
-        Object.assign(set, properties.invalid, properties.disabled);
-    } else if (states.invalid) {
-        Object.assign(set, properties.hovered, properties.active, properties.invalid);
-    } else if (states.active) {
-        Object.assign(set, properties.hovered, properties.active);
-    } else if (states.hovered) {
+    if (states.hovered) {
         Object.assign(set, properties.hovered);
+    }
+    if (states.active) {
+        Object.assign(set, properties.active);
+    }
+    if (states.invalid) {
+        Object.assign(set, properties.invalid);
+    }
+    if (states.disabled) {
+        Object.assign(set, properties.disabled);
     }
     Object.assign(widget.style, set);
     if (widget.refresh) {
