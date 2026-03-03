@@ -32,6 +32,13 @@ public final class ValidatedRealNumberModel extends DefaultModel<Double> {
     public static final Criterion POSITIVE = value -> value > 0.0;
 
     /**
+     * A predefined criterion that accepts only values in the unit interval [0, 1],
+     * i.e., values between 0.0 and 1.0 inclusive. This is particularly useful for opacity values,
+     * probability scales, or other normalized ranges.
+     */
+    public static final Criterion UNIT_INTERVAL = value -> value >= 0.0 && value <= 1.0;
+
+    /**
      * The validation rule used to check whether the current value is considered valid.
      */
     private final Criterion criterion;

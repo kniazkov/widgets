@@ -18,22 +18,7 @@ import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;
-import com.kniazkov.widgets.model.AbsoluteSizeModel;
-import com.kniazkov.widgets.model.Binding;
-import com.kniazkov.widgets.model.BooleanModel;
-import com.kniazkov.widgets.model.BorderStyleModel;
-import com.kniazkov.widgets.model.ColorModel;
-import com.kniazkov.widgets.model.FontFaceModel;
-import com.kniazkov.widgets.model.FontSizeModel;
-import com.kniazkov.widgets.model.FontWeightModel;
-import com.kniazkov.widgets.model.HorizontalAlignmentModel;
-import com.kniazkov.widgets.model.ImageSourceModel;
-import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.OffsetModel;
-import com.kniazkov.widgets.model.StringModel;
-import com.kniazkov.widgets.model.SynchronizedModel;
-import com.kniazkov.widgets.model.VerticalAlignmentModel;
-import com.kniazkov.widgets.model.WidgetSizeModel;
+import com.kniazkov.widgets.model.*;
 
 /**
  * Represents a typed declarative property that can be bound to a widget through a {@link Model}.
@@ -337,6 +322,41 @@ public abstract class Property<T> {
         @Override
         public JsonElement convertData(final Color data) {
             return data.toJsonObject();
+        }
+    };
+
+    /**
+     * Property specifying the widget's opacity level.
+     * <p>
+     * The opacity value must be in the range [0.0, 1.0], where:
+     * <ul>
+     *   <li>0.0 represents fully transparent (invisible)</li>
+     *   <li>1.0 represents fully opaque (completely visible)</li>
+     * </ul>
+     * Values outside this range will be rejected by the underlying model.
+     */
+    public static final Property<Double> OPACITY = new Property<Double>() {
+        @Override
+        public String getName() {
+            return "opacity";
+        }
+
+        @Override
+        public Class<Double> getValueClass() {
+            return Double.class;
+        }
+
+        @Override
+        public Model<Double> createDefaultModel() {
+            return new ValidatedRealNumberModel(
+                1.0,
+                ValidatedRealNumberModel.UNIT_INTERVAL
+            );
+        }
+
+        @Override
+        public JsonElement convertData(final Double data) {
+            return new JsonNumber(data);
         }
     };
 

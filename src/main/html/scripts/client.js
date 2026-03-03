@@ -173,6 +173,7 @@ var actionHandlers = {
     "set text" : setText,
     "set color" : setColor,
     "set bg color" : setBgColor,
+    "set opacity" : setOpacity,
     "set width" : setWidth,
     "set height" : setHeight,
     "set margin" : setMargin,

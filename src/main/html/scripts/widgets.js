@@ -316,6 +316,24 @@ var setBgColor = function(data) {
     return false;
 };
 
+var setOpacity = function(data) {
+    var widget = widgets[data.widget];
+    var opacity = data["opacity"];
+    var state = data.state;
+    if (widget && typeof opacity == "number" && typeof state == "string") {
+        if (opacity < 0) {
+            opacity = 0;
+        } else if (opacity > 1) {
+            opacity = 1;
+        }
+        widget._properties[state].opacity = opacity;
+        refreshWidget(widget);
+        log("The opacity \"" + opacity + "\" for state \"" + state + "\" has been set to the widget " + data.widget + '.');
+        return true;
+    }
+    return false;
+};
+
 var setWidth = function(data) {
     var widget = widgets[data.widget];
     var value = data.width;
