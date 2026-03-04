@@ -7,7 +7,7 @@ import com.kniazkov.widgets.common.BorderStyle;
 import java.util.Set;
 
 /**
- * Style definition for {@link BaseImageWidget}.
+ * Style definition for {@link ImageWidget}.
  */
 public class ImageWidgetStyle extends Style implements HasBorder, HasMargin,
         HasAbsoluteWidth, HasAbsoluteHeight, HasOpacity {
@@ -24,7 +24,7 @@ public class ImageWidgetStyle extends Style implements HasBorder, HasMargin,
     /**
      * Creates the default image style.
      */
-    private ImageWidgetStyle() {
+    protected ImageWidgetStyle() {
         this.setBorderStyle(BorderStyle.NONE);
         this.setMargin(0);
         this.setOpacity(1.0);

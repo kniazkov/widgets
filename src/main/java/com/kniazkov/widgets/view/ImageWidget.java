@@ -15,11 +15,21 @@ import com.kniazkov.widgets.model.Model;
  */
 public class ImageWidget extends BaseImageWidget {
     /**
+     * Returns the default style instance used by image widgets.
+     *
+     * @return the singleton default {@link ImageWidgetStyle} instance
+     */
+    public static ImageWidgetStyle getDefaultStyle() {
+        return ImageWidgetStyle.DEFAULT;
+    }
+
+    /**
      * Creates a new image initialized with the specified source.
      *
      * @param source the image source to use
      */
     public ImageWidget(final ImageSource source) {
+        super(getDefaultStyle());
         this.setSourceModel(new ImageSourceModel(source));
     }
 
@@ -29,12 +39,22 @@ public class ImageWidget extends BaseImageWidget {
      * @param href the raw hyperlink pointing to the image
      */
     public ImageWidget(final String href) {
+        super(getDefaultStyle());
         this.setSourceModel(new ImageSourceModel(ImageSource.fromHyperlink(href)));
     }
 
     @Override
     public String getType() {
         return "image";
+    }
+
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    public void setStyle(final ImageWidgetStyle style) {
+        super.setStyle(style);
     }
 
     /**

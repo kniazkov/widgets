@@ -7,7 +7,6 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
-import java.util.Set;
 
 /**
  * Widget representing an image that can respond to user interaction by changing its visual state.
@@ -16,13 +15,13 @@ import java.util.Set;
  */
 public class ActiveImage extends BaseImageWidget implements HandlesPointerEvents {
     /**
-     * Set of supported states.
+     * Returns the default style instance used by active image widgets.
+     *
+     * @return the singleton default {@link ActiveImageStyle} instance
      */
-    private static final Set<State> SUPPORTED_STATES = State.setOf(
-        State.NORMAL,
-        State.HOVERED,
-        State.ACTIVE
-    );
+    public static ActiveImageStyle getDefaultStyle() {
+        return ActiveImageStyle.DEFAULT;
+    }
 
     /**
      * Creates an ActiveImage widget with the specified image source.
@@ -31,6 +30,7 @@ public class ActiveImage extends BaseImageWidget implements HandlesPointerEvents
      * @param source the {@link ImageSource} to display
      */
     public ActiveImage(final ImageSource source) {
+        super(getDefaultStyle());
         final Model<ImageSource> model = new ImageSourceModel(source);
         this.setSourceModel(State.NORMAL, model);
         this.setSourceModel(State.HOVERED, model.asCascading());
@@ -52,9 +52,13 @@ public class ActiveImage extends BaseImageWidget implements HandlesPointerEvents
         return "active image";
     }
 
-    @Override
-    public Set<State> getSupportedStates() {
-        return SUPPORTED_STATES;
+    /**
+     * Sets a new widget style.
+     *
+     * @param style new widget style
+     */
+    public void setStyle(final ActiveImageStyle style) {
+        super.setStyle(style);
     }
 
     /**
