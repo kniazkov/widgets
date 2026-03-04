@@ -157,6 +157,7 @@ var refreshWidget = function(widget) {
         Object.assign(set, properties.disabled);
     }
     Object.assign(widget.style, set);
+    //log("The widget " + widget._id + " style was updated with the following values: " + JSON.stringify(set) + '.');
     if (widget.refresh) {
         widget.refresh();
     }
