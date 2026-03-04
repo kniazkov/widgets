@@ -13,7 +13,7 @@ import java.util.Set;
  * Style definition for {@link Button}.
  */
 public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbsoluteWidth,
-        HasAbsoluteHeight, HasMargin, HasPadding
+        HasAbsoluteHeight, HasMargin, HasPadding, HasHiddenState
 {
     /**
      * Set of supported states.
