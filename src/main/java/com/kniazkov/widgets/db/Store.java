@@ -117,7 +117,7 @@ public abstract class Store extends RecordSet {
      *
      * @param record the record to be saved
      */
-    public void save(final PermanentRecord record) {
+    void save(final PermanentRecord record) {
         this.registerRecord(record);
         this.save();
     }
@@ -159,6 +159,25 @@ public abstract class Store extends RecordSet {
         synchronized (this.records) {
             return this.records.get(id);
         }
+    }
+
+    /**
+     * Removes a record from the store by identifier.
+     *
+     * @param id the record ID
+     */
+    public void removeRecord(final UUID id) {
+        this.records.remove(id);
+        this.save();
+    }
+
+    /**
+     *  Removes a record from the store.
+     *
+     * @param record Record
+     */
+    public void removeRecord(final Record record) {
+        this.removeRecord(record.getId());
     }
 
     /**

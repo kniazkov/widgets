@@ -27,7 +27,7 @@ class PermanentRecord extends Record {
     /**
      * The storage backend that manages persistence for this record.
      */
-    private final Store store;
+    private Store store;
 
     /**
      * Creates a new permanent record with the given identifier and backing store.
@@ -52,6 +52,14 @@ class PermanentRecord extends Record {
      */
     @Override
     public void save() {
-        this.store.save(this);
+        if (this.store != null) {
+            this.store.save(this);
+        }
+    }
+
+    @Override
+    public void remove() {
+        this.store.removeRecord(this);
+        this.store = null;
     }
 }

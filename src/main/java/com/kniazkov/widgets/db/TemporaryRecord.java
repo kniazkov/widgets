@@ -67,4 +67,9 @@ class TemporaryRecord extends Record {
         }
         this.parent.save();
     }
+
+    @Override
+    public void remove() {
+        this.parent.remove();
+    }
 }

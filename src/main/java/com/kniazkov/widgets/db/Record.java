@@ -146,4 +146,9 @@ public abstract class Record {
      * Saves this record according to the storage strategy defined by the subclass.
      */
     public abstract void save();
+
+    /**
+     * Permanently removes the record from a store.
+     */
+    public abstract void remove();
 }
