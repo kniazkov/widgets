@@ -9,8 +9,9 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
+import com.kniazkov.widgets.db.Database;
 import com.kniazkov.widgets.db.Field;
-import com.kniazkov.widgets.db.JsonStore;
+import com.kniazkov.widgets.db.JsonDatabase;
 import com.kniazkov.widgets.db.Record;
 import com.kniazkov.widgets.db.Store;
 import com.kniazkov.widgets.db.Type;
@@ -22,7 +23,7 @@ import com.kniazkov.widgets.view.Row;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.Table;
 import com.kniazkov.widgets.view.TextWidget;
-import java.io.File;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 /**
@@ -63,10 +64,14 @@ import java.util.Arrays;
 public class SimpleDb {
     static final Field<String> name = new Field<>(Type.STRING, "name");
     static final Field<Integer> age = new Field<>(Type.POSITIVE_INTEGER, "age");
-    static final Store store = JsonStore.load(new File("database.json"), Arrays.asList(
-        name,
-        age
-    ));
+    static final Database database = new JsonDatabase(Paths.get("."))
+            .registerStore(
+                    "employee",
+                    Arrays.asList(
+                            name,
+                            age
+                    ));
+    static final Store store = database.getStore("employee");
 
     /**
      * Entry point.
@@ -106,6 +111,7 @@ public class SimpleDb {
             buttonSection.add(save);
             save.onClick(evt -> {
                 store.save();
+                database.flush();
             });
         };
 

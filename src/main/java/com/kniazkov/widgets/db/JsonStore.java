@@ -37,7 +37,7 @@ import java.util.UUID;
  * <br>
  * Saving always rewrites the entire file.
  */
-public class JsonStore extends Store {
+public final class JsonStore extends Store {
     /**
      * A type-specific serializer/deserializer for converting values between JSON representation
      * and model data. Each handler corresponds to exactly one {@link Type}, and is responsible for
@@ -186,9 +186,19 @@ public class JsonStore extends Store {
     }
 
     /**
+     * Database that manages all stores.
+     */
+    private final JsonDatabase database;
+
+    /**
      * The file where all records are serialized.
      */
     private final File file;
+
+    /**
+     * A flag indicating that the storage system contains data that has not been written to disk.
+     */
+    private boolean dirty;
 
     /**
      * Creates a JSON-backed store with the specified output file and schema.
@@ -196,9 +206,18 @@ public class JsonStore extends Store {
      * @param file   the JSON file used for persistence
      * @param fields the list of fields describing the schema
      */
-    public JsonStore(final File file, final List<Field<?>> fields) {
+    JsonStore(final JsonDatabase database, final File file, final List<Field<?>> fields) {
         super(fields);
+        this.database = database;
         this.file = file;
+    }
+
+    /**
+     * Marks the store as “dirty” but does not actually write to the disk.
+     */
+    @Override
+    public void save() {
+        this.dirty = true;
     }
 
     /**
@@ -208,8 +227,11 @@ public class JsonStore extends Store {
      *
      * @throws IllegalStateException if writing fails
      */
-    @Override
-    public void save() {
+    boolean flush() {
+        if (!this.dirty) {
+            return true;
+        }
+
         final JsonArray array = new JsonArray();
 
         for (final Record record : this.getRecords()) {
@@ -234,13 +256,31 @@ public class JsonStore extends Store {
         if (parentDir != null && !parentDir.exists()) {
             parentDir.mkdirs();
         }
-        try (FileWriter writer = new FileWriter(this.file)) {
+        try (final FileWriter writer = new FileWriter(this.file)) {
             writer.write(json);
-        } catch (IOException e) {
-            throw new IllegalStateException(
-                "Can't write '" + this.file.getAbsolutePath() + '\''
-            );
+        } catch (final IOException ignored) {
+            return false;
         }
+
+        this.dirty = false;
+        return true;
+    }
+
+    /**
+     * Returns flag indicating that the storage system contains data
+     * that has not been written to disk.
+     * @return The flag
+     */
+    boolean isDirty() {
+        return this.dirty;
+    }
+
+    /**
+     * Resets flag indicating that the storage system contains data
+     * that has not been written to disk.
+     */
+    void resetDirtyFlag() {
+        this.dirty = false;
     }
 
     /**
@@ -249,12 +289,14 @@ public class JsonStore extends Store {
      * <p>
      * Unsupported fields or malformed entries are silently skipped.
      *
-     * @param file   the JSON file to read
+     * @param database the database that manages all stores
+     * @param file the JSON file to read
      * @param fields the schema to use when interpreting records
      * @return a fully populated store instance
      */
-    public static Store load(final File file, final List<Field<?>> fields) {
-        final Store store = new JsonStore(file, fields);
+    static JsonStore load(final JsonDatabase database, final File file,
+                             final List<Field<?>> fields) {
+        final JsonStore store = new JsonStore(database, file, fields);
 
         try {
             final JsonElement root = Json.parse(file);
