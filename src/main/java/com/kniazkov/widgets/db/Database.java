@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.db;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,6 +25,21 @@ public abstract class Database {
      * @return this database instance
      */
     public abstract Database registerStore(String name, final List<Field<?>> fields);
+
+    /**
+     * Registers a store with the specified name and schema.
+     * <p>
+     * This is a convenience overload that accepts the store schema as a
+     * variable-length argument list and delegates to
+     * {@link #registerStore(String, java.util.List)}.
+     *
+     * @param name the unique store name
+     * @param fields the schema fields supported by the store
+     * @return this database instance
+     */
+    public Database registerStore(String name, final Field<?>... fields) {
+        return registerStore(name, Arrays.asList(fields));
+    }
 
     /**
      * Returns a previously registered store by name.
