@@ -64,7 +64,7 @@ public class Column implements TypedContainer<Cell> {
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         for (int index = 0; index < this.table.getChildCount(); index++) {
             this.table.getChild(index).remove(widget);
         }

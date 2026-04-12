@@ -12,7 +12,7 @@ package com.kniazkov.widgets.view;
  *
  * @param <T> the type of widgets contained in this container
  */
-public interface TypedContainer<T extends Widget> extends Container {
+public interface TypedContainer<T extends Widget<?>> extends Container {
 
     /**
      * Returns the child widget at the specified index.

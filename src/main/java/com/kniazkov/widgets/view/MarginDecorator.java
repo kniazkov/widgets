@@ -14,11 +14,13 @@ import com.kniazkov.widgets.protocol.SetChild;
  * the original widget's implementation. Useful when you need to add spacing to inline
  * elements that don't have built-in margin support.
  */
-public class MarginDecorator extends InlineWidget implements Decorator<InlineWidget>, HasMargin {
+public class MarginDecorator extends InlineWidget<EmptyStyle>
+        implements Decorator<InlineWidget<?>>, HasMargin
+{
     /**
      * Decorated widget.
      */
-    private InlineWidget child;
+    private InlineWidget<?> child;
 
     /**
      * Constructs a margin decorator wrapping the specified inline widget.
@@ -26,18 +28,18 @@ public class MarginDecorator extends InlineWidget implements Decorator<InlineWid
      * @param child the inline widget to decorate with margin properties
      */
     public MarginDecorator(final InlineWidget child) {
-        super(Style.getEmptyStyle());
+        super(EmptyStyle.INSTANCE);
         this.child = child;
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
     @Override
-    public InlineWidget getChild() {
+    public InlineWidget<?> getChild() {
         return this.child;
     }
 
     @Override
-    public void put(final InlineWidget widget) {
+    public void put(final InlineWidget<?> widget) {
         if (this.child == widget) {
             return;
         }
@@ -48,11 +50,11 @@ public class MarginDecorator extends InlineWidget implements Decorator<InlineWid
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (widget != this.child) {
             return;
         }
-        final InlineWidget old = this.child;
+        final InlineWidget<?> old = this.child;
         this.child = null;
         old.setParent(null);
         this.child = new TextWidget();

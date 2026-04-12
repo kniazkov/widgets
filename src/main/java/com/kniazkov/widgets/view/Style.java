@@ -19,16 +19,6 @@ import java.util.Map;
  */
 public abstract class Style implements Entity {
     /**
-     * Returns empty state implementation.
-     *
-     * @return an empty state
-     */
-    public static Style getEmptyStyle() {
-        return EmptyStyle.INSTANCE;
-    }
-
-
-    /**
      * Two-dimensional mapping: {@link State} → ({@link Property} → {@link SynchronizedModel}).
      * <p>
      * Each entry defines a reactive, thread-safe model representing a specific visual or
@@ -217,35 +207,6 @@ public abstract class Style implements Entity {
             return sync;
         } else {
             return property.cast(model);
-        }
-    }
-
-    /**
-     * A minimal no-op implementation of {@link Style} that provides default, standalone models
-     * but does not store or propagate any state.
-     * This style serves as a safe fallback or placeholder for widgets or components
-     * that require a style reference but do not yet have a concrete one assigned.
-     */
-    private static class EmptyStyle extends Style {
-        /**
-         * The singleton instance of the empty style.
-         */
-        private static final Style INSTANCE = new EmptyStyle();
-
-        @Override
-        public <T> Model<T> getModel(final State state, final Property<T> property) {
-            return property.createDefaultModel();
-        }
-
-        @Override
-        public <T> void setModel(final State state, final Property<T> property,
-                final Model<T> model) {
-            // do nothing
-        }
-
-        @Override
-        public EmptyStyle derive() {
-            return this;
         }
     }
 }

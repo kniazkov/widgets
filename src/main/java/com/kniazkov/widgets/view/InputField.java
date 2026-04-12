@@ -9,9 +9,9 @@ import com.kniazkov.widgets.model.Model;
 /**
  * An editable text input field widget.
  */
-public class InputField extends InlineWidget implements HasTextInput, HasStyledText, HasColor,
-        HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
-        HasInvalidState, HasDisabledState, HandlesPointerEvents
+public class InputField extends InlineWidget<InputFieldStyle> implements HasTextInput,
+        HasStyledText, HasColor, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
+        HasMargin, HasInvalidState, HasDisabledState, HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by input fields.
@@ -76,14 +76,5 @@ public class InputField extends InlineWidget implements HasTextInput, HasStyledT
     public void setTextModel(Model<String> model) {
         this.setModel(State.ANY, Property.TEXT, model);
         this.setModel(State.ANY, Property.VALID, model.getValidFlagModel());
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final InputFieldStyle style) {
-        super.setStyle(style);
     }
 }

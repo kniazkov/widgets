@@ -13,7 +13,7 @@ import com.kniazkov.widgets.model.Model;
  * inline widget (e.g., {@code <td><p><input.../></p></td>}) by providing helper methods
  * to create the most frequently used inline widgets without manual widget hierarchy setup.
  */
-public interface BlockContainer extends TypedContainer<BlockWidget> {
+public interface BlockContainer extends TypedContainer<BlockWidget<?>> {
 
     /**
      * Creates a new section widget, removes all existing children from this container,

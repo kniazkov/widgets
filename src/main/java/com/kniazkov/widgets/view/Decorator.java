@@ -12,7 +12,7 @@ package com.kniazkov.widgets.view;
  *
  * @param <T> the type of widget contained in this decorator
  */
-public interface Decorator<T extends Widget> extends Container {
+public interface Decorator<T extends Widget<?>> extends Container {
     @Override
     default int getChildCount() {
         return 1;

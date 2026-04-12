@@ -10,7 +10,7 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
  * to user interactions.
  */
 
-public class ActiveText extends InlineWidget implements HasStyledText, HasColor,
+public class ActiveText extends InlineWidget<ActiveTextStyle> implements HasStyledText, HasColor,
         HandlesPointerEvents
 {
     /**
@@ -52,14 +52,5 @@ public class ActiveText extends InlineWidget implements HasStyledText, HasColor,
     @Override
     public String getType() {
         return "active text";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final ActiveTextStyle style) {
-        super.setStyle(style);
     }
 }

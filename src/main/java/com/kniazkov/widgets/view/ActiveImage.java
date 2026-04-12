@@ -13,7 +13,9 @@ import com.kniazkov.widgets.model.Model;
  * Supports three states: normal, hovered (mouse over), and active (pressed/clicked).
  * All states can share the same image source or have individual ones.
  */
-public class ActiveImage extends BaseImageWidget implements HandlesPointerEvents {
+public class ActiveImage extends BaseImageWidget<ActiveImageStyle>
+        implements HandlesPointerEvents
+{
     /**
      * Returns the default style instance used by active image widgets.
      *
@@ -50,15 +52,6 @@ public class ActiveImage extends BaseImageWidget implements HandlesPointerEvents
     @Override
     public String getType() {
         return "active image";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final ActiveImageStyle style) {
-        super.setStyle(style);
     }
 
     /**

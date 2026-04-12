@@ -13,7 +13,7 @@ import java.util.Optional;
 /**
  * Represents a table row widget that contains {@link Cell} widgets.
  */
-public class Row extends Widget implements TypedContainer<Cell>,
+public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
         HasBgColor, HandlesPointerEvents
 {
     /**
@@ -76,15 +76,6 @@ public class Row extends Widget implements TypedContainer<Cell>,
     }
 
     /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final RowStyle style) {
-        super.setStyle(style);
-    }
-
-    /**
      * Returns the cell at the specified index.
      * <p>
      * If the index is within the current list size, the existing cell is returned.
@@ -97,7 +88,7 @@ public class Row extends Widget implements TypedContainer<Cell>,
      */
     public Cell getCell(final int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Cell index must be &gt;= 0");
+            throw new IndexOutOfBoundsException("Cell index must be >= 0");
         }
         if (index < this.children.size()) {
             return this.children.get(index);

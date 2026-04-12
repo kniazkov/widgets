@@ -5,15 +5,17 @@ package com.kniazkov.widgets.view;
 
 /**
  * Base class for all image widgets.
+ *
+ * @param <S> Widget style
  */
-public abstract class BaseImageWidget extends InlineWidget implements HasBorder, HasMargin,
-        HasAbsoluteWidth, HasAbsoluteHeight, HasOpacity {
+public abstract class BaseImageWidget<S extends Style> extends InlineWidget<S>
+        implements HasBorder, HasMargin, HasAbsoluteWidth, HasAbsoluteHeight, HasOpacity {
     /**
      * Creates a new image widget.
      *
      * @param style Widget style
      */
-    public BaseImageWidget(final ImageWidgetStyle style) {
+    public BaseImageWidget(final S style) {
         super(style);
     }
 }

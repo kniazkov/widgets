@@ -23,7 +23,7 @@ import java.util.List;
  * This makes it useful for creating complex inline elements that need to contain
  * block-level content while maintaining inline positioning in the document flow.
  */
-public class InlineBlock extends InlineWidget implements BlockContainer,
+public class InlineBlock extends InlineWidget<InlineBlockStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
         HandlesPointerEvents
 {
@@ -39,7 +39,7 @@ public class InlineBlock extends InlineWidget implements BlockContainer,
     /**
      * List of child widgets.
      */
-    private final List<BlockWidget> children = new ArrayList<>();
+    private final List<BlockWidget<?>> children = new ArrayList<>();
 
     /**
      * Constructs a new inline block with the default style.
@@ -63,19 +63,19 @@ public class InlineBlock extends InlineWidget implements BlockContainer,
     }
 
     @Override
-    public BlockWidget getChild(final int index) throws IndexOutOfBoundsException {
+    public BlockWidget<?> getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void add(final BlockWidget widget) {
+    public void add(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
@@ -85,14 +85,5 @@ public class InlineBlock extends InlineWidget implements BlockContainer,
     @Override
     public String getType() {
         return "inline block";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final CellStyle style) {
-        super.setStyle(style);
     }
 }

@@ -9,7 +9,7 @@ import com.kniazkov.widgets.protocol.SetChild;
 /**
  * A clickable button widget that decorates a single {@link InlineWidget}.
  */
-public class Button extends InlineWidget implements Decorator<InlineWidget>,
+public class Button extends InlineWidget<ButtonStyle> implements Decorator<InlineWidget<?>>,
         HandlesPointerEvents, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
         HasMargin, HasPadding, HasDisabledState, HasHiddenState
 {
@@ -25,7 +25,7 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
     /**
      * Decorated widget (displayed inside the button).
      */
-    private InlineWidget child;
+    private InlineWidget<?> child;
 
     /**
      * Creates a button with an empty text child.
@@ -56,12 +56,12 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
     }
 
     @Override
-    public InlineWidget getChild() {
+    public InlineWidget<?> getChild() {
         return this.child;
     }
 
     @Override
-    public void put(final InlineWidget widget) {
+    public void put(final InlineWidget<?> widget) {
         if (this.child == widget) {
             return;
         }
@@ -72,11 +72,11 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (widget != this.child) {
             return;
         }
-        final InlineWidget old = this.child;
+        final InlineWidget<?> old = this.child;
         this.child = null;
         old.setParent(null);
         this.child = new TextWidget();
@@ -86,14 +86,5 @@ public class Button extends InlineWidget implements Decorator<InlineWidget>,
     @Override
     public String getType() {
         return "button";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final ButtonStyle style) {
-        super.setStyle(style);
     }
 }

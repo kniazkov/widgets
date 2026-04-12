@@ -30,8 +30,10 @@ import java.util.TreeSet;
  * Each widget has a unique {@link UId} and maintains a list of pending {@link Update}s that
  * describe how the client should create or modify its representation.
  * On creation, every widget automatically generates a {@link CreateWidget} update with its type.
+ *
+ * @param <S> Widget style
  */
-public abstract class Widget implements Entity, HandlesEvents {
+public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     /**
      * Widget unique Id.
      */
@@ -40,7 +42,7 @@ public abstract class Widget implements Entity, HandlesEvents {
     /**
      * Widget style.
      */
-    private Style style;
+    private S style;
 
     /**
      * List of updates not yet sent to the client.
@@ -72,7 +74,7 @@ public abstract class Widget implements Entity, HandlesEvents {
      *
      * @param style the style providing the initial models and properties for this widget
      */
-    public Widget(final Style style) {
+    public Widget(final S style) {
         this.id = UId.create();
         this.style = style;
         this.updates = new ArrayList<>();
@@ -288,7 +290,7 @@ public abstract class Widget implements Entity, HandlesEvents {
      *
      * @param style new widget style
      */
-    protected void setStyle(final Style style) {
+    public void setStyle(final S style) {
         this.style = style;
         style.forEachModel((state, property, model) -> {
             final Map<Property<?>, Binding<?>> subset =
@@ -347,7 +349,7 @@ public abstract class Widget implements Entity, HandlesEvents {
         /**
          * The widget that owns this listener and receives updates.
          */
-        private final Widget widget;
+        private final Widget<?> widget;
 
         /**
          * The logical widget state to which this listener applies.
@@ -367,7 +369,7 @@ public abstract class Widget implements Entity, HandlesEvents {
          * @param state the logical state of the widget
          * @param property the property that this listener represents
          */
-        public PropertyListener(final Widget widget, final State state,
+        public PropertyListener(final Widget<?> widget, final State state,
                 final Property<T> property) {
             this.widget = widget;
             this.state = state;

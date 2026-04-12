@@ -13,7 +13,7 @@ import com.kniazkov.widgets.model.Model;
  * The image source is stored in a {@link Model} and bound to the
  * {@link Property#IMAGE_SOURCE} property.
  */
-public class ImageWidget extends BaseImageWidget {
+public class ImageWidget extends BaseImageWidget<ImageWidgetStyle> {
     /**
      * Returns the default style instance used by image widgets.
      *
@@ -46,15 +46,6 @@ public class ImageWidget extends BaseImageWidget {
     @Override
     public String getType() {
         return "image";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final ImageWidgetStyle style) {
-        super.setStyle(style);
     }
 
     /**

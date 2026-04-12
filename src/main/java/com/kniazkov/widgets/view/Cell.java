@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Represents a table cell widget capable of containing {@link BlockWidget}s.
  */
-public class Cell extends Widget implements BlockContainer,
+public class Cell extends Widget<CellStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding, HasVerticalAlignment,
         HandlesPointerEvents
 {
@@ -28,7 +28,7 @@ public class Cell extends Widget implements BlockContainer,
     /**
      * List of child widgets.
      */
-    private final List<BlockWidget> children = new ArrayList<>();
+    private final List<BlockWidget<?>> children = new ArrayList<>();
 
     /**
      * Constructs a new cell with the default style.
@@ -52,19 +52,19 @@ public class Cell extends Widget implements BlockContainer,
     }
 
     @Override
-    public BlockWidget getChild(final int index) throws IndexOutOfBoundsException {
+    public BlockWidget<?> getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void add(final BlockWidget widget) {
+    public void add(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
@@ -74,14 +74,5 @@ public class Cell extends Widget implements BlockContainer,
     @Override
     public String getType() {
         return "cell";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final CellStyle style) {
-        super.setStyle(style);
     }
 }

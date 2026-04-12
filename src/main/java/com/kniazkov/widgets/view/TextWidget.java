@@ -8,7 +8,7 @@ import com.kniazkov.widgets.model.Model;
 /**
  * A simple text widget that displays styled textual content.
  */
-public class TextWidget extends InlineWidget implements HasStyledText, HasColor {
+public class TextWidget extends InlineWidget<TextWidgetStyle> implements HasStyledText, HasColor {
     /**
      * Returns the default style instance used by text widgets.
      *
@@ -59,14 +59,5 @@ public class TextWidget extends InlineWidget implements HasStyledText, HasColor 
     @Override
     public String getType() {
         return "text";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final TextWidgetStyle style) {
-        super.setStyle(style);
     }
 }

@@ -20,8 +20,9 @@ import java.util.Optional;
  * of the interface. The root itself cannot have a parent container and represents the logical
  * entry point for traversing or updating the widget tree.
  */
-public final class RootWidget extends Widget implements TypedContainer<BlockWidget>,
-        HasBgColor {
+public final class RootWidget extends Widget<RootWidgetStyle>
+        implements TypedContainer<BlockWidget<?>>, HasBgColor
+{
     /**
      * Returns the default style instance used by root widget.
      *
@@ -34,7 +35,7 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     /**
      * List of child widgets.
      */
-    final List<BlockWidget> children = new ArrayList<>();
+    final List<BlockWidget<?>> children = new ArrayList<>();
 
     /**
      * Constructor.
@@ -67,14 +68,14 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     }
 
     @Override
-    public void add(final BlockWidget widget) {
+    public void add(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
@@ -89,15 +90,6 @@ public final class RootWidget extends Widget implements TypedContainer<BlockWidg
     @Override
     public void remove() {
         this.pushUpdate(new ResetClient());
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final RootWidgetStyle style) {
-        super.setStyle(style);
     }
 
     /**

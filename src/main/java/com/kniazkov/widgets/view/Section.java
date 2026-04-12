@@ -14,7 +14,7 @@ import java.util.List;
  * to containing {@link InlineWidget}s. Widgets are appended in order and displayed
  * in a horizontal flow within the section.
  */
-public class Section extends BlockWidget implements TypedContainer<InlineWidget>,
+public class Section extends BlockWidget<SectionStyle> implements TypedContainer<InlineWidget<?>>,
         HasHorizontalAlignment, HasMargin, HasPadding, HasHiddenState {
     /**
      * Returns the default style instance used by sections.
@@ -28,7 +28,7 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     /**
      * List of child widgets.
      */
-    private final List<InlineWidget> children = new ArrayList<>();
+    private final List<InlineWidget<?>> children = new ArrayList<>();
 
     /**
      * Creates a new section.
@@ -52,12 +52,12 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     }
 
     @Override
-    public InlineWidget getChild(final int index) throws IndexOutOfBoundsException {
+    public InlineWidget<?> getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
@@ -65,7 +65,7 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     }
 
     @Override
-    public void add(final InlineWidget widget) {
+    public void add(final InlineWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
@@ -74,14 +74,5 @@ public class Section extends BlockWidget implements TypedContainer<InlineWidget>
     @Override
     public String getType() {
         return "section";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(SectionStyle style) {
-        super.setStyle(style);
     }
 }

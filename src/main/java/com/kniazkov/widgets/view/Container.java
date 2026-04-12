@@ -19,7 +19,7 @@ import java.util.NoSuchElementException;
  * a container DOES NOT HAVE to be part of the visual hierarchy itself — it is simply an object
  * that owns or groups widgets.
  */
-public interface Container extends Iterable<Widget> {
+public interface Container extends Iterable<Widget<?>> {
     /**
      * Returns the unique identifier of this container.
      *
@@ -41,7 +41,7 @@ public interface Container extends Iterable<Widget> {
      * @return the widget at the specified index
      * @throws IndexOutOfBoundsException if the index is invalid
      */
-    Widget getChild(int index) throws IndexOutOfBoundsException;
+    Widget<?> getChild(int index) throws IndexOutOfBoundsException;
 
     /**
      * Removes a widget from this container.
@@ -51,7 +51,7 @@ public interface Container extends Iterable<Widget> {
      *
      * @param widget the widget to remove
      */
-    void remove(Widget widget);
+    void remove(Widget<?> widget);
 
     /**
      * Collects all descendant widgets that are instances of the specified type.
@@ -84,17 +84,17 @@ public interface Container extends Iterable<Widget> {
         if (count == 0) {
             return;
         }
-        final List<Widget> toRemove = new ArrayList<>(count);
+        final List<Widget<?>> toRemove = new ArrayList<>(count);
         for (int index = 0; index < count; index++) {
             toRemove.add(this.getChild(index));
         }
-        for (final Widget widget : toRemove) {
+        for (final Widget<?> widget : toRemove) {
             this.remove(widget);
         }
     }
 
     @Override
-    default Iterator<Widget> iterator() {
+    default Iterator<Widget<?>> iterator() {
         return new WidgetIterator(this);
     }
 
@@ -103,9 +103,9 @@ public interface Container extends Iterable<Widget> {
      * {@link Container}. The traversal starts with the container itself (if it is a {@link Widget})
      * and continues through all its descendants using an explicit stack.
      */
-    class WidgetIterator implements Iterator<Widget> {
+    class WidgetIterator implements Iterator<Widget<?>> {
 
-        private final Deque<Widget> stack = new ArrayDeque<>();
+        private final Deque<Widget<?>> stack = new ArrayDeque<>();
 
         /**
          * Creates an iterator that traverses widgets in the given container.
@@ -114,7 +114,7 @@ public interface Container extends Iterable<Widget> {
          */
         public WidgetIterator(final Container root) {
             if (root instanceof Widget) {
-                this.stack.push((Widget) root);
+                this.stack.push((Widget<?>) root);
             } else {
                 for (int index = root.getChildCount() - 1; index >= 0; index--) {
                     this.stack.push(root.getChild(index));
@@ -128,12 +128,12 @@ public interface Container extends Iterable<Widget> {
         }
 
         @Override
-        public Widget next() {
+        public Widget<?> next() {
             if (this.stack.isEmpty()) {
                 throw new NoSuchElementException();
             }
 
-            Widget widget = this.stack.pop();
+            Widget<?> widget = this.stack.pop();
 
             if (widget instanceof Container) {
                 Container container = (Container) widget;

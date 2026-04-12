@@ -13,7 +13,7 @@ import java.util.TreeMap;
 /**
  * Represents a table widget that contains {@link Row} widgets.
  */
-public class Table extends BlockWidget implements TypedContainer<Row>,
+public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row>,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing
 {
     /**
@@ -80,7 +80,7 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
@@ -90,15 +90,6 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
     @Override
     public String getType() {
         return "table";
-    }
-
-    /**
-     * Sets a new widget style.
-     *
-     * @param style new widget style
-     */
-    public void setStyle(final TableStyle style) {
-        super.setStyle(style);
     }
 
     /**
@@ -152,7 +143,7 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
      */
     public Row getRow(final int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Row index must be &gt;= 0");
+            throw new IndexOutOfBoundsException("Row index must be >= 0");
         }
         if (index < this.children.size()) {
             return this.children.get(index);
@@ -178,7 +169,7 @@ public class Table extends BlockWidget implements TypedContainer<Row>,
      */
     public Column getColumn(final int index) {
         if (index < 0) {
-            throw new IndexOutOfBoundsException("Column index must be &gt;= 0");
+            throw new IndexOutOfBoundsException("Column index must be >= 0");
         }
         return this.columns.computeIfAbsent(index, x -> new Column(this, index));
     }
