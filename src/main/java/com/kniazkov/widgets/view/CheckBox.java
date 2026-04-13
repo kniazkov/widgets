@@ -6,12 +6,23 @@ package com.kniazkov.widgets.view;
 /**
  * A checkbox widget that allows users to toggle between checked and unchecked states.
  */
-public class CheckBox extends InlineWidget<EmptyStyle> implements HasCheckedState, HasDisabledState {
+public class CheckBox extends InlineWidget<CheckBoxStyle>
+        implements HasCheckedState, HasDisabledState, HasColor, HasBgColor, HasSelectableImage
+{
+    /**
+     * Returns the default style instance used by check boxes.
+     *
+     * @return the singleton default {@link CheckBoxStyle} instance
+     */
+    public static CheckBoxStyle getDefaultStyle() {
+        return CheckBoxStyle.DEFAULT;
+    }
+
     /**
      * Constructs a new checkbox.
      */
     public CheckBox() {
-        super(EmptyStyle.INSTANCE);
+        super(getDefaultStyle());
         this.uncheck();
     }
 
