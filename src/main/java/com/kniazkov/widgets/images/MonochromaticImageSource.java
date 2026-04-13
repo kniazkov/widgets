@@ -5,19 +5,11 @@ package com.kniazkov.widgets.images;
 
 import com.kniazkov.widgets.common.Color;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 /**
  * An {@link ImageSource} implementation that generates a monochromatic (single-color) image
  * as an SVG rectangle.
- * <p>
- * This class creates a scalable vector graphic of a solid color rectangle with specified
- * dimensions, suitable for use as placeholders, backgrounds, or simple colored images.
- * The image is encoded as a data URL for direct embedding in HTML or CSS.
  */
-public class MonochromaticImageSource implements ImageSource {
+public class MonochromaticImageSource extends SvgImageSource {
     /**
      * The fill color of the generated image.
      */
@@ -46,22 +38,20 @@ public class MonochromaticImageSource implements ImageSource {
         this.height = height;
     }
 
+    /**
+     * Builds the raw SVG markup for the monochromatic image.
+     *
+     * @return SVG document as a string
+     */
     @Override
-    public String toString() {
-        final String svg = String.format(
-            "<svg xmlns='http://www.w3.org/2000/svg' width='%d' height='%d'>" +
-            "<rect width='100%%' height='100%%' fill='%s'/>" +
-            "</svg>",
-            this.width, this.height, this.color.toString()
+    protected String getSvg() {
+        return String.format(
+                "<svg xmlns='http://www.w3.org/2000/svg' width='%d' height='%d'>" +
+                        "<rect width='100%%' height='100%%' fill='%s'/>" +
+                        "</svg>",
+                this.width,
+                this.height,
+                this.color.toString()
         );
-        String encodedSvg = "";
-        try {
-            encodedSvg = URLEncoder.encode(
-                svg,
-                StandardCharsets.UTF_8.name()
-            ).replaceAll("\\+", "%20");
-        } catch (final UnsupportedEncodingException ignored) {
-        }
-        return "data:image/svg+xml," + encodedSvg;
     }
 }

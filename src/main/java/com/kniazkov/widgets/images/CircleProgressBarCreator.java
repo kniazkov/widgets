@@ -1,9 +1,6 @@
 package com.kniazkov.widgets.images;
 
 import com.kniazkov.widgets.common.Color;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 /**
  * A factory for creating circular progress bar images as SVG graphics.
@@ -123,7 +120,7 @@ public class CircleProgressBarCreator {
     /**
      * Internal class representing a single progress bar image.
      */
-    private class ProgressBar implements ImageSource {
+    private class ProgressBar extends SvgImageSource {
         /**
          * The progress percentage for this image (0-100).
          */
@@ -139,7 +136,7 @@ public class CircleProgressBarCreator {
         }
 
         @Override
-        public String toString() {
+        protected String getSvg() {
             final String header = String.format(
                 "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" " +
                     "viewBox=\"0 0 %d %d\">",
@@ -187,15 +184,7 @@ public class CircleProgressBarCreator {
                 progress = "";
             }
             final String footer = "</svg>";
-            String svg = "";
-            try {
-                svg = URLEncoder.encode(
-                    header + background + circle + progress + footer,
-                    StandardCharsets.UTF_8.name()
-                ).replaceAll("\\+", "%20");
-            } catch (final UnsupportedEncodingException ignored) {
-            }
-            return "data:image/svg+xml," + svg;
+            return header + background + circle + progress + footer;
         }
     }
 }
