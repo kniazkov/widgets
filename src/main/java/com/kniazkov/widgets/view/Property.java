@@ -18,6 +18,7 @@ import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.images.ImageSource;
+import com.kniazkov.widgets.images.SvgImageSource;
 import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.BooleanModel;
@@ -31,6 +32,7 @@ import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.SvgImageSourceModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.model.ValidatedRealNumberModel;
 import com.kniazkov.widgets.model.VerticalAlignmentModel;
@@ -305,6 +307,21 @@ public abstract class Property<T> {
     }
 
     /**
+     * Creates an SVG image source property with standard SVG image serialization.
+     *
+     * @param name property name
+     * @return a configured SVG image source property
+     */
+    private static Property<SvgImageSource> svgImageSourceProperty(final String name) {
+        return of(
+                name,
+                SvgImageSource.class,
+                SvgImageSourceModel::new,
+                data -> new JsonString(data.toString())
+        );
+    }
+
+    /**
      * Property indicating whether the widget's current state is valid.
      */
     public static final Property<Boolean> VALID = boolProperty("valid");
@@ -448,6 +465,20 @@ public abstract class Property<T> {
             ImageSourceModel::new,
             data -> new JsonString(data.toString())
     );
+
+    /**
+     * Property storing the image source for the selected state of a widget
+     * such as a checked checkbox or a selected radio button.
+     */
+    public static final Property<SvgImageSource> SELECTED_IMAGE_SOURCE =
+            svgImageSourceProperty("sel source");
+
+    /**
+     * Property storing the image source for the unselected state of a widget
+     * such as an unchecked checkbox or an unselected radio button.
+     */
+    public static final Property<SvgImageSource> UNSELECTED_IMAGE_SOURCE =
+            svgImageSourceProperty("unsel source");
 
     /**
      * Property storing the horizontal alignment.

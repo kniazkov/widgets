@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Ivan Kniazkov
+ * Copyright (c) 2025 Ivan Kniazkov
  */
 package com.kniazkov.widgets.images;
 
@@ -9,12 +9,24 @@ import java.nio.charset.StandardCharsets;
 
 /**
  * An abstract {@link ImageSource} implementation that represents an SVG image.
- * <p>
- * Subclasses generate raw SVG markup as a string, while this base class handles
- * conversion of that markup into a {@code data:image/svg+xml,...} URL suitable
- * for use in HTML or CSS.
+ * Subclasses provide raw SVG markup, while this class converts it into a data URL.
  */
 public abstract class SvgImageSource implements ImageSource {
+    /**
+     * An empty SVG image source containing a valid SVG document with no visible content.
+     */
+    public static final SvgImageSource EMPTY = new SvgImageSource() {
+        /**
+         * Returns an empty but valid SVG document.
+         *
+         * @return SVG markup as a string
+         */
+        @Override
+        protected String getSvg() {
+            return "<svg xmlns='http://www.w3.org/2000/svg'></svg>";
+        }
+    };
+
     /**
      * Returns the raw SVG markup for this image.
      *
@@ -23,9 +35,9 @@ public abstract class SvgImageSource implements ImageSource {
     protected abstract String getSvg();
 
     /**
-     * Converts this SVG image to a data URL string.
+     * Returns this SVG image as a data URL string.
      *
-     * @return a {@code data:image/svg+xml,...} URL containing the encoded SVG markup
+     * @return encoded SVG data URL
      */
     @Override
     public String toString() {
