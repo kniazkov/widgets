@@ -131,8 +131,8 @@ public final class Client implements Comparable<Client> {
                 processSingleEvent(events.getElement(0).toJsonObject());
                 return;
             }
-            final Map<UId, Widget> map = new TreeMap<>();
-            for (final Widget widget : this.root) {
+            final Map<UId, Widget<?>> map = new TreeMap<>();
+            for (final Widget<?> widget : this.root) {
                 map.put(widget.getId(), widget);
             }
             for (JsonElement item : events) {
@@ -154,8 +154,8 @@ public final class Client implements Comparable<Client> {
             return;
         }
         final UId widgetId = UId.parse(event.get("widget").getStringValue());
-        Widget widget = null;
-        for (final Widget child : this.root) {
+        Widget<?> widget = null;
+        for (final Widget<?> child : this.root) {
             if (child.getId().equals(widgetId)) {
                 widget = child;
                 break;
@@ -167,7 +167,7 @@ public final class Client implements Comparable<Client> {
     /**
      * Dispatches an event to its target widget.
      */
-    private void handleEventObject(final JsonObject event, final Widget widget) {
+    private void handleEventObject(final JsonObject event, final Widget<?> widget) {
         if (widget == null) {
             return;
         }
@@ -195,7 +195,7 @@ public final class Client implements Comparable<Client> {
             final UId id = UId.parse(request.get("lastUpdate"));
             this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
         }
-        for (final Widget widget : this.root) {
+        for (final Widget<?> widget : this.root) {
             widget.getUpdates(this.updates);
         }
     }
