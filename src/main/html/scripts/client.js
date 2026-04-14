@@ -187,6 +187,8 @@ var actionHandlers = {
     "set border width": setBorderWidth,
     "set border radius": setBorderRadius,
     "set source": setSource,
+    "set sel source": setSelectedSource,
+    "set unsel source": setUnselectedSource,
     "set horz alignment": setHorzAlignment,
     "set vert alignment": setVertAlignment,
     "set cell spacing": setCellSpacing,

@@ -102,6 +102,7 @@ var widgetsLibrary = {
             } else {
                 widget.src = widget._sources.normal;
             }
+            return false; // don't refresh properties
         };
         initPointerEvents(widget, true);
         return widget;
@@ -131,36 +132,76 @@ var widgetsLibrary = {
         return document.createElement("span");
     },
     "checkbox": function() {
-        var widget = document.createElement("input");
-        widget.type = "checkbox";
-        addEvent(widget, "change", function() {
-            sendEventToServer(widget, "check", { state: widget.checked });
-        });
+        var widget = document.createElement("img");
+        widget._selected = false;
+        widget._selSrc = "#";
+        widget._unselSrc = "#";
+        widget.refresh = function() {
+            var color = getWidgetProperty(widget, "color");
+            var bgColor = getWidgetProperty(widget, "backgroundColor");
+            if (widget._selected) {
+                widget.src = replaceColorsInSvg(widget._selSrc, color, bgColor);
+            } else {
+                widget.src = replaceColorsInSvg(widget._unselSrc, color, bgColor);
+            }
+            return false; // don't refresh properties
+        };
+        initPointerEvents(widget, true);
+        widget.onClick = function() {
+            if (widget._states.disabled) {
+                return;
+            }
+            widget._selected = !widget._selected;
+            widget.refresh();
+            sendEventToServer(widget, "check", { state: widget._selected });
+        }
         return widget;
     }
 };
 
-var refreshWidget = function(widget) {
+var getWidgetProperty = function(widget, name) {
     var states = widget._states;
     var properties = widget._properties;
-    var set = { ...properties.normal };
+    var value = properties.normal[name];
     if (states.hovered) {
-        Object.assign(set, properties.hovered);
+        value = properties.hovered[name];
     }
     if (states.active) {
-        Object.assign(set, properties.active);
+        value = properties.active[name];
     }
     if (states.invalid) {
-        Object.assign(set, properties.invalid);
+        value = properties.invalid[name];
     }
     if (states.disabled) {
-        Object.assign(set, properties.disabled);
+        value = properties.disabled[name];
     }
-    Object.assign(widget.style, set);
-    //log("The widget " + widget._id + " style was updated with the following values: " + JSON.stringify(set) + '.');
+    return value;
+};
+
+var refreshWidget = function(widget) {
+    var flag = true;
     if (widget.refresh) {
-        widget.refresh();
+        flag = widget.refresh();
     }
+    if (flag) {
+        var states = widget._states;
+        var properties = widget._properties;
+        var set = { ...properties.normal };
+        if (states.hovered) {
+            Object.assign(set, properties.hovered);
+        }
+        if (states.active) {
+            Object.assign(set, properties.active);
+        }
+        if (states.invalid) {
+            Object.assign(set, properties.invalid);
+        }
+        if (states.disabled) {
+            Object.assign(set, properties.disabled);
+        }
+        Object.assign(widget.style, set);
+    }
+    //log("The widget " + widget._id + " style was updated with the following values: " + JSON.stringify(set) + '.');
 };
 
 var createWidget = function(data) {
@@ -186,6 +227,9 @@ var createWidget = function(data) {
         disabled : false
     };
     widgets[id] = widget;
+    if (widget.refresh) {
+        widget.refresh();
+    }
     log("Widget '" + data.type + "' created, id: " + id + '.');
     return true;
 };
@@ -514,6 +558,30 @@ var setSource = function(data) {
     return false;
 };
 
+var setSelectedSource = function(data) {
+    var widget = widgets[data.widget];
+    var source = data["sel source"];
+    if (widget && typeof source == "string") {
+        widget._selSrc = source;
+        log("The source \"" + truncate(source, 100) + "\" for selected state has been set to widget \"" + data.widget + "\".");
+        refreshWidget(widget);
+        return true;
+    }
+    return false;
+};
+
+var setUnselectedSource = function(data) {
+    var widget = widgets[data.widget];
+    var source = data["unsel source"];
+    if (widget && typeof source == "string") {
+        widget._unselSrc = source;
+        log("The source \"" + truncate(source, 100) + "\" for unselected state has been set to widget \"" + data.widget + "\".");
+        refreshWidget(widget);
+        return true;
+    }
+    return false;
+};
+
 var setHorzAlignment = function(data) {
     var widget = widgets[data.widget];
     var alignment = data["horz alignment"];
@@ -551,7 +619,8 @@ var setCheckedFlag = function(data) {
     var widget = widgets[data.widget];
     var flag = data.checked;
     if (widget && typeof flag == "boolean") {
-        widget.checked = flag;
+        widget._selected = flag;
+        refreshWidget(widget);
         log("The widget " + data.widget + " has been " + (flag ? "checked" : "unchecked") + '.');
         return true;
     }
@@ -765,4 +834,23 @@ var composeColor = function(rgb) {
     } else {
         return "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
     }
+};
+
+var replaceColorsInSvg = function(svg, color, bgColor) {
+    if (!color || !bgColor) {
+        return svg;
+    }
+    var prefix = 'data:image/svg+xml,';
+    var encoded = svg.indexOf(prefix) === 0 ? svg.substring(prefix.length) : svg;
+    var decoded = decodeURIComponent(encoded);
+    decoded = decoded
+        .replace(
+            /stroke\s*=\s*(['"])(?:black|#000|#000000|rgb\s*\(\s*0\s*,\s*0\s*,\s*0\s*\))\1/gi,
+            'stroke="' + color + '"'
+        )
+        .replace(
+            /fill\s*=\s*(['"])(?:white|#fff|#ffffff|rgb\s*\(\s*255\s*,\s*255\s*,\s*255\s*\))\1/gi,
+            'fill="' + bgColor + '"'
+        );
+    return prefix + encodeURIComponent(decoded);
 };
