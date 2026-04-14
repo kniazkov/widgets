@@ -39,6 +39,8 @@ public class CheckBoxes {
             root.add(section);
 
             final CheckBox first = new CheckBox();
+            first.setWidth(92);
+            first.setHeight(92);
             section.add(first);
             final TextWidget caption = new TextWidget("Check me");
             section.add(caption);

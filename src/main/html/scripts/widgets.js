@@ -9,8 +9,11 @@ var widgetsLibrary = {
     "root" : function() {
         return document.body;
     },
-    "section" : function() {
-        return document.createElement("div");
+    "section": function() {
+        var div = document.createElement("div");
+        div.style.display = "flex";
+        div.style.alignItems = "center";
+        return div;
     },
     "text" : function() {
         return document.createElement("span");
