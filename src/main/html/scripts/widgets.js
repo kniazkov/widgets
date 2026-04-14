@@ -66,7 +66,7 @@ var widgetsLibrary = {
         widget._files = [];
         widget._multiple = false;
         widget._accept = "";
-        widget.onClick = function() {
+        widget._onClick = function() {
             var input = document.createElement("input");
             input.type = "file";
             input.style.display = "none";
@@ -96,7 +96,7 @@ var widgetsLibrary = {
             hovered: "#",
             active: "#"
         };
-        widget.refresh = function() {
+        widget._refresh = function() {
             var states = widget._states;
             if (states.active) {
                 widget.src = widget._sources.active;
@@ -139,7 +139,7 @@ var widgetsLibrary = {
         widget._selected = false;
         widget._selSrc = "#";
         widget._unselSrc = "#";
-        widget.refresh = function() {
+        widget._refresh = function() {
             var color = getWidgetProperty(widget, "color");
             var bgColor = getWidgetProperty(widget, "backgroundColor");
             if (widget._selected) {
@@ -150,12 +150,12 @@ var widgetsLibrary = {
             return false; // don't refresh properties
         };
         initPointerEvents(widget, true);
-        widget.onClick = function() {
+        widget._onClick = function() {
             if (widget._states.disabled) {
                 return;
             }
             widget._selected = !widget._selected;
-            widget.refresh();
+            widget._refresh();
             sendEventToServer(widget, "check", { state: widget._selected });
         }
         return widget;
@@ -183,8 +183,8 @@ var getWidgetProperty = function(widget, name) {
 
 var refreshWidget = function(widget) {
     var flag = true;
-    if (widget.refresh) {
-        flag = widget.refresh();
+    if (widget._refresh) {
+        flag = widget._refresh();
     }
     if (flag) {
         var states = widget._states;
@@ -229,9 +229,10 @@ var createWidget = function(data) {
         invalid : false,
         disabled : false
     };
+    widget._display = widget.style.display;
     widgets[id] = widget;
-    if (widget.refresh) {
-        widget.refresh();
+    if (widget._refresh) {
+        widget._refresh();
     }
     log("Widget '" + data.type + "' created, id: " + id + '.');
     return true;
@@ -311,7 +312,7 @@ var setHiddenFlag = function(data) {
     var widget = widgets[data.widget];
     var flag = data.hidden;
     if (widget && typeof flag == "boolean") {
-        widget.style.display = flag ? "none" : "";
+        widget.style.display = flag ? "none" : widget._display;
         log("The widget " + data.widget + " is" + (flag ? "" : " not") + " hidden.");
         return true;
     }
@@ -703,8 +704,8 @@ var processPointerEvent = function(element, event) {
 var initPointerEvents = function(widget, activeOnPointerDown) {
     addEvent(widget, "click", function(event) {
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
-        if (widget.onClick) {
-            widget.onClick();
+        if (widget._onClick) {
+            widget._onClick();
         }
     });
     addEvent(widget, "pointerenter", function(event) {
