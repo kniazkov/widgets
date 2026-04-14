@@ -8,8 +8,9 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
 /**
  * A checkbox widget that allows users to toggle between checked and unchecked states.
  */
-public class CheckBox extends InlineWidget<CheckBoxStyle> implements HasCheckedState, HasDisabledState,
-        HasColor, HasBgColor, HasAbsoluteWidth, HasAbsoluteHeight, HasSelectableImage, HandlesPointerEvents
+public class CheckBox extends InlineWidget<CheckBoxStyle> implements HasCheckedState,
+        HasDisabledState, HasColor, HasBgColor, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
+        HasSelectableImage, HandlesPointerEvents
 {
     /**
      * Returns the default style instance used by check boxes.

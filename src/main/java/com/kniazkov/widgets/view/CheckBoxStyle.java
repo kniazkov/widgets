@@ -11,8 +11,8 @@ import java.util.Set;
 /**
  * Style definition for {@link CheckBox}.
  */
-public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbsoluteWidth, HasAbsoluteHeight,
-        HasSelectableImage
+public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbsoluteWidth,
+        HasAbsoluteHeight, HasMargin, HasSelectableImage
 {
     /**
      * Set of supported states.
@@ -27,12 +27,12 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
     /**
      * Default image for checked checkbox.
      */
-    private static final String CHECKED_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\" fill=\"none\"><rect x=\"10\" y=\"10\" width=\"44\" height=\"44\" rx=\"6\" fill=\"white\" stroke=\"black\" stroke-width=\"4\"/><path d=\"M18 34 L28 44 L46 22\" stroke=\"black\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>";
+    private static final String CHECKED_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\" fill=\"none\"><rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"6\" fill=\"white\" stroke=\"black\" stroke-width=\"4\"/><path d=\"M10 34 L24 48 L54 14\" stroke=\"black\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>";
 
     /**
      * Default image for unchecked checkbox.
      */
-    private static final String UNCHECKED_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\" fill=\"none\"><rect x=\"10\" y=\"10\" width=\"44\" height=\"44\" rx=\"6\" fill=\"white\" stroke=\"black\" stroke-width=\"4\"/></svg>";
+    private static final String UNCHECKED_SVG = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" viewBox=\"0 0 64 64\" fill=\"none\"><rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"6\" fill=\"white\" stroke=\"black\" stroke-width=\"4\"/></svg>";
 
     /**
      * The global default check box style.
@@ -55,6 +55,7 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
 
         this.setWidth(24);
         this.setHeight(24);
+        this.setMargin(2, 1);
 
         this.setSelectedImageSource(new SvgImageSource() {
             @Override
