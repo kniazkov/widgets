@@ -4,56 +4,65 @@
 package com.kniazkov.widgets.common;
 
 /**
- * Represents standard vertical alignment options used for inline and block-level content.
+ * Represents generic vertical alignment options independent of any specific
+ * rendering technology or CSS property.
  * <p>
- * These values correspond to CSS keywords used for vertical alignment,
- * such as {@code top}, {@code middle}, or {@code bottom}.
+ * These values are intended to be serialized and sent to renderers, which
+ * then map them to concrete platform-specific alignment rules.
  */
 public enum VerticalAlignment {
     /**
      * Aligns content to the top.
-     * CSS value: {@code top}.
      */
     TOP("top"),
 
     /**
-     * Aligns content to the middle.
-     * CSS value: {@code middle}.
+     * Aligns content to the vertical center.
      */
     MIDDLE("middle"),
 
     /**
      * Aligns content to the bottom.
-     * CSS value: {@code bottom}.
      */
-    BOTTOM("bottom");
+    BOTTOM("bottom"),
 
     /**
-     * The CSS keyword representing this alignment.
+     * Aligns content to the text baseline where supported.
+     * Renderers that do not support baseline alignment should fall back to center alignment.
      */
-    private final String cssCode;
+    BASELINE("baseline");
+
+    /**
+     * Serialized alignment code used in protocol messages.
+     */
+    private final String code;
 
     /**
      * Constructor.
      *
-     * @param cssCode the CSS keyword for this alignment
+     * @param code the serialized alignment code
      */
-    VerticalAlignment(final String cssCode) {
-        this.cssCode = cssCode;
+    VerticalAlignment(final String code) {
+        this.code = code;
     }
 
     /**
-     * Returns the CSS-compatible string for this alignment.
+     * Returns the serialized code of this alignment.
      *
-     * @return the CSS keyword representing this alignment
+     * @return the protocol code representing this alignment
      */
-    public String getCSSCode() {
-        return this.cssCode;
+    public String getCode() {
+        return this.code;
     }
 
+    /**
+     * Returns the string representation of this alignment.
+     *
+     * @return the serialized alignment code
+     */
     @Override
     public String toString() {
-        return this.cssCode;
+        return this.code;
     }
 
     /**
@@ -61,7 +70,7 @@ public enum VerticalAlignment {
      * Matching is case-insensitive. If the value is not recognized,
      * {@link #TOP} is returned.
      *
-     * @param value the CSS vertical alignment keyword
+     * @param value the serialized alignment code
      * @return parsed alignment or {@link #TOP} if unknown
      */
     public static VerticalAlignment fromString(final String value) {
@@ -69,9 +78,9 @@ public enum VerticalAlignment {
             return TOP;
         }
         final String normalized = value.trim().toLowerCase();
-        for (final VerticalAlignment align : values()) {
-            if (align.cssCode.equals(normalized)) {
-                return align;
+        for (final VerticalAlignment alignment : values()) {
+            if (alignment.code.equals(normalized)) {
+                return alignment;
             }
         }
         return TOP;

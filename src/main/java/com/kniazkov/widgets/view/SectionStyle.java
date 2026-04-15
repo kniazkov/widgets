@@ -4,12 +4,14 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.HorizontalAlignment;
+import com.kniazkov.widgets.common.VerticalAlignment;
 
 /**
  * Style definition for {@link Section}.
  */
-public class SectionStyle extends Style implements HasHorizontalAlignment, HasMargin, HasPadding,
-        HasHiddenState
+public class SectionStyle extends Style
+        implements HasHorizontalAlignment, HasVerticalAlignment,
+        HasMargin, HasPadding, HasHiddenState
 {
     /**
      * The global default section style.
@@ -21,6 +23,7 @@ public class SectionStyle extends Style implements HasHorizontalAlignment, HasMa
      */
     private SectionStyle() {
         this.setHorizontalAlignment(HorizontalAlignment.LEFT);
+        this.setVerticalAlignment(VerticalAlignment.MIDDLE);
         this.setMargin(0);
         this.setPadding(0);
         this.setHiddenFlag(false);

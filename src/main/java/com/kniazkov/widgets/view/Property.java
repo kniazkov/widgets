@@ -497,7 +497,7 @@ public abstract class Property<T> {
             "vert alignment",
             VerticalAlignment.class,
             VerticalAlignmentModel::new,
-            data -> new JsonString(data.getCSSCode())
+            data -> new JsonString(data.getCode())
     );
 
     /**

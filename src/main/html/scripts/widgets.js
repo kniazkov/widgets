@@ -10,10 +10,28 @@ var widgetsLibrary = {
         return document.body;
     },
     "section": function() {
-        var div = document.createElement("div");
-        div.style.display = "flex";
-        div.style.alignItems = "center";
-        return div;
+        var widget = document.createElement("div");
+        widget.style.display = "flex";
+        widget._setVertAlignment = function(value) {
+            switch (value) {
+                case "top":
+                    widget.style.alignItems = "flex-start";
+                    break;
+                case "middle":
+                    widget.style.alignItems = "center";
+                    break;
+                case "bottom":
+                    widget.style.alignItems = "flex-end";
+                    break;
+                case "baseline":
+                    widget.style.alignItems = "baseline";
+                    break;
+                default:
+                    widget.style.alignItems = "center";
+                    break;
+            }
+        };
+        return widget;
     },
     "text" : function() {
         return document.createElement("span");
@@ -113,6 +131,9 @@ var widgetsLibrary = {
     "cell" : function() {
         var widget = document.createElement("td");
         initPointerEvents(widget, true);
+        widget._setVertAlignment = function(value) {
+            widget.style.verticalAlign = value == "baseline" ? "middle" : value;
+        };
         return widget;
     },
     "row" : function() {
@@ -600,8 +621,8 @@ var setHorzAlignment = function(data) {
 var setVertAlignment = function(data) {
     var widget = widgets[data.widget];
     var alignment = data["vert alignment"];
-    if (widget && typeof alignment == "string") {
-        widget.style.verticalAlign = alignment;
+    if (widget && widget._setVertAlignment && typeof alignment == "string") {
+        widget._setVertAlignment(alignment);
         log("The vertical alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
         return true;
     }
