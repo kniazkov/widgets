@@ -12,6 +12,30 @@ var widgetsLibrary = {
     "section": function() {
         var widget = document.createElement("div");
         widget.style.display = "flex";
+        widget._setHorzAlignment = function(value) {
+            switch (value) {
+                case "left":
+                    widget.style.justifyContent = "flex-start";
+                    widget.style.textAlign = "left";
+                    break;
+                case "center":
+                    widget.style.justifyContent = "center";
+                    widget.style.textAlign = "center";
+                    break;
+                case "right":
+                    widget.style.justifyContent = "flex-end";
+                    widget.style.textAlign = "right";
+                    break;
+                case "justify":
+                    widget.style.justifyContent = "space-between";
+                    widget.style.textAlign = "justify";
+                    break;
+                default:
+                    widget.style.justifyContent = "flex-start";
+                    widget.style.textAlign = "left";
+                    break;
+            }
+        };
         widget._setVertAlignment = function(value) {
             switch (value) {
                 case "top":
@@ -610,8 +634,8 @@ var setUnselectedSource = function(data) {
 var setHorzAlignment = function(data) {
     var widget = widgets[data.widget];
     var alignment = data["horz alignment"];
-    if (widget && typeof alignment == "string") {
-        widget.style.textAlign  = alignment;
+    if (widget && widget._setHorzAlignment && typeof alignment == "string") {
+        widget._setHorzAlignment(alignment);
         log("The horizontal alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
         return true;
     }

@@ -487,7 +487,7 @@ public abstract class Property<T> {
             "horz alignment",
             HorizontalAlignment.class,
             HorizontalAlignmentModel::new,
-            data -> new JsonString(data.getCSSCode())
+            data -> new JsonString(data.getCode())
     );
 
     /**

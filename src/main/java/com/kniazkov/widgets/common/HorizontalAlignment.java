@@ -4,56 +4,61 @@
 package com.kniazkov.widgets.common;
 
 /**
- * Represents standard horizontal alignment options used for inline and block-level content.
- * <p>
- * These values correspond directly to CSS keywords for the {@code text-align} property,
- * such as {@code left}, {@code center}, or {@code right}.
+ * Represents generic horizontal alignment options independent of any specific
+ * rendering technology or CSS property.
  */
 public enum HorizontalAlignment {
     /**
      * Aligns content to the left.
-     * CSS value: {@code left}.
      */
     LEFT("left"),
 
     /**
      * Aligns content to the center.
-     * CSS value: {@code center}.
      */
     CENTER("center"),
 
     /**
      * Aligns content to the right.
-     * CSS value: {@code right}.
      */
-    RIGHT("right");
+    RIGHT("right"),
 
     /**
-     * The CSS keyword representing this alignment.
+     * Distributes content evenly across the available width where supported.
      */
-    private final String cssCode;
+    JUSTIFY("justify");
+
+    /**
+     * Serialized alignment code used in protocol messages.
+     */
+    private final String code;
 
     /**
      * Constructor.
      *
-     * @param cssCode the CSS keyword for this alignment
+     * @param code the serialized alignment code
      */
-    HorizontalAlignment(final String cssCode) {
-        this.cssCode = cssCode;
+    HorizontalAlignment(final String code) {
+        this.code = code;
     }
 
     /**
-     * Returns the CSS-compatible string for this alignment.
+     * Returns the serialized code of this alignment.
      *
-     * @return the CSS keyword representing this alignment
+     * @return the protocol code representing this alignment
      */
-    public String getCSSCode() {
-        return this.cssCode;
+    public String getCode() {
+        return this.code;
     }
 
+    /**
+     * Returns the string representation of this alignment.
+     *
+     * @return the serialized alignment code
+     */
     @Override
     public String toString() {
-        return this.cssCode;
+        return this.code;
     }
 
     /**
@@ -61,7 +66,7 @@ public enum HorizontalAlignment {
      * Matching is case-insensitive. If the value is not recognized,
      * {@link #LEFT} is returned.
      *
-     * @param value the CSS alignment keyword
+     * @param value the serialized alignment code
      * @return parsed alignment or {@link #LEFT} if unknown
      */
     public static HorizontalAlignment fromString(final String value) {
@@ -69,9 +74,9 @@ public enum HorizontalAlignment {
             return LEFT;
         }
         final String normalized = value.trim().toLowerCase();
-        for (final HorizontalAlignment align : values()) {
-            if (align.cssCode.equals(normalized)) {
-                return align;
+        for (final HorizontalAlignment alignment : values()) {
+            if (alignment.code.equals(normalized)) {
+                return alignment;
             }
         }
         return LEFT;
