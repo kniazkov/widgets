@@ -82,7 +82,7 @@ public class Ex05ClickableCells {
             for (final Cell cell : table.collectChildren(Cell.class)) {
                 cell.setStyle(cellStyle);
                 cell.onClick(data -> {
-                    Widget widget = cell.getChild(0);
+                    Widget<?> widget = cell.getChild(0);
                     if (!(widget instanceof Section)) {
                         return;
                     }

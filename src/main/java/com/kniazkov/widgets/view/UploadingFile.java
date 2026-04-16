@@ -22,7 +22,7 @@ public class UploadingFile {
     /**
      * Widget used to download the file.
      */
-    private final Widget widget;
+    private final Widget<?> widget;
 
     /**
      * Original filename of the file being uploaded.
@@ -75,7 +75,7 @@ public class UploadingFile {
      * @param widget Widget used to download the file
      * @param event the first upload event containing file metadata and possibly the first chunk
      */
-    UploadingFile(final Widget widget, final UploadEvent event) {
+    UploadingFile(final Widget<?> widget, final UploadEvent event) {
         this.widget = widget;
         this.name = event.name;
         this.type = event.type.isEmpty() ? Utils.getContentTypeByExtension(event.name) : event.type;

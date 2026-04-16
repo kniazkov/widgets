@@ -55,7 +55,7 @@ public abstract class Event<T> {
      * @param widget the widget affected by this event
      * @param data the parsed event payload
      */
-    public void updateWidget(final Widget widget, final T data) {
+    public void updateWidget(final Widget<?> widget, final T data) {
         // do nothing for default
     }
 
@@ -70,7 +70,7 @@ public abstract class Event<T> {
      * @param widget the widget receiving the event
      * @param object the serialized event data
      */
-    public void process(final Widget widget, final JsonObject object) {
+    public void process(final Widget<?> widget, final JsonObject object) {
         final Controller<T> controller = widget.getController(this);
         final T data = this.parseData(object);
         this.updateWidget(widget, data);
@@ -107,7 +107,7 @@ public abstract class Event<T> {
         }
 
         @Override
-        public void updateWidget(final Widget widget, final String data) {
+        public void updateWidget(final Widget<?> widget, final String data) {
             if (widget instanceof HasText) {
                 ((HasText) widget).getTextModel().setData(data);
             }
@@ -129,7 +129,7 @@ public abstract class Event<T> {
         }
 
         @Override
-        public void updateWidget(final Widget widget, final Boolean data) {
+        public void updateWidget(final Widget<?> widget, final Boolean data) {
             if (widget instanceof HasCheckedState) {
                 ((HasCheckedState) widget).getCheckedStateModel().setData(data);
             }
@@ -226,7 +226,7 @@ public abstract class Event<T> {
         }
 
         @Override
-        public void updateWidget(final Widget widget, final UploadEvent data) {
+        public void updateWidget(final Widget<?> widget, final UploadEvent data) {
             if (widget instanceof FileLoader) {
                 ((FileLoader) widget).handleUploadEvent(data);
             }

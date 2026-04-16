@@ -65,7 +65,7 @@ public interface Container extends Iterable<Widget<?>> {
      */
     default <T> Set<T> collectChildren(final Class<T> klass) {
         final Set<T> result = new HashSet<>();
-        for (final Widget widget : this) {
+        for (final Widget<?> widget : this) {
             if (klass.isInstance(widget)) {
                 result.add(klass.cast(widget));
             }

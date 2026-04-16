@@ -64,7 +64,7 @@ public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
     }
 
     @Override
-    public void remove(final Widget widget) {
+    public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
             widget.setParent(null);
