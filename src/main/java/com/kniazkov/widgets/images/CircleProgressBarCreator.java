@@ -249,8 +249,8 @@ public class CircleProgressBarCreator {
             final int radius = Math.max(1, (diameter - lineWidth) / 2);
             final double circumference = 2 * Math.PI * radius;
 
-            final double dash1 = circumference * 0.18;
-            final double gap1 = circumference * 0.82;
+            final double dash1 = circumference * 0.92;
+            final double gap1 = circumference * 0.08;
 
             final double dash2 = circumference * 0.55;
             final double gap2 = circumference * 0.45;

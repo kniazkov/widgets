@@ -78,6 +78,7 @@ public class LoadImages {
                 listeners.add(listener);
                 descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file-> {
+                    widget.setSource(progress.getWaitingImageSource());
                     try {
                         final BufferedImage original = ImageLoader.load(
                             file.getType(),
