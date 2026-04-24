@@ -147,7 +147,7 @@ var widgetsLibrary = {
             } else {
                 widget.src = widget._sources.normal;
             }
-            return false; // don't refresh properties
+            return true; // also refresh properties
         };
         initPointerEvents(widget, true);
         return widget;
