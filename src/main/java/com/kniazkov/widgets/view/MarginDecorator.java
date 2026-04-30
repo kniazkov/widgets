@@ -59,6 +59,7 @@ public class MarginDecorator extends InlineWidget<EmptyStyle>
         this.child = null;
         old.setParent(null);
         this.child = new TextWidget();
+        this.child.setParent(this);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 

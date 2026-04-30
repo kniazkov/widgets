@@ -52,6 +52,7 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
     public Button(final ButtonStyle style, final String text) {
         super(style);
         this.child = new TextWidget(text);
+        this.child.setParent(this);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
@@ -80,6 +81,7 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
         this.child = null;
         old.setParent(null);
         this.child = new TextWidget();
+        this.child.setParent(this);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
