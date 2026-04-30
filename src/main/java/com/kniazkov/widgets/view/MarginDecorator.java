@@ -27,9 +27,10 @@ public class MarginDecorator extends InlineWidget<EmptyStyle>
      *
      * @param child the inline widget to decorate with margin properties
      */
-    public MarginDecorator(final InlineWidget child) {
+    public MarginDecorator(final InlineWidget<?> child) {
         super(EmptyStyle.INSTANCE);
         this.child = child;
+        child.setParent(this);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
