@@ -12,6 +12,7 @@ var widgetsLibrary = {
     "section": function() {
         var widget = document.createElement("div");
         widget.style.display = "flex";
+        widget.style.flexWrap = "wrap";
         widget._setHorzAlignment = function(value) {
             switch (value) {
                 case "left":
