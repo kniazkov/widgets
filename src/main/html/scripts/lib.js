@@ -96,6 +96,13 @@ var addEvent = function(object, type, callback) {
     }
 };
 
+var isMobileDevice = function() {
+    return (
+        /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
+        window.matchMedia("(pointer: coarse)").matches
+    );
+};
+
 var escapeHtml = function(unsafe) {
     return unsafe
         .replace(/&/g, "&amp;")

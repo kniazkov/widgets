@@ -45,6 +45,7 @@ var startClient = function(address, data) {
     request.action = "new instance";
     request.address = address;
     request.browserId = browserId;
+    request.mobile = isMobileDevice();
     sendRequest(
         request,
         function(data) {

@@ -24,6 +24,14 @@ public class PageContext {
     public UUID browserId;
 
     /**
+     * Indicates whether the page request comes from a mobile device.
+     * <p>
+     * This value is determined from client/browser characteristics and may be used
+     * to adapt layout, behavior, or resource selection for mobile clients.
+     */
+    public boolean mobile;
+
+    /**
      * URL query parameters extracted from the request.
      * <p>
      * For example, a request to {@code /page?id=123&mode=edit} results in a map containing:

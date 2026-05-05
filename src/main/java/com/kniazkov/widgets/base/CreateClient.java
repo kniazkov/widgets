@@ -39,10 +39,12 @@ final class CreateClient extends ActionHandler {
         parameters.remove("action");
         parameters.remove("address");
         parameters.remove("browserId");
+        parameters.remove("mobile");
 
         // Prepare a container for request-specific settings passed to a page
         final PageContext context = new PageContext();
         context.browserId = UUID.fromString(data.get("browserId"));
+        context.mobile = Boolean.parseBoolean(data.get("mobile"));
         context.parameters = Collections.unmodifiableMap(parameters);
 
         // Create a new client and obtain its ID
