@@ -110,6 +110,7 @@ var isMobileDevice = function() {
         window.matchMedia("(pointer: coarse)").matches;
 
     return byUserAgent || byTouchMac || byScreen;
+};
 
 var escapeHtml = function(unsafe) {
     return unsafe
