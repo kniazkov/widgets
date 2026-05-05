@@ -97,11 +97,19 @@ var addEvent = function(object, type, callback) {
 };
 
 var isMobileDevice = function() {
-    return (
-        /Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
-        window.matchMedia("(pointer: coarse)").matches
-    );
-};
+    var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+    var byUserAgent =
+        /iPhone|iPad|iPod|Android|Windows Phone|IEMobile|Opera Mini/i.test(userAgent);
+
+    var byTouchMac =
+        navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+
+    var byScreen =
+        window.matchMedia("(max-width: 768px)").matches &&
+        window.matchMedia("(pointer: coarse)").matches;
+
+    return byUserAgent || byTouchMac || byScreen;
 
 var escapeHtml = function(unsafe) {
     return unsafe
