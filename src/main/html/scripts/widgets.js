@@ -67,19 +67,11 @@ var widgetsLibrary = {
         return widget;
     },
     "input field" : function() {
-        var widget = document.createElement("input");
-        widget.setText = function(text) {
-            if (widget.value != text) {
-                widget.value = text;
-                return true;
-            }
-            return false;
-        }
-        addEvent(widget, "input", function() {
-            sendEventToServer(widget, "text input", { text : widget.value });
-        });
-        initPointerEvents(widget);
-        initFocusEvents(widget, "active");
+        return createInputField();
+    },
+    "password input" : function() {
+        var widget = createInputField();
+        widget.type = "password";
         return widget;
     },
     "text area" : function() {
@@ -712,6 +704,23 @@ var sendNextChunk = function(data) {
         return true;
     }
     return false;
+};
+
+var createInputField = function() {
+    var widget = document.createElement("input");
+    widget.setText = function(text) {
+        if (widget.value != text) {
+            widget.value = text;
+            return true;
+        }
+        return false;
+    }
+    addEvent(widget, "input", function() {
+        sendEventToServer(widget, "text input", { text : widget.value });
+    });
+    initPointerEvents(widget);
+    initFocusEvents(widget, "active");
+    return widget;
 };
 
 var processPointerEvent = function(element, event) {
