@@ -123,6 +123,7 @@ public final class JsonStore extends Store {
         };
         m.put(Type.STRING, stringHandler);
         m.put(Type.NOT_EMPTY_STRING, stringHandler);
+        m.put(Type.USERNAME, stringHandler);
 
         final Handler<Integer> integerHandler = new Handler<Integer>() {
             @Override

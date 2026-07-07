@@ -3,15 +3,8 @@
  */
 package com.kniazkov.widgets.db;
 
-import com.kniazkov.widgets.model.BooleanModel;
-import com.kniazkov.widgets.model.IntegerModel;
-import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.NotEmptyStringModel;
-import com.kniazkov.widgets.model.RealNumberModel;
-import com.kniazkov.widgets.model.StringModel;
-import com.kniazkov.widgets.model.UuidModel;
-import com.kniazkov.widgets.model.ValidatedIntegerModel;
-import com.kniazkov.widgets.model.ValidatedRealNumberModel;
+import com.kniazkov.widgets.model.*;
+
 import java.util.UUID;
 
 /**
@@ -76,6 +69,21 @@ public abstract class Type<T> {
         @Override
         Model<String> createModel() {
             return new NotEmptyStringModel();
+        }
+    };
+
+    /**
+     * A built-in {@code Type} representing username textual values without spaces.
+     */
+    public static final Type<String> USERNAME = new Type<String>() {
+        @Override
+        Class<String> getValueClass() {
+            return String.class;
+        }
+
+        @Override
+        Model<String> createModel() {
+            return new UsernameModel();
         }
     };
 
