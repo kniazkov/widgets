@@ -94,6 +94,21 @@ public final class JsonStore extends Store {
      */
     private static final Map<Type<?>, Handler<?>> HANDLERS;
 
+    /**
+     * Handler for string processing
+     */
+    private static final Handler<String> STRING_HANDLER = new Handler<String>() {
+        @Override
+        protected String parse(final JsonElement element) {
+            return element.getStringValue();
+        }
+
+        @Override
+        protected JsonElement serialize(final String data) {
+            return new JsonString(data.trim());
+        }
+    };
+
     static {
         Map<Type<?>, Handler<?>> m = new HashMap<>();
 
@@ -110,20 +125,10 @@ public final class JsonStore extends Store {
         };
         m.put(Type.BOOLEAN, booleanHandler);
 
-        final Handler<String> stringHandler = new Handler<String>() {
-            @Override
-            protected String parse(final JsonElement element) {
-                return element.getStringValue();
-            }
 
-            @Override
-            protected JsonElement serialize(final String data) {
-                return new JsonString(data.trim());
-            }
-        };
-        m.put(Type.STRING, stringHandler);
-        m.put(Type.NOT_EMPTY_STRING, stringHandler);
-        m.put(Type.USERNAME, stringHandler);
+        m.put(Type.STRING, STRING_HANDLER);
+        m.put(Type.NOT_EMPTY_STRING, STRING_HANDLER);
+        m.put(Type.USERNAME, STRING_HANDLER);
 
         final Handler<Integer> integerHandler = new Handler<Integer>() {
             @Override
@@ -179,9 +184,13 @@ public final class JsonStore extends Store {
     private static Handler<?> getHandler(final Type<?> type) {
         Handler<?> handler = HANDLERS.get(type);
         if (handler == null) {
-            throw new IllegalStateException(
-                "Unsupported type: " + type.getValueClass().getName()
-            );
+            if (type.getValueClass() == String.class) {
+                handler = STRING_HANDLER;
+            } else {
+                throw new IllegalStateException(
+                        "Unsupported type: " + type.getValueClass().getName()
+                );
+            }
         }
         return handler;
     }

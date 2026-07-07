@@ -18,26 +18,26 @@ public abstract class Type<T> {
      *
      * @return the Java class of the values handled by this type
      */
-    abstract Class<T> getValueClass();
+    public abstract Class<T> getValueClass();
 
     /**
      * Creates a new {@link Model} instance capable of storing values of this type.
      *
      * @return a new model associated with this type
      */
-    abstract Model<T> createModel();
+    public abstract Model<T> createModel();
 
     /**
      * A built-in {@code Type} representing boolean values.
      */
     public static final Type<Boolean> BOOLEAN = new Type<Boolean>() {
         @Override
-        Class<Boolean> getValueClass() {
+        public Class<Boolean> getValueClass() {
             return Boolean.class;
         }
 
         @Override
-        Model<Boolean> createModel() {
+        public Model<Boolean> createModel() {
             return new BooleanModel();
         }
     };
@@ -47,12 +47,12 @@ public abstract class Type<T> {
      */
     public static final Type<String> STRING = new Type<String>() {
         @Override
-        Class<String> getValueClass() {
+        public Class<String> getValueClass() {
             return String.class;
         }
 
         @Override
-        Model<String> createModel() {
+        public Model<String> createModel() {
             return new StringModel();
         }
     };
@@ -62,12 +62,12 @@ public abstract class Type<T> {
      */
     public static final Type<String> NOT_EMPTY_STRING = new Type<String>() {
         @Override
-        Class<String> getValueClass() {
+        public Class<String> getValueClass() {
             return String.class;
         }
 
         @Override
-        Model<String> createModel() {
+        public Model<String> createModel() {
             return new NotEmptyStringModel();
         }
     };
@@ -77,12 +77,12 @@ public abstract class Type<T> {
      */
     public static final Type<String> USERNAME = new Type<String>() {
         @Override
-        Class<String> getValueClass() {
+        public Class<String> getValueClass() {
             return String.class;
         }
 
         @Override
-        Model<String> createModel() {
+        public Model<String> createModel() {
             return new UsernameModel();
         }
     };
@@ -92,12 +92,12 @@ public abstract class Type<T> {
      */
     public static final Type<Integer> INTEGER = new Type<Integer>() {
         @Override
-        Class<Integer> getValueClass() {
+        public Class<Integer> getValueClass() {
             return Integer.class;
         }
 
         @Override
-        Model<Integer> createModel() {
+        public Model<Integer> createModel() {
             return new IntegerModel();
         }
     };
@@ -107,12 +107,12 @@ public abstract class Type<T> {
      */
     public static final Type<Integer> POSITIVE_INTEGER = new Type<Integer>() {
         @Override
-        Class<Integer> getValueClass() {
+        public Class<Integer> getValueClass() {
             return Integer.class;
         }
 
         @Override
-        Model<Integer> createModel() {
+        public Model<Integer> createModel() {
             return new ValidatedIntegerModel(ValidatedIntegerModel.POSITIVE);
         }
     };
@@ -122,12 +122,12 @@ public abstract class Type<T> {
      */
     public static final Type<Double> REAL = new Type<Double>() {
         @Override
-        Class<Double> getValueClass() {
+        public Class<Double> getValueClass() {
             return Double.class;
         }
 
         @Override
-        Model<Double> createModel() {
+        public Model<Double> createModel() {
             return new RealNumberModel();
         }
     };
@@ -138,12 +138,12 @@ public abstract class Type<T> {
      */
     public static final Type<Double> POSITIVE_REAL = new Type<Double>() {
         @Override
-        Class<Double> getValueClass() {
+        public Class<Double> getValueClass() {
             return Double.class;
         }
 
         @Override
-        Model<Double> createModel() {
+        public Model<Double> createModel() {
             return new ValidatedRealNumberModel(ValidatedRealNumberModel.POSITIVE);
         }
     };
@@ -153,12 +153,12 @@ public abstract class Type<T> {
      */
     public static final Type<UUID> IDENTIFIER = new Type<UUID>() {
         @Override
-        Class<UUID> getValueClass() {
+        public Class<UUID> getValueClass() {
             return UUID.class;
         }
 
         @Override
-        Model<UUID> createModel() {
+        public Model<UUID> createModel() {
             return new UuidModel();
         }
     };
