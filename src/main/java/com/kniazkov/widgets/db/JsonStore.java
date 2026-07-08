@@ -125,10 +125,11 @@ public final class JsonStore extends Store {
         };
         m.put(Type.BOOLEAN, booleanHandler);
 
-
         m.put(Type.STRING, STRING_HANDLER);
         m.put(Type.NOT_EMPTY_STRING, STRING_HANDLER);
         m.put(Type.USERNAME, STRING_HANDLER);
+        m.put(Type.PHONE_NUMBER, STRING_HANDLER);
+        m.put(Type.EMAIL, STRING_HANDLER);
 
         final Handler<Integer> integerHandler = new Handler<Integer>() {
             @Override

@@ -88,6 +88,36 @@ public abstract class Type<T> {
     };
 
     /**
+     * A built-in {@code Type} representing phone number textual values.
+     */
+    public static final Type<String> PHONE_NUMBER = new Type<String>() {
+        @Override
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+
+        @Override
+        public Model<String> createModel() {
+            return new PhoneNumberModel();
+        }
+    };
+
+    /**
+     * A built-in {@code Type} representing email address textual values.
+     */
+    public static final Type<String> EMAIL = new Type<String>() {
+        @Override
+        public Class<String> getValueClass() {
+            return String.class;
+        }
+
+        @Override
+        public Model<String> createModel() {
+            return new EmailModel();
+        }
+    };
+
+    /**
      * A built-in {@code Type} representing integer values.
      */
     public static final Type<Integer> INTEGER = new Type<Integer>() {
