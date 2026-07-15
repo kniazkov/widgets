@@ -31,4 +31,13 @@ public final class BooleanModel extends DefaultModel<Boolean> {
     public Model<Boolean> deriveWithData(final Boolean data) {
         return new BooleanModel(data);
     }
+
+    /**
+     * Returns a model that represents the logical negation of this model’s boolean value.
+     *
+     * @return a new model exposing {@code !getData()}
+     */
+    public Model<Boolean> invert() {
+        return new InvertModel(this);
+    }
 }
