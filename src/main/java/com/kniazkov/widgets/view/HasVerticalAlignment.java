@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.model.Model;
 
@@ -45,5 +46,33 @@ public interface HasVerticalAlignment extends Entity {
      */
     default void setVerticalAlignment(VerticalAlignment alignment) {
         this.getVerticalAlignmentModel().setData(alignment);
+    }
+
+    /**
+     * Sets the alignment to {@link VerticalAlignment#TOP}.
+     */
+    default void setTopAlignment() {
+        this.setVerticalAlignment(VerticalAlignment.TOP);
+    }
+
+    /**
+     * Sets the alignment to {@link VerticalAlignment#MIDDLE}.
+     */
+    default void setMiddleAlignment() {
+        this.setVerticalAlignment(VerticalAlignment.MIDDLE);
+    }
+
+    /**
+     * Sets the alignment to {@link VerticalAlignment#BASELINE}.
+     */
+    default void setBaseLineAlignment() {
+        this.setVerticalAlignment(VerticalAlignment.BASELINE);
+    }
+
+    /**
+     * Sets the alignment to {@link VerticalAlignment#BOTTOM}.
+     */
+    default void setBottomAlignment() {
+        this.setVerticalAlignment(VerticalAlignment.BOTTOM);
     }
 }

@@ -46,4 +46,25 @@ public interface HasHorizontalAlignment extends Entity {
     default void setHorizontalAlignment(HorizontalAlignment alignment) {
         this.getHorizontalAlignmentModel().setData(alignment);
     }
+
+    /**
+     * Sets the alignment to {@link HorizontalAlignment#LEFT}.
+     */
+    default void setLeftAlignment() {
+        this.setHorizontalAlignment(HorizontalAlignment.LEFT);
+    }
+
+    /**
+     * Sets the alignment to {@link HorizontalAlignment#CENTER}.
+     */
+    default void setCenterAlignment() {
+        this.setHorizontalAlignment(HorizontalAlignment.CENTER);
+    }
+
+    /**
+     * Sets the alignment to {@link HorizontalAlignment#RIGHT}.
+     */
+    default void setRightAlignment() {
+        this.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+    }
 }
