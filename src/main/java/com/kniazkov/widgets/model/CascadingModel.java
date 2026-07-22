@@ -46,12 +46,6 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
     private boolean flag;
 
     /**
-     * A listener that relays change notifications from the current delegate model
-     * to this cascading wrapper by invoking {@link #notifyListeners()}.
-     */
-    private final Listener<T> forwarder;
-
-    /**
      * Creates a new cascading model that initially delegates all operations
      * to the specified base model.
      *
@@ -60,8 +54,7 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
     public CascadingModel(final Model<T> base) {
         this.model = base;
         this.flag = false;
-        this.forwarder = this::notifyListeners;
-        base.addListener(this.forwarder);
+        base.addListener(this.asListener());
     }
 
     @Override
@@ -79,9 +72,10 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
         if (this.flag) {
             return this.model.setData(data);
         }
-        this.model.removeListener(this.forwarder);
+        final Listener<T> forwarder = this.asListener();
+        this.model.removeListener(forwarder);
         this.model = this.model.deriveWithData(data);
-        this.model.addListener(this.forwarder);
+        this.model.addListener(forwarder);
         this.notifyListeners(data);
         this.flag = true;
         return true;

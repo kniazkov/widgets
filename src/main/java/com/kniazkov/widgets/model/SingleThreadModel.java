@@ -23,6 +23,18 @@ public abstract class SingleThreadModel<T> implements Model<T> {
      */
     private final Map<Listener<T>, Object> listeners = new WeakHashMap<>();
 
+    /**
+     * A listener bound to this model that forwards any received notification
+     * to this model's own listeners.
+     * <p>
+     * This listener is stored as a field rather than created on demand so that
+     * it remains strongly reachable for as long as this model exists.
+     * Since listeners are stored using weak references, creating a new listener instance
+     * on each call to {@link #asListener()} would allow it to be garbage-collected
+     * immediately after registration.
+     */
+    private final Listener<T> forwarder = value -> this.notifyListeners();
+
     @Override
     public void addListener(final Listener<T> listener) {
         listeners.put(listener, Boolean.TRUE);
@@ -36,6 +48,11 @@ public abstract class SingleThreadModel<T> implements Model<T> {
     @Override
     public void notifyListeners() {
         notifyListeners(getData());
+    }
+
+    @Override
+    public Listener<T> asListener() {
+        return this.forwarder;
     }
 
     /**

@@ -30,13 +30,6 @@ public class DisjunctionModel extends ReadOnlyModel<Boolean> {
     private final List<Model<Boolean>> list;
 
     /**
-     * A listener attached to every underlying model to propagate any update
-     * (data or validity change) to this wrapper's listeners. It must be stored in a field
-     * so it remains strongly referenced and is not accidentally removed by garbage collection.
-     */
-    private final Listener<Boolean> forwarder;
-
-    /**
      * Creates a new disjunction model that computes the logical OR of the
      * specified boolean-based models.
      *
@@ -44,10 +37,10 @@ public class DisjunctionModel extends ReadOnlyModel<Boolean> {
      */
     public DisjunctionModel(final List<Model<Boolean>> base) {
         this.list = base;
-        this.forwarder = data -> this.notifyListeners();
 
+        final Listener<Boolean> forwarder = this.asListener();
         for (final Model<Boolean> model : this.list) {
-            model.addListener(this.forwarder);
+            model.addListener(forwarder);
         }
     }
 

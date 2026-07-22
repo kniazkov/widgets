@@ -19,13 +19,6 @@ public class InvertModel extends SingleThreadModel<Boolean> {
     private final Model<Boolean> base;
 
     /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     * It must be stored in a field, not in a local variable, so that the garbage collector
-     * does not remove the listener from the base model while this wrapper exists.
-     */
-    private final Listener<Boolean> forwarder;
-
-    /**
      * Creates a new inverted boolean model that reflects the logical negation
      * of the specified base model.
      *
@@ -34,24 +27,22 @@ public class InvertModel extends SingleThreadModel<Boolean> {
      */
     public InvertModel(final Model<Boolean> base) {
         this.base = base;
-        this.forwarder = data -> this.notifyListeners(!base.getData());
-
-        base.addListener(this.forwarder);
+        this.base.addListener(this.asListener());
     }
 
     @Override
     public boolean isValid() {
-        return base.isValid();
+        return this.base.isValid();
     }
 
     @Override
     public Boolean getData() {
-        return !base.getData();
+        return !this.base.getData();
     }
 
     @Override
     public boolean setData(final Boolean data) {
-        return base.setData(!data);
+        return this.base.setData(!data);
     }
 
     @Override
