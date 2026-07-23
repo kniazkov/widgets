@@ -20,18 +20,12 @@ import com.kniazkov.widgets.common.Listener;
  * is provided again.
  * </p>
  */
-public final class IntegerToStringModel extends SingleThreadModel<String> {
+public final class IntegerToStringModel extends SingleThreadModel<String>
+        implements Listener<Integer> {
     /**
      * The underlying integer-based model.
      */
     private final Model<Integer> base;
-
-    /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     * It must be stored in a field, not in a local variable, so that the garbage collector
-     * does not remove the listener from the base model while this wrapper exists.
-     */
-    private final Listener<Integer> forwarder;
 
     /**
      * The current string representation of the integer value.
@@ -50,17 +44,9 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
      */
     public IntegerToStringModel(final Model<Integer> base) {
         this.base = base;
-        this.forwarder = data -> {
-            final String value = data.toString();
-            if (!this.string.equals(value)) {
-                this.string = value;
-                this.notifyListeners(value);
-            }
-        };
+        this.base.addListener(this);
         this.string = base.getData().toString();
         this.valid = base.isValid();
-
-        base.addListener(this.forwarder);
     }
 
     @Override
@@ -93,5 +79,14 @@ public final class IntegerToStringModel extends SingleThreadModel<String> {
     @Override
     public Model<String> deriveWithData(final String data) {
         return new StringModel(data);
+    }
+
+    @Override
+    public void accept(final Integer data) {
+        final String value = data.toString();
+        if (!this.string.equals(value)) {
+            this.string = value;
+            this.notifyListeners(value);
+        }
     }
 }

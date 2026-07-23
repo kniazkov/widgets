@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  *
  * @param <T> the type of data in the base model
  */
-public final class PredicateModel<T> extends ReadOnlyModel<Boolean> {
+public final class PredicateModel<T> extends ReadOnlyModel<Boolean> implements Listener<T> {
     /**
      * The wrapped base model.
      */
@@ -28,11 +28,6 @@ public final class PredicateModel<T> extends ReadOnlyModel<Boolean> {
     private boolean value;
 
     /**
-     * Listener attached to the base model.
-     */
-    private final Listener<T> forwarder;
-
-    /**
      * Creates a new predicate-based boolean model.
      *
      * @param base the base model
@@ -40,18 +35,9 @@ public final class PredicateModel<T> extends ReadOnlyModel<Boolean> {
      */
     public PredicateModel(final Model<T> base, final Predicate<T> predicate) {
         this.base = base;
+        this.base.addListener(this);
         this.predicate = predicate;
         this.value = this.compute();
-
-        this.forwarder = data -> {
-            final boolean newValue = this.compute();
-            if (this.value != newValue) {
-                this.value = newValue;
-                this.notifyListeners(newValue);
-            }
-        };
-
-        this.base.addListener(this.forwarder);
     }
 
     @Override
@@ -79,5 +65,14 @@ public final class PredicateModel<T> extends ReadOnlyModel<Boolean> {
      */
     private boolean compute() {
         return this.base.isValid() && this.predicate.test(this.base.getData());
+    }
+
+    @Override
+    public void accept(final T data) {
+        final boolean newValue = this.compute();
+        if (this.value != newValue) {
+            this.value = newValue;
+            this.notifyListeners(newValue);
+        }
     }
 }

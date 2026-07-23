@@ -29,7 +29,7 @@ import com.kniazkov.widgets.common.Listener;
  *
  * @param <T> the type of the data managed by this model
  */
-public final class CascadingModel<T> extends SingleThreadModel<T> {
+public final class CascadingModel<T> extends SingleThreadModel<T> implements Listener<T> {
 
     /**
      * The currently active model — initially the shared base model, and later
@@ -46,12 +46,6 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
     private boolean flag;
 
     /**
-     * A listener that relays change notifications from the current delegate model
-     * to this cascading wrapper by invoking {@link #notifyListeners()}.
-     */
-    private final Listener<T> forwarder;
-
-    /**
      * Creates a new cascading model that initially delegates all operations
      * to the specified base model.
      *
@@ -60,8 +54,7 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
     public CascadingModel(final Model<T> base) {
         this.model = base;
         this.flag = false;
-        this.forwarder = this::notifyListeners;
-        base.addListener(this.forwarder);
+        base.addListener(this);
     }
 
     @Override
@@ -79,9 +72,9 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
         if (this.flag) {
             return this.model.setData(data);
         }
-        this.model.removeListener(this.forwarder);
+        this.model.removeListener(this);
         this.model = this.model.deriveWithData(data);
-        this.model.addListener(this.forwarder);
+        this.model.addListener(this);
         this.notifyListeners(data);
         this.flag = true;
         return true;
@@ -90,5 +83,10 @@ public final class CascadingModel<T> extends SingleThreadModel<T> {
     @Override
     public Model<T> deriveWithData(final T data) {
         return this.model.deriveWithData(data);
+    }
+
+    @Override
+    public void accept(final T data) {
+        this.notifyListeners();
     }
 }

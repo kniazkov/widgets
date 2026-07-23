@@ -20,7 +20,7 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @param <T> the type of the data managed by this model
  */
-public final class SynchronizedModel<T> implements Model<T> {
+public final class SynchronizedModel<T> implements Model<T>, Listener<T> {
     /**
      * The wrapped base model that provides the actual data and validation logic.
      * All access is guarded by {@link #lock}.
@@ -39,11 +39,6 @@ public final class SynchronizedModel<T> implements Model<T> {
     private final Map<Listener<T>, Object> listeners;
 
     /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     */
-    private final Listener<T> forwarder;
-
-    /**
      * Creates a new synchronized wrapper for the specified base model.
      *
      * @param base the model to wrap
@@ -52,8 +47,7 @@ public final class SynchronizedModel<T> implements Model<T> {
         this.base = base;
         this.lock = new ReentrantLock();
         this.listeners = new WeakHashMap<>();
-        this.forwarder = this::notifyListeners;
-        this.base.addListener(this.forwarder);
+        this.base.addListener(this);
     }
 
     @Override
@@ -161,9 +155,9 @@ public final class SynchronizedModel<T> implements Model<T> {
         final List<Listener<T>> snapshot;
         this.lock.lock();
         try {
-            this.base.removeListener(this.forwarder);
+            this.base.removeListener(this);
             this.base = model;
-            this.base.addListener(this.forwarder);
+            this.base.addListener(this);
             data = model.getData();
             snapshot = new ArrayList<>(this.listeners.keySet());
         } finally {
@@ -190,5 +184,10 @@ public final class SynchronizedModel<T> implements Model<T> {
         for (final Listener<T> listener : snapshot) {
             listener.accept(data);
         }
+    }
+
+    @Override
+    public void accept(final T data) {
+        this.notifyListeners();
     }
 }

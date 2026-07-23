@@ -12,18 +12,11 @@ import com.kniazkov.widgets.common.Listener;
  * For example, a validation flag can be inverted and used to control a widget’s
  * disabled state.
  */
-public class InvertModel extends SingleThreadModel<Boolean> {
+public class InvertModel extends SingleThreadModel<Boolean> implements Listener<Boolean> {
     /**
      * The wrapped base model.
      */
     private final Model<Boolean> base;
-
-    /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     * It must be stored in a field, not in a local variable, so that the garbage collector
-     * does not remove the listener from the base model while this wrapper exists.
-     */
-    private final Listener<Boolean> forwarder;
 
     /**
      * Creates a new inverted boolean model that reflects the logical negation
@@ -34,9 +27,7 @@ public class InvertModel extends SingleThreadModel<Boolean> {
      */
     public InvertModel(final Model<Boolean> base) {
         this.base = base;
-        this.forwarder = data -> this.notifyListeners(!base.getData());
-
-        base.addListener(this.forwarder);
+        this.base.addListener(this);
     }
 
     @Override
@@ -57,5 +48,10 @@ public class InvertModel extends SingleThreadModel<Boolean> {
     @Override
     public Model<Boolean> deriveWithData(final Boolean data) {
         return new BooleanModel(data);
+    }
+
+    @Override
+    public void accept(final Boolean data) {
+        this.notifyListeners(!data);
     }
 }

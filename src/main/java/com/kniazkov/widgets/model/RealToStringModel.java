@@ -19,16 +19,12 @@ import com.kniazkov.widgets.common.Listener;
  * until a valid floating-point string is provided again.
  * </p>
  */
-public final class RealToStringModel extends SingleThreadModel<String> {
+public final class RealToStringModel extends SingleThreadModel<String>
+        implements Listener<Double> {
     /**
      * The underlying double-based model.
      */
     private final Model<Double> base;
-
-    /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     */
-    private final Listener<Double> forwarder;
 
     /**
      * The current string representation of the double value.
@@ -47,17 +43,9 @@ public final class RealToStringModel extends SingleThreadModel<String> {
      */
     public RealToStringModel(final Model<Double> base) {
         this.base = base;
-        this.forwarder = data -> {
-            final String value = data.toString();
-            if (!this.string.equals(value)) {
-                this.string = value;
-                this.notifyListeners(value);
-            }
-        };
+        this.base.addListener(this);
         this.string = base.getData().toString();
         this.valid = base.isValid();
-
-        base.addListener(this.forwarder);
     }
 
     @Override
@@ -92,5 +80,14 @@ public final class RealToStringModel extends SingleThreadModel<String> {
     @Override
     public Model<String> deriveWithData(final String data) {
         return new StringModel(data);
+    }
+
+    @Override
+    public void accept(final Double data) {
+        final String value = data.toString();
+        if (!this.string.equals(value)) {
+            this.string = value;
+            this.notifyListeners(value);
+        }
     }
 }

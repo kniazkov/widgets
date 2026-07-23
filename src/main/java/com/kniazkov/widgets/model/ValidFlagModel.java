@@ -14,18 +14,11 @@ import com.kniazkov.widgets.common.Listener;
  *
  * @param <T> the type of data in the base model
  */
-public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
+public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> implements Listener<T> {
     /**
      * The wrapped base model.
      */
     private final Model<T> base;
-
-    /**
-     * A listener that forwards updates from the base model to this wrapper’s listeners.
-     * It must be stored in a field, not in a local variable, so that the garbage collector
-     * does not remove the listener from the base model while this wrapper exists.
-     */
-    private final Listener<T> forwarder;
 
     /**
      * Creates a new validity-flag model based on the specified base model.
@@ -34,9 +27,7 @@ public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
      */
     public ValidFlagModel(final Model<T> base) {
         this.base = base;
-        this.forwarder = data -> this.notifyListeners(base.isValid());
-
-        base.addListener(this.forwarder);
+        this.base.addListener(this);
     }
 
     @Override
@@ -57,5 +48,10 @@ public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> {
      */
     public Model<Boolean> invert() {
         return new InvertModel(this);
+    }
+
+    @Override
+    public void accept(final T data) {
+        this.notifyListeners(this.base.isValid());
     }
 }
