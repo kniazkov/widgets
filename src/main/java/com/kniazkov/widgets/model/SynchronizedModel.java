@@ -123,11 +123,6 @@ public final class SynchronizedModel<T> implements Model<T> {
     }
 
     @Override
-    public Listener<T> asListener() {
-        return this.forwarder;
-    }
-
-    @Override
     public Model<T> deriveWithData(final T data) {
         return base.deriveWithData(data);
     }

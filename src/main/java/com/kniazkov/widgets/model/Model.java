@@ -69,16 +69,6 @@ public interface Model<T> {
     void notifyListeners();
 
     /**
-     * Returns a listener that forwards any received notification to this model's listeners.
-     * The returned listener ignores the received data and simply propagates a change
-     * notification by invoking {@link #notifyListeners()}. This method is useful when one
-     * model should automatically mirror update notifications from another model.
-     *
-     * @return a listener bound to this model
-     */
-    Listener<T> asListener();
-
-    /**
      * Creates a new model instance that is <i>similar</i> to this one but initialized
      * with the specified data. The returned model should preserve the same behavioral
      * characteristics — such as validation logic, listener notification policy, and
