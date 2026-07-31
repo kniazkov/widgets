@@ -1,5 +1,7 @@
 # Web Widgets
 
+[![Tests](https://github.com/kniazkov/widgets/actions/workflows/tests.yml/badge.svg)](https://github.com/kniazkov/widgets/actions/workflows/tests.yml)
+
 Web Widgets is a server-driven MVC framework for building web interfaces in Java. The UI is
 declared as a tree of Java widgets, application state lives in reactive models, and browser events
 are handled by Java controllers. The framework synchronizes the widget tree with a small JavaScript
