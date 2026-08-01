@@ -92,6 +92,8 @@ Additional runnable examples are available in
 
 ## Documentation
 
+- [Model catalog and hierarchy](docs/MODELS.md) — every model type, its contract, defaults,
+  validation, composition, and synchronization behavior.
 - [Widget catalog and hierarchy](docs/WIDGETS.md) — every widget class, its inheritance,
   containment rules, and related view types.
 
