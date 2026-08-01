@@ -44,14 +44,33 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
     }
 
     /**
+     * Creates a button with the specified inline widget as its child.
+     *
+     * @param child the widget displayed inside the button
+     */
+    public Button(final InlineWidget<?> child) {
+        this(getDefaultStyle(), child);
+    }
+
+    /**
      * Creates a button with the specified style and {@link TextWidget} as its initial child.
      *
      * @param style the style to apply to this widget
      * @param text the button text
      */
     public Button(final ButtonStyle style, final String text) {
+        this(style, new TextWidget(text));
+    }
+
+    /**
+     * Creates a button with the specified style and inline child widget.
+     *
+     * @param style the style to apply to this widget
+     * @param child the widget displayed inside the button
+     */
+    public Button(final ButtonStyle style, final InlineWidget<?> child) {
         super(style);
-        this.child = new TextWidget(text);
+        this.child = child;
         this.child.setParent(this);
         this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
