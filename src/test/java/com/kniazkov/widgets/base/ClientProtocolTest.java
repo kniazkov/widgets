@@ -95,6 +95,8 @@ public class ClientProtocolTest {
         final StringModel model = new StringModel("before");
         final TextWidget widget = new TextWidget(TextWidget.getDefaultStyle(), model);
         client.getRootWidget().add(new Section(widget));
+        assertTrue(model.setData("queued-one"));
+        assertTrue(model.setData("queued-two"));
         final Collection<Update> target = BaseTestSupport.updates(widget);
         assertTrue("The test requires at least two queued widget updates", target.size() > 1);
         final BlockingUpdateSet pending = new BlockingUpdateSet(target);
