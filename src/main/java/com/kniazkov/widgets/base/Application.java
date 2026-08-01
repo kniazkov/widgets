@@ -171,6 +171,7 @@ public final class Application {
             synchronized (client) {
                 client.timer = this.options.clientLifetime;
                 client.synchronize(request, response);
+                response.addBoolean("result", true);
             }
             return client;
         });
