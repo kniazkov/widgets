@@ -90,6 +90,11 @@ Open [http://localhost:8080](http://localhost:8080). Static application files ar
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
 
+## Documentation
+
+- [Widget catalog and hierarchy](docs/WIDGETS.md) — every widget class, its inheritance,
+  containment rules, and related view types.
+
 ## Project layout
 
 | Package | Purpose |
