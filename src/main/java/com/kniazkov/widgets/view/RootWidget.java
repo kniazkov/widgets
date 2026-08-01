@@ -45,6 +45,18 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         super(getDefaultStyle());
     }
 
+    /**
+     * Creates a root widget containing the specified block widgets.
+     *
+     * @param children the initial child widgets, in display order
+     */
+    public RootWidget(final BlockWidget<?>... children) {
+        this();
+        for (final BlockWidget<?> child : children) {
+            this.appendChild(child);
+        }
+    }
+
     @Override
     public Optional<RootWidget> getRootWidget() {
         return Optional.of(this);
@@ -69,6 +81,15 @@ public final class RootWidget extends Widget<RootWidgetStyle>
 
     @Override
     public void add(final BlockWidget<?> widget) {
+        this.appendChild(widget);
+    }
+
+    /**
+     * Appends a child without dispatching to an overridable method from a constructor.
+     *
+     * @param widget the child widget
+     */
+    private void appendChild(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));

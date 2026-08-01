@@ -61,20 +61,20 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.Button;
+import com.kniazkov.widgets.view.Panel;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 
 public final class HelloWidgets {
     public static void main(String[] args) {
         Page page = (root, context) -> {
-            Section content = new Section();
             TextWidget message = new TextWidget("It works!");
             Button button = new Button("Click me");
 
             button.onClick(event -> message.setText("Hello from Java"));
-            content.add(message);
-            content.add(button);
-            root.add(content);
+            root.add(new Panel(
+                new Section(message, button)
+            ));
         };
 
         Options options = new Options();

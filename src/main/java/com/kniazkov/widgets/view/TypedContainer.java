@@ -41,4 +41,15 @@ public interface TypedContainer<T extends Widget<?>> extends Container {
     default void addWidget(final T widget) {
         this.add(widget);
     }
+
+    /**
+     * Adds all widgets from the specified collection in iteration order.
+     *
+     * @param widgets the widgets to add
+     */
+    default void addAll(final Iterable<? extends T> widgets) {
+        for (final T widget : widgets) {
+            this.add(widget);
+        }
+    }
 }

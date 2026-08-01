@@ -38,12 +38,34 @@ public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
     }
 
     /**
+     * Creates a new row containing the specified cells.
+     *
+     * @param children the initial cells, in display order
+     */
+    public Row(final Cell... children) {
+        this(getDefaultStyle(), children);
+    }
+
+    /**
      * Creates a new row with the specified style.
      *
      * @param style the style to apply to this row
      */
     public Row(final RowStyle style) {
         super(style);
+    }
+
+    /**
+     * Creates a new row with the specified style and cells.
+     *
+     * @param style the style to apply to this row
+     * @param children the initial cells, in display order
+     */
+    public Row(final RowStyle style, final Cell... children) {
+        super(style);
+        for (final Cell child : children) {
+            this.appendChild(child);
+        }
     }
 
     @Override
@@ -58,6 +80,15 @@ public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
 
     @Override
     public void add(final Cell widget) {
+        this.appendChild(widget);
+    }
+
+    /**
+     * Appends a child without dispatching to an overridable method from a constructor.
+     *
+     * @param widget the child cell
+     */
+    private void appendChild(final Cell widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));

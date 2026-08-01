@@ -40,12 +40,34 @@ public class Section extends BlockWidget<SectionStyle> implements TypedContainer
     }
 
     /**
+     * Creates a new section containing the specified inline widgets.
+     *
+     * @param children the initial child widgets, in display order
+     */
+    public Section(final InlineWidget<?>... children) {
+        this(getDefaultStyle(), children);
+    }
+
+    /**
      * Creates a new section with specified style.
      *
      * @param style section style
      */
     public Section(final SectionStyle style) {
         super(style);
+    }
+
+    /**
+     * Creates a new section with the specified style and child widgets.
+     *
+     * @param style section style
+     * @param children the initial child widgets, in display order
+     */
+    public Section(final SectionStyle style, final InlineWidget<?>... children) {
+        super(style);
+        for (final InlineWidget<?> child : children) {
+            this.appendChild(child);
+        }
     }
 
     @Override
@@ -68,6 +90,15 @@ public class Section extends BlockWidget<SectionStyle> implements TypedContainer
 
     @Override
     public void add(final InlineWidget<?> widget) {
+        this.appendChild(widget);
+    }
+
+    /**
+     * Appends a child without dispatching to an overridable method from a constructor.
+     *
+     * @param widget the child widget
+     */
+    private void appendChild(final InlineWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));

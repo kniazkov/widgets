@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Ivan Kniazkov
+ * Copyright (c) 2026 Ivan Kniazkov
  */
 package com.kniazkov.widgets.view;
 
@@ -10,58 +10,56 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a table cell widget capable of containing {@link BlockWidget}s.
+ * A general-purpose block-level container for composing groups of block widgets.
+ * A panel is rendered as a block element and may itself be nested in any
+ * {@link BlockContainer}.
  */
-public class Cell extends Widget<CellStyle> implements BlockContainer,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding, HasVerticalAlignment,
+public class Panel extends BlockWidget<PanelStyle> implements BlockContainer,
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
         HandlesPointerEvents
 {
     /**
-     * Returns the default style instance used by table cells.
+     * Returns the default style instance used by panels.
      *
-     * @return the singleton default {@link CellStyle} instance
+     * @return the singleton default {@link PanelStyle} instance
      */
-    public static CellStyle getDefaultStyle() {
-        return CellStyle.DEFAULT;
+    public static PanelStyle getDefaultStyle() {
+        return PanelStyle.DEFAULT;
     }
 
-    /**
-     * List of child widgets.
-     */
+    /** Child widgets. */
     private final List<BlockWidget<?>> children = new ArrayList<>();
 
-    /**
-     * Constructs a new cell with the default style.
-     */
-    public Cell() {
+    /** Creates an empty panel with the default style. */
+    public Panel() {
         super(getDefaultStyle());
     }
 
     /**
-     * Constructs a new cell containing the specified block widgets.
+     * Creates a panel containing the specified block widgets.
      *
      * @param children the initial child widgets, in display order
      */
-    public Cell(final BlockWidget<?>... children) {
+    public Panel(final BlockWidget<?>... children) {
         this(getDefaultStyle(), children);
     }
 
     /**
-     * Constructs a new cell with the specified style.
+     * Creates an empty panel with the specified style.
      *
-     * @param style the cell style to use
+     * @param style the panel style to use
      */
-    public Cell(final CellStyle style) {
+    public Panel(final PanelStyle style) {
         super(style);
     }
 
     /**
-     * Constructs a new cell with the specified style and block widgets.
+     * Creates a panel with the specified style and child widgets.
      *
-     * @param style the cell style to use
+     * @param style the panel style to use
      * @param children the initial child widgets, in display order
      */
-    public Cell(final CellStyle style, final BlockWidget<?>... children) {
+    public Panel(final PanelStyle style, final BlockWidget<?>... children) {
         super(style);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);
@@ -91,7 +89,7 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
     private void appendChild(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        this.pushUpdate(new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
@@ -104,6 +102,6 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
 
     @Override
     public String getType() {
-        return "cell";
+        return "panel";
     }
 }
