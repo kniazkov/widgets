@@ -49,12 +49,34 @@ public class InlineBlock extends InlineWidget<InlineBlockStyle> implements Block
     }
 
     /**
+     * Constructs a new inline block containing the specified block widgets.
+     *
+     * @param children the initial child widgets, in display order
+     */
+    public InlineBlock(final BlockWidget<?>... children) {
+        this(getDefaultStyle(), children);
+    }
+
+    /**
      * Constructs a new inline block with the specified style.
      *
      * @param style the block style to use
      */
     public InlineBlock(final InlineBlockStyle style) {
         super(style);
+    }
+
+    /**
+     * Constructs a new inline block with the specified style and child widgets.
+     *
+     * @param style the block style to use
+     * @param children the initial child widgets, in display order
+     */
+    public InlineBlock(final InlineBlockStyle style, final BlockWidget<?>... children) {
+        super(style);
+        for (final BlockWidget<?> child : children) {
+            this.appendChild(child);
+        }
     }
 
     @Override
@@ -69,6 +91,15 @@ public class InlineBlock extends InlineWidget<InlineBlockStyle> implements Block
 
     @Override
     public void add(final BlockWidget<?> widget) {
+        this.appendChild(widget);
+    }
+
+    /**
+     * Appends a child without dispatching to an overridable method from a constructor.
+     *
+     * @param widget the child widget
+     */
+    private void appendChild(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
