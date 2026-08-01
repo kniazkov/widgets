@@ -32,7 +32,7 @@ public abstract class Periodic {
     public synchronized void start(long period) {
         stop();
         this.totalTime = 0;
-        this.timer = new Timer();
+        this.timer = new Timer(true);
         this.task = new TimerTask() {
             @Override
             public void run() {
