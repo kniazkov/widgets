@@ -35,6 +35,7 @@ classDiagram
     Widget <|-- Cell
 
     BlockWidget <|-- Section
+    BlockWidget <|-- Panel
     BlockWidget <|-- Table
 
     InlineWidget <|-- TextWidget
@@ -71,8 +72,13 @@ the root and table structures rather than the general block/inline distinction.
 | --- | --- | --- | --- |
 | `RootWidget` | `root` | `BlockWidget` | Top-level UI root created for a client. It cannot have a parent, can reset the client, and can request navigation to another page. |
 | `Section` | `section` | `InlineWidget` | Block-level horizontal flow, similar to a paragraph or generic HTML block containing inline content. Supports alignment, margin, padding, and hidden state. |
+| `Panel` | `panel` | `BlockWidget` | General-purpose block container for composing nested page regions. Supports background, border, size, spacing, and pointer events. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `MarginDecorator` | `margin decorator` | One `InlineWidget` | Wraps a single inline widget to add margin support without changing the wrapped widget. Removing its child installs an empty `TextWidget`. |
+
+All multi-child containers provide varargs constructors for declarative tree construction. Style
+overloads accept the style first and children after it; `TypedContainer.addAll(Iterable)` handles
+dynamic collections while preserving iteration order.
 
 ## Text, input, and action widgets
 
@@ -80,7 +86,7 @@ the root and table structures rather than the general block/inline distinction.
 | --- | --- | --- |
 | `TextWidget` | `text` | Displays styled text backed by a string value or `Model<String>`. |
 | `ActiveText` | `active text` | Interactive styled text with normal, hovered, and active visual states plus pointer events. |
-| `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child. Supports disabled and hidden states. |
+| `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
 | `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
 | `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. |
 | `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
@@ -109,9 +115,9 @@ legal. The supported tree shapes are:
 
 - `RootWidget` -> `BlockWidget`
 - `Section` -> `InlineWidget`
-- `InlineBlock` -> `BlockWidget`
+- `Panel`, `InlineBlock`, and `Cell` -> `BlockWidget`
 - `Button` and `MarginDecorator` -> exactly one `InlineWidget`
-- `Table` -> `Row` -> `Cell` -> `BlockWidget`
+- `Table` -> `Row` -> `Cell`
 
 Adding a widget to a new container updates its parent and queues the corresponding protocol
 operation. Removing it detaches it from the tree. A detached subtree keeps its state and is
