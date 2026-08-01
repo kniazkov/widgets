@@ -114,12 +114,16 @@ public final class Application {
         client.timer = this.options.clientLifetime;
 
         final UId id = client.getId();
-        this.clients.put(id, client);
-
         final RootWidget root = client.getRootWidget();
         final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
-        page.create(root, context);
+        try {
+            page.create(root, context);
+        } catch (final RuntimeException | Error failure) {
+            client.destroy();
+            throw failure;
+        }
 
+        this.clients.put(id, client);
         return id;
     }
 
