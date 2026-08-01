@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.images.ImageSource;
+import com.kniazkov.widgets.model.Model;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
@@ -65,8 +66,9 @@ public final class WidgetModelReactionTest {
     public void controlsReactToBehaviorModels() {
         final Button button = new Button();
         final WidgetSandbox<Button> buttonSandbox = WidgetSandbox.open(button);
+        final Model<Boolean> disabled = button.getDisabledStateModel();
         buttonSandbox.clearUpdates();
-        button.getDisabledStateModel().setData(true);
+        disabled.setData(true);
         assertEquals(
             true,
             singleUpdate(buttonSandbox, "set disabled", button)
@@ -85,9 +87,11 @@ public final class WidgetModelReactionTest {
 
         final FileLoader loader = new FileLoader();
         final WidgetSandbox<FileLoader> loaderSandbox = WidgetSandbox.open(loader);
+        final Model<String> acceptedFiles = loader.getAcceptedFilesModel();
+        final Model<Boolean> multipleInput = loader.getMultipleInputModel();
         loaderSandbox.clearUpdates();
-        loader.getAcceptedFilesModel().setData("image/*");
-        loader.getMultipleInputModel().setData(true);
+        acceptedFiles.setData("image/*");
+        multipleInput.setData(true);
 
         final List<JsonObject> updates = loaderSandbox.drainUpdates();
         assertEquals(1, WidgetSandbox.findUpdates(updates, "set accepted files", loader).size());
@@ -126,8 +130,10 @@ public final class WidgetModelReactionTest {
                 new com.kniazkov.widgets.common.AbsoluteSize(4)
             )
         );
+        final MarginDecorator decorator = new MarginDecorator(new TextWidget());
+        decorator.getMarginModel();
         assertModelUpdate(
-            new MarginDecorator(new TextWidget()), "set margin",
+            decorator, "set margin",
             widget -> ((MarginDecorator) widget).getMarginModel().setData(
                 new com.kniazkov.widgets.common.Offset(4)
             )
