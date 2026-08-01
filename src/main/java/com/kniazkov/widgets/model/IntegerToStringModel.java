@@ -38,20 +38,32 @@ public final class IntegerToStringModel extends SingleThreadModel<String>
     private boolean valid;
 
     /**
+     * Last validity state reported by the base model.
+     */
+    private boolean baseValid;
+
+    /**
+     * Prevents the synchronous callback caused by {@link #setData(String)} from overwriting the
+     * exact text supplied by the caller.
+     */
+    private boolean updatingBase;
+
+    /**
      * Creates a new adapter over the specified integer model.
      *
      * @param base the base integer model
      */
     public IntegerToStringModel(final Model<Integer> base) {
         this.base = base;
-        this.base.addListener(this);
         this.string = base.getData().toString();
-        this.valid = base.isValid();
+        this.valid = true;
+        this.baseValid = base.isValid();
+        this.base.addListener(this);
     }
 
     @Override
     public boolean isValid() {
-        return this.valid && this.base.isValid();
+        return this.valid && this.baseValid;
     }
 
     @Override
@@ -66,12 +78,18 @@ public final class IntegerToStringModel extends SingleThreadModel<String>
         }
         this.string = data;
         try {
-            int value = Integer.parseInt(data);
-            this.base.setData(value);
+            final int value = Integer.parseInt(data);
             this.valid = true;
+            this.updatingBase = true;
+            try {
+                this.base.setData(value);
+            } finally {
+                this.updatingBase = false;
+            }
         } catch (NumberFormatException ignored) {
             this.valid = false;
         }
+        this.baseValid = this.base.isValid();
         this.notifyListeners(data);
         return true;
     }
@@ -83,9 +101,16 @@ public final class IntegerToStringModel extends SingleThreadModel<String>
 
     @Override
     public void accept(final Integer data) {
+        if (this.updatingBase) {
+            return;
+        }
+        final boolean oldValidity = this.isValid();
         final String value = data.toString();
-        if (!this.string.equals(value)) {
-            this.string = value;
+        final boolean changed = !this.string.equals(value);
+        this.string = value;
+        this.valid = true;
+        this.baseValid = this.base.isValid();
+        if (changed || oldValidity != this.isValid()) {
             this.notifyListeners(value);
         }
     }
