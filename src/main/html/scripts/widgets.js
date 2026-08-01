@@ -58,6 +58,11 @@ var widgetsLibrary = {
         };
         return widget;
     },
+    "panel": function() {
+        var widget = document.createElement("div");
+        initPointerEvents(widget, true);
+        return widget;
+    },
     "text" : function() {
         return document.createElement("span");
     },
