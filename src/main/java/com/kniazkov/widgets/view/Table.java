@@ -54,12 +54,34 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
     }
 
     /**
+     * Constructs a new table containing the specified rows.
+     *
+     * @param children the initial rows, in display order
+     */
+    public Table(final Row... children) {
+        this(getDefaultStyle(), children);
+    }
+
+    /**
      * Constructs a new Table with the specified style.
      *
      * @param style the table style to use
      */
     public Table(final TableStyle style) {
         super(style);
+    }
+
+    /**
+     * Constructs a new table with the specified style and rows.
+     *
+     * @param style the table style to use
+     * @param children the initial rows, in display order
+     */
+    public Table(final TableStyle style, final Row... children) {
+        super(style);
+        for (final Row child : children) {
+            this.appendChild(child);
+        }
     }
 
     @Override
@@ -74,6 +96,15 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
 
     @Override
     public void add(final Row widget) {
+        this.appendChild(widget);
+    }
+
+    /**
+     * Appends a child without dispatching to an overridable method from a constructor.
+     *
+     * @param widget the child row
+     */
+    private void appendChild(final Row widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
