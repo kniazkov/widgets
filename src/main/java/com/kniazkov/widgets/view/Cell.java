@@ -38,12 +38,34 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
     }
 
     /**
+     * Constructs a new cell containing the specified block widgets.
+     *
+     * @param children the initial child widgets, in display order
+     */
+    public Cell(final BlockWidget<?>... children) {
+        this(getDefaultStyle(), children);
+    }
+
+    /**
      * Constructs a new cell with the specified style.
      *
      * @param style the cell style to use
      */
     public Cell(final CellStyle style) {
         super(style);
+    }
+
+    /**
+     * Constructs a new cell with the specified style and block widgets.
+     *
+     * @param style the cell style to use
+     * @param children the initial child widgets, in display order
+     */
+    public Cell(final CellStyle style, final BlockWidget<?>... children) {
+        super(style);
+        for (final BlockWidget<?> child : children) {
+            this.appendChild(child);
+        }
     }
 
     @Override
@@ -58,6 +80,15 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
 
     @Override
     public void add(final BlockWidget<?> widget) {
+        this.appendChild(widget);
+    }
+
+    /**
+     * Appends a child without dispatching to an overridable method from a constructor.
+     *
+     * @param widget the child widget
+     */
+    private void appendChild(final BlockWidget<?> widget) {
         this.children.add(widget);
         widget.setParent(this);
         pushUpdate(new AppendChild(widget.getId(), this.getId()));
