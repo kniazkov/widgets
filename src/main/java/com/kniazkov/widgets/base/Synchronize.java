@@ -5,7 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.Map;
 
@@ -31,7 +31,7 @@ final class Synchronize extends ActionHandler {
         obj.addBoolean("result", false);
 
         if (data.containsKey("client")) {
-            final UId clientId = UId.parse(data.get("client"));
+            final RMId clientId = RMId.parse(data.get("client"));
             this.application.synchronize(clientId, data, obj);
         }
 

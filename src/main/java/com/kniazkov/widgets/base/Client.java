@@ -8,7 +8,7 @@ import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.Update;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
@@ -20,7 +20,7 @@ import java.util.TreeSet;
 /**
  * Represents a single connected client in the system.
  * An instance of this class corresponds to one active web page or browser tab.
- * Each client is uniquely identified by a {@link UId} and contains its own widget tree,
+ * Each client is uniquely identified by a {@link RMId} and contains its own widget tree,
  * managed by a {@link RootWidget}. The client tracks all registered widgets, handles
  * incoming events from the front end, and collects outgoing updates for transmission.
  */
@@ -28,7 +28,7 @@ public final class Client implements Comparable<Client> {
     /**
      * Unique identifier for this client instance.
      */
-    private final UId id;
+    private final RMId id;
 
     /**
      * Client expiration timer in milliseconds.
@@ -51,14 +51,14 @@ public final class Client implements Comparable<Client> {
     /**
      * The identifier of the last event processed.
      */
-    private UId lastHandledEventId = UId.INVALID;
+    private RMId lastHandledEventId = RMId.INVALID;
 
     /**
      * Constructs a new client with a unique ID and an empty widget registry.
      * A new {@link RootWidget} is created and associated with this client.
      */
     Client() {
-        this.id = UId.create();
+        this.id = RMId.create();
         this.root = new RootWidget();
         this.updates = new TreeSet<>();
     }
@@ -68,7 +68,7 @@ public final class Client implements Comparable<Client> {
      *
      * @return client ID
      */
-    UId getId() {
+    RMId getId() {
         return this.id;
     }
 
@@ -131,7 +131,7 @@ public final class Client implements Comparable<Client> {
                 processSingleEvent(events.getElement(0).toJsonObject());
                 return;
             }
-            final Map<UId, Widget<?>> map = new TreeMap<>();
+            final Map<RMId, Widget<?>> map = new TreeMap<>();
             for (final Widget<?> widget : this.root) {
                 map.put(widget.getId(), widget);
             }
@@ -152,7 +152,7 @@ public final class Client implements Comparable<Client> {
         if (event == null) {
             return;
         }
-        final UId widgetId = getEventWidgetId(event);
+        final RMId widgetId = getEventWidgetId(event);
         Widget<?> widget = null;
         for (final Widget<?> child : this.root) {
             if (child.getId().equals(widgetId)) {
@@ -175,7 +175,7 @@ public final class Client implements Comparable<Client> {
         if (serializedId == null || type == null) {
             return;
         }
-        final UId eventId = UId.parse(serializedId);
+        final RMId eventId = RMId.parse(serializedId);
         if (eventId.compareTo(this.lastHandledEventId) <= 0) {
             return;
         }
@@ -191,14 +191,14 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Returns the target widget identifier, or {@link UId#INVALID} for malformed events.
+     * Returns the target widget identifier, or {@link RMId#INVALID} for malformed events.
      */
-    private static UId getEventWidgetId(final JsonObject event) {
+    private static RMId getEventWidgetId(final JsonObject event) {
         if (!event.containsKey("widget")) {
-            return UId.INVALID;
+            return RMId.INVALID;
         }
         final String serializedId = event.get("widget").getStringValue();
-        return serializedId == null ? UId.INVALID : UId.parse(serializedId);
+        return serializedId == null ? RMId.INVALID : RMId.parse(serializedId);
     }
 
     /**
@@ -209,7 +209,7 @@ public final class Client implements Comparable<Client> {
      */
     private void collectUpdates(final Map<String, String> request) {
         if (request.containsKey("lastUpdate")) {
-            final UId id = UId.parse(request.get("lastUpdate"));
+            final RMId id = RMId.parse(request.get("lastUpdate"));
             this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
         }
         for (final Widget<?> widget : this.root) {

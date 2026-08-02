@@ -4,32 +4,32 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * Abstract base class for UI updates sent from the server to the client. An {@code Update}
  * represents a change in the state of a specific widget that must be reflected in the client view.
- * Each update is uniquely identified by an auto-generated {@link UId}, which allows updates
+ * Each update is uniquely identified by an auto-generated {@link RMId}, which allows updates
  * to be compared and applied in a strict chronological order.
  */
 public abstract class Update implements Comparable<Update>, Cloneable {
     /**
      * Update ID.
      */
-    private final UId id;
+    private final RMId id;
 
     /**
      * The ID of the widget to which the update applies.
      */
-    private final UId widget;
+    private final RMId widget;
 
     /**
      * Creates a new update for the specified widget.
      *
      * @param widget the target widget identifier
      */
-    protected Update(final UId widget) {
-        this.id = UId.create();
+    protected Update(final RMId widget) {
+        this.id = RMId.create();
         this.widget = widget;
     }
 
@@ -38,7 +38,7 @@ public abstract class Update implements Comparable<Update>, Cloneable {
      *
      * @return the update ID
      */
-    public UId getId() {
+    public RMId getId() {
         return this.id;
     }
 
@@ -47,7 +47,7 @@ public abstract class Update implements Comparable<Update>, Cloneable {
      *
      * @return the widget ID
      */
-    public UId getWidgetId() {
+    public RMId getWidgetId() {
         return  this.widget;
     }
 
@@ -70,7 +70,7 @@ public abstract class Update implements Comparable<Update>, Cloneable {
      * of the same concrete type, preserving all update-specific data
      * but regenerating its {@link #id}.
      *
-     * @return a new {@code Update} instance identical to this one, but with a new {@link UId}
+     * @return a new {@code Update} instance identical to this one, but with a new {@link RMId}
      */
     @Override
     public abstract Update clone();

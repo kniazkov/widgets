@@ -5,7 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.protocol.Update;
 import com.kniazkov.widgets.view.Button;
@@ -40,7 +40,7 @@ public class ClientProtocolTest {
         final AtomicInteger calls = new AtomicInteger();
         button.onClick(event -> calls.incrementAndGet());
         client.getRootWidget().add(new Section(button));
-        final UId eventId = UId.create();
+        final RMId eventId = RMId.create();
         final String event = "[{\"id\":\"" + eventId + "\",\"widget\":\""
             + button.getId() + "\",\"type\":\"click\",\"data\":{}}]";
         final Map<String, String> request = Collections.singletonMap("events", event);

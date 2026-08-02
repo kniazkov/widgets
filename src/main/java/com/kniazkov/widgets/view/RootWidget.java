@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.ResetClient;
@@ -135,7 +135,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
          * @param href the target page URL to navigate to
          */
         public GoToPage(final String href) {
-            super(UId.INVALID);
+            super(RMId.INVALID);
             this.href = href;
         }
 

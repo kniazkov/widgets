@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * An {@link Update} that instructs the client to create a new widget.
@@ -22,7 +22,7 @@ public final class CreateWidget extends Update {
      * @param widget the widget identifier
      * @param type the widget type (e.g. {@code "button"}, {@code "text"})
      */
-    public CreateWidget(final UId widget, final String type) {
+    public CreateWidget(final RMId widget, final String type) {
         super(widget);
         this.type = type;
     }

@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.base;
 
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.Update;
 import com.kniazkov.widgets.view.Widget;
 import java.lang.reflect.Constructor;
@@ -44,11 +44,11 @@ final class BaseTestSupport {
      * @throws ReflectiveOperationException if the implementation shape changed
      */
     @SuppressWarnings("unchecked")
-    static Map<UId, Client> clients(final Application application)
+    static Map<RMId, Client> clients(final Application application)
             throws ReflectiveOperationException {
         final Field field = Application.class.getDeclaredField("clients");
         field.setAccessible(true);
-        return (Map<UId, Client>) field.get(application);
+        return (Map<RMId, Client>) field.get(application);
     }
 
     /**
@@ -58,7 +58,7 @@ final class BaseTestSupport {
      * @param clients replacement registry
      * @throws ReflectiveOperationException if the implementation shape changed
      */
-    static void replaceClients(final Application application, final Map<UId, Client> clients)
+    static void replaceClients(final Application application, final Map<RMId, Client> clients)
             throws ReflectiveOperationException {
         final Field field = Application.class.getDeclaredField("clients");
         field.setAccessible(true);

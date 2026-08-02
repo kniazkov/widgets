@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * An {@link Update} that instructs the client to remove a widget from a specific container.
@@ -13,7 +13,7 @@ public final class RemoveChild extends Update {
     /**
      * The identifier of the container from which the widget is removed.
      */
-    private final UId container;
+    private final RMId container;
 
     /**
      * Creates a new "remove widget from container" update.
@@ -21,7 +21,7 @@ public final class RemoveChild extends Update {
      * @param widget the widget being removed
      * @param container the container from which the widget is removed
      */
-    public RemoveChild(final UId widget, final UId container) {
+    public RemoveChild(final RMId widget, final RMId container) {
         super(widget);
         this.container = container;
     }

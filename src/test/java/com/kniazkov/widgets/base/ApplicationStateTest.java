@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
 import java.util.Map;
@@ -71,9 +71,9 @@ public class ApplicationStateTest {
     }
 
     /** Registry that hides manual-test entries from the application's real timer thread. */
-    private abstract static class ControlledClientMap extends ConcurrentHashMap<UId, Client> {
+    private abstract static class ControlledClientMap extends ConcurrentHashMap<RMId, Client> {
         @Override
-        public Set<Map.Entry<UId, Client>> entrySet() {
+        public Set<Map.Entry<RMId, Client>> entrySet() {
             if (Thread.currentThread().getName().startsWith("Timer-")) {
                 return Collections.emptySet();
             }
@@ -84,7 +84,7 @@ public class ApplicationStateTest {
     /** Injects a synchronization when the watchdog starts its atomic expiration operation. */
     private static final class RenewDuringWatchdogMap extends ControlledClientMap {
         private final Application application;
-        private final UId target;
+        private final RMId target;
         private boolean renewed;
 
         RenewDuringWatchdogMap(final Application application, final Client client) {
@@ -95,8 +95,8 @@ public class ApplicationStateTest {
 
         @Override
         public Client computeIfPresent(
-            final UId key,
-            final BiFunction<? super UId, ? super Client, ? extends Client> remappingFunction
+            final RMId key,
+            final BiFunction<? super RMId, ? super Client, ? extends Client> remappingFunction
         ) {
             if (!this.renewed && this.target.equals(key)) {
                 this.renewed = true;
@@ -126,7 +126,7 @@ public class ApplicationStateTest {
     /** Injects an explicit kill when the watchdog starts its atomic expiration operation. */
     private static final class KillDuringWatchdogMap extends ControlledClientMap {
         private final Application application;
-        private final UId target;
+        private final RMId target;
         private boolean killing;
 
         KillDuringWatchdogMap(final Application application, final Client client) {
@@ -137,8 +137,8 @@ public class ApplicationStateTest {
 
         @Override
         public Client computeIfPresent(
-            final UId key,
-            final BiFunction<? super UId, ? super Client, ? extends Client> remappingFunction
+            final RMId key,
+            final BiFunction<? super RMId, ? super Client, ? extends Client> remappingFunction
         ) {
             if (!this.killing && this.target.equals(key)) {
                 this.killing = true;

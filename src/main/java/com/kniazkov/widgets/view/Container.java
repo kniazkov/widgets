@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ public interface Container extends Iterable<Widget<?>> {
      *
      * @return the container ID
      */
-    UId getId();
+    RMId getId();
 
     /**
      * Returns the number of widgets currently stored in this container.

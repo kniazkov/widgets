@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * An {@link Update} that instructs the client to place (set) a widget
@@ -14,7 +14,7 @@ public final class SetChild extends Update {
     /**
      * The identifier of the container where the widget is placed.
      */
-    private final UId container;
+    private final RMId container;
 
     /**
      * Creates a new "set widget in container" update.
@@ -22,7 +22,7 @@ public final class SetChild extends Update {
      * @param widget the widget being placed
      * @param container the container that will contain the widget
      */
-    public SetChild(final UId widget, final UId container) {
+    public SetChild(final RMId widget, final RMId container) {
         super(widget);
         this.container = container;
     }

@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * Represents a logical view of a table column.
@@ -40,8 +40,8 @@ public class Column implements TypedContainer<Cell> {
     }
 
     @Override
-    public UId getId() {
-        return UId.INVALID;
+    public RMId getId() {
+        return RMId.INVALID;
     }
 
     @Override
