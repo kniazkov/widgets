@@ -2,15 +2,19 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 
-var clientId = null;
-var browserId = null;
-var period = 2500; //250;
-var mainCycleTask = null;
-var events = [];
-var lastEventId = 0;
-var lastProcessedUpdateId = 0;
+// Connection state is shared by the classic scripts loaded for one browser tab.
+let clientId = null;
+let browserId = null;
+const period = 2500;
+let mainCycleTask = null;
 
-var parseId = function(str) {
+// Events stay in this queue until the server acknowledges their monotonically increasing IDs.
+const events = [];
+let lastEventId = 0;
+let lastProcessedUpdateId = 0;
+
+// IDs travel over the wire as "#<number>" strings.
+function parseId(str) {
     if (typeof str !== "string" || !str.startsWith("#")) {
         throw new Error("Invalid ID format");
     }
@@ -21,63 +25,59 @@ var parseId = function(str) {
     return num;
 }
 
-var initClient = function(sessionId, address, data) {
+function initClient(sessionId, address, data) {
     browserId = localStorage.getItem("browserId");
     if (!browserId) {
         browserId = sessionId;
         localStorage.setItem("browserId", browserId);
     }
-    window.addEventListener("beforeunload", function() {
+    window.addEventListener("beforeunload", function () {
         if (clientId != null) {
-            sendRequest(
-                {
-                    action : "kill",
-                    client : clientId
-                }
-            );
+            sendRequest({
+                action: "kill",
+                client: clientId
+            });
         }
     });
     startClient(address, data);
-};
+}
 
-var startClient = function(address, data) {
-    var request = { ...data };
+function startClient(address, data) {
+    const request = { ...data };
     request.action = "new instance";
     request.address = address;
     request.browserId = browserId;
     request.mobile = isMobileDevice();
-    sendRequest(
-        request,
-        function(data) {
-            var json = JSON.parse(data);
-            clientId = json.id;
-            log("Client created, id: " + clientId + '.');
-            mainCycleTask = setInterval(mainCycle, period);
-            mainCycle();
-        }
-    );
-    setTimeout(function() {
+    sendRequest(request, function (data) {
+        const json = JSON.parse(data);
+        clientId = json.id;
+        log("Client created, id: " + clientId + ".");
+        mainCycleTask = setInterval(mainCycle, period);
+        mainCycle();
+    });
+    setTimeout(function () {
         if (clientId == null) {
             startClient(address, data);
         }
     }, 1000);
 }
 
-var createEvent = function(widget, type, data) {
-    var eventId = "#" + ++lastEventId;
-    var obj = {
-        id : eventId,
-        widget : widget._id,
-        type   : type
+function createEvent(widget, type, data) {
+    const eventId = "#" + ++lastEventId;
+    const obj = {
+        id: eventId,
+        widget: widget._id,
+        type: type
     };
     if (data) {
         obj.data = data;
     }
     log("The widget " + widget._id + " triggered the event " + eventId + " '" + type + "'.");
     events.push(obj);
-};
+}
 
-var processUpdates = function(updates) {
+// Dispatches updates in server order and tracks the last ID acknowledged by the browser.
+function processUpdates(updates) {
     if (!updates || updates.length == 0) {
         return;
     }
@@ -86,15 +86,15 @@ var processUpdates = function(updates) {
     } else {
         log("Received " + updates.length + " updates.");
     }
-    for (var i = 0; i < updates.length; i++) {
-        var result = false;
-        var update = updates[i];
-        var id = parseId(update.id);
+    for (let i = 0; i < updates.length; i++) {
+        let result = false;
+        const update = updates[i];
+        const id = parseId(update.id);
         if (id <= lastProcessedUpdateId) {
             log("Update " + update.id + " skipped.");
             continue;
         }
-        var handler = actionHandlers[update.action];
+        const handler = actionHandlers[update.action];
         if (handler) {
             result = handler(update);
             if (!result) {
@@ -105,80 +105,83 @@ var processUpdates = function(updates) {
         }
         lastProcessedUpdateId = id;
     }
-};
+}
 
-var removeProcessedEvents = function(id) {
-    var i;
+// Drops every queued event through the last ID acknowledged by the server.
+function removeProcessedEvents(id) {
+    let i;
     for (i = events.length - 1; i >= 0; i--) {
         if (events[i].id == id) {
             break;
         }
     }
     events.splice(0, i + 1);
-};
+}
 
-var sendSynchronizeRequest = function() {
+// One synchronization request carries both pending browser events and the update checkpoint.
+function sendSynchronizeRequest() {
     sendRequest(
         {
-            action : "synchronize",
-            client : clientId,
-            events : events,
-            lastUpdate : "#" + lastProcessedUpdateId
+            action: "synchronize",
+            client: clientId,
+            events: events,
+            lastUpdate: "#" + lastProcessedUpdateId
         },
-        function(data) {
+        function (data) {
             if (!data) {
                 log("Network error.");
                 return;
             }
-            var json = JSON.parse(data);
+            const json = JSON.parse(data);
             processUpdates(json.updates);
             removeProcessedEvents(json.lastEvent);
         },
         "post"
     );
-};
+}
 
-var mainCycle = function() {
+function mainCycle() {
     sendSynchronizeRequest();
-};
+}
 
-var reset = function() {
+function reset() {
     log("The server initiated the client reset.");
     clientId = null;
     clearInterval(mainCycleTask);
     document.body.innerHTML = "";
     startClient();
     return true;
-};
+}
 
-var goToPage = function(data) {
-    var href = data.href;
+function goToPage(data) {
+    const href = data.href;
     if (typeof href == "string") {
         log("The server initiated a switch to another page: '" + href + "'.");
         window.location.href = href;
     }
     return true;
-};
+}
 
-var actionHandlers = {
-    "create widget" : createWidget,
-    "reset" : reset,
-    "go to page" : goToPage,
-    "subscribe" : subscribeToEvent,
-    "set child" : setChildWidget,
-    "append child" : appendChildWidget,
-    "remove child" : removeChildWidget,
-    "set valid" : setValidFlag,
-    "set disabled" : setDisabledFlag,
-    "set hidden" : setHiddenFlag,
-    "set text" : setText,
-    "set color" : setColor,
-    "set bg color" : setBgColor,
-    "set opacity" : setOpacity,
-    "set width" : setWidth,
-    "set height" : setHeight,
-    "set margin" : setMargin,
-    "set padding" : setPadding,
+// These wire names must match the update actions serialized by the Java server.
+const actionHandlers = {
+    "create widget": createWidget,
+    reset: reset,
+    "go to page": goToPage,
+    subscribe: subscribeToEvent,
+    "set child": setChildWidget,
+    "append child": appendChildWidget,
+    "remove child": removeChildWidget,
+    "set valid": setValidFlag,
+    "set disabled": setDisabledFlag,
+    "set hidden": setHiddenFlag,
+    "set text": setText,
+    "set color": setColor,
+    "set bg color": setBgColor,
+    "set opacity": setOpacity,
+    "set width": setWidth,
+    "set height": setHeight,
+    "set margin": setMargin,
+    "set padding": setPadding,
     "set font face": setFontFace,
     "set font size": setFontSize,
     "set font weight": setFontWeight,
@@ -199,11 +202,12 @@ var actionHandlers = {
     "next chunk": sendNextChunk
 };
 
-var ALWAYS_ALLOWED_EVENTS = ["text input", "check", "upload"];
+// These events are client-side protocol primitives and do not require an explicit subscription.
+const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "upload"];
 
-var sendEventToServer = function(widget, type, data) {
+function sendEventToServer(widget, type, data) {
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {
         createEvent(widget, type, data);
         sendSynchronizeRequest();
     }
-};
+}

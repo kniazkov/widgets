@@ -6,15 +6,21 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "check:js": "npm run lint:js && npm run format:check",
+    "format:check": "prettier --check \"playwright.config.js\" \"vitest.config.js\" \"eslint.config.js\" \"scripts/**/*.mjs\" \"src/**/*.js\"",
+    "format:js": "prettier --write \"playwright.config.js\" \"vitest.config.js\" \"eslint.config.js\" \"scripts/**/*.mjs\" \"src/**/*.js\"",
     "install:e2e-browser": "playwright install chromium",
-    "test:browser": "npm run test:js && npm run test:e2e",
+    "lint:js": "eslint playwright.config.js vitest.config.js eslint.config.js scripts src/main/html/scripts src/test/js src/test/e2e",
+    "test:browser": "npm run check:js && npm run test:js && npm run test:e2e",
     "test:e2e": "node scripts/run-e2e.mjs",
     "test:js": "vitest run",
     "test:js:watch": "vitest"
   },
   "devDependencies": {
     "@playwright/test": "1.62.1",
+    "eslint": "10.8.0",
     "jsdom": "29.1.1",
+    "prettier": "3.9.6",
     "vitest": "4.1.10"
   }
 }

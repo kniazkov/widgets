@@ -2,5 +2,5 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 
-var DEFAULT_FONT_FACE = "Inter";
-var MAX_UPLOAD_CHUNK_SIZE = 1024 * 64;
+const DEFAULT_FONT_FACE = "Inter";
+const MAX_UPLOAD_CHUNK_SIZE = 1024 * 64;
