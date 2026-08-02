@@ -156,6 +156,33 @@ npm.cmd run test:js
 Use `npm run test:js:watch` (or `npm.cmd run test:js:watch` on PowerShell) while developing the
 browser client.
 
+### JavaScript style
+
+ESLint rejects `var` and requires `const` whenever a binding is not reassigned. Prettier provides
+the shared formatting rules for production scripts, test code, and the end-to-end runner.
+
+Check both rules without changing files on Linux:
+
+```bash
+npm run check:js
+```
+
+Apply the formatter after editing JavaScript:
+
+```bash
+npm run format:js
+```
+
+Use the explicit npm launcher in Windows PowerShell:
+
+```powershell
+npm.cmd run check:js
+npm.cmd run format:js
+```
+
+The complete `test:browser` command runs the style checks before Vitest and Playwright, so GitHub
+Actions enforces the same rules automatically.
+
 ### Full browser/server end-to-end test
 
 The Playwright test runs the real packaged JavaScript in Chromium against a real Java server. It

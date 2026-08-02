@@ -10,6 +10,8 @@ import { fileURLToPath } from "node:url";
 const projectRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const isWindows = process.platform === "win32";
 const classpathFile = join(projectRoot, "target", "e2e-classpath.txt");
+
+// The runner owns this process so every exit path can clean it up.
 let javaServer;
 
 function executableFromHome(environmentVariable, executable) {
@@ -37,14 +39,15 @@ function run(command, args, options = {}) {
                 resolve();
                 return;
             }
-            reject(new Error(
-                `${command} exited with ${signal ? `signal ${signal}` : `code ${code}`}`
-            ));
+            reject(
+                new Error(`${command} exited with ${signal ? `signal ${signal}` : `code ${code}`}`)
+            );
         });
     });
 }
 
 async function findFreePort() {
+    // Port zero asks the operating system for an available loopback port.
     return new Promise((resolve, reject) => {
         const probe = createServer();
         probe.once("error", reject);
@@ -91,11 +94,9 @@ async function stopServer() {
         return;
     }
 
+    // Give Java a short graceful shutdown window before forcing termination.
     javaServer.kill();
-    await Promise.race([
-        new Promise(resolve => javaServer.once("exit", resolve)),
-        delay(3_000)
-    ]);
+    await Promise.race([new Promise(resolve => javaServer.once("exit", resolve)), delay(3_000)]);
     if (javaServer.exitCode === null) {
         javaServer.kill("SIGKILL");
     }
@@ -104,6 +105,7 @@ async function stopServer() {
 async function main() {
     const mavenExecutable = isWindows ? "mvn.cmd" : "mvn";
     const maven = executableFromHome("MAVEN_HOME", mavenExecutable);
+    // Compile the test server and materialize Maven's test classpath for the direct Java launch.
     await run(
         maven,
         [
@@ -123,22 +125,16 @@ async function main() {
         join(projectRoot, "target", "test-classes"),
         join(projectRoot, "target", "classes"),
         dependencyClasspath
-    ].filter(Boolean).join(delimiter);
+    ]
+        .filter(Boolean)
+        .join(delimiter);
     const port = await findFreePort();
     const baseURL = `http://127.0.0.1:${port}`;
-    const javaExecutable = executableFromHome(
-        "JAVA_HOME",
-        isWindows ? "java.exe" : "java"
-    );
+    const javaExecutable = executableFromHome("JAVA_HOME", isWindows ? "java.exe" : "java");
 
     javaServer = spawn(
         javaExecutable,
-        [
-            "-cp",
-            classpath,
-            "com.kniazkov.widgets.e2e.E2ETestServer",
-            String(port)
-        ],
+        ["-cp", classpath, "com.kniazkov.widgets.e2e.E2ETestServer", String(port)],
         {
             cwd: projectRoot,
             stdio: "inherit",

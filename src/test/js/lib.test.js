@@ -3,10 +3,7 @@ import fs from "node:fs";
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
-const source = fs.readFileSync(
-    new URL("../../main/html/scripts/lib.js", import.meta.url),
-    "utf8"
-);
+const source = fs.readFileSync(new URL("../../main/html/scripts/lib.js", import.meta.url), "utf8");
 
 let dom;
 

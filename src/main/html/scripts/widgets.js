@@ -2,18 +2,20 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 
-var widgets = { };
-var lastFileId = 0;
+// The registry connects server-side widget IDs to their browser DOM nodes.
+const widgets = {};
+let lastFileId = 0;
 
-var widgetsLibrary = {
-    "root" : function() {
+// Protocol widget type names map to factories that initialize the matching DOM element.
+const widgetsLibrary = {
+    root: function () {
         return document.body;
     },
-    "section": function() {
-        var widget = document.createElement("div");
+    section: function () {
+        const widget = document.createElement("div");
         widget.style.display = "flex";
         widget.style.flexWrap = "wrap";
-        widget._setHorzAlignment = function(value) {
+        widget._setHorzAlignment = function (value) {
             switch (value) {
                 case "left":
                     widget.style.justifyContent = "flex-start";
@@ -37,7 +39,7 @@ var widgetsLibrary = {
                     break;
             }
         };
-        widget._setVertAlignment = function(value) {
+        widget._setVertAlignment = function (value) {
             switch (value) {
                 case "top":
                     widget.style.alignItems = "flex-start";
@@ -58,65 +60,65 @@ var widgetsLibrary = {
         };
         return widget;
     },
-    "panel": function() {
-        var widget = document.createElement("div");
+    panel: function () {
+        const widget = document.createElement("div");
         initPointerEvents(widget, true);
         return widget;
     },
-    "text" : function() {
+    text: function () {
         return document.createElement("span");
     },
-    "active text" : function() {
-        var widget = document.createElement("span");
+    "active text": function () {
+        const widget = document.createElement("span");
         initPointerEvents(widget, true);
         return widget;
     },
-    "input field" : function() {
+    "input field": function () {
         return createInputField();
     },
-    "password input" : function() {
-        var widget = createInputField();
+    "password input": function () {
+        const widget = createInputField();
         widget.type = "password";
         return widget;
     },
-    "text area" : function() {
-        var widget = document.createElement("textarea");
-        widget.setText = function(text) {
+    "text area": function () {
+        const widget = document.createElement("textarea");
+        widget.setText = function (text) {
             if (widget.value != text) {
                 widget.value = text;
                 return true;
             }
             return false;
-        }
-        addEvent(widget, "input", function() {
-            sendEventToServer(widget, "text input", { text : widget.value });
+        };
+        addEvent(widget, "input", function () {
+            sendEventToServer(widget, "text input", { text: widget.value });
         });
         initPointerEvents(widget);
         initFocusEvents(widget, "active");
         return widget;
     },
-    "button" : function() {
-        var widget = document.createElement("button");
+    button: function () {
+        const widget = document.createElement("button");
         initPointerEvents(widget, true);
         initFocusEvents(widget, "hovered");
         return widget;
     },
-    "file loader" : function() {
-        var widget = document.createElement("button");
+    "file loader": function () {
+        const widget = document.createElement("button");
         widget._files = [];
         widget._multiple = false;
         widget._accept = "";
-        widget._onClick = function() {
-            var input = document.createElement("input");
+        widget._onClick = function () {
+            const input = document.createElement("input");
             input.type = "file";
             input.style.display = "none";
             input.multiple = widget._multiple;
             input.accept = widget._accept;
             document.body.appendChild(input);
-            addEvent(input, "change", function(evt) {
-                var files = evt.target.files;
+            addEvent(input, "change", function (evt) {
+                const files = evt.target.files;
                 if (!files) return;
-                for (var index = 0; index < files.length; index++) {
+                for (let index = 0; index < files.length; index++) {
                     loadFile(widget, files[index]);
                 }
                 document.body.removeChild(input);
@@ -126,18 +128,18 @@ var widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
-    "image" : function() {
+    image: function () {
         return document.createElement("img");
     },
-    "active image" : function() {
-        var widget = document.createElement("img");
+    "active image": function () {
+        const widget = document.createElement("img");
         widget._sources = {
             normal: "#",
             hovered: "#",
             active: "#"
         };
-        widget._refresh = function() {
-            var states = widget._states;
+        widget._refresh = function () {
+            const states = widget._states;
             if (states.active) {
                 widget.src = widget._sources.active;
             } else if (states.hovered) {
@@ -150,41 +152,41 @@ var widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
-    "cell" : function() {
-        var widget = document.createElement("td");
+    cell: function () {
+        const widget = document.createElement("td");
         initPointerEvents(widget, true);
-        widget._setVertAlignment = function(value) {
+        widget._setVertAlignment = function (value) {
             widget.style.verticalAlign = value == "baseline" ? "middle" : value;
         };
         return widget;
     },
-    "row" : function() {
-        var widget = document.createElement("tr");
+    row: function () {
+        const widget = document.createElement("tr");
         initPointerEvents(widget, true);
         return widget;
     },
-    "table" : function() {
-        var widget = document.createElement("table");
+    table: function () {
+        const widget = document.createElement("table");
         widget.style.borderCollapse = "separate";
         return widget;
     },
-    "inline block" : function() {
-        var widget = document.createElement("div");
+    "inline block": function () {
+        const widget = document.createElement("div");
         widget.style.display = "inline-block";
         initPointerEvents(widget, true);
         return widget;
     },
-    "margin decorator" : function() {
+    "margin decorator": function () {
         return document.createElement("span");
     },
-    "checkbox": function() {
-        var widget = document.createElement("img");
+    checkbox: function () {
+        const widget = document.createElement("img");
         widget._selected = false;
         widget._selSrc = "#";
         widget._unselSrc = "#";
-        widget._refresh = function() {
-            var color = getWidgetProperty(widget, "color");
-            var bgColor = getWidgetProperty(widget, "backgroundColor");
+        widget._refresh = function () {
+            const color = getWidgetProperty(widget, "color");
+            const bgColor = getWidgetProperty(widget, "backgroundColor");
             if (widget._selected) {
                 widget.src = replaceColorsInSvg(widget._selSrc, color, bgColor);
             } else {
@@ -193,22 +195,23 @@ var widgetsLibrary = {
             return false; // don't refresh properties
         };
         initPointerEvents(widget, true);
-        widget._onClick = function() {
+        widget._onClick = function () {
             if (widget._states.disabled) {
                 return;
             }
             widget._selected = !widget._selected;
             widget._refresh();
             sendEventToServer(widget, "check", { state: widget._selected });
-        }
+        };
         return widget;
     }
 };
 
-var getWidgetProperty = function(widget, name) {
-    var states = widget._states;
-    var properties = widget._properties;
-    var value = properties.normal[name];
+// State precedence must stay aligned with refreshWidget so custom renderers see the same value.
+function getWidgetProperty(widget, name) {
+    const states = widget._states;
+    const properties = widget._properties;
+    let value = properties.normal[name];
     if (states.hovered) {
         value = properties.hovered[name];
     }
@@ -222,17 +225,17 @@ var getWidgetProperty = function(widget, name) {
         value = properties.disabled[name];
     }
     return value;
-};
+}
 
-var refreshWidget = function(widget) {
-    var flag = true;
+function refreshWidget(widget) {
+    let flag = true;
     if (widget._refresh) {
         flag = widget._refresh();
     }
     if (flag) {
-        var states = widget._states;
-        var properties = widget._properties;
-        var set = { ...properties.normal };
+        const states = widget._states;
+        const properties = widget._properties;
+        const set = { ...properties.normal };
         if (states.hovered) {
             Object.assign(set, properties.hovered);
         }
@@ -247,16 +250,16 @@ var refreshWidget = function(widget) {
         }
         Object.assign(widget.style, set);
     }
-    //log("The widget " + widget._id + " style was updated with the following values: " + JSON.stringify(set) + '.');
-};
+}
 
-var createWidget = function(data) {
-    var ctor = widgetsLibrary[data.type];
-    var id = data.widget;
+// Widget metadata uses underscored fields to keep protocol state separate from native DOM fields.
+function createWidget(data) {
+    const ctor = widgetsLibrary[data.type];
+    const id = data.widget;
     if (!ctor || !id) {
         return false;
     }
-    var widget = ctor();
+    const widget = ctor();
     widget._id = id;
     widget._events = {};
     widget._properties = {
@@ -267,151 +270,176 @@ var createWidget = function(data) {
         disabled: {}
     };
     widget._states = {
-        hovered : false,
-        active : false,
-        invalid : false,
-        disabled : false
+        hovered: false,
+        active: false,
+        invalid: false,
+        disabled: false
     };
     widget._display = widget.style.display;
     widgets[id] = widget;
     if (widget._refresh) {
         widget._refresh();
     }
-    log("Widget '" + data.type + "' created, id: " + id + '.');
+    log("Widget '" + data.type + "' created, id: " + id + ".");
     return true;
-};
+}
 
-var subscribeToEvent = function(data) {
-    var widget = widgets[data.widget];
-    var event = data.event;
+function subscribeToEvent(data) {
+    const widget = widgets[data.widget];
+    const event = data.event;
     if (widget && event) {
-        log("Server subscribed to the '" + event + "' event of widget " + widget._id + '.');
+        log("Server subscribed to the '" + event + "' event of widget " + widget._id + ".");
         widget._events[event] = true;
     }
-};
+}
 
-var setChildWidget = function(data) {
-    var widget = widgets[data.widget];
-    var container = widgets[data.container];
+function setChildWidget(data) {
+    const widget = widgets[data.widget];
+    const container = widgets[data.container];
     if (widget && container) {
         container.innerHTML = "";
         container.appendChild(widget);
-        log("Widget " + data.widget + " is set as a child of widget " + data.container + '.');
+        log("Widget " + data.widget + " is set as a child of widget " + data.container + ".");
         return true;
     }
     return false;
-};
+}
 
-var appendChildWidget = function(data) {
-    var widget = widgets[data.widget];
-    var container = widgets[data.container];
+function appendChildWidget(data) {
+    const widget = widgets[data.widget];
+    const container = widgets[data.container];
     if (widget && container) {
         container.appendChild(widget);
-        log("Widget " + data.widget + " is added as a child of widget " + data.container + '.');
+        log("Widget " + data.widget + " is added as a child of widget " + data.container + ".");
         return true;
     }
     return false;
-};
+}
 
-var removeChildWidget = function(data) {
-    var widget = widgets[data.widget];
-    var container = widgets[data.container];
+function removeChildWidget(data) {
+    const widget = widgets[data.widget];
+    const container = widgets[data.container];
     if (widget && container) {
         container.removeChild(widget);
-        log("Widget " + data.widget + " is removed from parent widget " + data.container + '.');
+        log("Widget " + data.widget + " is removed from parent widget " + data.container + ".");
         return true;
     }
     return false;
-};
+}
 
-var setValidFlag = function(data) {
-    var widget = widgets[data.widget];
-    var flag = data.valid;
+function setValidFlag(data) {
+    const widget = widgets[data.widget];
+    const flag = data.valid;
     if (widget && typeof flag == "boolean") {
         widget._states.invalid = !flag;
-        log("The widget " + data.widget + " has been marked as " +
-                (flag ? "valid" : "invalid") + '.');
+        log(
+            "The widget " +
+                data.widget +
+                " has been marked as " +
+                (flag ? "valid" : "invalid") +
+                "."
+        );
         refreshWidget(widget);
         return true;
     }
     return false;
-};
+}
 
-var setDisabledFlag = function(data) {
-    var widget = widgets[data.widget];
-    var flag = data.disabled;
+function setDisabledFlag(data) {
+    const widget = widgets[data.widget];
+    const flag = data.disabled;
     if (widget && typeof flag == "boolean") {
         widget._states.disabled = flag;
-        log("The widget " + data.widget + " has been marked as " +
-                (flag ? "disabled" : "enabled") + '.');
+        log(
+            "The widget " +
+                data.widget +
+                " has been marked as " +
+                (flag ? "disabled" : "enabled") +
+                "."
+        );
         refreshWidget(widget);
         widget.disabled = flag;
         return true;
     }
     return false;
-};
+}
 
-var setHiddenFlag = function(data) {
-    var widget = widgets[data.widget];
-    var flag = data.hidden;
+function setHiddenFlag(data) {
+    const widget = widgets[data.widget];
+    const flag = data.hidden;
     if (widget && typeof flag == "boolean") {
         widget.style.display = flag ? "none" : widget._display;
         log("The widget " + data.widget + " is" + (flag ? "" : " not") + " hidden.");
         return true;
     }
     return false;
-};
+}
 
-var setText = function(data) {
-    var widget = widgets[data.widget];
+function setText(data) {
+    const widget = widgets[data.widget];
     if (widget && typeof data.text == "string") {
-        var flag = true;
+        let flag = true;
         if (widget.setText) {
             flag = widget.setText(data.text);
         } else {
             widget.innerHTML = escapeHtml(data.text);
         }
         if (flag) {
-            log("The text \"" + data.text + "\" has been set to the widget " + data.widget + '.');
+            log('The text "' + data.text + '" has been set to the widget ' + data.widget + ".");
         }
         return true;
     }
     return false;
-};
+}
 
-var setColor = function(data) {
-    var widget = widgets[data.widget];
-    var rgb = data["color"];
-    var state = data.state;
+function setColor(data) {
+    const widget = widgets[data.widget];
+    const rgb = data["color"];
+    const state = data.state;
     if (widget && typeof rgb == "object" && typeof state == "string") {
-        var color = composeColor(rgb);
+        const color = composeColor(rgb);
         widget._properties[state].color = color;
         refreshWidget(widget);
-        log("The color \"" + color + "\" for state \"" + state + "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The color "' +
+                color +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setBgColor = function(data) {
-    var widget = widgets[data.widget];
-    var rgb = data["bg color"];
-    var state = data.state;
+function setBgColor(data) {
+    const widget = widgets[data.widget];
+    const rgb = data["bg color"];
+    const state = data.state;
     if (widget && typeof rgb == "object" && typeof state == "string") {
-        var color = composeColor(rgb);
+        const color = composeColor(rgb);
         widget._properties[state].backgroundColor = color;
         refreshWidget(widget);
-        log("The background color \"" + color + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The background color "' +
+                color +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setOpacity = function(data) {
-    var widget = widgets[data.widget];
-    var opacity = data["opacity"];
-    var state = data.state;
+function setOpacity(data) {
+    const widget = widgets[data.widget];
+    let opacity = data["opacity"];
+    const state = data.state;
     if (widget && typeof opacity == "number" && typeof state == "string") {
         if (opacity < 0) {
             opacity = 0;
@@ -420,274 +448,379 @@ var setOpacity = function(data) {
         }
         widget._properties[state].opacity = opacity;
         refreshWidget(widget);
-        log("The opacity \"" + opacity + "\" for state \"" + state + "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The opacity "' +
+                opacity +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setWidth = function(data) {
-    var widget = widgets[data.widget];
-    var value = data.width;
+function setWidth(data) {
+    const widget = widgets[data.widget];
+    const value = data.width;
     if (widget && typeof value == "string") {
         widget.style.width = value;
-        log("The width of the widget " + data.widget + " has been set to \"" + value + "\".");
+        log("The width of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
     return false;
-};
+}
 
-var setHeight = function(data) {
-    var widget = widgets[data.widget];
-    var value = data.height;
+function setHeight(data) {
+    const widget = widgets[data.widget];
+    const value = data.height;
     if (widget && typeof value == "string") {
         widget.style.height = value;
-        log("The height of the widget " + data.widget + " has been set to \"" + value + "\".");
+        log("The height of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
     return false;
-};
+}
 
-var setMargin = function(data) {
-    var widget = widgets[data.widget];
-    var obj = data.margin;
+function setMargin(data) {
+    const widget = widgets[data.widget];
+    const obj = data.margin;
     if (widget && typeof obj == "object") {
         widget.style.marginLeft = obj.left;
         widget.style.marginRight = obj.right;
         widget.style.marginTop = obj.top;
         widget.style.marginBottom = obj.bottom;
-        log("The margin of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\".");
+        log(
+            "The margin of the widget " +
+                data.widget +
+                ' has been set to "' +
+                JSON.stringify(obj) +
+                '".'
+        );
         return true;
     }
     return false;
-};
+}
 
-var setPadding = function(data) {
-    var widget = widgets[data.widget];
-    var obj = data.padding;
+function setPadding(data) {
+    const widget = widgets[data.widget];
+    const obj = data.padding;
     if (widget && typeof obj == "object") {
         widget.style.paddingLeft = obj.left;
         widget.style.paddingRight = obj.right;
         widget.style.paddingTop = obj.top;
         widget.style.paddingBottom = obj.bottom;
-        log("The padding of the widget " + data.widget + " has been set to \"" + JSON.stringify(obj) + "\".");
+        log(
+            "The padding of the widget " +
+                data.widget +
+                ' has been set to "' +
+                JSON.stringify(obj) +
+                '".'
+        );
         return true;
     }
     return false;
-};
+}
 
-var setFontFace = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["font face"];
-    var state = data.state;
+function setFontFace(data) {
+    const widget = widgets[data.widget];
+    let value = data["font face"];
+    const state = data.state;
     if (widget && typeof value == "string" && typeof state == "string") {
         if (value == "default") {
             value = DEFAULT_FONT_FACE;
         }
         widget._properties[state].fontFamily = value;
         refreshWidget(widget);
-        log("The font face \"" + value + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The font face "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setFontSize = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["font size"];
-    var state = data.state;
+function setFontSize(data) {
+    const widget = widgets[data.widget];
+    const value = data["font size"];
+    const state = data.state;
     if (widget && typeof value == "string" && typeof state == "string") {
         widget._properties[state].fontSize = value;
         refreshWidget(widget);
-        log("The font size \"" + value + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The font size "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setFontWeight = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["font weight"];
-    var state = data.state;
+function setFontWeight(data) {
+    const widget = widgets[data.widget];
+    const value = data["font weight"];
+    const state = data.state;
     if (widget && typeof value == "number" && typeof state == "string") {
         widget._properties[state].fontWeight = value;
         refreshWidget(widget);
-        log("The font weight \"" + value + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The font weight "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setItalic = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["italic"];
-    var state = data.state;
+function setItalic(data) {
+    const widget = widgets[data.widget];
+    const value = data["italic"];
+    const state = data.state;
     if (widget && typeof value == "boolean" && typeof state == "string") {
         widget._properties[state].fontStyle = value ? "italic" : "normal";
         refreshWidget(widget);
-        log("The italic flag \"" + value + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The italic flag "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setBorderColor = function(data) {
-    var widget = widgets[data.widget];
-    var rgb = data["border color"];
-    var state = data.state;
+function setBorderColor(data) {
+    const widget = widgets[data.widget];
+    const rgb = data["border color"];
+    const state = data.state;
     if (widget && typeof rgb == "object" && typeof state == "string") {
-        var color = composeColor(rgb);
+        const color = composeColor(rgb);
         widget._properties[state].borderColor = color;
         refreshWidget(widget);
-        log("The border color \"" + color + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The border color "' +
+                color +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setBorderStyle = function(data) {
-    var widget = widgets[data.widget];
-    var style = data["border style"];
-    var state = data.state;
+function setBorderStyle(data) {
+    const widget = widgets[data.widget];
+    const style = data["border style"];
+    const state = data.state;
     if (widget && typeof style == "string" && typeof state == "string") {
         widget._properties[state].borderStyle = style;
         refreshWidget(widget);
-        log("The border style \"" + style + "\" for state \"" + state +
-                "\" has been set to the widget " + data.widget + '.');
+        log(
+            'The border style "' +
+                style +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setBorderWidth = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["border width"];
+function setBorderWidth(data) {
+    const widget = widgets[data.widget];
+    const value = data["border width"];
     if (widget && typeof value == "string") {
         widget.style.borderWidth = value;
-        log("The border width of the widget " + data.widget + " has been set to \"" + value + "\".");
+        log("The border width of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
     return false;
-};
+}
 
-var setBorderRadius = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["border radius"];
+function setBorderRadius(data) {
+    const widget = widgets[data.widget];
+    const value = data["border radius"];
     if (widget && typeof value == "string") {
         widget.style.borderRadius = value;
-        log("The border radius of the widget " + data.widget + " has been set to \"" + value + "\".");
+        log("The border radius of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
     return false;
-};
+}
 
-var setSource = function(data) {
-    var widget = widgets[data.widget];
-    var source = data["source"];
+function setSource(data) {
+    const widget = widgets[data.widget];
+    const source = data["source"];
     if (widget && typeof source == "string") {
-        var state = data.state;
+        const state = data.state;
         if (typeof state == "string") {
             widget._sources[state] = source;
             refreshWidget(widget);
-            log("The source \"" + truncate(source, 100) + "\" for state \"" + state +
-                    "\" has been set to the widget " + data.widget + '.');
+            log(
+                'The source "' +
+                    truncate(source, 100) +
+                    '" for state "' +
+                    state +
+                    '" has been set to the widget ' +
+                    data.widget +
+                    "."
+            );
         } else {
             widget.src = source;
-            log("The source \"" + truncate(source, 100) + "\" has been set to widget \"" + data.widget + "\".");
+            log(
+                'The source "' +
+                    truncate(source, 100) +
+                    '" has been set to widget "' +
+                    data.widget +
+                    '".'
+            );
         }
         return true;
     }
     return false;
-};
+}
 
-var setSelectedSource = function(data) {
-    var widget = widgets[data.widget];
-    var source = data["sel source"];
+function setSelectedSource(data) {
+    const widget = widgets[data.widget];
+    const source = data["sel source"];
     if (widget && typeof source == "string") {
         widget._selSrc = source;
-        log("The source \"" + truncate(source, 100) + "\" for selected state has been set to widget \"" + data.widget + "\".");
+        log(
+            'The source "' +
+                truncate(source, 100) +
+                '" for selected state has been set to widget "' +
+                data.widget +
+                '".'
+        );
         refreshWidget(widget);
         return true;
     }
     return false;
-};
+}
 
-var setUnselectedSource = function(data) {
-    var widget = widgets[data.widget];
-    var source = data["unsel source"];
+function setUnselectedSource(data) {
+    const widget = widgets[data.widget];
+    const source = data["unsel source"];
     if (widget && typeof source == "string") {
         widget._unselSrc = source;
-        log("The source \"" + truncate(source, 100) + "\" for unselected state has been set to widget \"" + data.widget + "\".");
+        log(
+            'The source "' +
+                truncate(source, 100) +
+                '" for unselected state has been set to widget "' +
+                data.widget +
+                '".'
+        );
         refreshWidget(widget);
         return true;
     }
     return false;
-};
+}
 
-var setHorzAlignment = function(data) {
-    var widget = widgets[data.widget];
-    var alignment = data["horz alignment"];
+function setHorzAlignment(data) {
+    const widget = widgets[data.widget];
+    const alignment = data["horz alignment"];
     if (widget && widget._setHorzAlignment && typeof alignment == "string") {
         widget._setHorzAlignment(alignment);
-        log("The horizontal alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
+        log(
+            "The horizontal alignment of the widget " +
+                data.widget +
+                ' content has been set to "' +
+                alignment +
+                '".'
+        );
         return true;
     }
     return false;
-};
+}
 
-var setVertAlignment = function(data) {
-    var widget = widgets[data.widget];
-    var alignment = data["vert alignment"];
+function setVertAlignment(data) {
+    const widget = widgets[data.widget];
+    const alignment = data["vert alignment"];
     if (widget && widget._setVertAlignment && typeof alignment == "string") {
         widget._setVertAlignment(alignment);
-        log("The vertical alignment of the widget " + data.widget + " content has been set to \"" + alignment + "\".");
+        log(
+            "The vertical alignment of the widget " +
+                data.widget +
+                ' content has been set to "' +
+                alignment +
+                '".'
+        );
         return true;
     }
     return false;
-};
+}
 
-var setCellSpacing = function(data) {
-    var widget = widgets[data.widget];
-    var value = data["cell spacing"];
+function setCellSpacing(data) {
+    const widget = widgets[data.widget];
+    const value = data["cell spacing"];
     if (widget && typeof value == "string") {
         widget.style.borderSpacing = value;
-        log("The cell spacing of the widget " + data.widget + " has been set to \"" + value + "\".");
+        log("The cell spacing of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
     return false;
-};
+}
 
-var setCheckedFlag = function(data) {
-    var widget = widgets[data.widget];
-    var flag = data.checked;
+function setCheckedFlag(data) {
+    const widget = widgets[data.widget];
+    const flag = data.checked;
     if (widget && typeof flag == "boolean") {
         widget._selected = flag;
         refreshWidget(widget);
-        log("The widget " + data.widget + " has been " + (flag ? "checked" : "unchecked") + '.');
+        log("The widget " + data.widget + " has been " + (flag ? "checked" : "unchecked") + ".");
         return true;
     }
     return false;
-};
+}
 
-var setMultipleInput = function(data) {
-    var widget = widgets[data.widget];
-    var flag = data["multiple input"];
+function setMultipleInput(data) {
+    const widget = widgets[data.widget];
+    const flag = data["multiple input"];
     if (widget && typeof flag == "boolean") {
         widget._multiple = flag;
-        log("The multiple input flag has been " + ( flag ? "set" : "cleared" ) + " on the widget " + data.widget + '.');
+        log(
+            "The multiple input flag has been " +
+                (flag ? "set" : "cleared") +
+                " on the widget " +
+                data.widget +
+                "."
+        );
         return true;
     }
     return false;
-};
+}
 
-var setAcceptedFiles = function(data) {
-    var widget = widgets[data.widget];
-    var files = data["accepted files"];
+function setAcceptedFiles(data) {
+    const widget = widgets[data.widget];
+    const files = data["accepted files"];
     if (widget && typeof files == "string") {
         widget._accept = files;
         if (files == "") {
@@ -698,39 +831,40 @@ var setAcceptedFiles = function(data) {
         return true;
     }
     return false;
-};
+}
 
-var sendNextChunk = function(data) {
-    var widget = widgets[data.widget];
+function sendNextChunk(data) {
+    const widget = widgets[data.widget];
     if (widget) {
-        setTimeout(function() {
+        setTimeout(function () {
             sendNextChunkToServer(widget);
         }, 0);
         return true;
     }
     return false;
-};
+}
 
-var createInputField = function() {
-    var widget = document.createElement("input");
-    widget.setText = function(text) {
+// Browser event handling and serialization.
+function createInputField() {
+    const widget = document.createElement("input");
+    widget.setText = function (text) {
         if (widget.value != text) {
             widget.value = text;
             return true;
         }
         return false;
-    }
-    addEvent(widget, "input", function() {
-        sendEventToServer(widget, "text input", { text : widget.value });
+    };
+    addEvent(widget, "input", function () {
+        sendEventToServer(widget, "text input", { text: widget.value });
     });
     initPointerEvents(widget);
     initFocusEvents(widget, "active");
     return widget;
-};
+}
 
-var processPointerEvent = function(element, event) {
-    var rect = element.getBoundingClientRect();
-    var data = {};
+function processPointerEvent(element, event) {
+    const rect = element.getBoundingClientRect();
+    const data = {};
     data.position = {};
     data.position.element = {
         x: Math.round(event.clientX - rect.left),
@@ -759,16 +893,16 @@ var processPointerEvent = function(element, event) {
     };
     data.pressure = event.pressure;
     return data;
-};
+}
 
-var initPointerEvents = function(widget, activeOnPointerDown) {
-    addEvent(widget, "click", function(event) {
+function initPointerEvents(widget, activeOnPointerDown) {
+    addEvent(widget, "click", function (event) {
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
         if (widget._onClick) {
             widget._onClick();
         }
     });
-    addEvent(widget, "pointerenter", function(event) {
+    addEvent(widget, "pointerenter", function (event) {
         widget._states.hovered = true;
         if (widget._events.click) {
             widget.style.cursor = "pointer";
@@ -776,7 +910,7 @@ var initPointerEvents = function(widget, activeOnPointerDown) {
         refreshWidget(widget);
         sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
-    addEvent(widget, "pointerleave", function(event) {
+    addEvent(widget, "pointerleave", function (event) {
         if (activeOnPointerDown) {
             widget._states.active = false;
         }
@@ -787,43 +921,44 @@ var initPointerEvents = function(widget, activeOnPointerDown) {
         refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
     });
-    addEvent(widget, "pointerdown", function(event) {
+    addEvent(widget, "pointerdown", function (event) {
         if (activeOnPointerDown) {
             widget._states.active = true;
             refreshWidget(widget);
         }
         sendEventToServer(widget, "pointer down", processPointerEvent(widget, event));
     });
-    addEvent(widget, "pointerup", function(event) {
+    addEvent(widget, "pointerup", function (event) {
         if (activeOnPointerDown) {
             widget._states.active = false;
             refreshWidget(widget);
         }
         sendEventToServer(widget, "pointer up", processPointerEvent(widget, event));
     });
-};
+}
 
-var initFocusEvents = function(widget, state) {
-    addEvent(widget, "focus", function(event) {
+function initFocusEvents(widget, state) {
+    addEvent(widget, "focus", function (event) {
         widget._states[state] = true;
         refreshWidget(widget);
     });
-    addEvent(widget, "blur", function(event) {
+    addEvent(widget, "blur", function (event) {
         widget._states[state] = false;
         refreshWidget(widget);
     });
-};
+}
 
-var int2hex = '0123456789abcdef';
-var arrayBufferToHex = function(buffer) {
-    var bytes = new Uint8Array(buffer);
-    var result = [];
-    var chunk = [];
-    var size = 0;
-    for (var index = 0; index < bytes.length; index++) {
-        var byte = bytes[index];
+// File contents are encoded as hexadecimal chunks for the existing upload protocol.
+const int2hex = "0123456789abcdef";
+function arrayBufferToHex(buffer) {
+    const bytes = new Uint8Array(buffer);
+    const result = [];
+    let chunk = [];
+    let size = 0;
+    for (let index = 0; index < bytes.length; index++) {
+        const byte = bytes[index];
         chunk.push(int2hex[byte >> 4]);
-        chunk.push(int2hex[byte & 0xF]);
+        chunk.push(int2hex[byte & 0xf]);
         size++;
         if (size == MAX_UPLOAD_CHUNK_SIZE) {
             result.push(chunk.join(""));
@@ -835,16 +970,16 @@ var arrayBufferToHex = function(buffer) {
     return result;
 }
 
-var loadFile = function(widget, descr) {
-    var reader = new FileReader();
-    addEvent(reader, "load", function(evt) {
-        var file = {
-            id        : ++lastFileId,
-            name      : descr.name,
-            type      : descr.type,
-            size      : descr.size,
-            content   : arrayBufferToHex(evt.target.result),
-            nextChunk : 0
+function loadFile(widget, descr) {
+    const reader = new FileReader();
+    addEvent(reader, "load", function (evt) {
+        const file = {
+            id: ++lastFileId,
+            name: descr.name,
+            type: descr.type,
+            size: descr.size,
+            content: arrayBufferToHex(evt.target.result),
+            nextChunk: 0
         };
         widget._files.push(file);
         if (widget._files.length == 1) {
@@ -854,59 +989,60 @@ var loadFile = function(widget, descr) {
         }
     });
     reader.readAsArrayBuffer(descr);
-};
+}
 
-var sendNextChunkToServer = function(widget) {
-    var files = widget._files;
+function sendNextChunkToServer(widget) {
+    const files = widget._files;
     if (files.length == 0) {
         log("The widget " + widget._id + " sent all the files that were selected by the user.");
         return;
     }
-    var file = files[0];
-    var data = {
-        fileId      : file.id,
-        name        : file.name,
-        type        : file.type,
-        size        : file.size,
-        content     : file.content[file.nextChunk],
-        chunkIndex  : file.nextChunk,
-        totalChunks : file.content.length
+    const file = files[0];
+    const data = {
+        fileId: file.id,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        content: file.content[file.nextChunk],
+        chunkIndex: file.nextChunk,
+        totalChunks: file.content.length
     };
     file.nextChunk++;
     sendEventToServer(widget, "upload", data);
     if (file.content.length == file.nextChunk) {
         files.shift();
     }
-};
+}
 
-var sendEmptyChunkToServer = function(widget, file) {
-    var data = {
-        fileId      : file.id,
-        name        : file.name,
-        type        : file.type,
-        size        : file.size,
-        content     : "",
-        chunkIndex  : -1,
-        totalChunks : file.content.length
+function sendEmptyChunkToServer(widget, file) {
+    const data = {
+        fileId: file.id,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        content: "",
+        chunkIndex: -1,
+        totalChunks: file.content.length
     };
     createEvent(widget, "upload", data);
-};
+}
 
-var composeColor = function(rgb) {
+// Rendering helpers.
+function composeColor(rgb) {
     if (typeof rgb.a == "number") {
-        return "rgba(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + rgb.a + ')';
+        return "rgba(" + rgb.r + "," + rgb.g + "," + rgb.b + "," + rgb.a + ")";
     } else {
-        return "rgb(" + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+        return "rgb(" + rgb.r + "," + rgb.g + "," + rgb.b + ")";
     }
-};
+}
 
-var replaceColorsInSvg = function(svg, color, bgColor) {
+function replaceColorsInSvg(svg, color, bgColor) {
     if (!color || !bgColor) {
         return svg;
     }
-    var prefix = 'data:image/svg+xml,';
-    var encoded = svg.indexOf(prefix) === 0 ? svg.substring(prefix.length) : svg;
-    var decoded = decodeURIComponent(encoded);
+    const prefix = "data:image/svg+xml,";
+    const encoded = svg.indexOf(prefix) === 0 ? svg.substring(prefix.length) : svg;
+    let decoded = decodeURIComponent(encoded);
     decoded = decoded
         .replace(
             /stroke\s*=\s*(['"])(?:black|#000|#000000|rgb\s*\(\s*0\s*,\s*0\s*,\s*0\s*\))\1/gi,
@@ -917,4 +1053,4 @@ var replaceColorsInSvg = function(svg, color, bgColor) {
             'fill="' + bgColor + '"'
         );
     return prefix + encodeURIComponent(decoded);
-};
+}
