@@ -26,6 +26,7 @@ function getXmlHttp() {
 function sendRequest(query, callback, method, files) {
     const req = getXmlHttp();
     let form = null;
+    let completed = false;
     const post = method == "post" || files;
     if (post) {
         form = new FormData();
@@ -38,7 +39,8 @@ function sendRequest(query, callback, method, files) {
         }
         if (files && files.length) {
             for (let i = 0; i < files.length; i++) {
-                form.append("file" + (i > 0 ? i + 1 : ""), files[i], files[i].name);
+                // Blob.slice() deliberately returns a Blob without a user-controlled file name.
+                form.append("file" + (i > 0 ? i + 1 : ""), files[i], "chunk.bin");
             }
         }
         req.open("POST", server, true);
@@ -58,20 +60,23 @@ function sendRequest(query, callback, method, files) {
         }
         req.open("GET", server + "?" + queryString, true);
     }
+    function finish(response) {
+        if (!completed && callback) {
+            completed = true;
+            callback(response);
+        }
+    }
     req.onreadystatechange = function () {
         if (req.readyState == 4) {
-            if (req.status == 200) {
-                if (callback) {
-                    callback(req.responseText);
-                }
-            }
+            finish(req.status == 200 ? req.responseText : null);
         }
     };
     req.onerror = function () {
-        if (callback) {
-            callback(null);
-        }
+        finish(null);
     };
+    req.onabort = req.onerror;
+    req.ontimeout = req.onerror;
+    req.timeout = 30000;
     req.send(form);
 }
 

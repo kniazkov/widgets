@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
+import com.kniazkov.widgets.controller.UploadEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -104,30 +105,28 @@ public final class WidgetEventTest {
     }
 
     @Test
-    public void fileLoaderCreatesUploadAndRequestsNextChunk() {
+    public void fileLoaderAcceptsValidatedBinaryOutsideTheJsonEventRegistry() {
         final FileLoader loader = new FileLoader();
         final AtomicReference<UploadingFile> selected = new AtomicReference<>();
         loader.onSelect(selected::set);
         final WidgetSandbox<FileLoader> sandbox = WidgetSandbox.open(loader);
         sandbox.clearUpdates();
-        final JsonObject data = new JsonObject();
-        data.addNumber("fileId", 7);
-        data.addString("name", "data.bin");
-        data.addString("type", "application/octet-stream");
-        data.addNumber("size", 2);
-        data.addString("content", "00");
-        data.addNumber("chunkIndex", 0);
-        data.addNumber("totalChunks", 2);
 
-        sandbox.fire(Event.UPLOAD, data);
+        assertTrue(loader.handleUploadEvent(new UploadEvent(
+            7,
+            "data.bin",
+            "application/octet-stream",
+            1,
+            new byte[] {0},
+            0,
+            1
+        )));
 
         assertEquals("data.bin", selected.get().getName());
         assertEquals("application/octet-stream", selected.get().getType());
-        assertEquals(2, selected.get().getSize());
-        assertEquals(Integer.valueOf(50), selected.get().getLoadingPercentageModel().getData());
-        assertEquals(1, WidgetSandbox.findUpdates(
-            sandbox.drainUpdates(), "next chunk", loader
-        ).size());
+        assertEquals(1, selected.get().getSize());
+        assertEquals(Integer.valueOf(100), selected.get().getLoadingPercentageModel().getData());
+        assertTrue(sandbox.drainUpdates().isEmpty());
         assertSame(loader, sandbox.getSubject());
     }
 }

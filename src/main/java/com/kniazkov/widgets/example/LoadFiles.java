@@ -15,6 +15,7 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
@@ -77,7 +78,14 @@ public class LoadFiles {
                     loading.setText("Loaded");
                     percent.setColor(Color.BLUE);
                     try {
-                        Files.write(Paths.get(file.getName()), file.getContent());
+                        final Path uploadDirectory = Paths.get("uploads");
+                        Files.createDirectories(uploadDirectory);
+                        final Path destination = Files.createTempFile(
+                            uploadDirectory,
+                            "upload-",
+                            ".bin"
+                        );
+                        Files.write(destination, file.getContent());
                     } catch (IOException ignored) {
                     }
                 });

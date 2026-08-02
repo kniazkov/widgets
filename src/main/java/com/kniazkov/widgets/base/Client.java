@@ -9,7 +9,9 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Map;
@@ -109,6 +111,19 @@ public final class Client implements Comparable<Client> {
             this.processEvents(request);
             this.collectUpdates(request);
             this.serializeUpdates(response);
+        }
+    }
+
+    /** Delivers a binary chunk while holding the same root lock as normal browser events. */
+    boolean uploadChunk(final RMId widgetId, final UploadEvent event) {
+        synchronized (this.root) {
+            for (final Widget<?> widget : this.root) {
+                if (widget.getId().equals(widgetId)) {
+                    return widget instanceof FileLoader
+                        && ((FileLoader) widget).handleUploadEvent(event);
+                }
+            }
+            return false;
         }
     }
 

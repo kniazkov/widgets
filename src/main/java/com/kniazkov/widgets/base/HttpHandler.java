@@ -41,6 +41,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      */
     private final Map<String, ActionHandler> actionHandlers;
 
+    /** Dedicated handler for binary chunks, which are not ordinary JSON events. */
+    private final UploadChunk uploadChunk;
+
     /**
      * Various options.
      */
@@ -58,6 +61,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         this.actionHandlers.put("new instance", new CreateClient(application));
         this.actionHandlers.put("synchronize", new Synchronize(application));
         this.actionHandlers.put("kill", new KillClient(application));
+        this.uploadChunk = new UploadChunk(application);
         this.options = options;
     }
 
@@ -66,6 +70,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         // Handle action requests: /?action=...
         if (request.method == Method.POST || request.address.startsWith("/?")) {
             final String action = request.formData.get("action");
+            if (UploadChunk.ACTION.equals(action)) {
+                return new ResponseJson(this.uploadChunk.process(request));
+            }
             final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
                 return new ResponseJson(handler.process(request.formData));

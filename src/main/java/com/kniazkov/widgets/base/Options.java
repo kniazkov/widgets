@@ -19,6 +19,13 @@ public class Options implements Cloneable {
     public long clientLifetime = 3 * 60 * 1000;
 
     /**
+     * Maximum accepted size of one uploaded file, in bytes.
+     * The completed {@code UploadedFile} is held in memory, so an explicit limit is required to
+     * prevent an untrusted browser from forcing an unbounded allocation. The default is 256 MiB.
+     */
+    public int maxUploadSize = 256 * 1024 * 1024;
+
+    /**
      * Root directory for static files served via HTTP GET.
      * Any request that points to a file path (including direct access from a browser address bar)
      * is resolved relative to this directory. It should contain all project assets intended to be
@@ -40,6 +47,7 @@ public class Options implements Cloneable {
     public Options clone() {
         Options copy = new Options();
         copy.clientLifetime = this.clientLifetime;
+        copy.maxUploadSize = this.maxUploadSize;
         copy.wwwRoot = this.wwwRoot;
         copy.port = this.port;
         copy.debug = this.debug;

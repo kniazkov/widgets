@@ -59,4 +59,29 @@ describe("sendRequest", () => {
         expect(requests).toHaveLength(2);
         expect(requests.every(request => !request.aborted)).toBe(true);
     });
+
+    it("reports a failed transport exactly once", () => {
+        class FailingXmlHttpRequest {
+            open() {}
+
+            send() {
+                this.readyState = 4;
+                this.status = 500;
+                this.onreadystatechange();
+                this.onerror();
+            }
+        }
+
+        dom = new JSDOM("<!doctype html>", {
+            runScripts: "outside-only",
+            url: "http://localhost/"
+        });
+        dom.window.XMLHttpRequest = FailingXmlHttpRequest;
+        dom.window.eval(source);
+        const responses = [];
+
+        dom.window.sendRequest({ action: "upload" }, response => responses.push(response));
+
+        expect(responses).toEqual([null]);
+    });
 });

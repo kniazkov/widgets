@@ -87,7 +87,7 @@ dynamic collections while preserving iteration order.
 | `TextWidget` | `text` | Displays styled text backed by a string value or `Model<String>`. |
 | `ActiveText` | `active text` | Interactive styled text with normal, hovered, and active visual states plus pointer events. |
 | `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
-| `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
+| `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives validated binary uploads as sequential 64 KiB chunks, filters accepted file types, and reports each selected `UploadingFile`. |
 | `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. |
 | `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
 | `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
@@ -139,4 +139,4 @@ changes are synchronized to the browser automatically.
 | `Decorator` | Defines a container that owns exactly one decorated child. |
 | `Style`, `Property`, `State` | Describe reactive appearance and state-dependent behavior. They do not create view-tree nodes. |
 | `Column` | Logical view over cells at one table column index. It is not present in the widget or browser hierarchy. |
-| `UploadingFile` | Tracks chunk assembly, metadata, completion, and progress for a file selected through `FileLoader`. |
+| `UploadingFile` | Tracks ordered chunk assembly, immutable metadata, completion, and progress for a file selected through `FileLoader`; completed bytes remain subject to `Options.maxUploadSize`. |

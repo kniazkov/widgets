@@ -49,6 +49,10 @@ function startClient(address, data) {
     request.browserId = browserId;
     request.mobile = isMobileDevice();
     sendRequest(request, function (data) {
+        if (!data) {
+            log("Unable to create a client due to a network error.");
+            return;
+        }
         const json = JSON.parse(data);
         clientId = json.id;
         log("Client created, id: " + clientId + ".");
@@ -198,12 +202,11 @@ const actionHandlers = {
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
     "set multiple input": setMultipleInput,
-    "set accepted files": setAcceptedFiles,
-    "next chunk": sendNextChunk
+    "set accepted files": setAcceptedFiles
 };
 
 // These events are client-side protocol primitives and do not require an explicit subscription.
-const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "upload"];
+const ALWAYS_ALLOWED_EVENTS = ["text input", "check"];
 
 function sendEventToServer(widget, type, data) {
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {

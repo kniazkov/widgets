@@ -9,20 +9,23 @@ import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
+import java.io.ByteArrayOutputStream;
 import java.util.Optional;
 
 /**
  * Manages the state and assembly of a file being uploaded in chunks.
  * <p>
- * This class tracks the progress of a multi-chunk file upload, assembles the chunks
- * in the correct order, decodes Base16 (hex) encoded content, and notifies listeners
- * when the complete file is available.
+ * This class tracks the progress of a multi-chunk file upload, appends validated binary chunks
+ * in order, and notifies listeners when the complete file is available.
  */
 public class UploadingFile {
     /**
      * Widget used to download the file.
      */
     private final Widget<?> widget;
+
+    /** Browser-local identifier shared by every chunk of this file. */
+    private final int fileId;
 
     /**
      * Original filename of the file being uploaded.
@@ -34,15 +37,16 @@ public class UploadingFile {
      */
     private final String type;
 
+    /** MIME type exactly as declared by the browser; it must stay stable across chunks. */
+    private final String declaredType;
+
     /**
      * Total declared size of the complete file in bytes.
      */
     private final int size;
 
-    /**
-     * Array storing Base16-encoded content chunks in their original order.
-     */
-    private final String[] content;
+    /** Bytes received so far; capacity grows with accepted data rather than declared size. */
+    private ByteArrayOutputStream content;
 
     /**
      * Number of chunks that have been successfully received so far.
@@ -76,21 +80,23 @@ public class UploadingFile {
      * @param event the first upload event containing file metadata and possibly the first chunk
      */
     UploadingFile(final Widget<?> widget, final UploadEvent event) {
+        if (!event.isValid() || event.chunkIndex != 0) {
+            throw new IllegalArgumentException("The first upload chunk is invalid");
+        }
         this.widget = widget;
+        this.fileId = event.fileId;
         this.name = event.name;
+        this.declaredType = event.type;
         this.type = event.type.isEmpty() ? Utils.getContentTypeByExtension(event.name) : event.type;
         this.size = event.size;
-        this.content = new String[event.totalChunks];
-        if (event.chunkIndex >= 0 && event.chunkIndex < event.totalChunks) {
-            this.content[event.chunkIndex] = event.content;
-            this.uploadedChunksCount = 1;
-            if (event.totalChunks == 1) {
-                this.fullyUploadedFile = this.createFile();
-            }
-        } else {
-            this.uploadedChunksCount = 0;
-        }
         this.totalChunks = event.totalChunks;
+        this.content = new ByteArrayOutputStream(
+            Math.min(event.size, UploadEvent.MAX_CHUNK_SIZE)
+        );
+        this.storeChunk(event);
+        if (event.totalChunks == 1) {
+            this.fullyUploadedFile = this.createFile();
+        }
     }
 
     /**
@@ -129,7 +135,7 @@ public class UploadingFile {
     public void onLoad(final Controller<UploadedFile> ctrl) {
         this.onLoadCtrl = ctrl;
         if (this.fullyUploadedFile != null) {
-                this.runOnLoadHandler();
+            this.runOnLoadHandler();
         }
     }
 
@@ -153,35 +159,67 @@ public class UploadingFile {
      *
      * @param event the upload event containing a chunk of the file
      */
-    void handleUploadEvent(final UploadEvent event) {
-        if (event.chunkIndex >= 0 && event.chunkIndex < this.totalChunks
-                    && this.content[event.chunkIndex] == null) {
-            this.content[event.chunkIndex] = event.content;
-            this.uploadedChunksCount++;
-            if (this.percentage != null) {
-                int percent = this.uploadedChunksCount * 100 / this.totalChunks;
-                this.percentage.setData(percent);
-            }
-            if (this.uploadedChunksCount == this.totalChunks) {
-                this.fullyUploadedFile = this.createFile();
-                this.runOnLoadHandler();
-            }
+    boolean handleUploadEvent(final UploadEvent event) {
+        if (!event.isValid() || !this.matches(event)) {
+            return false;
         }
+        if (event.chunkIndex < this.uploadedChunksCount) {
+            return true;
+        }
+        if (event.chunkIndex != this.uploadedChunksCount) {
+            return false;
+        }
+
+        this.storeChunk(event);
+        if (this.percentage != null) {
+            final int percent = this.uploadedChunksCount * 100 / this.totalChunks;
+            this.percentage.setData(percent);
+        }
+        if (this.uploadedChunksCount == this.totalChunks) {
+            this.fullyUploadedFile = this.createFile();
+            this.runOnLoadHandler();
+        }
+        return true;
     }
 
     /**
-     * Assembles the complete file from all received chunks and decodes the Base16 content.
+     * Returns whether every expected chunk has been accepted.
+     *
+     * @return {@code true} when the complete file is available
+     */
+    boolean isComplete() {
+        return this.fullyUploadedFile != null;
+    }
+
+    /** Returns whether a chunk belongs to this browser-local upload. */
+    boolean hasFileId(final int value) {
+        return this.fileId == value;
+    }
+
+    /** Appends the next validated chunk without allocating for unreceived bytes. */
+    private void storeChunk(final UploadEvent event) {
+        final byte[] chunk = event.getContent();
+        this.content.write(chunk, 0, chunk.length);
+        this.uploadedChunksCount++;
+    }
+
+    /** Returns whether a later chunk still describes the same selected file. */
+    private boolean matches(final UploadEvent event) {
+        return this.fileId == event.fileId
+            && this.size == event.size
+            && this.totalChunks == event.totalChunks
+            && this.name.equals(event.name)
+            && this.declaredType.equals(event.type);
+    }
+
+    /**
+     * Wraps the already assembled binary buffer in the public uploaded-file value object.
      *
      * @return the fully assembled UploadedFile
-     * @throws IllegalStateException if the decoded data size doesn't match the declared size
      */
     private UploadedFile createFile() {
-        final byte[] data = decode(this.content);
-        if (data.length != this.size) {
-            throw new IllegalStateException(
-                "The size of the uploaded file does not match the declared"
-            );
-        }
+        final byte[] data = this.content.toByteArray();
+        this.content = null;
         return new UploadedFile(this.name, this.type, data);
     }
 
@@ -191,50 +229,16 @@ public class UploadingFile {
      * has completed.
      */
     private void runOnLoadHandler() {
-        Optional<RootWidget> root = this.widget.getRootWidget();
+        final Optional<RootWidget> root = this.widget.getRootWidget();
         if (root.isPresent()) {
-            synchronized (root.get()) {
-                new Thread(() -> {
-                    this.onLoadCtrl.handleEvent(this.fullyUploadedFile);
-                }).start();
-            }
+            final Controller<UploadedFile> controller = this.onLoadCtrl;
+            final UploadedFile file = this.fullyUploadedFile;
+            new Thread(() -> {
+                synchronized (root.get()) {
+                    controller.handleEvent(file);
+                }
+            }).start();
         }
     }
 
-    /**
-     * Decodes an array of Base16 (hex) encoded strings into a single byte array.
-     *
-     * @param content array of Base16-encoded strings, one per chunk
-     * @return the concatenated and decoded byte array
-     */
-    private static byte[] decode(String[] content) {
-        int size = 0;
-        for (final String chunk : content) {
-            if (chunk != null) {
-                size += chunk.length();
-            }
-        }
-        if (size % 2 != 0) {
-            return new byte[0];
-        }
-        final byte[] result = new byte[size / 2];
-        int offset = 0;
-        for (String chunk : content) {
-            int length = chunk.length();
-            if (length % 2 != 0) {
-                return new byte[0];
-            }
-            for (int index = 0; index < length; index += 2) {
-                char char1 = chunk.charAt(index);
-                char char2 = chunk.charAt(index + 1);
-                int digit1 = Character.digit(char1, 16);
-                int digit2 = Character.digit(char2, 16);
-                if (digit1 == -1 || digit2 == -1) {
-                    return new byte[0];
-                }
-                result[offset++] = (byte) ((digit1 << 4) | digit2);
-            }
-        }
-        return result;
-    }
 }
