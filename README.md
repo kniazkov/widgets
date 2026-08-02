@@ -115,9 +115,23 @@ Browser runtime resources are stored in `src/main/html` and packaged into the li
 
 ## Building
 
+Development requires JDK 8 and Maven. Running the browser-client tests additionally requires
+Node.js 22.13 or newer and npm.
+
+Run the Java build:
+
 ```bash
 mvn clean package
 ```
+
+Install the JavaScript test dependencies and run the browser-client tests:
+
+```bash
+npm ci
+npm run test:js
+```
+
+Use `npm run test:js:watch` while developing the browser client.
 
 To install a development build locally without signing it:
 
