@@ -191,8 +191,11 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     public void getUpdates(final Set<Update> set) {
         final List<Update> pending;
         synchronized (this) {
+            if (this.updates == null) {
+                return;
+            }
             pending = this.updates;
-            this.updates = new ArrayList<>();
+            this.updates = null;
         }
         set.addAll(pending);
     }
@@ -316,6 +319,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * @param update the update to add
      */
     protected synchronized void pushUpdate(final Update update) {
+        if (this.updates == null) {
+            this.updates = new ArrayList<>();
+        }
         this.updates.add(update);
     }
 
