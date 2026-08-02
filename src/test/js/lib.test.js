@@ -24,3 +24,39 @@ describe("escapeHtml", () => {
         );
     });
 });
+
+describe("sendRequest", () => {
+    it("does not abort an in-flight request when another request starts", () => {
+        const requests = [];
+
+        class MockXmlHttpRequest {
+            constructor() {
+                this.readyState = 0;
+                this.aborted = false;
+                requests.push(this);
+            }
+
+            open() {
+                if (this.readyState > 0 && this.readyState < 4) {
+                    this.aborted = true;
+                }
+                this.readyState = 1;
+            }
+
+            send() {}
+        }
+
+        dom = new JSDOM("<!doctype html>", {
+            runScripts: "outside-only",
+            url: "http://localhost/"
+        });
+        dom.window.XMLHttpRequest = MockXmlHttpRequest;
+        dom.window.eval(source);
+
+        dom.window.sendRequest({ action: "first" });
+        dom.window.sendRequest({ action: "second" });
+
+        expect(requests).toHaveLength(2);
+        expect(requests.every(request => !request.aborted)).toBe(true);
+    });
+});

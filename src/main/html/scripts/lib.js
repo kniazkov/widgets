@@ -2,14 +2,11 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 
-let xmlHttpObject = null;
 const server = window.location.protocol + "//" + window.location.host;
 
-// Returns the transport shared by all protocol requests.
+// Creates an independent transport so overlapping protocol requests cannot abort each other.
 function getXmlHttp() {
-    if (xmlHttpObject) {
-        return xmlHttpObject;
-    }
+    let xmlHttpObject = null;
     try {
         xmlHttpObject = new ActiveXObject("Msxml2.XMLHTTP");
     } catch (e0) {
