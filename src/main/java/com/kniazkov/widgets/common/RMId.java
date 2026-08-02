@@ -6,10 +6,12 @@ package com.kniazkov.widgets.common;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * A simple unique identifier wrapper. Instances of {@code UId} are generated sequentially using an
- * {@link AtomicLong}, ensuring thread-safe local uniqueness within a single JVM.
+ * A run-local monotonic identifier (RMID).
+ *
+ * <p>Generated values are positive and strictly increase for the lifetime of the current JVM.
+ * They are not globally unique and may be reused after the server restarts.</p>
  */
-public final class UId implements Comparable<UId> {
+public final class RMId implements Comparable<RMId> {
     /**
      * Next unique number.
      */
@@ -18,7 +20,7 @@ public final class UId implements Comparable<UId> {
     /**
      * Represents an invalid ID.
      */
-    public static final UId INVALID = new UId(0);
+    public static final RMId INVALID = new RMId(0);
 
     /**
      * Integer identifier.
@@ -30,32 +32,32 @@ public final class UId implements Comparable<UId> {
      *
      * @param id integer identifier
      */
-    private UId(final long id) {
+    private RMId(final long id) {
         this.id = id;
     }
 
     /**
-     * Creates a new unique ID.
+     * Creates the next identifier for the current JVM run.
      *
-     * @return a newly generated UId with a positive value
+     * @return a positive RMId greater than all previously generated identifiers
      */
-    public static UId create() {
-        return new UId(next.incrementAndGet());
+    public static RMId create() {
+        return new RMId(next.incrementAndGet());
     }
 
     /**
-     * Parses a string in the format {@code "#123"} into a {@code UId}.
+     * Parses a string in the format {@code "#123"} into a {@code RMId}.
      * If parsing fails or results in a non-positive value, {@link #INVALID} is returned.
      *
      * @param str the string to parse
-     * @return a valid {@code UId} if the string is well-formed, otherwise {@link #INVALID}
+     * @return a valid {@code RMId} if the string is well-formed, otherwise {@link #INVALID}
      */
-    public static UId parse(final String str) {
+    public static RMId parse(final String str) {
         if (str.startsWith("#")) {
             try {
                 final long id = Long.parseLong(str.substring(1));
                 if (id > 0) {
-                    return new UId(id);
+                    return new RMId(id);
                 }
             } catch (NumberFormatException ignored) {
             }
@@ -69,15 +71,15 @@ public final class UId implements Comparable<UId> {
     }
 
     @Override
-    public int compareTo(final UId other) {
+    public int compareTo(final RMId other) {
         return Long.compare(this.id, other.id);
     }
 
     @Override
     public boolean equals(final Object obj) {
         if (this == obj) return true;
-        if (obj instanceof UId) {
-            final UId other = (UId) obj;
+        if (obj instanceof RMId) {
+            final RMId other = (RMId) obj;
             return this.id == other.id;
         }
         return false;

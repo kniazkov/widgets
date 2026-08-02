@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.protocol;
 
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * Instruction that initiates a full client reset.
@@ -13,7 +13,7 @@ public final class ResetClient extends Update {
      * Constructs a new reset instruction.
      */
     public ResetClient() {
-        super(UId.INVALID);
+        super(RMId.INVALID);
     }
 
     @Override

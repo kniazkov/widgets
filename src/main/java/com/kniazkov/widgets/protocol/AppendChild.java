@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * An {@link Update} that instructs the client to add a widget to a specific container.
@@ -13,7 +13,7 @@ public final class AppendChild extends Update {
     /**
      * The identifier of the container to which the widget is added.
      */
-    private final UId container;
+    private final RMId container;
 
     /**
      * Creates a new "add widget to container" update.
@@ -21,7 +21,7 @@ public final class AppendChild extends Update {
      * @param widget the widget being added
      * @param container the container that receives the widget
      */
-    public AppendChild(final UId widget, final UId container) {
+    public AppendChild(final RMId widget, final RMId container) {
         super(widget);
         this.container = container;
     }

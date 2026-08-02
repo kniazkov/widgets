@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,7 +37,7 @@ public final class Application {
     /**
      * All active clients, keyed by unique identifier.
      */
-    private final ConcurrentMap<UId, Client> clients;
+    private final ConcurrentMap<RMId, Client> clients;
 
     /**
      * Available pages in this application, keyed by path.
@@ -108,12 +108,12 @@ public final class Application {
      * @param context container for request-specific settings passed to a page
      * @return the unique identifier of the created client
      */
-    UId createClient(final String address, final PageContext context) {
+    RMId createClient(final String address, final PageContext context) {
         this.counter++;
         final Client client = new Client();
         client.timer = this.options.clientLifetime;
 
-        final UId id = client.getId();
+        final RMId id = client.getId();
         final RootWidget root = client.getRootWidget();
         final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
         try {
@@ -134,7 +134,7 @@ public final class Application {
      * @param clientId the client to kill
      * @return {@code true} if the client was removed
      */
-    boolean killClient(final UId clientId) {
+    boolean killClient(final RMId clientId) {
         this.counter++;
         final Client client = this.clients.remove(clientId);
         if (client != null) {
@@ -168,7 +168,7 @@ public final class Application {
      *                        lastUpdate)
      * @param response The JSON object to be populated with UI update instructions and state
      */
-    void synchronize(final UId clientId, final Map<String, String> request,
+    void synchronize(final RMId clientId, final Map<String, String> request,
                         final JsonObject response) {
         this.counter++;
         this.clients.computeIfPresent(clientId, (id, client) -> {
@@ -188,8 +188,8 @@ public final class Application {
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
-            for (final Map.Entry<UId, Client> entry : clients.entrySet()) {
-                final UId id = entry.getKey();
+            for (final Map.Entry<RMId, Client> entry : clients.entrySet()) {
+                final RMId id = entry.getKey();
                 clients.computeIfPresent(id, (key, client) -> {
                     synchronized (client) {
                         client.timer -= WATCHDOG_PERIOD;

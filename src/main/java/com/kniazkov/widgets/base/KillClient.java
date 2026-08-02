@@ -5,7 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonBoolean;
 import com.kniazkov.json.JsonElement;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -35,7 +35,7 @@ final class KillClient extends ActionHandler {
         boolean result = false;
 
         if (data.containsKey("client")) {
-            UId clientId = UId.parse(data.get("client"));
+            RMId clientId = RMId.parse(data.get("client"));
             result = application.killClient(clientId);
 
             if (result) {

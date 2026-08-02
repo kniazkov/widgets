@@ -5,7 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -36,7 +36,7 @@ public class BaseHandlersTest {
         request.put("item", "42");
 
         final JsonObject response = new CreateClient(application).process(request).toJsonObject();
-        final UId clientId = UId.parse(response.get("id").getStringValue());
+        final RMId clientId = RMId.parse(response.get("id").getStringValue());
 
         assertTrue(clientId.isValid());
         assertNotNull(captured.get());
@@ -55,7 +55,7 @@ public class BaseHandlersTest {
     @Test
     public void synchronizeReportsThatTheClientExists() {
         final Application application = BaseTestSupport.application((root, context) -> { });
-        final UId clientId = application.createClient("/", new PageContext());
+        final RMId clientId = application.createClient("/", new PageContext());
         final Map<String, String> request = Collections.singletonMap(
             "client", clientId.toString()
         );

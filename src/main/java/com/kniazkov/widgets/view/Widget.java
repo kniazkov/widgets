@@ -5,7 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Listener;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.controller.HandlesEvents;
@@ -27,7 +27,7 @@ import java.util.TreeSet;
 
 /**
  * Abstract base class for all UI widgets. A widget represents a single element in the view tree.
- * Each widget has a unique {@link UId} and maintains a list of pending {@link Update}s that
+ * Each widget has a unique {@link RMId} and maintains a list of pending {@link Update}s that
  * describe how the client should create or modify its representation.
  * On creation, every widget automatically generates a {@link CreateWidget} update with its type.
  *
@@ -37,7 +37,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     /**
      * Widget unique Id.
      */
-    private final UId id;
+    private final RMId id;
 
     /**
      * Widget style.
@@ -75,7 +75,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * @param style the style providing the initial models and properties for this widget
      */
     public Widget(final S style) {
-        this.id = UId.create();
+        this.id = RMId.create();
         this.style = style;
         this.updates = new ArrayList<>();
         this.updates.add(new CreateWidget(this.id, this.getType()));
@@ -152,7 +152,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      *
      * @return the widget ID
      */
-    public UId getId() {
+    public RMId getId() {
         return this.id;
     }
 
@@ -241,7 +241,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      *
      * <p>
      * However, when reattaching that widget later, all previously accumulated updates
-     * become <em>stale</em>: their {@link UId} values are older than those already processed
+     * become <em>stale</em>: their {@link RMId} values are older than those already processed
      * by the client. The client will reject them to preserve strict chronological consistency,
      * which would lead to a desynchronized state.
      * </p>

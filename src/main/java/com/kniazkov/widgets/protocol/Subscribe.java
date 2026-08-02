@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * An {@link Update} that instructs the client view to subscribe to a specific event
@@ -27,7 +27,7 @@ public final class Subscribe extends Update {
      * @param widget the widget identifier
      * @param event the event type to subscribe to (must not be {@code null})
      */
-    public Subscribe(final UId widget, final String event) {
+    public Subscribe(final RMId widget, final String event) {
         super(widget);
         this.event = event;
     }

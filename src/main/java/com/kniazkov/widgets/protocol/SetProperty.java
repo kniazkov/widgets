@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.protocol;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.view.Property;
 import com.kniazkov.widgets.view.State;
 
@@ -41,7 +41,7 @@ public class SetProperty<T> extends Update {
      * @param property the {@link Property} to modify
      * @param value the new value to set for the property (must match the property’s expected type)
      */
-    public SetProperty(final UId widget, final State state, final Property<T> property,
+    public SetProperty(final RMId widget, final State state, final Property<T> property,
             final T value) {
         super(widget);
         this.state = state;

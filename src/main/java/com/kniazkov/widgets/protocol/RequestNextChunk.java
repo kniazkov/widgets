@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.protocol;
 
-import com.kniazkov.widgets.common.UId;
+import com.kniazkov.widgets.common.RMId;
 
 /**
  * An {@link Update} that instructs the client to send the next chunk of a file upload.
@@ -14,7 +14,7 @@ public final class RequestNextChunk extends Update {
      *
      * @param widget the widget identifier associated with the upload operation
      */
-    public RequestNextChunk(final UId widget) {
+    public RequestNextChunk(final RMId widget) {
         super(widget);
     }
 
