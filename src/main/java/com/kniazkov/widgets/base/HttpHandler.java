@@ -116,7 +116,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             code = code
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", request.path)
-                                .replace("{data}", obj.toString());
+                                .replace("{data}", escapeInlineScriptData(obj.toString()));
                         }
                         if (removeLogs) {
                             code = code.replaceAll(
@@ -160,6 +160,16 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         // Resource not found
         return null;
     }
+    /**
+     * Escapes JSON before embedding it inside an HTML script element.
+     *
+     * @param json serialized JSON
+     * @return equivalent JavaScript source that cannot start an HTML end tag
+     */
+    private static String escapeInlineScriptData(final String json) {
+        return json.replace("<", "\\u003c");
+    }
+
     /**
      * Returns whether the path identifies a bundled public web resource.
      *
