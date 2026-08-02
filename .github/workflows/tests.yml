@@ -24,3 +24,18 @@ jobs:
           cache: maven
       - name: Run unit tests
         run: mvn --batch-mode --no-transfer-progress test
+
+  javascript-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install JavaScript dependencies
+        run: npm ci
+      - name: Run JavaScript tests
+        run: npm run test:js
