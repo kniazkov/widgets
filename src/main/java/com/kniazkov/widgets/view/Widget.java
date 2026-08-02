@@ -47,7 +47,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     /**
      * List of updates not yet sent to the client.
      */
-    private final List<Update> updates;
+    private List<Update> updates;
 
     /**
      * The parent container that contains this widget.
@@ -144,7 +144,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
 
     @Override
     public void subscribeToEvent(final Event<?> event) {
-        this.updates.add(new Subscribe(this.id, event.getName()));
+        this.pushUpdate(new Subscribe(this.id, event.getName()));
     }
 
     /**
@@ -189,8 +189,15 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * @param set the set to which updates are added
      */
     public void getUpdates(final Set<Update> set) {
-        set.addAll(this.updates);
-        this.updates.clear();
+        final List<Update> pending;
+        synchronized (this) {
+            if (this.updates == null) {
+                return;
+            }
+            pending = this.updates;
+            this.updates = null;
+        }
+        set.addAll(pending);
     }
 
     /**
@@ -277,10 +284,10 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
             this.getUpdates(pending);
         }
         if (this.parent != null) {
-            this.updates.add(new RemoveChild(this.id, this.parent.getId()));
+            this.pushUpdate(new RemoveChild(this.id, this.parent.getId()));
         }
         for (Update update : pending) {
-            this.updates.add(update.clone());
+            this.pushUpdate(update.clone());
         }
         this.parent = container;
     }
@@ -311,7 +318,10 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      *
      * @param update the update to add
      */
-    protected void pushUpdate(final Update update) {
+    protected synchronized void pushUpdate(final Update update) {
+        if (this.updates == null) {
+            this.updates = new ArrayList<>();
+        }
         this.updates.add(update);
     }
 

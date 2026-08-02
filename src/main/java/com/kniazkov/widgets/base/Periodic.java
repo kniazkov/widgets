@@ -5,6 +5,8 @@ package com.kniazkov.widgets.base;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A base class for tasks that should be executed periodically.
@@ -12,6 +14,8 @@ import java.util.TimerTask;
  * If {@code tick()} returns {@code false}, the periodic execution stops automatically.
  */
 public abstract class Periodic {
+
+    private static final Logger LOGGER = Logger.getLogger(Periodic.class.getName());
 
     private Timer timer;
     private TimerTask task;
@@ -32,13 +36,17 @@ public abstract class Periodic {
     public synchronized void start(long period) {
         stop();
         this.totalTime = 0;
-        this.timer = new Timer();
+        this.timer = new Timer(true);
         this.task = new TimerTask() {
             @Override
             public void run() {
                 totalTime += period;
-                if (!tick()) {
-                    stop();
+                try {
+                    if (!tick()) {
+                        stop();
+                    }
+                } catch (RuntimeException exception) {
+                    LOGGER.log(Level.SEVERE, "Periodic task failed.", exception);
                 }
             }
         };

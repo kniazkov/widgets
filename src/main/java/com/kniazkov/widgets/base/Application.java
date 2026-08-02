@@ -7,10 +7,9 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UId;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
 
 /**
@@ -38,7 +37,7 @@ public final class Application {
     /**
      * All active clients, keyed by unique identifier.
      */
-    private final Map<UId, Client> clients;
+    private final ConcurrentMap<UId, Client> clients;
 
     /**
      * Available pages in this application, keyed by path.
@@ -115,12 +114,16 @@ public final class Application {
         client.timer = this.options.clientLifetime;
 
         final UId id = client.getId();
-        this.clients.put(id, client);
-
         final RootWidget root = client.getRootWidget();
         final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
-        page.create(root, context);
+        try {
+            page.create(root, context);
+        } catch (final RuntimeException | Error failure) {
+            client.destroy();
+            throw failure;
+        }
 
+        this.clients.put(id, client);
         return id;
     }
 
@@ -135,7 +138,9 @@ public final class Application {
         this.counter++;
         final Client client = this.clients.remove(clientId);
         if (client != null) {
-            client.destroy();
+            synchronized (client) {
+                client.destroy();
+            }
             return true;
         }
         return false;
@@ -166,13 +171,14 @@ public final class Application {
     void synchronize(final UId clientId, final Map<String, String> request,
                         final JsonObject response) {
         this.counter++;
-        final Client client = this.clients.get(clientId);
-        if (client != null) {
+        this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
                 client.timer = this.options.clientLifetime;
                 client.synchronize(request, response);
+                response.addBoolean("result", true);
             }
-        }
+            return client;
+        });
     }
 
     /**
@@ -182,22 +188,19 @@ public final class Application {
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
-            final Set<UId> toKill = new TreeSet<>();
-
-            // Decrement timers and collect expired clients
             for (final Map.Entry<UId, Client> entry : clients.entrySet()) {
-                final Client client = entry.getValue();
-                client.timer -= WATCHDOG_PERIOD;
-                if (client.timer <= 0) {
-                    toKill.add(entry.getKey());
-                }
-            }
-
-            // Kill expired clients
-            for (final UId id : toKill) {
-                final Client client = clients.remove(id);
-                client.destroy();
-                LOGGER.info("Client " + id + " is killed by the watchdog.");
+                final UId id = entry.getKey();
+                clients.computeIfPresent(id, (key, client) -> {
+                    synchronized (client) {
+                        client.timer -= WATCHDOG_PERIOD;
+                        if (client.timer <= 0) {
+                            client.destroy();
+                            LOGGER.info("Client " + id + " is killed by the watchdog.");
+                            return null;
+                        }
+                    }
+                    return client;
+                });
             }
 
             // Every minute, log performance

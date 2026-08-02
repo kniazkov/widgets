@@ -27,18 +27,22 @@ public final class Server {
      *
      * @param application the application instance to launch
      * @param options configuration options (logger, timeouts, etc.)
+     * @return the running web server, which can be stopped by the caller
      */
-    public static void start(final Application application, final Options options) {
+    public static com.kniazkov.webserver.Server start(
+            final Application application, final Options options) {
         // Clone options so the application can modify them safely
         final Options cloned = options.clone();
         final Handler handler = new HttpHandler(application, cloned);
         application.setOptions(cloned);
 
         // Start the underlying HTTP server
-        com.kniazkov.webserver.Server.start(getWebServerOptions(cloned), handler);
+        final com.kniazkov.webserver.Server server =
+            com.kniazkov.webserver.Server.start(getWebServerOptions(cloned), handler);
 
         // Log startup
         LOGGER.info("Server started.");
+        return server;
     }
 
     /**

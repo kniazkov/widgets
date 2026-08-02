@@ -138,8 +138,7 @@ public final class Client implements Comparable<Client> {
             for (JsonElement item : events) {
                 final JsonObject event = item.toJsonObject();
                 if (event == null) continue;
-
-                handleEventObject(event, map.get(UId.parse(event.get("widget").getStringValue())));
+                handleEventObject(event, map.get(getEventWidgetId(event)));
             }
 
         } catch (final JsonException ignored) {
@@ -153,7 +152,7 @@ public final class Client implements Comparable<Client> {
         if (event == null) {
             return;
         }
-        final UId widgetId = UId.parse(event.get("widget").getStringValue());
+        final UId widgetId = getEventWidgetId(event);
         Widget<?> widget = null;
         for (final Widget<?> child : this.root) {
             if (child.getId().equals(widgetId)) {
@@ -168,20 +167,38 @@ public final class Client implements Comparable<Client> {
      * Dispatches an event to its target widget.
      */
     private void handleEventObject(final JsonObject event, final Widget<?> widget) {
-        if (widget == null) {
+        if (widget == null || !event.containsKey("id") || !event.containsKey("type")) {
             return;
         }
-        final UId eventId = UId.parse(event.get("id").getStringValue());
+        final String serializedId = event.get("id").getStringValue();
+        final String type = event.get("type").getStringValue();
+        if (serializedId == null || type == null) {
+            return;
+        }
+        final UId eventId = UId.parse(serializedId);
         if (eventId.compareTo(this.lastHandledEventId) <= 0) {
             return;
         }
-        final String type = event.get("type").getStringValue();
         final JsonObject data = event.containsKey("data")
             ? event.get("data").toJsonObject()
             : new JsonObject();
+        if (data == null) {
+            return;
+        }
 
         widget.handleEvent(type, data);
         this.lastHandledEventId = eventId;
+    }
+
+    /**
+     * Returns the target widget identifier, or {@link UId#INVALID} for malformed events.
+     */
+    private static UId getEventWidgetId(final JsonObject event) {
+        if (!event.containsKey("widget")) {
+            return UId.INVALID;
+        }
+        final String serializedId = event.get("widget").getStringValue();
+        return serializedId == null ? UId.INVALID : UId.parse(serializedId);
     }
 
     /**

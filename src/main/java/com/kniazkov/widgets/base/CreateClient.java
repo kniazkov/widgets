@@ -34,6 +34,21 @@ final class CreateClient extends ActionHandler {
 
     @Override
     JsonElement process(final Map<String, String> data) {
+        final String address = data.get("address");
+        final String browserId = data.get("browserId");
+        final String mobile = data.get("mobile");
+        if (address == null || browserId == null
+                || (!"true".equals(mobile) && !"false".equals(mobile))) {
+            return invalidRequest();
+        }
+
+        final UUID parsedBrowserId;
+        try {
+            parsedBrowserId = UUID.fromString(browserId);
+        } catch (final IllegalArgumentException error) {
+            return invalidRequest();
+        }
+
         // Prepare a collection of parameters that are passed through the address line
         final Map<String, String> parameters = new TreeMap<>(data);
         parameters.remove("action");
@@ -43,13 +58,13 @@ final class CreateClient extends ActionHandler {
 
         // Prepare a container for request-specific settings passed to a page
         final PageContext context = new PageContext();
-        context.browserId = UUID.fromString(data.get("browserId"));
-        context.mobile = Boolean.parseBoolean(data.get("mobile"));
+        context.browserId = parsedBrowserId;
+        context.mobile = Boolean.parseBoolean(mobile);
         context.parameters = Collections.unmodifiableMap(parameters);
 
         // Create a new client and obtain its ID
         String id = this.application.createClient(
-            data.get("address"),
+            address,
             context
         ).toString();
 
@@ -60,6 +75,18 @@ final class CreateClient extends ActionHandler {
         // Log creation for debugging or monitoring
         LOGGER.info("Client " + id + " has been created.");
 
+        return obj;
+    }
+
+    /**
+     * Builds a protocol response for malformed client-creation requests.
+     *
+     * @return explicit error response
+     */
+    private static JsonElement invalidRequest() {
+        final JsonObject obj = new JsonObject();
+        obj.addBoolean("result", false);
+        obj.addString("error", "Invalid new instance request.");
         return obj;
     }
 }

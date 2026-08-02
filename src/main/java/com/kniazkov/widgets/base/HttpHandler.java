@@ -93,7 +93,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         final boolean removeLogs = contentType.equals("text/javascript") && !options.debug;
 
         try {
-            final URL url = getClass().getResource(address);
+            final URL url = isBundledWebResource(address)
+                ? getClass().getResource(address)
+                : null;
             final byte[] data;
 
             if (url != null) {
@@ -114,7 +116,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             code = code
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", request.path)
-                                .replace("{data}", obj.toString());
+                                .replace("{data}", escapeInlineScriptData(obj.toString()));
                         }
                         if (removeLogs) {
                             code = code.replaceAll(
@@ -128,7 +130,14 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     }
                 }
             } else {
-                Path path = Paths.get(this.options.wwwRoot, request.path);
+                final Path root = Paths.get(this.options.wwwRoot).toRealPath();
+                final String relative = request.path.startsWith("/")
+                    ? request.path.substring(1)
+                    : request.path;
+                final Path path = root.resolve(relative).toRealPath();
+                if (!path.startsWith(root)) {
+                    return null;
+                }
                 data = Files.readAllBytes(path);
             }
 
@@ -151,4 +160,27 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         // Resource not found
         return null;
     }
+    /**
+     * Escapes JSON before embedding it inside an HTML script element.
+     *
+     * @param json serialized JSON
+     * @return equivalent JavaScript source that cannot start an HTML end tag
+     */
+    private static String escapeInlineScriptData(final String json) {
+        return json.replace("<", "\\u003c");
+    }
+
+    /**
+     * Returns whether the path identifies a bundled public web resource.
+     *
+     * @param address requested classpath address
+     * @return true if the resource belongs to the public web bundle
+     */
+    private static boolean isBundledWebResource(final String address) {
+        return "/index.html".equals(address)
+            || "/style.css".equals(address)
+            || address.startsWith("/scripts/")
+            || address.startsWith("/fonts/");
+    }
+
 }
