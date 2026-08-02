@@ -93,7 +93,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         final boolean removeLogs = contentType.equals("text/javascript") && !options.debug;
 
         try {
-            final URL url = getClass().getResource(address);
+            final URL url = isBundledWebResource(address)
+                ? getClass().getResource(address)
+                : null;
             final byte[] data;
 
             if (url != null) {
@@ -158,4 +160,17 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         // Resource not found
         return null;
     }
+    /**
+     * Returns whether the path identifies a bundled public web resource.
+     *
+     * @param address requested classpath address
+     * @return true if the resource belongs to the public web bundle
+     */
+    private static boolean isBundledWebResource(final String address) {
+        return "/index.html".equals(address)
+            || "/style.css".equals(address)
+            || address.startsWith("/scripts/")
+            || address.startsWith("/fonts/");
+    }
+
 }
