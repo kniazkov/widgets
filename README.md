@@ -115,8 +115,14 @@ Browser runtime resources are stored in `src/main/html` and packaged into the li
 
 ## Building
 
-Development requires JDK 8 and Maven. Running the browser-client tests additionally requires
-Node.js 22.13 or newer and npm.
+Development requires:
+
+- JDK 8, with `java` available through `JAVA_HOME` or `PATH`;
+- Maven 3, with `mvn` (Linux) or `mvn.cmd` (Windows) on `PATH`;
+- Node.js 22.13 or newer and npm for browser-client tests;
+- Chromium installed through Playwright for end-to-end tests.
+
+### Java
 
 Run the Java build:
 
@@ -124,20 +130,65 @@ Run the Java build:
 mvn clean package
 ```
 
-Install the JavaScript test dependencies and run the browser-client tests:
+To install a development build locally without signing it:
+
+```bash
+mvn clean install -Dgpg.skip=true
+```
+
+### Fast JavaScript tests
+
+Vitest and jsdom test browser code without starting Java or a real browser. On Linux:
 
 ```bash
 npm ci
 npm run test:js
 ```
 
-Use `npm run test:js:watch` while developing the browser client.
+On Windows PowerShell, invoke the `.cmd` launcher explicitly. This works even when the PowerShell
+execution policy blocks `npm.ps1`:
 
-To install a development build locally without signing it:
+```powershell
+npm.cmd ci
+npm.cmd run test:js
+```
+
+Use `npm run test:js:watch` (or `npm.cmd run test:js:watch` on PowerShell) while developing the
+browser client.
+
+### Full browser/server end-to-end test
+
+The Playwright test runs the real packaged JavaScript in Chromium against a real Java server. It
+checks the complete round trip: initial Java widget updates reach the DOM, a browser click is sent
+to the Java controller, and the controller's text update returns to the DOM.
+
+Install Chromium once and run the test on Linux:
 
 ```bash
-mvn clean install -Dgpg.skip=true
+npm ci
+npm run install:e2e-browser -- --with-deps
+npm run test:e2e
 ```
+
+`--with-deps` installs Chromium's Linux system packages and may request elevated privileges. On
+Windows PowerShell, no Linux system-package step is needed:
+
+```powershell
+npm.cmd ci
+npm.cmd run install:e2e-browser
+npm.cmd run test:e2e
+```
+
+Run both the fast JavaScript suite and the end-to-end suite with `npm run test:browser` on Linux or
+`npm.cmd run test:browser` on Windows.
+
+The cross-platform `scripts/run-e2e.mjs` runner handles the non-trivial lifecycle. It selects
+`mvn` or `mvn.cmd`, compiles the test server, builds its test classpath, reserves a loopback port,
+starts Java, waits until HTTP is ready, launches Playwright, and stops Java even when the test
+fails. Separate `.sh` and `.bat` files are therefore not required.
+
+GitHub Actions performs the same browser test on Linux after installing Chromium and its system
+dependencies.
 
 ## License
 
