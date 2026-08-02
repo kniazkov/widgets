@@ -4,7 +4,6 @@
 package com.kniazkov.widgets.controller;
 
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasText;
 import com.kniazkov.widgets.view.Widget;
@@ -212,28 +211,6 @@ public abstract class Event<T> {
     };
 
     /**
-     * Event triggered when a file upload chunk is received from the client.
-     */
-    public static final Event<UploadEvent> UPLOAD = new Event<UploadEvent>() {
-        @Override
-        public String getName() {
-            return "upload";
-        }
-
-        @Override
-        public UploadEvent parseData(final JsonObject object) {
-            return object.toJavaObject(UploadEvent.class);
-        }
-
-        @Override
-        public void updateWidget(final Widget<?> widget, final UploadEvent data) {
-            if (widget instanceof FileLoader) {
-                ((FileLoader) widget).handleUploadEvent(data);
-            }
-        }
-    };
-
-    /**
      * Global immutable registry of all known events, keyed by their unique names.
      */
     private static final Map<String, Event<?>> REGISTRY =
@@ -245,8 +222,7 @@ public abstract class Event<T> {
                 POINTER_ENTER,
                 POINTER_LEAVE,
                 POINTER_DOWN,
-                POINTER_UP,
-                UPLOAD
+                POINTER_UP
             ).collect(Collectors.toMap(Event::getName, e -> e))
         );
 

@@ -109,20 +109,29 @@ const widgetsLibrary = {
         widget._multiple = false;
         widget._accept = "";
         widget._onClick = function () {
+            if (widget._states.disabled) {
+                return;
+            }
             const input = document.createElement("input");
             input.type = "file";
             input.style.display = "none";
             input.multiple = widget._multiple;
             input.accept = widget._accept;
             document.body.appendChild(input);
+            const removeInput = function () {
+                input.remove();
+            };
             addEvent(input, "change", function (evt) {
                 const files = evt.target.files;
-                if (!files) return;
-                for (let index = 0; index < files.length; index++) {
-                    loadFile(widget, files[index]);
+                if (files) {
+                    for (let index = 0; index < files.length; index++) {
+                        loadFile(widget, files[index]);
+                    }
                 }
-                document.body.removeChild(input);
+                removeInput();
             });
+            // Modern browsers emit cancel when the chooser closes without a selection.
+            addEvent(input, "cancel", removeInput);
             input.click();
         };
         initPointerEvents(widget, true);
@@ -833,17 +842,6 @@ function setAcceptedFiles(data) {
     return false;
 }
 
-function sendNextChunk(data) {
-    const widget = widgets[data.widget];
-    if (widget) {
-        setTimeout(function () {
-            sendNextChunkToServer(widget);
-        }, 0);
-        return true;
-    }
-    return false;
-}
-
 // Browser event handling and serialization.
 function createInputField() {
     const widget = document.createElement("input");
@@ -948,47 +946,31 @@ function initFocusEvents(widget, state) {
     });
 }
 
-// File contents are encoded as hexadecimal chunks for the existing upload protocol.
-const int2hex = "0123456789abcdef";
-function arrayBufferToHex(buffer) {
-    const bytes = new Uint8Array(buffer);
-    const result = [];
-    let chunk = [];
-    let size = 0;
-    for (let index = 0; index < bytes.length; index++) {
-        const byte = bytes[index];
-        chunk.push(int2hex[byte >> 4]);
-        chunk.push(int2hex[byte & 0xf]);
-        size++;
-        if (size == MAX_UPLOAD_CHUNK_SIZE) {
-            result.push(chunk.join(""));
-            chunk = [];
-            size = 0;
-        }
+// Keep the original File and materialize only the Blob slice currently in flight.
+function loadFile(widget, source) {
+    if (
+        !Number.isSafeInteger(source.size) ||
+        source.size < 0 ||
+        source.size > MAX_UPLOAD_FILE_SIZE
+    ) {
+        log("The file '" + source.name + "' is too large for the upload protocol.");
+        return;
     }
-    result.push(chunk.join(""));
-    return result;
-}
-
-function loadFile(widget, descr) {
-    const reader = new FileReader();
-    addEvent(reader, "load", function (evt) {
-        const file = {
-            id: ++lastFileId,
-            name: descr.name,
-            type: descr.type,
-            size: descr.size,
-            content: arrayBufferToHex(evt.target.result),
-            nextChunk: 0
-        };
-        widget._files.push(file);
-        if (widget._files.length == 1) {
-            sendNextChunkToServer(widget);
-        } else {
-            sendEmptyChunkToServer(widget, file);
-        }
-    });
-    reader.readAsArrayBuffer(descr);
+    const file = {
+        id: ++lastFileId,
+        name: source.name,
+        type: source.type,
+        size: source.size,
+        source: source,
+        nextChunk: 0,
+        totalChunks: Math.max(1, Math.ceil(source.size / MAX_UPLOAD_CHUNK_SIZE)),
+        inFlight: false,
+        retries: 0
+    };
+    widget._files.push(file);
+    if (widget._files.length == 1) {
+        sendNextChunkToServer(widget);
+    }
 }
 
 function sendNextChunkToServer(widget) {
@@ -998,33 +980,83 @@ function sendNextChunkToServer(widget) {
         return;
     }
     const file = files[0];
-    const data = {
-        fileId: file.id,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        content: file.content[file.nextChunk],
-        chunkIndex: file.nextChunk,
-        totalChunks: file.content.length
-    };
-    file.nextChunk++;
-    sendEventToServer(widget, "upload", data);
-    if (file.content.length == file.nextChunk) {
-        files.shift();
+    if (file.inFlight) {
+        return;
     }
-}
-
-function sendEmptyChunkToServer(widget, file) {
+    file.inFlight = true;
+    const chunkIndex = file.nextChunk;
+    const start = chunkIndex * MAX_UPLOAD_CHUNK_SIZE;
+    const end = Math.min(start + MAX_UPLOAD_CHUNK_SIZE, file.size);
+    const chunk = file.source.slice(start, end, file.type || "application/octet-stream");
     const data = {
+        action: "upload chunk",
+        client: clientId,
+        widget: widget._id,
         fileId: file.id,
         name: file.name,
         type: file.type,
         size: file.size,
-        content: "",
-        chunkIndex: -1,
-        totalChunks: file.content.length
+        chunkIndex: chunkIndex,
+        totalChunks: file.totalChunks
     };
-    createEvent(widget, "upload", data);
+    sendRequest(
+        data,
+        function (response) {
+            file.inFlight = false;
+            if (files[0] !== file) {
+                return;
+            }
+            if (response === null) {
+                file.retries++;
+                if (file.retries <= MAX_UPLOAD_RETRIES) {
+                    log(
+                        "Retrying file '" +
+                            file.name +
+                            "', chunk " +
+                            chunkIndex +
+                            " after a network error."
+                    );
+                    setTimeout(function () {
+                        sendNextChunkToServer(widget);
+                    }, UPLOAD_RETRY_DELAY);
+                    return;
+                }
+                log("The upload of file '" + file.name + "' failed after network retries.");
+                file.source = null;
+                files.shift();
+                setTimeout(function () {
+                    sendNextChunkToServer(widget);
+                }, 0);
+                return;
+            }
+
+            let accepted = false;
+            try {
+                accepted = JSON.parse(response).result === true;
+            } catch (error) {
+                log("The server returned an invalid response for file '" + file.name + "'.");
+            }
+            if (!accepted) {
+                log("The server rejected file '" + file.name + "' at chunk " + chunkIndex + ".");
+                file.source = null;
+                files.shift();
+            } else {
+                file.retries = 0;
+                file.nextChunk++;
+                if (file.nextChunk == file.totalChunks) {
+                    file.source = null;
+                    files.shift();
+                }
+                // Pull progress and completion updates without waiting for the polling interval.
+                sendSynchronizeRequest();
+            }
+            setTimeout(function () {
+                sendNextChunkToServer(widget);
+            }, 0);
+        },
+        "post",
+        [chunk]
+    );
 }
 
 // Rendering helpers.

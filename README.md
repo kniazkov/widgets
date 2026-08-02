@@ -90,6 +90,28 @@ Open [http://localhost:8080](http://localhost:8080). Static application files ar
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
 
+### File uploads
+
+`FileLoader` sends binary data as sequential 64 KiB multipart chunks. The browser retains the
+selected `File` plus only the current `Blob.slice`; it does not read the complete file or expand it
+to hexadecimal text. The server validates the client, target widget, file name, immutable metadata,
+chunk order, exact chunk length, and configured total size before accepting data. Duplicate chunks
+are idempotent, so a lost acknowledgement can be retried safely.
+
+Completed `UploadedFile` values are held in memory. `Options.maxUploadSize` therefore limits one
+file to 256 MiB by default; set a smaller byte limit for your application when appropriate:
+
+```java
+Options options = new Options();
+options.maxUploadSize = 16 * 1024 * 1024;
+```
+
+The original file name and MIME type remain untrusted metadata. File names are restricted to one
+path-free component, but applications must still choose their own destination and collision policy
+instead of writing directly to a user-controlled name. `maxUploadSize` is not an HTTP
+`Content-Length` limit: when exposing the built-in server to untrusted networks, also enforce a
+request-body limit at the reverse proxy slightly above one 64 KiB multipart chunk.
+
 ## Documentation
 
 - [Model catalog and hierarchy](docs/MODELS.md) — every model type, its contract, defaults,
@@ -185,9 +207,10 @@ Actions enforces the same rules automatically.
 
 ### Full browser/server end-to-end test
 
-The Playwright test runs the real packaged JavaScript in Chromium against a real Java server. It
-checks the complete round trip: initial Java widget updates reach the DOM, a browser click is sent
-to the Java controller, and the controller's text update returns to the DOM.
+The Playwright tests run the real packaged JavaScript in Chromium against a real Java server. They
+check the ordinary event/update round trip and upload a boundary-sized binary file through the real
+file chooser. Java verifies its byte count and SHA-256 digest, while the test also proves that an
+exact 64 KiB file produces one chunk rather than an empty trailing request.
 
 Install Chromium once and run the test on Linux:
 

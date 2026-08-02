@@ -34,7 +34,7 @@ public class UploadedFile {
     public UploadedFile(final String name, final String type , final byte[] content) {
         this.name = name;
         this.type = type;
-        this.content = content;
+        this.content = content.clone();
     }
 
     /**

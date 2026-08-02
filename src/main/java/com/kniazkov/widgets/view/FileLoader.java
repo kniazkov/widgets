@@ -6,22 +6,21 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.protocol.RequestNextChunk;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * A specialized button widget that handles file uploads from the client.
  * <p>
  * This widget manages the upload process by receiving file chunks via events,
  * assembling them into complete files, and providing progress tracking.
- * It automatically requests the next chunk after processing each received chunk.
+ * Browser backpressure ensures that the next binary chunk is sent only after the server accepts
+ * the current one.
  */
 public class FileLoader extends Button implements HasMultipleInput {
-    /**
-     * Map of currently uploading files, keyed by their unique file ID.
-     */
-    private final Map<Integer, UploadingFile> uploading = new TreeMap<>();
+    /** At most one file is active because the browser applies per-widget backpressure. */
+    private UploadingFile uploading;
+
+    /** Minimal metadata retained so a lost final acknowledgement can be retried safely. */
+    private CompletedUpload completed;
 
     /**
      * Controller to notify when a new file upload starts.
@@ -64,21 +63,73 @@ public class FileLoader extends Button implements HasMultipleInput {
      * <p>
      * If this is the first chunk of a new file, creates a new UploadingFile instance.
      * If the file is already being uploaded, adds the chunk to the existing file.
-     * Automatically requests the next chunk from the client after processing.
+     * Invalid chunks and metadata changes are rejected without mutating upload state.
      *
      * @param event the upload event containing file metadata and chunk data
+     * @return {@code true} when the chunk was accepted
      */
-    public void handleUploadEvent(final UploadEvent event) {
-        UploadingFile file = this.uploading.get(event.fileId);
-        if (file == null) {
-            file = new UploadingFile(this, event);
-            this.uploading.put(event.fileId, file);
-            this.onSelectCtrl.handleEvent(file);
-        } else {
-            file.handleUploadEvent(event);
+    public boolean handleUploadEvent(final UploadEvent event) {
+        if (event == null || !event.isValid()) {
+            return false;
         }
-        if (event.chunkIndex >= 0) {
-            this.pushUpdate(new RequestNextChunk(this.getId()));
+        if (this.uploading == null) {
+            if (this.completed != null && this.completed.matches(event)) {
+                return true;
+            }
+            if (event.chunkIndex != 0) {
+                return false;
+            }
+            this.startUpload(event);
+        } else if (!this.uploading.hasFileId(event.fileId)) {
+            if (event.chunkIndex != 0) {
+                return false;
+            }
+            // A new first chunk means the browser abandoned the previous rejected upload.
+            this.startUpload(event);
+        } else {
+            if (!this.uploading.handleUploadEvent(event)) {
+                return false;
+            }
+        }
+        if (this.uploading.isComplete()) {
+            this.completed = new CompletedUpload(event);
+            this.uploading = null;
+        }
+        return true;
+    }
+
+    /** Starts one sequential upload after all boundary validation has succeeded. */
+    private void startUpload(final UploadEvent event) {
+        this.uploading = new UploadingFile(this, event);
+        this.onSelectCtrl.handleEvent(this.uploading);
+    }
+
+    /** Metadata-only record used to acknowledge a repeated final chunk without reloading a file. */
+    private static final class CompletedUpload {
+        private final int fileId;
+        private final String name;
+        private final String type;
+        private final int size;
+        private final int chunkIndex;
+        private final int totalChunks;
+
+        CompletedUpload(final UploadEvent event) {
+            this.fileId = event.fileId;
+            this.name = event.name;
+            this.type = event.type;
+            this.size = event.size;
+            this.chunkIndex = event.chunkIndex;
+            this.totalChunks = event.totalChunks;
+        }
+
+        boolean matches(final UploadEvent event) {
+            return event != null && event.isValid()
+                && event.fileId == this.fileId
+                && event.name.equals(this.name)
+                && event.type.equals(this.type)
+                && event.size == this.size
+                && event.chunkIndex == this.chunkIndex
+                && event.totalChunks == this.totalChunks;
         }
     }
 

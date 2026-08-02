@@ -5,11 +5,13 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 /**
@@ -179,6 +181,32 @@ public final class Application {
             }
             return client;
         });
+    }
+
+    /**
+     * Delivers one validated upload chunk to a widget owned by the specified client.
+     *
+     * @param clientId browser client identifier
+     * @param widgetId target file-loader identifier
+     * @param event validated upload metadata and bytes
+     * @return {@code true} when the target accepted the chunk
+     */
+    boolean uploadChunk(final RMId clientId, final RMId widgetId, final UploadEvent event) {
+        this.counter++;
+        if (!clientId.isValid() || !widgetId.isValid() || event == null
+                || event.size > this.options.maxUploadSize) {
+            return false;
+        }
+
+        final AtomicBoolean accepted = new AtomicBoolean();
+        this.clients.computeIfPresent(clientId, (id, client) -> {
+            synchronized (client) {
+                client.timer = this.options.clientLifetime;
+                accepted.set(client.uploadChunk(widgetId, event));
+            }
+            return client;
+        });
+        return accepted.get();
     }
 
     /**
