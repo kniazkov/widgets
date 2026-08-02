@@ -128,7 +128,14 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     }
                 }
             } else {
-                Path path = Paths.get(this.options.wwwRoot, request.path);
+                final Path root = Paths.get(this.options.wwwRoot).toRealPath();
+                final String relative = request.path.startsWith("/")
+                    ? request.path.substring(1)
+                    : request.path;
+                final Path path = root.resolve(relative).toRealPath();
+                if (!path.startsWith(root)) {
+                    return null;
+                }
                 data = Files.readAllBytes(path);
             }
 
