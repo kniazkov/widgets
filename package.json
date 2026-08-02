@@ -6,10 +6,14 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "install:e2e-browser": "playwright install chromium",
+    "test:browser": "npm run test:js && npm run test:e2e",
+    "test:e2e": "node scripts/run-e2e.mjs",
     "test:js": "vitest run",
     "test:js:watch": "vitest"
   },
   "devDependencies": {
+    "@playwright/test": "1.62.1",
     "jsdom": "29.1.1",
     "vitest": "4.1.10"
   }
