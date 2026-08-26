@@ -8,7 +8,7 @@ are handled by Java controllers. The framework synchronizes the widget tree with
 client over HTTP, so a typical application does not need to generate HTML or write client-side
 JavaScript.
 
-The project currently targets Java 8 and is distributed as the Maven artifact
+The project targets Java 21 and is distributed as the Maven artifact
 `com.kniazkov:widgets:0.1`.
 
 ## MVC architecture
@@ -90,6 +90,41 @@ Open [http://localhost:8080](http://localhost:8080). Static application files ar
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
 
+### Server and HTTPS configuration
+
+`Options` forwards listener settings, request and multipart limits, worker count, error-page
+renderer, and read/write/handler timeouts to `com.kniazkov:webserver:2.0.0`. For example, a server
+intended to sit behind a local reverse proxy can bind only to loopback:
+
+```java
+Options options = new Options();
+options.port = 8080;
+options.bindAddress = InetAddress.getLoopbackAddress();
+options.maxWorkers = 200;
+options.readTimeout = Duration.ofSeconds(15);
+```
+
+To run the same widgets application directly over HTTPS, build the webserver's immutable TLS
+configuration and pass it through `Options.sslOptions`:
+
+```java
+char[] password = loadPassword();
+SslOptions ssl = new SslOptions.Builder()
+    .setKeyStoreFile("server.p12")
+    .setPassword(password)
+    .build();
+
+Options options = new Options();
+options.port = 8443;
+options.sslOptions = ssl;
+Server.start(new Application(page), options);
+```
+
+`SslOptions` also supports JKS, a PEM certificate chain with an unencrypted PKCS #8 key, explicit
+TLS versions and cipher suites, and optional or required mutual TLS. Run separate server instances
+on different ports when both HTTP and HTTPS listeners are required. The caller remains responsible
+for clearing its original password array after the TLS options have been built.
+
 ## Documentation
 
 - [Model catalog and hierarchy](docs/MODELS.md) — every model type, its contract, defaults,
@@ -117,7 +152,7 @@ Browser runtime resources are stored in `src/main/html` and packaged into the li
 
 Development requires:
 
-- JDK 8, with `java` available through `JAVA_HOME` or `PATH`;
+- JDK 21, with `java` available through `JAVA_HOME` or `PATH`;
 - Maven 3, with `mvn` (Linux) or `mvn.cmd` (Windows) on `PATH`;
 - Node.js 22.13 or newer and npm for browser-client tests;
 - Chromium installed through Playwright for end-to-end tests.

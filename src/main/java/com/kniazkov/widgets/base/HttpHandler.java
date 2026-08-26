@@ -3,19 +3,25 @@
  */
 package com.kniazkov.widgets.base;
 
-import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.json.JsonObject;
-import com.kniazkov.webserver.Method;
+import com.kniazkov.widgets.common.Utils;
+import com.kniazkov.webserver.ContentType;
+import com.kniazkov.webserver.Environment;
+import com.kniazkov.webserver.HttpMethod;
+import com.kniazkov.webserver.HttpStatus;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
-import com.kniazkov.webserver.ResponseJson;
+import com.kniazkov.webserver.ResponseFactory;
+import com.kniazkov.webserver.ServerException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -62,21 +68,32 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     @Override
-    public Response handle(final Request request) {
+    public Response handle(final Request request, final Environment environment)
+            throws ServerException {
+        final ResponseFactory responses = environment.getResponseFactory();
+        final HttpMethod method = request.getHeaders().getMethod();
+        final String requestPath = request.getPath().getPath();
+        final Map<String, String> parameters = flatten(
+            method == HttpMethod.POST ? request.getForm() : request.getQuery()
+        );
+
         // Handle action requests: /?action=...
-        if (request.method == Method.POST || request.address.startsWith("/?")) {
-            final String action = request.formData.get("action");
+        final boolean rootQuery = method == HttpMethod.GET
+            && "/".equals(requestPath)
+            && !request.getQuery().isEmpty();
+        if (method == HttpMethod.POST || rootQuery) {
+            final String action = parameters.get("action");
             final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
-                return new ResponseJson(handler.process(request.formData));
+                return responses.fromJson(handler.process(parameters).toString()).build();
             }
-            return null;
+            return responses.notFound();
         }
 
         final String address;
         final boolean replaceAddress;
 
-        if (this.application.hasPage(request.path)) {
+        if (this.application.hasPage(requestPath)) {
             /*
                 For all pages of the project, we actually load the same index.html page, replacing
                 the target page address in it, which is sent to the server when a new client
@@ -85,7 +102,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             address = "/index.html";
             replaceAddress = true;
         } else {
-            address = request.path;
+            address = requestPath;
             replaceAddress = false;
         }
 
@@ -107,15 +124,15 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                         buffer.write(tmp, 0, count);
                     }
                     if (replaceAddress || removeLogs) {
-                        String code = buffer.toString();
+                        String code = buffer.toString(StandardCharsets.UTF_8);
                         if (replaceAddress) {
                             final JsonObject obj = new JsonObject();
-                            for (final String key : request.formData.keySet()) {
-                                obj.addString(key, request.formData.get(key));
+                            for (final Map.Entry<String, String> entry : parameters.entrySet()) {
+                                obj.addString(entry.getKey(), entry.getValue());
                             }
                             code = code
                                 .replace("{sessionId}", UUID.randomUUID().toString())
-                                .replace("{address}", request.path)
+                                .replace("{address}", requestPath)
                                 .replace("{data}", escapeInlineScriptData(obj.toString()));
                         }
                         if (removeLogs) {
@@ -124,41 +141,47 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 "/* $0 */"
                             );
                         }
-                        data = code.getBytes();
+                        data = code.getBytes(StandardCharsets.UTF_8);
                     } else {
                         data = buffer.toByteArray();
                     }
                 }
             } else {
                 final Path root = Paths.get(this.options.wwwRoot).toRealPath();
-                final String relative = request.path.startsWith("/")
-                    ? request.path.substring(1)
-                    : request.path;
+                final String relative = requestPath.startsWith("/")
+                    ? requestPath.substring(1)
+                    : requestPath;
                 final Path path = root.resolve(relative).toRealPath();
                 if (!path.startsWith(root)) {
-                    return null;
+                    return responses.forbidden();
                 }
                 data = Files.readAllBytes(path);
             }
 
-            return new Response() {
-                @Override
-                public String getContentType() {
-                    return contentType;
-                }
-
-                @Override
-                public byte[] getData() {
-                    return data;
-                }
-            };
+            return responses.custom(
+                HttpStatus.OK,
+                ContentType.fromString(contentType),
+                data
+            ).build();
 
         } catch (IOException e) {
-            LOGGER.warning("File not found or cannot be read: '" + request.address + "': " + e);
+            LOGGER.warning("File not found or cannot be read: '" + requestPath + "': " + e);
         }
 
         // Resource not found
-        return null;
+        return responses.notFound();
+    }
+
+    /** Preserves the 1.x last-value-wins form contract for repeated values in the 2.0 API. */
+    private static Map<String, String> flatten(final Map<String, List<String>> source) {
+        final Map<String, String> result = new TreeMap<>();
+        for (final Map.Entry<String, List<String>> entry : source.entrySet()) {
+            final List<String> values = entry.getValue();
+            if (values != null && !values.isEmpty()) {
+                result.put(entry.getKey(), values.get(values.size() - 1));
+            }
+        }
+        return result;
     }
     /**
      * Escapes JSON before embedding it inside an HTML script element.
