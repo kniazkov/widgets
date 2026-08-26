@@ -77,35 +77,37 @@ public final class HelloWidgets {
             ));
         };
 
-        Options options = new Options();
-        options.port = 8080;
+        Options options = new Options.Builder()
+            .setPort(8080)
+            .build();
         Server.start(new Application(page), options);
     }
 }
 ```
 
 Open [http://localhost:8080](http://localhost:8080). Static application files are served from the
-`www` directory by default; the path can be changed with `Options.wwwRoot`.
+`www` directory by default; the path can be changed with `Options.Builder.setWwwRoot(...)`.
 
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
 
 ### Server and HTTPS configuration
 
-`Options` forwards listener settings, request and multipart limits, worker count, error-page
-renderer, and read/write/handler timeouts to `com.kniazkov:webserver:2.0.0`. For example, a server
-intended to sit behind a local reverse proxy can bind only to loopback:
+`Options` exposes the listener port, bind address, worker count, and immutable HTTPS settings.
+Request limits and timeouts are an internal framework profile sized for short XMLHttpRequest
+exchanges and 64 KiB upload chunks. For example, a server intended to sit behind a local reverse
+proxy can bind only to loopback:
 
 ```java
-Options options = new Options();
-options.port = 8080;
-options.bindAddress = InetAddress.getLoopbackAddress();
-options.maxWorkers = 200;
-options.readTimeout = Duration.ofSeconds(15);
+Options options = new Options.Builder()
+    .setPort(8080)
+    .setBindAddress(InetAddress.getLoopbackAddress())
+    .setMaxWorkers(200)
+    .build();
 ```
 
 To run the same widgets application directly over HTTPS, build the webserver's immutable TLS
-configuration and pass it through `Options.sslOptions`:
+configuration and pass it through the application options builder:
 
 ```java
 char[] password = loadPassword();
@@ -114,9 +116,10 @@ SslOptions ssl = new SslOptions.Builder()
     .setPassword(password)
     .build();
 
-Options options = new Options();
-options.port = 8443;
-options.sslOptions = ssl;
+Options options = new Options.Builder()
+    .setPort(8443)
+    .setSslOptions(ssl)
+    .build();
 Server.start(new Application(page), options);
 ```
 

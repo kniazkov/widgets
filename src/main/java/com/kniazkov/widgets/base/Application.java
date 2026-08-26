@@ -111,7 +111,7 @@ public final class Application {
     RMId createClient(final String address, final PageContext context) {
         this.counter++;
         final Client client = new Client();
-        client.timer = this.options.clientLifetime;
+        client.timer = this.options.getClientLifetime();
 
         final RMId id = client.getId();
         final RootWidget root = client.getRootWidget();
@@ -173,7 +173,7 @@ public final class Application {
         this.counter++;
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
-                client.timer = this.options.clientLifetime;
+                client.timer = this.options.getClientLifetime();
                 client.synchronize(request, response);
                 response.addBoolean("result", true);
             }

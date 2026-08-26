@@ -57,7 +57,7 @@ public class ButtonStyles {
         };
 
         final Application application = new Application(page);
-        final Options options = new Options();
+        final Options options = new Options.Builder().build();
         Server.start(application, options);
     }
 }

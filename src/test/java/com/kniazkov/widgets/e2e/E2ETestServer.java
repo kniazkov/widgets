@@ -39,9 +39,10 @@ public final class E2ETestServer {
             root.add(content);
         };
 
-        final Options options = new Options();
-        options.port = Integer.parseInt(args[0]);
-        options.bindAddress = InetAddress.getLoopbackAddress();
+        final Options options = new Options.Builder()
+            .setPort(Integer.parseInt(args[0]))
+            .setBindAddress(InetAddress.getLoopbackAddress())
+            .build();
         Server.start(new Application(page), options);
     }
 }

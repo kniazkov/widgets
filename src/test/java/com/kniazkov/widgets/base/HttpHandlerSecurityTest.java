@@ -92,12 +92,36 @@ public class HttpHandlerSecurityTest {
         assertTrue(response.contains("Invalid new instance request"));
     }
 
+    /** A Base16-encoded 64 KiB upload chunk must fit the fixed XMLHttpRequest profile. */
+    @Test
+    public void uploadSizedMultipartRequestIsAccepted() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        final String boundary = "widgets-test-boundary";
+        final String body = part(boundary, "action", "new instance")
+            + part(boundary, "address", "/")
+            + part(boundary, "browserId", "123e4567-e89b-12d3-a456-426614174000")
+            + part(boundary, "mobile", "false")
+            + part(boundary, "chunk", "a".repeat(2 * 64 * 1024))
+            + "--" + boundary + "--\r\n";
+
+        final String response = this.request(
+            "POST",
+            "/",
+            "multipart/form-data; boundary=" + boundary,
+            body
+        );
+
+        assertTrue(response.startsWith("HTTP/1.1 200"));
+        assertTrue(response.contains("\"id\""));
+    }
+
     /** Starts the framework on an ephemeral loopback port. */
     private void start(final File root) {
-        final Options options = new Options();
-        options.port = 0;
-        options.bindAddress = InetAddress.getLoopbackAddress();
-        options.wwwRoot = root.getAbsolutePath();
+        final Options options = new Options.Builder()
+            .setPort(0)
+            .setBindAddress(InetAddress.getLoopbackAddress())
+            .setWwwRoot(root.getAbsolutePath())
+            .build();
         final Page page = (widget, context) -> { };
         final Application application = BaseTestSupport.application(page);
         application.addPage("page", page);
@@ -107,6 +131,20 @@ public class HttpHandlerSecurityTest {
     /** Sends one connection-closing HTTP request and returns its complete response. */
     private String request(final String method, final String target, final String body)
             throws Exception {
+        return this.request(
+            method,
+            target,
+            "application/x-www-form-urlencoded",
+            body
+        );
+    }
+
+    /** Sends one HTTP request with an explicit body content type. */
+    private String request(
+            final String method,
+            final String target,
+            final String contentType,
+            final String body) throws Exception {
         try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), this.server.getPort())) {
             socket.setSoTimeout(5000);
             final byte[] content = body == null
@@ -117,7 +155,7 @@ public class HttpHandlerSecurityTest {
                 .append("Host: localhost\r\n")
                 .append("Connection: close\r\n");
             if (body != null) {
-                headers.append("Content-Type: application/x-www-form-urlencoded\r\n")
+                headers.append("Content-Type: ").append(contentType).append("\r\n")
                     .append("Content-Length: ").append(content.length).append("\r\n");
             }
             headers.append("\r\n");
@@ -131,5 +169,12 @@ public class HttpHandlerSecurityTest {
                 return response.toString(StandardCharsets.UTF_8);
             }
         }
+    }
+
+    /** Creates one UTF-8 multipart form field. */
+    private static String part(final String boundary, final String name, final String value) {
+        return "--" + boundary + "\r\n"
+            + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"
+            + value + "\r\n";
     }
 }

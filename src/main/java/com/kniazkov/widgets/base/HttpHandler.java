@@ -107,7 +107,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         }
 
         final String contentType = Utils.getContentTypeByExtension(address);
-        final boolean removeLogs = contentType.equals("text/javascript") && !options.debug;
+        final boolean removeLogs = contentType.equals("text/javascript") && !options.isDebug();
 
         try {
             final URL url = isBundledWebResource(address)
@@ -147,7 +147,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     }
                 }
             } else {
-                final Path root = Paths.get(this.options.wwwRoot).toRealPath();
+                final Path root = Paths.get(this.options.getWwwRoot()).toRealPath();
                 final String relative = requestPath.startsWith("/")
                     ? requestPath.substring(1)
                     : requestPath;

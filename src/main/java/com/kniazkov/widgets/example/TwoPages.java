@@ -54,7 +54,7 @@ public class TwoPages {
     public static void main(String[] args) {
         final Application application = new Application(new IndexPage());
         application.addPage("about", new AboutPage());
-        final Options options = new Options();
+        final Options options = new Options.Builder().build();
         Server.start(application, options);
     }
 
