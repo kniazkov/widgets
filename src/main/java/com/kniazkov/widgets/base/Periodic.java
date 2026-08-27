@@ -15,10 +15,24 @@ import java.util.logging.Logger;
  */
 public abstract class Periodic {
 
+    /**
+     * Periodic task logger.
+     */
     private static final Logger LOGGER = Logger.getLogger(Periodic.class.getName());
 
+    /**
+     * Timer that schedules the current task.
+     */
     private Timer timer;
+
+    /**
+     * Scheduled task wrapper.
+     */
     private TimerTask task;
+
+    /**
+     * Total elapsed scheduling time in milliseconds.
+     */
     private long totalTime = 0;
 
     /**

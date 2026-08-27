@@ -24,7 +24,11 @@ public class ImageWidgetStyle extends Style implements HasBorder, HasMargin,
     /**
      * Creates the default image style.
      */
+    @SuppressWarnings("this-escape")
     protected ImageWidgetStyle() {
+        /*
+         * Construction initializes inherited style models before publication.
+         */
         this.setBorderStyle(BorderStyle.NONE);
         this.setMargin(0);
         this.setOpacity(1.0);

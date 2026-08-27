@@ -144,7 +144,7 @@ public interface Model<T> {
             return false;
         }
         @SuppressWarnings("unchecked")
-        final T data = (T)object;
+        final T data = (T) object;
         return this.setData(data);
     }
 }

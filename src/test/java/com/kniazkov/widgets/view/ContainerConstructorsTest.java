@@ -15,6 +15,9 @@ import static org.junit.Assert.assertTrue;
  * Tests declarative container construction and the general-purpose {@link Panel}.
  */
 public final class ContainerConstructorsTest {
+    /**
+     * Verifies the buildsNestedWidgetTreeDeclaratively behavior.
+     */
     @Test
     public void buildsNestedWidgetTreeDeclaratively() {
         final TextWidget title = new TextWidget("Title");
@@ -39,6 +42,9 @@ public final class ContainerConstructorsTest {
         assertSame(row, cell.getParent().get());
     }
 
+    /**
+     * Verifies the supportsStyleAndChildrenConstructors behavior.
+     */
     @Test
     public void supportsStyleAndChildrenConstructors() {
         final Section section = new Section(
@@ -66,6 +72,9 @@ public final class ContainerConstructorsTest {
         assertSame(row, table.getChild(0));
     }
 
+    /**
+     * Verifies the addsIterableChildrenInOrder behavior.
+     */
     @Test
     public void addsIterableChildrenInOrder() {
         final Section first = new Section(new TextWidget("first"));
@@ -81,6 +90,9 @@ public final class ContainerConstructorsTest {
         assertSame(panel, second.getParent().get());
     }
 
+    /**
+     * Verifies the createsButtonWithArbitraryInlineChild behavior.
+     */
     @Test
     public void createsButtonWithArbitraryInlineChild() {
         final ActiveText child = new ActiveText();
@@ -91,6 +103,9 @@ public final class ContainerConstructorsTest {
         assertSame(button, child.getParent().get());
     }
 
+    /**
+     * Verifies the panelIsAStyledBlockContainer behavior.
+     */
     @Test
     public void panelIsAStyledBlockContainer() {
         final Panel panel = new Panel();
@@ -102,6 +117,9 @@ public final class ContainerConstructorsTest {
         assertEquals("panel", panel.getType());
     }
 
+    /**
+     * Verifies the constructorDoesNotDispatchToOverriddenAdd behavior.
+     */
     @Test
     public void constructorDoesNotDispatchToOverriddenAdd() {
         final TrackingSection section = new TrackingSection(new TextWidget("initial"));
@@ -113,9 +131,13 @@ public final class ContainerConstructorsTest {
         assertTrue(section.wasAddCalled());
     }
 
-    /** Section that records calls to its overridable add method. */
+    /**
+     * Section that records calls to its overridable add method.
+     */
     private static final class TrackingSection extends Section {
-        /** Whether add was called. */
+        /**
+         * Whether add was called.
+         */
         private boolean addCalled;
 
         /**

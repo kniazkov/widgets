@@ -16,8 +16,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-/** Tests synthetic browser events inside a widget sandbox. */
+/**
+ * Tests synthetic browser events inside a widget sandbox.
+ */
 public final class WidgetEventTest {
+    /**
+     * Verifies the editableTextWidgetsApplyEventBeforeController behavior.
+     */
     @Test
     public void editableTextWidgetsApplyEventBeforeController() {
         final List<Widget<?>> widgets = Arrays.<Widget<?>>asList(
@@ -45,6 +50,9 @@ public final class WidgetEventTest {
         }
     }
 
+    /**
+     * Verifies the checkboxAppliesEventBeforeController behavior.
+     */
     @Test
     public void checkboxAppliesEventBeforeController() {
         final CheckBox checkBox = new CheckBox();
@@ -67,6 +75,9 @@ public final class WidgetEventTest {
         ).size());
     }
 
+    /**
+     * Verifies the allPointerWidgetsSubscribeAndHandleClicks behavior.
+     */
     @Test
     public void allPointerWidgetsSubscribeAndHandleClicks() {
         final List<Widget<?>> widgets = Arrays.<Widget<?>>asList(
@@ -103,6 +114,9 @@ public final class WidgetEventTest {
         }
     }
 
+    /**
+     * Verifies the fileLoaderCreatesUploadAndRequestsNextChunk behavior.
+     */
     @Test
     public void fileLoaderCreatesUploadAndRequestsNextChunk() {
         final FileLoader loader = new FileLoader();

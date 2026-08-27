@@ -17,6 +17,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for numeric-to-string model adapters.
  */
 public final class NumericStringModelTest {
+    /**
+     * Verifies the integerAdapterSynchronizesInBothDirections behavior.
+     */
     @Test
     public void integerAdapterSynchronizesInBothDirections() {
         final IntegerModel base = new IntegerModel(7);
@@ -39,6 +42,9 @@ public final class NumericStringModelTest {
         adapter.removeListener(listener);
     }
 
+    /**
+     * Verifies the integerAdapterRecoversFromInvalidTextWhenBaseChanges behavior.
+     */
     @Test
     public void integerAdapterRecoversFromInvalidTextWhenBaseChanges() {
         final IntegerModel base = new IntegerModel(7);
@@ -58,6 +64,9 @@ public final class NumericStringModelTest {
         adapter.removeListener(listener);
     }
 
+    /**
+     * Verifies the integerAdapterRelaysBaseValidityChangesWithoutDataChanges behavior.
+     */
     @Test
     public void integerAdapterRelaysBaseValidityChangesWithoutDataChanges() {
         final MutableTestModel<Integer> base = new MutableTestModel<>(7, false);
@@ -74,6 +83,9 @@ public final class NumericStringModelTest {
         adapter.removeListener(listener);
     }
 
+    /**
+     * Verifies the realAdapterSynchronizesInBothDirections behavior.
+     */
     @Test
     public void realAdapterSynchronizesInBothDirections() {
         final RealNumberModel base = new RealNumberModel(1.25);
@@ -96,6 +108,9 @@ public final class NumericStringModelTest {
         adapter.removeListener(listener);
     }
 
+    /**
+     * Verifies the realAdapterRecoversFromInvalidTextWhenBaseChanges behavior.
+     */
     @Test
     public void realAdapterRecoversFromInvalidTextWhenBaseChanges() {
         final RealNumberModel base = new RealNumberModel(1.25);
@@ -115,6 +130,9 @@ public final class NumericStringModelTest {
         adapter.removeListener(listener);
     }
 
+    /**
+     * Verifies the realAdapterRelaysBaseValidityChangesWithoutDataChanges behavior.
+     */
     @Test
     public void realAdapterRelaysBaseValidityChangesWithoutDataChanges() {
         final MutableTestModel<Double> base = new MutableTestModel<>(1.25, false);
@@ -131,6 +149,9 @@ public final class NumericStringModelTest {
         adapter.removeListener(listener);
     }
 
+    /**
+     * Verifies the adaptersDerivePlainStringModels behavior.
+     */
     @Test
     public void adaptersDerivePlainStringModels() {
         final Model<String> integerDerived = new IntegerToStringModel(

@@ -19,8 +19,13 @@ public final class Server {
      */
     private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
 
+    /**
+     * Prevents construction of the static entry-point class.
+     */
     private Server() {
-        // Static-only class
+        /*
+         * Static-only class
+         */
     }
 
     /**
@@ -36,7 +41,9 @@ public final class Server {
         final Handler handler = new HttpHandler(application, options);
         application.setOptions(options);
 
-        // Start the underlying HTTP server
+        /*
+         * Start the underlying HTTP server
+         */
         final com.kniazkov.webserver.Server server;
         try {
             server = com.kniazkov.webserver.Server.start(
@@ -46,7 +53,9 @@ public final class Server {
             throw new IllegalStateException("Unable to start the web server", exception);
         }
 
-        // Log startup
+        /*
+         * Log startup
+         */
         LOGGER.info("Server started.");
         return server;
     }

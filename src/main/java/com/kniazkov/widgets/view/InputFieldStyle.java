@@ -19,8 +19,7 @@ import java.util.Set;
  * Style definition for {@link InputField}.
  */
 public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasBgColor,
-        HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin
-{
+        HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin {
     /**
      * Set of supported states.
      */

@@ -58,7 +58,9 @@ public class CustomWidget {
             section.add(new TextWidget("You entered: "));
             final TextWidget textWidget = new TextWidget();
             section.add(textWidget);
-            //textWidget.setFontWeight(FontWeight.BOLD);
+            /*
+             * textWidget.setFontWeight(FontWeight.BOLD);
+             */
 
             customWidget.onTextInput(data -> {
                 if (!section.getParent().isPresent()) {
@@ -97,10 +99,22 @@ public class CustomWidget {
      * </p>
      */
     static class MyWidget extends Section implements HasTextInput {
+        /**
+         * Editable field displayed by the custom widget.
+         */
         private final InputField field;
 
+        /**
+         * Controller invoked by the confirmation button.
+         */
         private Controller<String> ctrl = Controller.stub();
 
+        /**
+         * Creates a captioned input with a confirmation button.
+         *
+         * @param caption field caption
+         * @param buttonText confirmation button text
+         */
         MyWidget(final String caption, final String buttonText) {
             this.add(new TextWidget(caption + ": "));
 

@@ -12,19 +12,24 @@ import java.util.Set;
  * Style definition for {@link Panel}.
  */
 public class PanelStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasMargin, HasPadding
-{
-    /** Supported visual states. */
+        HasMargin, HasPadding {
+    /**
+     * Supported visual states.
+     */
     private static final Set<State> SUPPORTED_STATES = State.setOf(
         State.NORMAL,
         State.HOVERED,
         State.ACTIVE
     );
 
-    /** The global default panel style. */
+    /**
+     * The global default panel style.
+     */
     public static final PanelStyle DEFAULT = new PanelStyle();
 
-    /** Creates the default panel style. */
+    /**
+     * Creates the default panel style.
+     */
     private PanelStyle() {
         this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);

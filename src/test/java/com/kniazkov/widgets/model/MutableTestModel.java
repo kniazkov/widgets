@@ -14,13 +14,19 @@ import java.util.Objects;
  * @param <T> data type
  */
 class MutableTestModel<T> implements Model<T> {
-    /** Current data. */
+    /**
+     * Current data.
+     */
     private T data;
 
-    /** Current validity. */
+    /**
+     * Current validity.
+     */
     private boolean valid;
 
-    /** Registered listeners. */
+    /**
+     * Registered listeners.
+     */
     private final List<Listener<T>> listeners = new ArrayList<>();
 
     /**

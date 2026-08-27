@@ -10,8 +10,7 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
  */
 public class CheckBox extends InlineWidget<CheckBoxStyle> implements HasCheckedState,
         HasDisabledState, HasColor, HasBgColor, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
-        HasSelectableImage, HandlesPointerEvents
-{
+        HasSelectableImage, HandlesPointerEvents {
     /**
      * Returns the default style instance used by check boxes.
      *
@@ -24,7 +23,11 @@ public class CheckBox extends InlineWidget<CheckBoxStyle> implements HasCheckedS
     /**
      * Constructs a new checkbox.
      */
+    @SuppressWarnings("this-escape")
     public CheckBox() {
+        /*
+         * Construction initializes inherited state models before publication.
+         */
         super(getDefaultStyle());
         this.uncheck();
     }

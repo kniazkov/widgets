@@ -11,8 +11,7 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
  */
 
 public class ActiveText extends InlineWidget<ActiveTextStyle> implements HasStyledText, HasColor,
-        HandlesPointerEvents
-{
+        HandlesPointerEvents {
     /**
      * Returns the default style instance used by active text widgets.
      *
@@ -44,7 +43,11 @@ public class ActiveText extends InlineWidget<ActiveTextStyle> implements HasStyl
      * @param style the style to apply to this widget
      * @param text the initial text to display
      */
+    @SuppressWarnings("this-escape")
     public ActiveText(final ActiveTextStyle style, final String text) {
+        /*
+         * Construction initializes the inherited text binding before publication.
+         */
         super(style);
         this.setText(text);
     }

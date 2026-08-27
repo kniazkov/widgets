@@ -15,8 +15,7 @@ import com.kniazkov.widgets.protocol.SetChild;
  * elements that don't have built-in margin support.
  */
 public class MarginDecorator extends InlineWidget<EmptyStyle>
-        implements Decorator<InlineWidget<?>>, HasMargin
-{
+        implements Decorator<InlineWidget<?>>, HasMargin {
     /**
      * Decorated widget.
      */
@@ -27,7 +26,11 @@ public class MarginDecorator extends InlineWidget<EmptyStyle>
      *
      * @param child the inline widget to decorate with margin properties
      */
+    @SuppressWarnings("this-escape")
     public MarginDecorator(final InlineWidget<?> child) {
+        /*
+         * Construction establishes the required parent link before this instance is published.
+         */
         super(EmptyStyle.INSTANCE);
         this.child = child;
         child.setParent(this);

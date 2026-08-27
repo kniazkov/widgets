@@ -17,9 +17,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/** Reproduces state-management and watchdog races in {@link Application}. */
+/**
+ * Reproduces state-management and watchdog races in {@link Application}.
+ */
 public class ApplicationStateTest {
-    /** A failed page factory must not leave a half-created client in the registry. */
+    /**
+     * A failed page factory must not leave a half-created client in the registry.
+     */
     @Test
     public void failedPageCreationRollsBackTheClient() throws Exception {
         final Application application = BaseTestSupport.application((root, context) -> {
@@ -37,7 +41,9 @@ public class ApplicationStateTest {
         }
     }
 
-    /** A synchronization between the watchdog's check and removal must keep the client alive. */
+    /**
+     * A synchronization between the watchdog's check and removal must keep the client alive.
+     */
     @Test
     public void watchdogRechecksAClientThatWasRenewedBeforeRemoval() throws Exception {
         final Application application = BaseTestSupport.application((root, context) -> { });
@@ -54,7 +60,9 @@ public class ApplicationStateTest {
         );
     }
 
-    /** A concurrent explicit kill must not crash the watchdog when it reaches the same client. */
+    /**
+     * A concurrent explicit kill must not crash the watchdog when it reaches the same client.
+     */
     @Test
     public void explicitKillDuringWatchdogRemovalDoesNotCrashTheWatchdog() throws Exception {
         final Application application = BaseTestSupport.application((root, context) -> { });
@@ -70,7 +78,10 @@ public class ApplicationStateTest {
         }
     }
 
-    /** Registry that hides manual-test entries from the application's real timer thread. */
+    /**
+     * Registry that hides manual-test entries from the application's real timer thread.
+     */
+    @SuppressWarnings("serial")
     private abstract static class ControlledClientMap extends ConcurrentHashMap<RMId, Client> {
         @Override
         public Set<Map.Entry<RMId, Client>> entrySet() {
@@ -81,12 +92,32 @@ public class ApplicationStateTest {
         }
     }
 
-    /** Injects a synchronization when the watchdog starts its atomic expiration operation. */
+    /**
+     * Injects a synchronization when the watchdog starts its atomic expiration operation.
+     */
+    @SuppressWarnings("serial")
     private static final class RenewDuringWatchdogMap extends ControlledClientMap {
+        /**
+         * Application whose client is renewed.
+         */
         private final Application application;
+
+        /**
+         * Client identifier intercepted by the map.
+         */
         private final RMId target;
+
+        /**
+         * Whether renewal has already been injected.
+         */
         private boolean renewed;
 
+        /**
+         * Creates a map that renews the supplied client during removal.
+         *
+         * @param application owning application
+         * @param client client to renew
+         */
         RenewDuringWatchdogMap(final Application application, final Client client) {
             this.application = application;
             this.target = client.getId();
@@ -123,12 +154,32 @@ public class ApplicationStateTest {
         }
     }
 
-    /** Injects an explicit kill when the watchdog starts its atomic expiration operation. */
+    /**
+     * Injects an explicit kill when the watchdog starts its atomic expiration operation.
+     */
+    @SuppressWarnings("serial")
     private static final class KillDuringWatchdogMap extends ControlledClientMap {
+        /**
+         * Application whose client is killed.
+         */
         private final Application application;
+
+        /**
+         * Client identifier intercepted by the map.
+         */
         private final RMId target;
+
+        /**
+         * Whether client termination has already been injected.
+         */
         private boolean killing;
 
+        /**
+         * Creates a map that kills the supplied client during expiration.
+         *
+         * @param application owning application
+         * @param client client to terminate
+         */
         KillDuringWatchdogMap(final Application application, final Client client) {
             this.application = application;
             this.target = client.getId();

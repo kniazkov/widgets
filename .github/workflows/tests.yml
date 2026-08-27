@@ -22,8 +22,8 @@ jobs:
           distribution: temurin
           java-version: "21"
           cache: maven
-      - name: Run unit tests
-        run: mvn --batch-mode --no-transfer-progress test
+      - name: Verify Java build and code style
+        run: mvn --batch-mode --no-transfer-progress verify
 
   browser-tests:
     runs-on: ubuntu-latest

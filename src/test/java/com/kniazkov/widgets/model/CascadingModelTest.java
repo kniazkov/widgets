@@ -18,6 +18,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for {@link CascadingModel}.
  */
 public final class CascadingModelTest {
+    /**
+     * Verifies the followsBaseAndRelaysUpdatesBeforeFirstWrite behavior.
+     */
     @Test
     public void followsBaseAndRelaysUpdatesBeforeFirstWrite() {
         final StringModel base = new StringModel("base");
@@ -34,6 +37,9 @@ public final class CascadingModelTest {
         cascading.removeListener(listener);
     }
 
+    /**
+     * Verifies the firstWriteForksWithoutChangingBase behavior.
+     */
     @Test
     public void firstWriteForksWithoutChangingBase() {
         final StringModel base = new StringModel("base");
@@ -55,6 +61,9 @@ public final class CascadingModelTest {
         cascading.removeListener(listener);
     }
 
+    /**
+     * Verifies the delegatesValidityToActiveModel behavior.
+     */
     @Test
     public void delegatesValidityToActiveModel() {
         final MutableTestModel<String> base = new MutableTestModel<>("base", false);
@@ -69,6 +78,9 @@ public final class CascadingModelTest {
         assertTrue(cascading.isValid());
     }
 
+    /**
+     * Verifies the derivesIndependentModelFromActiveModel behavior.
+     */
     @Test
     public void derivesIndependentModelFromActiveModel() {
         final StringModel base = new StringModel("base");

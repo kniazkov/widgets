@@ -21,8 +21,7 @@ import java.util.Optional;
  * entry point for traversing or updating the widget tree.
  */
 public final class RootWidget extends Widget<RootWidgetStyle>
-        implements TypedContainer<BlockWidget<?>>, HasBgColor
-{
+        implements TypedContainer<BlockWidget<?>>, HasBgColor {
     /**
      * Returns the default style instance used by root widget.
      *
@@ -75,7 +74,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     @Override
-    public BlockWidget getChild(final int index) throws IndexOutOfBoundsException {
+    public BlockWidget<?> getChild(final int index) throws IndexOutOfBoundsException {
         return this.children.get(index);
     }
 
@@ -127,6 +126,9 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      */
     private static final class GoToPage extends Update {
 
+        /**
+         * Target page URL.
+         */
         private final String href;
 
         /**

@@ -19,6 +19,9 @@ public interface Listener<T> {
      */
     void accept(T data);
 
+    /*
+     * The varargs array is copied immediately and never exposed or mutated.
+     */
     /**
      * Combines multiple listeners into a single one.
      * The returned listener will notify each provided listener in order.
@@ -28,6 +31,7 @@ public interface Listener<T> {
      * @return a combined listener that delegates calls to all provided listeners
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     static <T> Listener<T> combine(final Listener<T>... listeners) {
         final Listener<T>[] copy = Arrays.copyOf(listeners, listeners.length);
         return data -> {

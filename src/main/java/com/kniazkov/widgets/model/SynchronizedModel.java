@@ -150,7 +150,9 @@ public final class SynchronizedModel<T> implements Model<T>, Listener<T> {
 
     @Override
     public SynchronizedModel<T> asSynchronized() {
-        // Returns this instance itself, since it is already a thread-safe model
+        /*
+         * Returns this instance itself, since it is already a thread-safe model
+         */
         return this;
     }
 
@@ -310,10 +312,14 @@ public final class SynchronizedModel<T> implements Model<T>, Listener<T> {
      * @param <T> data type
      */
     private static final class Notification<T> {
-        /** Data value to deliver. */
+        /**
+         * Data value to deliver.
+         */
         private final T data;
 
-        /** Listener snapshot captured when the update occurred. */
+        /**
+         * Listener snapshot captured when the update occurred.
+         */
         private final List<Listener<T>> listeners;
 
         /**

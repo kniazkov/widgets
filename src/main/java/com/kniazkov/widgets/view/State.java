@@ -43,8 +43,16 @@ public enum State {
      */
     DISABLED("disabled");
 
+    /**
+     * Client-side state key.
+     */
     private final String key;
 
+    /**
+     * Creates a state with its client-side key.
+     *
+     * @param key client-side key
+     */
     State(final String key) {
         this.key = key;
     }

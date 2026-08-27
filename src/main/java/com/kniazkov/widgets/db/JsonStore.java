@@ -45,7 +45,7 @@ public final class JsonStore extends Store {
      *
      * @param <T> the Java type handled by this serializer
      */
-    private static abstract class Handler<T> {
+    private abstract static class Handler<T> {
         /**
          * Parses a JSON element into a Java value of type {@code T}.
          *

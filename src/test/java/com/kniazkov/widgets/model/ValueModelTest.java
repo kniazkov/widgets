@@ -39,11 +39,34 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(Parameterized.class)
 public final class ValueModelTest {
+    /**
+     * Factory for a model with default data.
+     */
     private final Supplier<Model<?>> defaultFactory;
+
+    /**
+     * Factory for a model with supplied data.
+     */
     private final Function<Object, Model<?>> initializedFactory;
+
+    /**
+     * Expected default data.
+     */
     private final Object defaultValue;
+
+    /**
+     * Initial non-default data.
+     */
     private final Object initialValue;
+
+    /**
+     * Replacement data used to test updates.
+     */
     private final Object changedValue;
+
+    /**
+     * Expected validity of the default data.
+     */
     private final boolean defaultValid;
 
     /**
@@ -92,55 +115,67 @@ public final class ValueModelTest {
 
         return Arrays.asList(new Object[][] {
             row("AbsoluteSizeModel", AbsoluteSizeModel::new,
-                value -> new AbsoluteSizeModel((AbsoluteSize)value),
+                value -> new AbsoluteSizeModel((AbsoluteSize) value),
                 AbsoluteSize.UNDEFINED, new AbsoluteSize(10), new AbsoluteSize(20), true),
             row("BorderStyleModel", BorderStyleModel::new,
-                value -> new BorderStyleModel((BorderStyle)value),
+                value -> new BorderStyleModel((BorderStyle) value),
                 BorderStyle.NONE, BorderStyle.SOLID, BorderStyle.DASHED, true),
             row("ColorModel", ColorModel::new,
-                value -> new ColorModel((Color)value),
+                value -> new ColorModel((Color) value),
                 Color.BLACK, Color.RED, Color.BLUE, true),
             row("FontFaceModel", FontFaceModel::new,
-                value -> new FontFaceModel((FontFace)value),
+                value -> new FontFaceModel((FontFace) value),
                 FontFace.DEFAULT, serif, monospace, true),
             row("FontSizeModel", FontSizeModel::new,
-                value -> new FontSizeModel((FontSize)value),
+                value -> new FontSizeModel((FontSize) value),
                 FontSize.DEFAULT, new FontSize(10, Unit.PX), new FontSize(20, Unit.PX), true),
             row("FontWeightModel", FontWeightModel::new,
-                value -> new FontWeightModel((FontWeight)value),
+                value -> new FontWeightModel((FontWeight) value),
                 FontWeight.NORMAL, FontWeight.BOLD, FontWeight.LIGHT, true),
             row("HorizontalAlignmentModel", HorizontalAlignmentModel::new,
-                value -> new HorizontalAlignmentModel((HorizontalAlignment)value),
+                value -> new HorizontalAlignmentModel((HorizontalAlignment) value),
                 HorizontalAlignment.LEFT, HorizontalAlignment.CENTER,
                 HorizontalAlignment.RIGHT, true),
             row("ImageSourceModel", ImageSourceModel::new,
-                value -> new ImageSourceModel((ImageSource)value),
+                value -> new ImageSourceModel((ImageSource) value),
                 ImageSource.INVALID, firstImage, secondImage, true),
             row("IntegerModel", IntegerModel::new,
-                value -> new IntegerModel((Integer)value), 0, 10, 20, true),
+                value -> new IntegerModel((Integer) value), 0, 10, 20, true),
             row("OffsetModel", OffsetModel::new,
-                value -> new OffsetModel((Offset)value),
+                value -> new OffsetModel((Offset) value),
                 Offset.UNDEFINED, new Offset(10), new Offset(20), true),
             row("RealNumberModel", RealNumberModel::new,
-                value -> new RealNumberModel((Double)value), 0.0, 1.5, 2.5, true),
+                value -> new RealNumberModel((Double) value), 0.0, 1.5, 2.5, true),
             row("StringModel", StringModel::new,
-                value -> new StringModel((String)value), "", "first", "second", true),
+                value -> new StringModel((String) value), "", "first", "second", true),
             row("SvgImageSourceModel", SvgImageSourceModel::new,
-                value -> new SvgImageSourceModel((SvgImageSource)value),
+                value -> new SvgImageSourceModel((SvgImageSource) value),
                 SvgImageSource.EMPTY, firstSvg, secondSvg, true),
             row("UuidModel", UuidModel::new,
-                value -> new UuidModel((UUID)value),
+                value -> new UuidModel((UUID) value),
                 new UuidModel().getData(), firstUuid, secondUuid, false),
             row("VerticalAlignmentModel", VerticalAlignmentModel::new,
-                value -> new VerticalAlignmentModel((VerticalAlignment)value),
+                value -> new VerticalAlignmentModel((VerticalAlignment) value),
                 VerticalAlignment.TOP, VerticalAlignment.MIDDLE,
                 VerticalAlignment.BOTTOM, true),
             row("WidgetSizeModel", WidgetSizeModel::new,
-                value -> new WidgetSizeModel((WidgetSize)value),
+                value -> new WidgetSizeModel((WidgetSize) value),
                 AbsoluteSize.UNDEFINED, new AbsoluteSize(10), new RelativeSize(50), true)
         });
     }
 
+    /**
+     * Builds one parameterized model test row.
+     *
+     * @param name model name
+     * @param defaultFactory default model factory
+     * @param initializedFactory initialized model factory
+     * @param defaultValue expected default value
+     * @param initialValue initial value
+     * @param changedValue replacement value
+     * @param defaultValid expected default validity
+     * @return parameter row
+     */
     private static Object[] row(
         final String name,
         final Supplier<Model<?>> defaultFactory,
@@ -161,6 +196,12 @@ public final class ValueModelTest {
         };
     }
 
+    /**
+     * Creates a deterministic font face for a test case.
+     *
+     * @param name font name
+     * @return test font face
+     */
     private static FontFace fontFace(final String name) {
         return new FontFace() {
             @Override
@@ -170,6 +211,12 @@ public final class ValueModelTest {
         };
     }
 
+    /**
+     * Creates an SVG source from literal markup.
+     *
+     * @param source SVG markup
+     * @return test image source
+     */
     private static SvgImageSource svg(final String source) {
         return new SvgImageSource() {
             @Override
@@ -179,11 +226,20 @@ public final class ValueModelTest {
         };
     }
 
+    /**
+     * Casts a model for mutation in generic contract tests.
+     *
+     * @param model source model
+     * @return mutable generic view
+     */
     @SuppressWarnings("unchecked")
     private static Model<Object> cast(final Model<?> model) {
-        return (Model<Object>)model;
+        return (Model<Object>) model;
     }
 
+    /**
+     * Verifies the exposesExpectedDefaultValueAndValidity behavior.
+     */
     @Test
     public void exposesExpectedDefaultValueAndValidity() {
         final Model<?> model = this.defaultFactory.get();
@@ -192,6 +248,9 @@ public final class ValueModelTest {
         assertEquals(this.defaultValid, model.isValid());
     }
 
+    /**
+     * Verifies the storesProvidedInitialValue behavior.
+     */
     @Test
     public void storesProvidedInitialValue() {
         final Model<?> model = this.initializedFactory.apply(this.initialValue);
@@ -199,6 +258,9 @@ public final class ValueModelTest {
         assertEquals(this.initialValue, model.getData());
     }
 
+    /**
+     * Verifies the notifiesListenerOnlyWhenValueChanges behavior.
+     */
     @Test
     public void notifiesListenerOnlyWhenValueChanges() {
         final Model<Object> model = cast(this.initializedFactory.apply(this.initialValue));
@@ -213,6 +275,9 @@ public final class ValueModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the derivesIndependentModelOfSameType behavior.
+     */
     @Test
     public void derivesIndependentModelOfSameType() {
         final Model<Object> model = cast(this.initializedFactory.apply(this.initialValue));

@@ -60,7 +60,9 @@ public final class Application {
         this.pages.put("/", index);
         this.counter = 0;
 
-        // Start watchdog to clean up inactive clients
+        /*
+         * Start watchdog to clean up inactive clients
+         */
         Watchdog watchdog = new Watchdog();
         watchdog.start(WATCHDOG_PERIOD);
     }
@@ -203,18 +205,25 @@ public final class Application {
                 });
             }
 
-            // Every minute, log performance
+            /*
+             * Every minute, log performance
+             */
             if (this.getTotalTime() % 60000 == 0) {
                 if (counter > 0) {
-                    LOGGER.info("Server processed " + counter + " action"
-                        + (counter != 1 ? "s" : "") + " in one minute (~" + (counter / 60) + "/sec).");
+                    LOGGER.info(
+                        "Server processed " + counter + " action" + (counter != 1 ? "s" : "")
+                            + " in one minute (~" + (counter / 60) + "/sec)."
+                    );
                     counter = 0;
                 } else {
                     LOGGER.info("Server processed no actions.");
                 }
             }
 
-            return true; // Continue ticking
+            /*
+             * Continue the periodic task.
+             */
+            return true;
         }
     }
 }

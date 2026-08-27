@@ -18,6 +18,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for {@link BooleanModel}.
  */
 public final class BooleanModelTest {
+    /**
+     * Verifies the usesFalseAsDefaultValue behavior.
+     */
     @Test
     public void usesFalseAsDefaultValue() {
         final BooleanModel model = new BooleanModel();
@@ -26,6 +29,9 @@ public final class BooleanModelTest {
         assertTrue(model.isValid());
     }
 
+    /**
+     * Verifies the usesProvidedInitialValue behavior.
+     */
     @Test
     public void usesProvidedInitialValue() {
         final BooleanModel model = new BooleanModel(true);
@@ -33,6 +39,9 @@ public final class BooleanModelTest {
         assertEquals(Boolean.TRUE, model.getData());
     }
 
+    /**
+     * Verifies the notifiesListenerOnlyWhenValueChanges behavior.
+     */
     @Test
     public void notifiesListenerOnlyWhenValueChanges() {
         final BooleanModel model = new BooleanModel();
@@ -47,6 +56,9 @@ public final class BooleanModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the stopsNotifyingRemovedListener behavior.
+     */
     @Test
     public void stopsNotifyingRemovedListener() {
         final BooleanModel model = new BooleanModel();
@@ -60,6 +72,9 @@ public final class BooleanModelTest {
         assertTrue(observedValues.isEmpty());
     }
 
+    /**
+     * Verifies the derivesIndependentModelWithSpecifiedValue behavior.
+     */
     @Test
     public void derivesIndependentModelWithSpecifiedValue() {
         final BooleanModel model = new BooleanModel();
@@ -71,6 +86,9 @@ public final class BooleanModelTest {
         assertEquals(Boolean.TRUE, derived.getData());
     }
 
+    /**
+     * Verifies the createsReactiveInvertedModel behavior.
+     */
     @Test
     public void createsReactiveInvertedModel() {
         final BooleanModel model = new BooleanModel();
@@ -83,6 +101,9 @@ public final class BooleanModelTest {
         assertEquals(Boolean.FALSE, model.getData());
     }
 
+    /**
+     * Verifies the acceptsOnlyBooleanObjects behavior.
+     */
     @Test
     public void acceptsOnlyBooleanObjects() {
         final BooleanModel model = new BooleanModel();

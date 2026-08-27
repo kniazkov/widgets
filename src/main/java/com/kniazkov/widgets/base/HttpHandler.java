@@ -77,7 +77,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             method == HttpMethod.POST ? request.getForm() : request.getQuery()
         );
 
-        // Handle action requests: /?action=...
+        /*
+         * Handle action requests: /?action=...
+         */
         final boolean rootQuery = method == HttpMethod.GET
             && "/".equals(requestPath)
             && !request.getQuery().isEmpty();
@@ -168,11 +170,15 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             LOGGER.warning("File not found or cannot be read: '" + requestPath + "': " + e);
         }
 
-        // Resource not found
+        /*
+         * Resource not found
+         */
         return responses.notFound();
     }
 
-    /** Preserves the 1.x last-value-wins form contract for repeated values in the 2.0 API. */
+    /**
+     * Preserves the 1.x last-value-wins form contract for repeated values in the 2.0 API.
+     */
     private static Map<String, String> flatten(final Map<String, List<String>> source) {
         final Map<String, String> result = new TreeMap<>();
         for (final Map.Entry<String, List<String>> entry : source.entrySet()) {

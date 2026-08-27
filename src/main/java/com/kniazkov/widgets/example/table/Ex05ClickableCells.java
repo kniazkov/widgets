@@ -73,7 +73,10 @@ public class Ex05ClickableCells {
             final CellStyle cellStyle = Cell.getDefaultStyle().derive();
             cellStyle.setWidth(45);
             cellStyle.setHeight(32);
-            cellStyle.setBgColor(State.HOVERED, InputField.getDefaultStyle().getBgColor(State.HOVERED));
+            cellStyle.setBgColor(
+                State.HOVERED,
+                InputField.getDefaultStyle().getBgColor(State.HOVERED)
+            );
             cellStyle.setBorderWidth(1);
             final InputFieldStyle inputStyle = InputField.getDefaultStyle().derive();
             inputStyle.setWidth(38);
@@ -86,12 +89,12 @@ public class Ex05ClickableCells {
                     if (!(widget instanceof Section)) {
                         return;
                     }
-                    final Section section = (Section)widget;
+                    final Section section = (Section) widget;
                     widget = section.getChild(0);
                     if (!(widget instanceof TextWidget)) {
                         return;
                     }
-                    final TextWidget textWidget = (TextWidget)widget;
+                    final TextWidget textWidget = (TextWidget) widget;
                     Model<String> model = textWidget.getTextModel();
                     final InputField field = new InputField();
                     field.setTextModel(model);

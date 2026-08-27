@@ -157,7 +157,9 @@ public final class FontSize implements Comparable<FontSize> {
 
     @Override
     public String toString() {
-        // Two decimals only if needed
+        /*
+         * Two decimals only if needed
+         */
         if (value == (long) value) {
             return String.format(Locale.ROOT, "%d%s", (long) value, unit);
         }
@@ -175,7 +177,9 @@ public final class FontSize implements Comparable<FontSize> {
 
     @Override
     public boolean equals(final Object obj) {
-        if (!(obj instanceof FontSize)) return false;
+        if (!(obj instanceof FontSize)) {
+            return false;
+        }
         final FontSize other = (FontSize) obj;
         return Float.compare(this.value, other.value) == 0 && this.unit == other.unit;
     }

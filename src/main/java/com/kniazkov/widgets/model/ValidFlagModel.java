@@ -32,7 +32,9 @@ public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> implements L
 
     @Override
     public boolean isValid() {
-        // The "valid" flag itself is always valid
+        /*
+         * The "valid" flag itself is always valid
+         */
         return true;
     }
 

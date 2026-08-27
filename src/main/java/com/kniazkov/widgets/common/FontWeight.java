@@ -102,7 +102,9 @@ public enum FontWeight {
      */
     public static FontWeight fromWeight(int weight) {
         for (final FontWeight fw : values()) {
-            if (fw.weight == weight) return fw;
+            if (fw.weight == weight) {
+                return fw;
+            }
         }
         return NORMAL;
     }

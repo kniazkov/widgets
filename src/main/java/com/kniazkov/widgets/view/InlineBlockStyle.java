@@ -12,8 +12,7 @@ import java.util.Set;
  * Style definition for {@link InlineBlock}.
  */
 public class InlineBlockStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasMargin, HasPadding
-{
+        HasMargin, HasPadding {
     /**
      * Set of supported states.
      */

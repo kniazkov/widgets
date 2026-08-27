@@ -50,7 +50,9 @@ public class ClickCounterExt {
             System.gc();
             final Model<Integer> localModel = new IntegerModel();
 
-            // --- Shared button section ---
+            /*
+             * --- Shared button section ---
+             */
             Section section = new Section();
             root.add(section);
 
@@ -62,7 +64,9 @@ public class ClickCounterExt {
                 localModel.setData(localModel.getData() + 1);
             });
 
-            // --- Global counter section ---
+            /*
+             * --- Global counter section ---
+             */
             section = new Section();
             root.add(section);
             section.add(new TextWidget("Global counter: "));
@@ -71,7 +75,9 @@ public class ClickCounterExt {
             globalCounter.setTextModel(new IntegerToStringModel(globalModel));
             globalCounter.setFontWeight(FontWeight.BOLD);
 
-            // --- Local counter section ---
+            /*
+             * --- Local counter section ---
+             */
             section = new Section();
             root.add(section);
             section.add(new TextWidget("Local counter: "));

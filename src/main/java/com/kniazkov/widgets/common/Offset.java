@@ -18,7 +18,7 @@ public class Offset {
     /**
      * Unspecified (undefined) offset.
      */
-    public final static Offset UNDEFINED = new Offset(
+    public static final Offset UNDEFINED = new Offset(
         AbsoluteSize.UNDEFINED,
         AbsoluteSize.UNDEFINED,
         AbsoluteSize.UNDEFINED,

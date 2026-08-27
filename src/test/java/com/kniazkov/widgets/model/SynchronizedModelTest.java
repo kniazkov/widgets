@@ -27,6 +27,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for {@link SynchronizedModel}.
  */
 public final class SynchronizedModelTest {
+    /**
+     * Verifies the delegatesStateAndForwardsBaseUpdates behavior.
+     */
     @Test
     public void delegatesStateAndForwardsBaseUpdates() {
         final MutableTestModel<String> base = new MutableTestModel<>("first", false);
@@ -48,6 +51,9 @@ public final class SynchronizedModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the explicitNotificationUsesCurrentValueAndHonorsRemoval behavior.
+     */
     @Test
     public void explicitNotificationUsesCurrentValueAndHonorsRemoval() {
         final SynchronizedModel<String> model = new StringModel("value").asSynchronized();
@@ -62,6 +68,9 @@ public final class SynchronizedModelTest {
         assertEquals(Arrays.asList("value"), observed);
     }
 
+    /**
+     * Verifies the switchesBaseAndDetachesFromPreviousModel behavior.
+     */
     @Test
     public void switchesBaseAndDetachesFromPreviousModel() {
         final StringModel first = new StringModel("first");
@@ -83,6 +92,9 @@ public final class SynchronizedModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the ignoresLateNotificationFromPreviousBase behavior.
+     */
     @Test
     public void ignoresLateNotificationFromPreviousBase() {
         final DelayedNotificationModel first = new DelayedNotificationModel("first");
@@ -101,6 +113,9 @@ public final class SynchronizedModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the derivesAnotherSynchronizedIndependentModel behavior.
+     */
     @Test
     public void derivesAnotherSynchronizedIndependentModel() {
         final SynchronizedModel<String> model = new StringModel("base").asSynchronized();
@@ -115,6 +130,9 @@ public final class SynchronizedModelTest {
         assertSame(model, model.asSynchronized());
     }
 
+    /**
+     * Verifies the forwardsCallbackDataWithoutReenteringBaseModel behavior.
+     */
     @Test
     public void forwardsCallbackDataWithoutReenteringBaseModel() {
         final NonReentrantModel base = new NonReentrantModel("first");
@@ -130,6 +148,9 @@ public final class SynchronizedModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the invokesListenersWithoutHoldingWrapperLock behavior.
+     */
     @Test
     public void invokesListenersWithoutHoldingWrapperLock() throws Exception {
         final SynchronizedModel<String> model = new StringModel("first").asSynchronized();
@@ -153,6 +174,9 @@ public final class SynchronizedModelTest {
         }
     }
 
+    /**
+     * Verifies the serializesConcurrentAccessToBaseModel behavior.
+     */
     @Test
     public void serializesConcurrentAccessToBaseModel() throws Exception {
         final ConcurrentAccessModel base = new ConcurrentAccessModel();
@@ -191,13 +215,19 @@ public final class SynchronizedModelTest {
      * Model capable of firing a listener snapshot after listeners have been removed.
      */
     private static final class DelayedNotificationModel implements Model<String> {
-        /** Current data. */
+        /**
+         * Current data.
+         */
         private String data;
 
-        /** Registered listeners. */
+        /**
+         * Registered listeners.
+         */
         private final List<Listener<String>> listeners = new ArrayList<>();
 
-        /** Prepared listener snapshot. */
+        /**
+         * Prepared listener snapshot.
+         */
         private List<Listener<String>> prepared = new ArrayList<>();
 
         /**
@@ -261,7 +291,9 @@ public final class SynchronizedModelTest {
             this.prepared = new ArrayList<>(this.listeners);
         }
 
-        /** Fires the prepared listener snapshot. */
+        /**
+         * Fires the prepared listener snapshot.
+         */
         private void firePreparedNotification() {
             for (final Listener<String> listener : this.prepared) {
                 listener.accept(this.data);
@@ -273,13 +305,19 @@ public final class SynchronizedModelTest {
      * Model that rejects reentrant calls while notifying listeners.
      */
     private static final class NonReentrantModel implements Model<String> {
-        /** Current data. */
+        /**
+         * Current data.
+         */
         private String data;
 
-        /** Registered listeners. */
+        /**
+         * Registered listeners.
+         */
         private final List<Listener<String>> listeners = new ArrayList<>();
 
-        /** Whether a state method is currently executing. */
+        /**
+         * Whether a state method is currently executing.
+         */
         private boolean entered;
 
         /**
@@ -350,7 +388,9 @@ public final class SynchronizedModelTest {
             return new NonReentrantModel(data);
         }
 
-        /** Enters a guarded state method. */
+        /**
+         * Enters a guarded state method.
+         */
         private void enter() {
             if (this.entered) {
                 throw new IllegalStateException("reentrant model access");
@@ -358,7 +398,9 @@ public final class SynchronizedModelTest {
             this.entered = true;
         }
 
-        /** Leaves a guarded state method. */
+        /**
+         * Leaves a guarded state method.
+         */
         private void leave() {
             this.entered = false;
         }
@@ -368,16 +410,24 @@ public final class SynchronizedModelTest {
      * Model that records whether two threads ever enter it simultaneously.
      */
     private static final class ConcurrentAccessModel implements Model<Integer> {
-        /** Current data. */
+        /**
+         * Current data.
+         */
         private int data;
 
-        /** Registered listeners. */
+        /**
+         * Registered listeners.
+         */
         private final List<Listener<Integer>> listeners = new ArrayList<>();
 
-        /** Number of state methods currently executing. */
+        /**
+         * Number of state methods currently executing.
+         */
         private final AtomicInteger active = new AtomicInteger();
 
-        /** Whether overlapping access was observed. */
+        /**
+         * Whether overlapping access was observed.
+         */
         private final AtomicBoolean overlap = new AtomicBoolean();
 
         @Override
@@ -441,7 +491,9 @@ public final class SynchronizedModelTest {
             return model;
         }
 
-        /** Enters a state method and makes thread overlap easier to observe. */
+        /**
+         * Enters a state method and makes thread overlap easier to observe.
+         */
         private void enter() {
             if (this.active.incrementAndGet() > 1) {
                 this.overlap.set(true);
@@ -449,7 +501,9 @@ public final class SynchronizedModelTest {
             Thread.yield();
         }
 
-        /** Leaves a state method. */
+        /**
+         * Leaves a state method.
+         */
         private void leave() {
             this.active.decrementAndGet();
         }

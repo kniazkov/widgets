@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2026 Ivan Kniazkov
+ */
 package com.kniazkov.widgets.images;
 
 import com.kniazkov.widgets.common.Color;
@@ -188,7 +191,8 @@ public class CircleProgressBarCreator {
             final int radius = Math.max(1, (diameter - lineWidth) / 2);
 
             final String header = String.format(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">",
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" "
+                    + "viewBox=\"0 0 %d %d\">",
                 width,
                 height,
                 width,
@@ -203,7 +207,8 @@ public class CircleProgressBarCreator {
             );
 
             final String circle = String.format(
-                "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" stroke-width=\"%d\"/>",
+                "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" "
+                    + "stroke-width=\"%d\"/>",
                 cX,
                 cY,
                 radius,
@@ -259,18 +264,22 @@ public class CircleProgressBarCreator {
             final double gap3 = circumference * 0.75;
 
             return String.format(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">" +
-                    "<rect width=\"%d\" height=\"%d\" fill=\"%s\"/>" +
-                    "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" stroke-width=\"%d\" opacity=\"0.25\"/>" +
-                    "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" stroke-width=\"%d\" " +
-                    "stroke-linecap=\"round\" stroke-dasharray=\"%f %f\" transform=\"rotate(-90 %d %d)\">" +
-                    "<animateTransform attributeName=\"transform\" type=\"rotate\" " +
-                    "from=\"-90 %d %d\" to=\"270 %d %d\" dur=\"1.1s\" repeatCount=\"indefinite\"/>" +
-                    "<animate attributeName=\"stroke-dasharray\" " +
-                    "values=\"%f %f; %f %f; %f %f; %f %f\" " +
-                    "dur=\"1.4s\" repeatCount=\"indefinite\"/>" +
-                    "</circle>" +
-                    "</svg>",
+                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"%d\" height=\"%d\" "
+                    + "viewBox=\"0 0 %d %d\">"
+                    + "<rect width=\"%d\" height=\"%d\" fill=\"%s\"/>"
+                    + "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" "
+                    + "stroke-width=\"%d\" opacity=\"0.25\"/>"
+                    + "<circle cx=\"%d\" cy=\"%d\" r=\"%d\" fill=\"none\" stroke=\"%s\" "
+                    + "stroke-width=\"%d\" stroke-linecap=\"round\" "
+                    + "stroke-dasharray=\"%f %f\" transform=\"rotate(-90 %d %d)\">"
+                    + "<animateTransform attributeName=\"transform\" type=\"rotate\" "
+                    + "from=\"-90 %d %d\" to=\"270 %d %d\" dur=\"1.1s\" "
+                    + "repeatCount=\"indefinite\"/>"
+                    + "<animate attributeName=\"stroke-dasharray\" "
+                    + "values=\"%f %f; %f %f; %f %f; %f %f\" "
+                    + "dur=\"1.4s\" repeatCount=\"indefinite\"/>"
+                    + "</circle>"
+                    + "</svg>",
                 width,
                 height,
                 width,

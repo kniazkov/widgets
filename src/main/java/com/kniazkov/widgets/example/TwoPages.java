@@ -58,6 +58,9 @@ public class TwoPages {
         Server.start(application, options);
     }
 
+    /**
+     * Main example page.
+     */
     private static final class IndexPage implements Page {
         @Override
         public void create(final RootWidget root, final PageContext settings) {
@@ -69,6 +72,9 @@ public class TwoPages {
         }
     }
 
+    /**
+     * Secondary example page.
+     */
     private static final class AboutPage implements Page {
         @Override
         public void create(final RootWidget root, final PageContext settings) {

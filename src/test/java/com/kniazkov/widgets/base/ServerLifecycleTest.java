@@ -12,9 +12,13 @@ import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/** Reproduces lifecycle leaks in the application and server entry points. */
+/**
+ * Reproduces lifecycle leaks in the application and server entry points.
+ */
 public class ServerLifecycleTest {
-    /** Constructing an application must not create a thread that prevents JVM shutdown. */
+    /**
+     * Constructing an application must not create a thread that prevents JVM shutdown.
+     */
     @Test
     public void applicationWatchdogDoesNotKeepTheJvmAlive() throws Exception {
         final Set<Long> timerThreadsBefore = timerThreadIds();
@@ -26,7 +30,7 @@ public class ServerLifecycleTest {
         newTimerThreads.removeAll(timerThreadsBefore);
         assertTrue("Application created no watchdog thread", !newTimerThreads.isEmpty());
         for (final Thread thread : Thread.getAllStackTraces().keySet()) {
-            if (newTimerThreads.contains(thread.getId())) {
+            if (newTimerThreads.contains(thread.threadId())) {
                 assertTrue(
                     "The watchdog is non-daemon and has no application shutdown API",
                     thread.isDaemon()
@@ -35,7 +39,9 @@ public class ServerLifecycleTest {
         }
     }
 
-    /** Starting a server must return a handle through which it can later be stopped. */
+    /**
+     * Starting a server must return a handle through which it can later be stopped.
+     */
     @Test
     public void serverStartReturnsAStoppableHandle() throws Exception {
         final Method start = Server.class.getMethod(
@@ -48,12 +54,14 @@ public class ServerLifecycleTest {
         );
     }
 
-    /** Returns IDs of live java.util.Timer worker threads. */
+    /**
+     * Returns IDs of live java.util.Timer worker threads.
+     */
     private static Set<Long> timerThreadIds() {
         final Set<Long> result = new HashSet<>();
         for (final Thread thread : Thread.getAllStackTraces().keySet()) {
             if (thread.isAlive() && thread.getName().startsWith("Timer-")) {
-                result.add(thread.getId());
+                result.add(thread.threadId());
             }
         }
         return result;

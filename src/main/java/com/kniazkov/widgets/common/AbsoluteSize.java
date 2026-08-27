@@ -94,7 +94,9 @@ public class AbsoluteSize implements WidgetSize {
             return AbsoluteSize.UNDEFINED;
         }
 
-        // find start of unit suffix
+        /*
+         * find start of unit suffix
+         */
         int i = 0;
         while (i < s.length() &&
                (Character.isDigit(s.charAt(i)) || s.charAt(i) == '.')) {
@@ -110,13 +112,25 @@ public class AbsoluteSize implements WidgetSize {
 
         final Unit unit;
         switch (substr) {
-            case "pt": unit = Unit.PT; break;
-            case "pc": unit = Unit.PC; break;
-            case "in": unit = Unit.IN; break;
-            case "cm": unit = Unit.CM; break;
-            case "mm": unit = Unit.MM; break;
+            case "pt":
+                unit = Unit.PT;
+                break;
+            case "pc":
+                unit = Unit.PC;
+                break;
+            case "in":
+                unit = Unit.IN;
+                break;
+            case "cm":
+                unit = Unit.CM;
+                break;
+            case "mm":
+                unit = Unit.MM;
+                break;
             case "px":
-            case ""  : unit = Unit.PX; break;
+            case "":
+                unit = Unit.PX;
+                break;
             default:
                 throw new IllegalArgumentException("Unsupported unit: " + substr);
         }

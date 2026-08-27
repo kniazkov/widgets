@@ -24,9 +24,24 @@ import static org.junit.Assert.assertTrue;
  */
 @RunWith(Parameterized.class)
 public final class ValidatedStringModelTest {
+    /**
+     * Factory for a model with default data.
+     */
     private final Supplier<Model<String>> defaultFactory;
+
+    /**
+     * Factory for a model with supplied data.
+     */
     private final Function<String, Model<String>> initializedFactory;
+
+    /**
+     * Values the model must accept.
+     */
     private final List<String> validValues;
+
+    /**
+     * Values the model must reject.
+     */
     private final List<String> invalidValues;
 
     /**
@@ -61,35 +76,38 @@ public final class ValidatedStringModelTest {
         return Arrays.asList(new Object[][] {
             {
                 "EmailModel",
-                (Supplier<Model<String>>)EmailModel::new,
-                (Function<String, Model<String>>)EmailModel::new,
+                (Supplier<Model<String>>) EmailModel::new,
+                (Function<String, Model<String>>) EmailModel::new,
                 Arrays.asList("alice@example.com", "A+B@sub.example.co"),
                 Arrays.asList("", "alice@", "alice@example", "alice example.com")
             },
             {
                 "NotEmptyStringModel",
-                (Supplier<Model<String>>)NotEmptyStringModel::new,
-                (Function<String, Model<String>>)NotEmptyStringModel::new,
+                (Supplier<Model<String>>) NotEmptyStringModel::new,
+                (Function<String, Model<String>>) NotEmptyStringModel::new,
                 Arrays.asList("value", " value "),
                 Arrays.asList("", "   ")
             },
             {
                 "PhoneNumberModel",
-                (Supplier<Model<String>>)PhoneNumberModel::new,
-                (Function<String, Model<String>>)PhoneNumberModel::new,
+                (Supplier<Model<String>>) PhoneNumberModel::new,
+                (Function<String, Model<String>>) PhoneNumberModel::new,
                 Arrays.asList("+12345678", "+123456789012345"),
                 Arrays.asList("+1234567", "+1234567890123456", "12345678", "+1234A678")
             },
             {
                 "UsernameModel",
-                (Supplier<Model<String>>)UsernameModel::new,
-                (Function<String, Model<String>>)UsernameModel::new,
+                (Supplier<Model<String>>) UsernameModel::new,
+                (Function<String, Model<String>>) UsernameModel::new,
                 Arrays.asList("alice", " alice "),
                 Arrays.asList("", "   ", "alice smith")
             }
         });
     }
 
+    /**
+     * Verifies the usesEmptyInvalidDefaultValue behavior.
+     */
     @Test
     public void usesEmptyInvalidDefaultValue() {
         final Model<String> model = this.defaultFactory.get();
@@ -98,6 +116,9 @@ public final class ValidatedStringModelTest {
         assertFalse(model.isValid());
     }
 
+    /**
+     * Verifies the appliesValidationRules behavior.
+     */
     @Test
     public void appliesValidationRules() {
         for (final String value : this.validValues) {
@@ -108,6 +129,9 @@ public final class ValidatedStringModelTest {
         }
     }
 
+    /**
+     * Verifies the notifiesWhenValueAndValidityChange behavior.
+     */
     @Test
     public void notifiesWhenValueAndValidityChange() {
         final Model<String> model = this.initializedFactory.apply(this.validValues.get(0));
@@ -123,6 +147,9 @@ public final class ValidatedStringModelTest {
         model.removeListener(listener);
     }
 
+    /**
+     * Verifies the derivedModelPreservesValidationRules behavior.
+     */
     @Test
     public void derivedModelPreservesValidationRules() {
         final Model<String> model = this.initializedFactory.apply(this.validValues.get(0));

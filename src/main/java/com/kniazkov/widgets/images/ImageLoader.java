@@ -45,8 +45,8 @@ public final class ImageLoader {
         if (type.equals("image/heic")) {
             final ByteArrayIOStream inputStream = new ByteArrayIOStream(data);
             final HeicImage image = HeicImage.load(inputStream);
-            final int width = (int)image.getWidth();
-            final int height = (int)image.getHeight();
+            final int width = (int) image.getWidth();
+            final int height = (int) image.getHeight();
             final int[] pixels = image.getInt32Array(PixelFormat.Argb32);
             result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             result.setRGB(0, 0, width, height, pixels, 0, width);
@@ -142,41 +142,67 @@ public final class ImageLoader {
         final int w = img.getWidth();
         final int h = img.getHeight();
         final AffineTransform tx = new AffineTransform();
-        int ww = w, hh = h;
+        int ww = w;
+        int hh = h;
         switch (orientation) {
-            case 2: // flip X
+            /*
+             * Flip horizontally.
+             */
+            case 2:
                 tx.scale(-1, 1);
                 tx.translate(-w, 0);
                 break;
-            case 3: // 180
+            /*
+             * Rotate 180 degrees.
+             */
+            case 3:
                 tx.translate(w, h);
                 tx.rotate(Math.PI);
                 break;
-            case 4: // flip Y
+            /*
+             * Flip vertically.
+             */
+            case 4:
                 tx.scale(1, -1);
                 tx.translate(0, -h);
                 break;
-            case 5: // transpose
+            /*
+             * Transpose the image.
+             */
+            case 5:
                 tx.rotate(Math.PI / 2);
                 tx.scale(1, -1);
-                ww = h; hh = w;
+                ww = h;
+                hh = w;
                 tx.translate(0, -w);
                 break;
-            case 6: // 90 CW
+            /*
+             * Rotate 90 degrees clockwise.
+             */
+            case 6:
                 tx.translate(h, 0);
                 tx.rotate(Math.PI / 2);
-                ww = h; hh = w;
+                ww = h;
+                hh = w;
                 break;
-            case 7: // transverse
+            /*
+             * Transverse the image.
+             */
+            case 7:
                 tx.rotate(-Math.PI / 2);
                 tx.scale(1, -1);
-                ww = h; hh = w;
+                ww = h;
+                hh = w;
                 tx.translate(-h, -w);
                 break;
-            case 8: // 90 CCW
+            /*
+             * Rotate 90 degrees counterclockwise.
+             */
+            case 8:
                 tx.translate(0, w);
                 tx.rotate(-Math.PI / 2);
-                ww = h; hh = w;
+                ww = h;
+                hh = w;
                 break;
             default:
                 return img;

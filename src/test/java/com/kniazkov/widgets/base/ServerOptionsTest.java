@@ -16,13 +16,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-/** Tests immutable application options and the intentionally narrow webserver bridge. */
+/**
+ * Tests immutable application options and the intentionally narrow webserver bridge.
+ */
 public class ServerOptionsTest {
-    /** Temporary TLS identity placeholder accepted by the immutable SSL builder. */
+    /**
+     * Temporary TLS identity placeholder accepted by the immutable SSL builder.
+     */
     @Rule
     public final TemporaryFolder folder = new TemporaryFolder();
 
-    /** Public listener settings are forwarded while HTTP mechanics use framework constants. */
+    /**
+     * Public listener settings are forwarded while HTTP mechanics use framework constants.
+     */
     @Test
     public void buildsWebServerOptions() throws Exception {
         final File keyStore = this.folder.newFile("server.p12");
@@ -69,7 +75,9 @@ public class ServerOptionsTest {
         assertSame(sslOptions, actual.getSslOptions().get());
     }
 
-    /** Building again after changing the builder cannot mutate an earlier options snapshot. */
+    /**
+     * Building again after changing the builder cannot mutate an earlier options snapshot.
+     */
     @Test
     public void builderCreatesIndependentSnapshots() {
         final Options.Builder builder = new Options.Builder()

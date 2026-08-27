@@ -16,6 +16,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for model factories and specialized value constructors.
  */
 public final class ModelFactoryTest {
+    /**
+     * Verifies the createsDefaultModelsForSupportedRuntimeTypes behavior.
+     */
     @Test
     public void createsDefaultModelsForSupportedRuntimeTypes() {
         assertModel(StringModel.class, "value");
@@ -28,8 +31,14 @@ public final class ModelFactoryTest {
         assertModel(UuidModel.class, uuid);
     }
 
+    /**
+     * Verifies the concrete model selected for a value.
+     *
+     * @param expectedType expected model implementation
+     * @param value source value
+     */
     private static void assertModel(
-        final Class<? extends Model> expectedType,
+        final Class<? extends Model<?>> expectedType,
         final Object value
     ) {
         final Model<?> model = DefaultModel.create(value);
@@ -38,11 +47,17 @@ public final class ModelFactoryTest {
         assertEquals(value, model.getData());
     }
 
+    /**
+     * Verifies the rejectsUnsupportedRuntimeType behavior.
+     */
     @Test(expected = IllegalArgumentException.class)
     public void rejectsUnsupportedRuntimeType() {
         DefaultModel.create(1L);
     }
 
+    /**
+     * Verifies the createsIndependentReadOnlyModels behavior.
+     */
     @Test
     public void createsIndependentReadOnlyModels() {
         final Model<String> model = ReadOnlyModel.create("first");
@@ -58,6 +73,9 @@ public final class ModelFactoryTest {
         assertFalse(derived.setData("changed"));
     }
 
+    /**
+     * Verifies the parsesSpecializedSizeConstructors behavior.
+     */
     @Test
     public void parsesSpecializedSizeConstructors() {
         assertEquals("10px", new AbsoluteSizeModel("10px").getData().getCSSCode());

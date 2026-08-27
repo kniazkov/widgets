@@ -159,13 +159,15 @@ public abstract class Property<T> {
      *
      * @param data the value to validate
      * @param sourceName the logical source name used in the error message
-     * @throws IllegalArgumentException if the value is not an instance of this property's value class
+     * @throws IllegalArgumentException if the value is not an instance of this property's
+     *  value class
      */
     private void validateType(final Object data, final String sourceName) {
         if (data != null && !this.getValueClass().isInstance(data)) {
             throw new IllegalArgumentException(
-                    sourceName + " type mismatch for property '" + getName() + "': " +
-                            data.getClass().getName() + " cannot be cast to " + getValueClass().getName()
+                    sourceName + " type mismatch for property '" + getName() + "': "
+                        + data.getClass().getName() + " cannot be cast to "
+                        + getValueClass().getName()
             );
         }
     }

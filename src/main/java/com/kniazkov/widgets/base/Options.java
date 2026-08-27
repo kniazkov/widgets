@@ -12,37 +12,59 @@ import java.util.Optional;
  * Immutable configuration used when starting a widget application.
  */
 public final class Options {
-    /** Default maximum lifetime of an inactive browser client, in milliseconds. */
+    /**
+     * Default maximum lifetime of an inactive browser client, in milliseconds.
+     */
     private static final long DEFAULT_CLIENT_LIFETIME = 3L * 60L * 1000L;
 
-    /** Default root directory for public application files. */
+    /**
+     * Default root directory for public application files.
+     */
     private static final String DEFAULT_WWW_ROOT = "www";
 
-    /** Default HTTP port. */
+    /**
+     * Default HTTP port.
+     */
     private static final int DEFAULT_PORT = 8080;
 
-    /** Default maximum number of concurrently processed connections. */
+    /**
+     * Default maximum number of concurrently processed connections.
+     */
     private static final int DEFAULT_MAX_WORKERS = 100;
 
-    /** Maximum lifetime of an inactive browser client, in milliseconds. */
+    /**
+     * Maximum lifetime of an inactive browser client, in milliseconds.
+     */
     private final long clientLifetime;
 
-    /** Root directory for public application files. */
+    /**
+     * Root directory for public application files.
+     */
     private final String wwwRoot;
 
-    /** HTTP or HTTPS listener port. */
+    /**
+     * HTTP or HTTPS listener port.
+     */
     private final int port;
 
-    /** Local listener address, or {@code null} to bind to every local address. */
+    /**
+     * Local listener address, or {@code null} to bind to every local address.
+     */
     private final InetAddress bindAddress;
 
-    /** Maximum number of concurrently processed connections. */
+    /**
+     * Maximum number of concurrently processed connections.
+     */
     private final int maxWorkers;
 
-    /** HTTPS configuration, or {@code null} for plain HTTP. */
+    /**
+     * HTTPS configuration, or {@code null} for plain HTTP.
+     */
     private final SslOptions sslOptions;
 
-    /** Whether browser and server debug logging is enabled. */
+    /**
+     * Whether browser and server debug logging is enabled.
+     */
     private final boolean debug;
 
     /**
@@ -123,30 +145,48 @@ public final class Options {
         return this.debug;
     }
 
-    /** Builds immutable application options. */
+    /**
+     * Builds immutable application options.
+     */
     public static final class Builder {
-        /** Maximum lifetime of an inactive browser client, in milliseconds. */
+        /**
+         * Maximum lifetime of an inactive browser client, in milliseconds.
+         */
         private long clientLifetime = DEFAULT_CLIENT_LIFETIME;
 
-        /** Root directory for public application files. */
+        /**
+         * Root directory for public application files.
+         */
         private String wwwRoot = DEFAULT_WWW_ROOT;
 
-        /** HTTP or HTTPS listener port. */
+        /**
+         * HTTP or HTTPS listener port.
+         */
         private int port = DEFAULT_PORT;
 
-        /** Local listener address. */
+        /**
+         * Local listener address.
+         */
         private InetAddress bindAddress;
 
-        /** Maximum number of concurrently processed connections. */
+        /**
+         * Maximum number of concurrently processed connections.
+         */
         private int maxWorkers = DEFAULT_MAX_WORKERS;
 
-        /** HTTPS configuration. */
+        /**
+         * HTTPS configuration.
+         */
         private SslOptions sslOptions;
 
-        /** Whether browser and server debug logging is enabled. */
+        /**
+         * Whether browser and server debug logging is enabled.
+         */
         private boolean debug = true;
 
-        /** Creates a builder initialized with framework defaults. */
+        /**
+         * Creates a builder initialized with framework defaults.
+         */
         public Builder() {
         }
 

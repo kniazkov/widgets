@@ -28,13 +28,20 @@ public class ConjunctionModel extends ReadOnlyModel<Boolean> implements Listener
      */
     private final List<Model<Boolean>> list;
 
+    /*
+     * The varargs array is only read while constructing an independent list view.
+     */
     /**
      * Creates a new conjunction model that computes the logical AND of the
      * specified boolean-based models.
      *
      * @param base the models whose boolean values are combined
      */
+    @SuppressWarnings("this-escape")
     public ConjunctionModel(final List<Model<Boolean>> base) {
+        /*
+         * Construction registers the derived model before it is returned to the caller.
+         */
         this.list = base;
 
         for (final Model<Boolean> model : this.list) {
@@ -49,6 +56,7 @@ public class ConjunctionModel extends ReadOnlyModel<Boolean> implements Listener
      * @param base the models whose boolean values are combined
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public ConjunctionModel(final Model<Boolean>... base) {
         this(Arrays.asList(base));
     }

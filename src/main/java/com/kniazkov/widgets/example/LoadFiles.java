@@ -69,7 +69,7 @@ public class LoadFiles {
                 );
                 section.add(percent);
                 section.add(new TextWidget("%"));
-                descriptor.onLoad(file-> {
+                descriptor.onLoad(file -> {
                     section.add(new TextWidget(", size: "));
                     final TextWidget size = new TextWidget(String.valueOf(file.getSize()));
                     size.setFontWeight(FontWeight.BOLD);

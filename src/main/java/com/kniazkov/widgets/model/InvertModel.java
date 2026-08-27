@@ -25,7 +25,11 @@ public class InvertModel extends SingleThreadModel<Boolean> implements Listener<
      * @param base the model whose boolean value is to be inverted and exposed
      *  through this wrapper
      */
+    @SuppressWarnings("this-escape")
     public InvertModel(final Model<Boolean> base) {
+        /*
+         * Construction registers the derived model before it is returned to the caller.
+         */
         this.base = base;
         this.base.addListener(this);
     }

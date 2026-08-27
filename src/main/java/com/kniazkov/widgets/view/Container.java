@@ -105,6 +105,9 @@ public interface Container extends Iterable<Widget<?>> {
      */
     class WidgetIterator implements Iterator<Widget<?>> {
 
+        /**
+         * Widgets that remain to be visited.
+         */
         private final Deque<Widget<?>> stack = new ArrayDeque<>();
 
         /**

@@ -14,8 +14,7 @@ import java.util.List;
  */
 public class Cell extends Widget<CellStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding, HasVerticalAlignment,
-        HandlesPointerEvents
-{
+        HandlesPointerEvents {
     /**
      * Returns the default style instance used by table cells.
      *
@@ -61,7 +60,11 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
      * @param style the cell style to use
      * @param children the initial child widgets, in display order
      */
+    @SuppressWarnings("this-escape")
     public Cell(final CellStyle style, final BlockWidget<?>... children) {
+        /*
+         * Construction attaches the initial children before this instance is published.
+         */
         super(style);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);

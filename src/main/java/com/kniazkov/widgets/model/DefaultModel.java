@@ -23,7 +23,11 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
     /**
      * Creates a new default model instance.
      */
+    @SuppressWarnings("this-escape")
     protected DefaultModel() {
+        /*
+         * Construction asks the concrete model for its immutable default value.
+         */
         this.data = this.getDefaultData();
     }
 

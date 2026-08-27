@@ -16,8 +16,7 @@ import java.util.List;
  */
 public class Panel extends BlockWidget<PanelStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
-        HandlesPointerEvents
-{
+        HandlesPointerEvents {
     /**
      * Returns the default style instance used by panels.
      *
@@ -27,10 +26,14 @@ public class Panel extends BlockWidget<PanelStyle> implements BlockContainer,
         return PanelStyle.DEFAULT;
     }
 
-    /** Child widgets. */
+    /**
+     * Child widgets.
+     */
     private final List<BlockWidget<?>> children = new ArrayList<>();
 
-    /** Creates an empty panel with the default style. */
+    /**
+     * Creates an empty panel with the default style.
+     */
     public Panel() {
         super(getDefaultStyle());
     }
@@ -59,7 +62,11 @@ public class Panel extends BlockWidget<PanelStyle> implements BlockContainer,
      * @param style the panel style to use
      * @param children the initial child widgets, in display order
      */
+    @SuppressWarnings("this-escape")
     public Panel(final PanelStyle style, final BlockWidget<?>... children) {
+        /*
+         * Construction attaches the initial children before this instance is published.
+         */
         super(style);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);

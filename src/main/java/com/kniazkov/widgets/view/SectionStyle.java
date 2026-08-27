@@ -11,8 +11,7 @@ import com.kniazkov.widgets.common.VerticalAlignment;
  */
 public class SectionStyle extends Style
         implements HasHorizontalAlignment, HasVerticalAlignment,
-        HasMargin, HasPadding, HasHiddenState
-{
+        HasMargin, HasPadding, HasHiddenState {
     /**
      * The global default section style.
      */

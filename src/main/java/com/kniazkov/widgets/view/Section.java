@@ -16,8 +16,7 @@ import java.util.List;
  */
 public class Section extends BlockWidget<SectionStyle> implements TypedContainer<InlineWidget<?>>,
         HasHorizontalAlignment, HasVerticalAlignment, HasMargin, HasPadding,
-        HasHiddenState
-{
+        HasHiddenState {
     /**
      * Returns the default style instance used by sections.
      *
@@ -63,7 +62,11 @@ public class Section extends BlockWidget<SectionStyle> implements TypedContainer
      * @param style section style
      * @param children the initial child widgets, in display order
      */
+    @SuppressWarnings("this-escape")
     public Section(final SectionStyle style, final InlineWidget<?>... children) {
+        /*
+         * Construction attaches the initial children before this instance is published.
+         */
         super(style);
         for (final InlineWidget<?> child : children) {
             this.appendChild(child);

@@ -12,10 +12,17 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.net.InetAddress;
 
-/** Test-only application used by the Playwright end-to-end suite. */
+/**
+ * Test-only application used by the Playwright end-to-end suite.
+ */
 public final class E2ETestServer {
+    /**
+     * Prevents construction of the static test entry point.
+     */
     private E2ETestServer() {
-        // Static entry point only.
+        /*
+         * Static entry point only.
+         */
     }
 
     /**

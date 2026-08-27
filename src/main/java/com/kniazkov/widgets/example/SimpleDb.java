@@ -62,16 +62,31 @@ import java.util.Arrays;
  * without additional abstractions, validation logic, or styling.
  */
 public class SimpleDb {
-    static final Field<String> name = new Field<>(Type.STRING, "name");
-    static final Field<Integer> age = new Field<>(Type.POSITIVE_INTEGER, "age");
-    static final Database database = new JsonDatabase(Paths.get("."))
+    /**
+     * Employee name field.
+     */
+    static final Field<String> NAME = new Field<>(Type.STRING, "name");
+
+    /**
+     * Employee age field.
+     */
+    static final Field<Integer> AGE = new Field<>(Type.POSITIVE_INTEGER, "age");
+
+    /**
+     * Example database.
+     */
+    static final Database DATABASE = new JsonDatabase(Paths.get("."))
             .registerStore(
                     "employee",
                     Arrays.asList(
-                            name,
-                            age
+                            NAME,
+                            AGE
                     ));
-    static final Store store = database.getStore("employee");
+
+    /**
+     * Employee store.
+     */
+    static final Store STORE = DATABASE.getStore("employee");
 
     /**
      * Entry point.
@@ -94,7 +109,7 @@ public class SimpleDb {
                 text.setFontWeight(FontWeight.BOLD);
             }
 
-            for(final Record record : store.getRecordsOldFirst()) {
+            for (final Record record : STORE.getRecordsOldFirst()) {
                 createRowFromRecord(table, record);
             }
 
@@ -103,15 +118,15 @@ public class SimpleDb {
             final Button createRecord = new Button("Create record");
             buttonSection.add(createRecord);
             createRecord.onClick(evt -> {
-                final Record record = store.createRecord();
+                final Record record = STORE.createRecord();
                 createRowFromRecord(table, record);
             });
 
             final Button save = new Button("Save");
             buttonSection.add(save);
             save.onClick(evt -> {
-                store.save();
-                database.flush();
+                STORE.save();
+                DATABASE.flush();
             });
         };
 
@@ -120,6 +135,12 @@ public class SimpleDb {
         Server.start(application, options);
     }
 
+    /**
+     * Adds one editable database record to a table.
+     *
+     * @param table target table
+     * @param record source record
+     */
     private static void createRowFromRecord(final Table table, final Record record) {
         final Row row = new Row();
         table.add(row);
@@ -128,13 +149,13 @@ public class SimpleDb {
         cell.add(section);
         InputField field = new InputField();
         section.add(field);
-        field.setTextModel(record.getModel(name));
+        field.setTextModel(record.getModel(NAME));
         cell = row.getCell(1);
         section = new Section();
         cell.add(section);
         field = new InputField();
         section.add(field);
-        field.setTextModel(new IntegerToStringModel(record.getModel(age)));
+        field.setTextModel(new IntegerToStringModel(record.getModel(AGE)));
         cell = row.getCell(2);
         section = new Section();
         cell.add(section);

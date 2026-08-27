@@ -18,9 +18,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-/** Tests the request handlers that form the base package protocol boundary. */
+/**
+ * Tests the request handlers that form the base package protocol boundary.
+ */
 public class BaseHandlersTest {
-    /** Verifies creation context, reserved parameters, and client destruction. */
+    /**
+     * Verifies creation context, reserved parameters, and client destruction.
+     */
     @Test
     public void createAndKillHandlersCompleteAClientLifecycle() {
         final AtomicReference<PageContext> captured = new AtomicReference<>();
@@ -51,7 +55,9 @@ public class BaseHandlersTest {
         assertFalse(new KillClient(application).process(killRequest).getBooleanValue());
     }
 
-    /** A successful synchronization must be distinguishable from a missing client. */
+    /**
+     * A successful synchronization must be distinguishable from a missing client.
+     */
     @Test
     public void synchronizeReportsThatTheClientExists() {
         final Application application = BaseTestSupport.application((root, context) -> { });
