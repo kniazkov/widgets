@@ -65,14 +65,17 @@ test("a dead client causes the browser to reload the same page", async ({ page }
     await page.goto("/?item=42");
     await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
     currentServer.id = await page.evaluate(() => serverId);
-    await page.evaluate(() => sessionStorage.setItem("previousClientId", clientId));
+    const previousClientId = await page.evaluate(() => clientId);
 
     rejectNextSynchronization = true;
+    const navigation = page.waitForEvent("framenavigated", {
+        predicate: frame => frame === page.mainFrame()
+    });
     await page.evaluate(() => mainCycle());
+    await navigation;
 
-    await expect
-        .poll(() => page.evaluate(() => clientId))
-        .not.toBe(await page.evaluate(() => sessionStorage.getItem("previousClientId")));
+    await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => clientId)).not.toBe(previousClientId);
     expect(new URL(page.url()).search).toBe("?item=42");
 });
 
