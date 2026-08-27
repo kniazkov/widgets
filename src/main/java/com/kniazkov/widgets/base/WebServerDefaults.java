@@ -25,11 +25,6 @@ final class WebServerDefaults {
     static final long MAX_FILE_SIZE = 1024L * 1024L;
 
     /**
-     * Maximum binary chunk size used by the framework upload protocol.
-     */
-    static final long MAX_UPLOAD_CHUNK_SIZE = 64L * 1024L;
-
-    /**
      * Keeps one binary chunk and its multipart envelope in memory.
      */
     static final long MAX_IN_MEMORY_BODY_SIZE = 128L * 1024L;

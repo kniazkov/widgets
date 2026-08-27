@@ -95,7 +95,7 @@ Additional runnable examples are available in
 
 `Options` exposes the listener port, bind address, worker count, and immutable HTTPS settings.
 Request limits and timeouts are an internal framework profile sized for short XMLHttpRequest
-exchanges and 64 KiB upload chunks. For example, a server intended to sit behind a local reverse
+exchanges and 4 KiB upload chunks. For example, a server intended to sit behind a local reverse
 proxy can bind only to loopback:
 
 ```java
@@ -131,7 +131,7 @@ for clearing its original password array after the TLS options have been built.
 ### File uploads
 
 `FileLoader` reports every selected file through `onSelect` immediately, with its loading model at
-zero percent. The browser retains the original `File` and sends 64 KiB `Blob.slice()` values as
+zero percent. The browser retains the original `File` and sends 4 KiB `Blob.slice()` values as
 binary multipart parts; file contents are never expanded into Base16 or read into one browser-side
 buffer.
 

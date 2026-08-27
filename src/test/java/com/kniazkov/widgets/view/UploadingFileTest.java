@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.UploadedFile;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.controller.Event;
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
@@ -15,6 +16,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -31,7 +33,7 @@ public final class UploadingFileTest {
         loader.onSelect(selected::set);
         final WidgetSandbox<FileLoader> sandbox = WidgetSandbox.open(loader);
         sandbox.clearUpdates();
-        final int chunkSize = 64 * 1024;
+        final int chunkSize = UploadProtocol.CHUNK_SIZE;
         final JsonObject selection = selection(17, 2 * chunkSize + 3, 3);
 
         sandbox.fire(Event.UPLOAD, selection);
@@ -78,6 +80,19 @@ public final class UploadingFileTest {
 
         final JsonObject response = loader.handleUploadChunk(8, 0, bytes(3, (byte) 5));
         assertFalse(response.get("result").getBooleanValue());
+    }
+
+    /**
+     * All rejected uploads must reuse one standard response object.
+     */
+    @Test
+    public void reusesRejectedUploadResponse() {
+        final FileLoader loader = new FileLoader();
+
+        assertSame(
+            loader.handleUploadChunk(91, 0, new byte[0]),
+            loader.handleUploadChunk(92, 0, new byte[0])
+        );
     }
 
     /**

@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.base;
 
+import com.kniazkov.widgets.common.UploadProtocol;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -92,6 +93,10 @@ public class HttpHandlerSecurityTest {
 
         assertTrue(response.startsWith("HTTP/1.1 200"));
         assertFalse("A query parameter produced executable markup", response.contains(payload));
+        assertTrue(response.contains(
+            "configureUploadProtocol(" + UploadProtocol.CHUNK_SIZE + ", "
+                + UploadProtocol.MAX_FILE_SIZE + ")"
+        ));
     }
 
     /**
@@ -109,13 +114,13 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
-     * A binary 64 KiB upload chunk must fit the fixed XMLHttpRequest profile unchanged.
+     * A configured binary upload chunk must fit the fixed XMLHttpRequest profile unchanged.
      */
     @Test
     public void uploadSizedMultipartRequestIsAccepted() throws Exception {
         this.start(this.folder.newFolder("www"));
         final String boundary = "widgets-test-boundary";
-        final byte[] chunk = new byte[64 * 1024];
+        final byte[] chunk = new byte[UploadProtocol.CHUNK_SIZE];
         for (int index = 0; index < chunk.length; index++) {
             chunk[index] = (byte) index;
         }

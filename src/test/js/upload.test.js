@@ -28,6 +28,7 @@ function createHarness() {
         url: "http://localhost/"
     });
     dom.window.eval(`${optionsSource}\n${librarySource}\n
+        configureUploadProtocol(4 * 1024, 128 * 1024 * 1024);
         window.__uploadEvents = [];
         let clientId = "#1";
         function createEvent(widget, type, data) {
@@ -68,7 +69,7 @@ describe("binary upload scheduler", () => {
             }
         };
         const files = Array.from({ length: 7 }, (_, index) =>
-            file(`file-${index + 1}.bin`, 64 * 1024 + 1)
+            file(`file-${index + 1}.bin`, 4 * 1024 + 1)
         );
 
         dom.window.loadFiles(harness.widget, files);

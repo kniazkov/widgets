@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.webserver.ContentType;
 import com.kniazkov.webserver.Environment;
@@ -142,7 +143,15 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             code = code
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", requestPath)
-                                .replace("{data}", escapeInlineScriptData(obj.toString()));
+                                .replace("{data}", escapeInlineScriptData(obj.toString()))
+                                .replace(
+                                    "__UPLOAD_CHUNK_SIZE__",
+                                    Integer.toString(UploadProtocol.CHUNK_SIZE)
+                                )
+                                .replace(
+                                    "__MAX_UPLOAD_FILE_SIZE__",
+                                    Integer.toString(UploadProtocol.MAX_FILE_SIZE)
+                                );
                         }
                         if (removeLogs) {
                             code = code.replaceAll(
@@ -194,24 +203,23 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     private JsonObject handleUploadChunk(
             final Request request,
             final Map<String, String> parameters) throws ServerException {
-        final JsonObject rejected = rejectedUpload();
         final List<UploadedFile> files = request.getFiles().get("chunk");
         if (request.getFiles().size() != 1 || files == null || files.size() != 1) {
-            return rejected;
+            return UploadProtocol.rejected();
         }
         final UploadedFile chunk = files.get(0);
-        if (chunk.getSize() > WebServerDefaults.MAX_UPLOAD_CHUNK_SIZE) {
-            return rejected;
+        if (chunk.getSize() > UploadProtocol.CHUNK_SIZE) {
+            return UploadProtocol.rejected();
         }
         final String client = parameters.get("client");
         final String widget = parameters.get("widget");
         if (client == null || widget == null) {
-            return rejected;
+            return UploadProtocol.rejected();
         }
         final RMId clientId = RMId.parse(client);
         final RMId widgetId = RMId.parse(widget);
         if (!clientId.isValid() || !widgetId.isValid()) {
-            return rejected;
+            return UploadProtocol.rejected();
         }
         try {
             final int fileId = Integer.parseInt(parameters.get("fileId"));
@@ -224,17 +232,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 chunk.readAllBytes()
             );
         } catch (final NumberFormatException | NullPointerException ignored) {
-            return rejected;
+            return UploadProtocol.rejected();
         }
-    }
-
-    /**
-     * Creates a negative acknowledgement for malformed upload requests.
-     */
-    private static JsonObject rejectedUpload() {
-        final JsonObject response = new JsonObject();
-        response.addBoolean("result", false);
-        return response;
     }
 
     /**

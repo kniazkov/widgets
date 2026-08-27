@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.UploadedFile;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
@@ -18,16 +19,6 @@ import java.util.Optional;
  * Tracks one selected file, accepts binary chunks, and publishes upload progress.
  */
 public class UploadingFile {
-    /**
-     * Binary chunk size shared with the browser protocol.
-     */
-    private static final int CHUNK_SIZE = 64 * 1024;
-
-    /**
-     * Maximum complete file size supported by the in-memory public API.
-     */
-    private static final int MAX_FILE_SIZE = 128 * 1024 * 1024;
-
     /**
      * Widget that owns the upload descriptor.
      */
@@ -252,9 +243,9 @@ public class UploadingFile {
      */
     private int expectedChunkSize(final int chunkIndex) {
         if (chunkIndex < this.totalChunks - 1) {
-            return CHUNK_SIZE;
+            return UploadProtocol.CHUNK_SIZE;
         }
-        return this.size - chunkIndex * CHUNK_SIZE;
+        return this.size - chunkIndex * UploadProtocol.CHUNK_SIZE;
     }
 
     /**
@@ -264,10 +255,13 @@ public class UploadingFile {
         if (event == null || event.fileId <= 0 || event.name == null || event.name.isEmpty()
                 || event.name.indexOf('/') >= 0 || event.name.indexOf('\\') >= 0
                 || event.name.indexOf('\0') >= 0 || event.size < 0
-                || event.size > MAX_FILE_SIZE) {
+                || event.size > UploadProtocol.MAX_FILE_SIZE) {
             throw new IllegalArgumentException("Invalid upload metadata");
         }
-        final int expectedChunks = Math.max(1, (event.size + CHUNK_SIZE - 1) / CHUNK_SIZE);
+        final int expectedChunks = Math.max(
+            1,
+            (event.size + UploadProtocol.CHUNK_SIZE - 1) / UploadProtocol.CHUNK_SIZE
+        );
         if (event.totalChunks != expectedChunks) {
             throw new IllegalArgumentException("Invalid upload chunk count");
         }

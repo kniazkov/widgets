@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
 import java.util.TreeMap;
@@ -200,7 +201,7 @@ public final class Application {
             final int chunkIndex,
             final byte[] data) {
         this.counter++;
-        final JsonObject[] result = {rejectedUpload()};
+        final JsonObject[] result = {UploadProtocol.rejected()};
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
                 client.timer = this.options.getClientLifetime();
@@ -209,15 +210,6 @@ public final class Application {
             return client;
         });
         return result[0];
-    }
-
-    /**
-     * Creates a negative acknowledgement for a missing browser client.
-     */
-    private static JsonObject rejectedUpload() {
-        final JsonObject response = new JsonObject();
-        response.addBoolean("result", false);
-        return response;
     }
 
     /**

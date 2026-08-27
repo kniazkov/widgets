@@ -946,7 +946,7 @@ function loadFiles(widget, descriptions) {
         if (
             !Number.isSafeInteger(descr.size) ||
             descr.size < 0 ||
-            descr.size > MAX_UPLOAD_FILE_SIZE
+            descr.size > uploadProtocol.maxFileSize
         ) {
             log("The selected file '" + descr.name + "' is too large to upload.");
             continue;
@@ -957,7 +957,7 @@ function loadFiles(widget, descriptions) {
             type: descr.type,
             size: descr.size,
             source: descr,
-            totalChunks: Math.max(1, Math.ceil(descr.size / MAX_UPLOAD_CHUNK_SIZE)),
+            totalChunks: Math.max(1, Math.ceil(descr.size / uploadProtocol.chunkSize)),
             nextChunk: 0,
             ready: false,
             widget
@@ -1035,8 +1035,8 @@ function sendNextUploadChunk() {
     }
     const file = activeUploads[nextUploadIndex];
     nextUploadIndex = (nextUploadIndex + 1) % activeUploads.length;
-    const offset = file.nextChunk * MAX_UPLOAD_CHUNK_SIZE;
-    const chunk = file.source.slice(offset, Math.min(file.size, offset + MAX_UPLOAD_CHUNK_SIZE));
+    const offset = file.nextChunk * uploadProtocol.chunkSize;
+    const chunk = file.source.slice(offset, Math.min(file.size, offset + uploadProtocol.chunkSize));
     uploadRequestInFlight = true;
     sendRequest(
         {

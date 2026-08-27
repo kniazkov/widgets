@@ -9,6 +9,7 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.protocol.Update;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.RootWidget;
@@ -134,16 +135,7 @@ public final class Client implements Comparable<Client> {
                 }
             }
         }
-        return rejectedUpload();
-    }
-
-    /**
-     * Creates a negative acknowledgement for an unknown upload target.
-     */
-    private static JsonObject rejectedUpload() {
-        final JsonObject response = new JsonObject();
-        response.addBoolean("result", false);
-        return response;
+        return UploadProtocol.rejected();
     }
 
     /**

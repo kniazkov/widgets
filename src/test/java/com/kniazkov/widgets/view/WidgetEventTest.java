@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import java.util.Arrays;
@@ -128,14 +129,14 @@ public final class WidgetEventTest {
         data.addNumber("fileId", 7);
         data.addString("name", "data.bin");
         data.addString("type", "application/octet-stream");
-        data.addNumber("size", 64 * 1024 + 1);
+        data.addNumber("size", UploadProtocol.CHUNK_SIZE + 1);
         data.addNumber("totalChunks", 2);
 
         sandbox.fire(Event.UPLOAD, data);
 
         assertEquals("data.bin", selected.get().getName());
         assertEquals("application/octet-stream", selected.get().getType());
-        assertEquals(64 * 1024 + 1, selected.get().getSize());
+        assertEquals(UploadProtocol.CHUNK_SIZE + 1, selected.get().getSize());
         assertEquals(Integer.valueOf(0), selected.get().getLoadingPercentageModel().getData());
         assertTrue(sandbox.drainUpdates().isEmpty());
         assertSame(loader, sandbox.getSubject());

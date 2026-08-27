@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.model.Model;
 import java.util.Map;
 import java.util.TreeMap;
@@ -93,12 +94,11 @@ public class FileLoader extends Button implements HasMultipleInput {
             final int fileId,
             final int chunkIndex,
             final byte[] data) {
-        final JsonObject response = new JsonObject();
-        response.addBoolean("result", false);
         final UploadingFile file = this.uploading.get(fileId);
         if (file == null || !file.handleUploadChunk(chunkIndex, data)) {
-            return response;
+            return UploadProtocol.rejected();
         }
+        final JsonObject response = new JsonObject();
         response.addBoolean("result", true);
         response.addNumber("nextChunk", file.getNextMissingChunk());
         response.addBoolean("complete", file.isComplete());
