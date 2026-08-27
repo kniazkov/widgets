@@ -99,6 +99,19 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
+     * Query parameters on the root page must not be mistaken for an action request.
+     */
+    @Test
+    public void rootPageRetainsQueryParameters() throws Exception {
+        this.start(this.folder.newFolder("www"));
+
+        final String response = this.request("GET", "/?item=42", null);
+
+        assertTrue(response.startsWith("HTTP/1.1 200"));
+        assertTrue(response.contains("\"item\":\"42\""));
+    }
+
+    /**
      * Missing external fields must produce JSON instead of crashing a request worker.
      */
     @Test
