@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
@@ -11,6 +12,7 @@ import com.kniazkov.widgets.protocol.ResetClient;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -37,11 +39,26 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     final List<BlockWidget<?>> children = new ArrayList<>();
 
     /**
+     * Immutable application configuration shared by the complete widget tree.
+     */
+    private final Options options;
+
+    /**
      * Constructor.
      *
      */
     public RootWidget() {
+        this(new Options.Builder().build());
+    }
+
+    /**
+     * Creates an empty root widget with the specified application configuration.
+     *
+     * @param options immutable application configuration
+     */
+    public RootWidget(final Options options) {
         super(getDefaultStyle());
+        this.options = Objects.requireNonNull(options, "Options must not be null");
     }
 
     /**
@@ -54,6 +71,15 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);
         }
+    }
+
+    /**
+     * Returns the immutable application configuration for this widget tree.
+     *
+     * @return application options
+     */
+    public Options getOptions() {
+        return this.options;
     }
 
     @Override

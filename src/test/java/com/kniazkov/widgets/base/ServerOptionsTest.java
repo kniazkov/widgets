@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.SslOptions;
+import com.kniazkov.widgets.view.RootWidget;
 import java.io.File;
 import java.net.InetAddress;
 import org.junit.Rule;
@@ -85,6 +86,8 @@ public class ServerOptionsTest {
             .setWwwRoot("first")
             .setPort(8001)
             .setMaxWorkers(7)
+            .setChunkSize(4096)
+            .setMaxFileSize(100_000)
             .setDebug(false);
         final Options first = builder.build();
 
@@ -93,6 +96,8 @@ public class ServerOptionsTest {
             .setWwwRoot("second")
             .setPort(8002)
             .setMaxWorkers(8)
+            .setChunkSize(8192)
+            .setMaxFileSize(200_000)
             .setDebug(true)
             .build();
 
@@ -100,11 +105,28 @@ public class ServerOptionsTest {
         assertEquals("first", first.getWwwRoot());
         assertEquals(8001, first.getPort());
         assertEquals(7, first.getMaxWorkers());
+        assertEquals(4096, first.getChunkSize());
+        assertEquals(100_000, first.getMaxFileSize());
         assertFalse(first.isDebug());
         assertEquals(2000, second.getClientLifetime());
         assertEquals("second", second.getWwwRoot());
         assertEquals(8002, second.getPort());
         assertEquals(8, second.getMaxWorkers());
+        assertEquals(8192, second.getChunkSize());
+        assertEquals(200_000, second.getMaxFileSize());
         assertTrue(second.isDebug());
+    }
+
+    /**
+     * Upload defaults live in application options and the root retains the same snapshot.
+     */
+    @Test
+    public void rootWidgetRetainsUploadOptions() {
+        final Options options = new Options.Builder().build();
+        final RootWidget root = new RootWidget(options);
+
+        assertEquals(64 * 1024, options.getChunkSize());
+        assertEquals(128 * 1024 * 1024, options.getMaxFileSize());
+        assertSame(options, root.getOptions());
     }
 }

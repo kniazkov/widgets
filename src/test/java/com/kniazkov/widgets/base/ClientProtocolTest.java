@@ -6,9 +6,11 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.protocol.Update;
 import com.kniazkov.widgets.view.Button;
+import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.util.Collection;
@@ -27,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -76,6 +79,69 @@ public class ClientProtocolTest {
         client.synchronize(Collections.singletonMap("lastUpdate", lastUpdate), second);
 
         assertTrue(second.get("updates").toJsonArray().isEmpty());
+    }
+
+    /**
+     * Upload acknowledgements must carry progress updates without waiting for synchronization.
+     */
+    @Test
+    public void uploadChunkReturnsProgressUpdatesImmediately() {
+        final int chunkSize = 4 * 1024;
+        final Options options = new Options.Builder()
+            .setChunkSize(chunkSize)
+            .setMaxFileSize(2 * chunkSize)
+            .build();
+        final Client client = new Client(options);
+        final FileLoader loader = new FileLoader();
+        final TextWidget progress = new TextWidget("0%");
+        client.getRootWidget().add(new Section(loader, progress));
+        loader.onSelect(descriptor -> descriptor.getLoadingPercentageModel().addListener(
+            percent -> progress.setText(percent + "%")
+        ));
+        final UploadEvent selection = new UploadEvent();
+        selection.fileId = 7;
+        selection.name = "data.bin";
+        selection.type = "application/octet-stream";
+        selection.size = 2 * chunkSize;
+        selection.totalChunks = 2;
+        loader.handleUploadEvent(selection);
+        final JsonObject initial = new JsonObject();
+        client.synchronize(Collections.emptyMap(), initial);
+        final JsonArray initialUpdates = initial.get("updates").toJsonArray();
+        final String initialLastUpdate = initialUpdates
+            .getElement(initialUpdates.size() - 1)
+            .toJsonObject()
+            .get("id")
+            .getStringValue();
+
+        final JsonObject first = client.uploadChunk(
+            loader.getId(),
+            7,
+            0,
+            new byte[chunkSize],
+            initialLastUpdate
+        );
+
+        assertTrue(first.get("result").getBooleanValue());
+        assertFalse(first.get("updates").toJsonArray().isEmpty());
+        assertTrue(first.toString().contains("50%"));
+        final JsonArray firstUpdates = first.get("updates").toJsonArray();
+        final String firstLastUpdate = firstUpdates
+            .getElement(firstUpdates.size() - 1)
+            .toJsonObject()
+            .get("id")
+            .getStringValue();
+
+        final JsonObject second = client.uploadChunk(
+            loader.getId(),
+            7,
+            1,
+            new byte[chunkSize],
+            firstLastUpdate
+        );
+
+        assertTrue(second.toString().contains("100%"));
+        assertFalse(second.toString().contains("50%"));
     }
 
     /**

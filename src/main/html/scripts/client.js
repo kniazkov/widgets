@@ -119,7 +119,7 @@ function removeProcessedEvents(id) {
 }
 
 // One synchronization request carries both pending browser events and the update checkpoint.
-function sendSynchronizeRequest() {
+function sendSynchronizeRequest(callback) {
     sendRequest(
         {
             action: "synchronize",
@@ -130,11 +130,17 @@ function sendSynchronizeRequest() {
         function (data) {
             if (!data) {
                 log("Network error.");
+                if (callback) {
+                    callback(false);
+                }
                 return;
             }
             const json = JSON.parse(data);
             processUpdates(json.updates);
             removeProcessedEvents(json.lastEvent);
+            if (callback) {
+                callback(json.result === true);
+            }
         },
         "post"
     );
@@ -198,8 +204,7 @@ const actionHandlers = {
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
     "set multiple input": setMultipleInput,
-    "set accepted files": setAcceptedFiles,
-    "next chunk": sendNextChunk
+    "set accepted files": setAcceptedFiles
 };
 
 // These events are client-side protocol primitives and do not require an explicit subscription.

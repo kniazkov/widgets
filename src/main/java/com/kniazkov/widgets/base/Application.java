@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
 import java.util.TreeMap;
@@ -112,7 +113,7 @@ public final class Application {
      */
     RMId createClient(final String address, final PageContext context) {
         this.counter++;
-        final Client client = new Client();
+        final Client client = new Client(this.options);
         client.timer = this.options.getClientLifetime();
 
         final RMId id = client.getId();
@@ -181,6 +182,42 @@ public final class Application {
             }
             return client;
         });
+    }
+
+    /**
+     * Delivers one binary chunk to a live client and refreshes that client's lifetime.
+     *
+     * @param clientId target browser client
+     * @param widgetId target file-loader widget
+     * @param fileId browser-local file identifier
+     * @param chunkIndex zero-based chunk index
+     * @param data binary chunk content
+     * @param lastUpdate last browser-applied widget update
+     * @return serialized upload acknowledgement
+     */
+    JsonObject uploadChunk(
+            final RMId clientId,
+            final RMId widgetId,
+            final int fileId,
+            final int chunkIndex,
+            final byte[] data,
+            final String lastUpdate) {
+        this.counter++;
+        final JsonObject[] result = {UploadProtocol.rejected()};
+        this.clients.computeIfPresent(clientId, (id, client) -> {
+            synchronized (client) {
+                client.timer = this.options.getClientLifetime();
+                result[0] = client.uploadChunk(
+                    widgetId,
+                    fileId,
+                    chunkIndex,
+                    data,
+                    lastUpdate
+                );
+            }
+            return client;
+        });
+        return result[0];
     }
 
     /**

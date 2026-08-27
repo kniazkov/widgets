@@ -25,9 +25,9 @@ final class WebServerDefaults {
     static final long MAX_FILE_SIZE = 1024L * 1024L;
 
     /**
-     * Keeps one 64 KiB Base16 chunk and its multipart envelope in memory.
+     * Keeps one binary chunk and its multipart envelope in memory.
      */
-    static final long MAX_IN_MEMORY_BODY_SIZE = 256L * 1024L;
+    static final long MAX_IN_MEMORY_BODY_SIZE = 128L * 1024L;
 
     /**
      * Maximum decoded form-data size.

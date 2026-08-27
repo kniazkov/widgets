@@ -9,7 +9,9 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
+import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Map;
@@ -58,8 +60,17 @@ public final class Client implements Comparable<Client> {
      * A new {@link RootWidget} is created and associated with this client.
      */
     Client() {
+        this(new Options.Builder().build());
+    }
+
+    /**
+     * Constructs a new client using the supplied immutable application options.
+     *
+     * @param options application options shared by the client widget tree
+     */
+    Client(final Options options) {
         this.id = RMId.create();
-        this.root = new RootWidget();
+        this.root = new RootWidget(options);
         this.updates = new TreeSet<>();
     }
 
@@ -107,9 +118,45 @@ public final class Client implements Comparable<Client> {
     void synchronize(final Map<String, String> request, final JsonObject response) {
         synchronized (this.root) {
             this.processEvents(request);
-            this.collectUpdates(request);
+            this.collectUpdates(request.get("lastUpdate"));
             this.serializeUpdates(response);
         }
+    }
+
+    /**
+     * Delivers one binary upload chunk to a file-loader widget.
+     *
+     * @param widgetId target file-loader identifier
+     * @param fileId browser-local file identifier
+     * @param chunkIndex zero-based chunk index
+     * @param data binary chunk content
+     * @param lastUpdate last browser-applied widget update
+     * @return serialized upload acknowledgement
+     */
+    JsonObject uploadChunk(
+            final RMId widgetId,
+            final int fileId,
+            final int chunkIndex,
+            final byte[] data,
+            final String lastUpdate) {
+        synchronized (this.root) {
+            for (final Widget<?> widget : this.root) {
+                if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
+                    final JsonObject response = ((FileLoader) widget).handleUploadChunk(
+                        fileId,
+                        chunkIndex,
+                        data
+                    );
+                    if (response == UploadProtocol.rejected()) {
+                        return response;
+                    }
+                    this.collectUpdates(lastUpdate);
+                    this.serializeUpdates(response);
+                    return response;
+                }
+            }
+        }
+        return UploadProtocol.rejected();
     }
 
     /**
@@ -207,11 +254,11 @@ public final class Client implements Comparable<Client> {
      * Collects updates from widgets, adding them to the set.
      * Removes from the set any updates that have already been processed by the client.
      *
-     * @param request The map of client parameters containing the "lastUpdate" key
+     * @param lastUpdate last update applied by the browser, or null
      */
-    private void collectUpdates(final Map<String, String> request) {
-        if (request.containsKey("lastUpdate")) {
-            final RMId id = RMId.parse(request.get("lastUpdate"));
+    private void collectUpdates(final String lastUpdate) {
+        if (lastUpdate != null) {
+            final RMId id = RMId.parse(lastUpdate);
             this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
         }
         for (final Widget<?> widget : this.root) {
