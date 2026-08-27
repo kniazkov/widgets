@@ -64,7 +64,7 @@ public class EmailInput {
         };
 
         final Application app = new Application(page);
-        final Options options = new Options();
+        final Options options = new Options.Builder().build();
         Server.start(app, options);
     }
 }

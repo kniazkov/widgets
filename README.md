@@ -8,7 +8,7 @@ are handled by Java controllers. The framework synchronizes the widget tree with
 client over HTTP, so a typical application does not need to generate HTML or write client-side
 JavaScript.
 
-The project currently targets Java 8 and is distributed as the Maven artifact
+The project targets Java 21 and is distributed as the Maven artifact
 `com.kniazkov:widgets:0.1`.
 
 ## MVC architecture
@@ -77,18 +77,56 @@ public final class HelloWidgets {
             ));
         };
 
-        Options options = new Options();
-        options.port = 8080;
+        Options options = new Options.Builder()
+            .setPort(8080)
+            .build();
         Server.start(new Application(page), options);
     }
 }
 ```
 
 Open [http://localhost:8080](http://localhost:8080). Static application files are served from the
-`www` directory by default; the path can be changed with `Options.wwwRoot`.
+`www` directory by default; the path can be changed with `Options.Builder.setWwwRoot(...)`.
 
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
+
+### Server and HTTPS configuration
+
+`Options` exposes the listener port, bind address, worker count, and immutable HTTPS settings.
+Request limits and timeouts are an internal framework profile sized for short XMLHttpRequest
+exchanges and 64 KiB upload chunks. For example, a server intended to sit behind a local reverse
+proxy can bind only to loopback:
+
+```java
+Options options = new Options.Builder()
+    .setPort(8080)
+    .setBindAddress(InetAddress.getLoopbackAddress())
+    .setMaxWorkers(200)
+    .build();
+```
+
+To run the same widgets application directly over HTTPS, build the webserver's immutable TLS
+configuration and pass it through the application options builder:
+
+```java
+char[] password = loadPassword();
+SslOptions ssl = new SslOptions.Builder()
+    .setKeyStoreFile("server.p12")
+    .setPassword(password)
+    .build();
+
+Options options = new Options.Builder()
+    .setPort(8443)
+    .setSslOptions(ssl)
+    .build();
+Server.start(new Application(page), options);
+```
+
+`SslOptions` also supports JKS, a PEM certificate chain with an unencrypted PKCS #8 key, explicit
+TLS versions and cipher suites, and optional or required mutual TLS. Run separate server instances
+on different ports when both HTTP and HTTPS listeners are required. The caller remains responsible
+for clearing its original password array after the TLS options have been built.
 
 ## Documentation
 
@@ -117,7 +155,7 @@ Browser runtime resources are stored in `src/main/html` and packaged into the li
 
 Development requires:
 
-- JDK 8, with `java` available through `JAVA_HOME` or `PATH`;
+- JDK 21, with `java` available through `JAVA_HOME` or `PATH`;
 - Maven 3, with `mvn` (Linux) or `mvn.cmd` (Windows) on `PATH`;
 - Node.js 22.13 or newer and npm for browser-client tests;
 - Chromium installed through Playwright for end-to-end tests.

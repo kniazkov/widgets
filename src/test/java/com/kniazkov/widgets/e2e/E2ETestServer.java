@@ -10,6 +10,7 @@ import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
+import java.net.InetAddress;
 
 /** Test-only application used by the Playwright end-to-end suite. */
 public final class E2ETestServer {
@@ -38,8 +39,10 @@ public final class E2ETestServer {
             root.add(content);
         };
 
-        final Options options = new Options();
-        options.port = Integer.parseInt(args[0]);
+        final Options options = new Options.Builder()
+            .setPort(Integer.parseInt(args[0]))
+            .setBindAddress(InetAddress.getLoopbackAddress())
+            .build();
         Server.start(new Application(page), options);
     }
 }

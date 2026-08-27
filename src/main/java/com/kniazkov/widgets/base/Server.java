@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Handler;
+import com.kniazkov.webserver.ServerException;
 import java.util.logging.Logger;
 
 
@@ -26,19 +27,24 @@ public final class Server {
      * Starts the web server and runs the given application.
      *
      * @param application the application instance to launch
-     * @param options configuration options (logger, timeouts, etc.)
+     * @param options immutable application and listener configuration
      * @return the running web server, which can be stopped by the caller
+     * @throws IllegalStateException if the HTTP or HTTPS listener cannot be started
      */
     public static com.kniazkov.webserver.Server start(
             final Application application, final Options options) {
-        // Clone options so the application can modify them safely
-        final Options cloned = options.clone();
-        final Handler handler = new HttpHandler(application, cloned);
-        application.setOptions(cloned);
+        final Handler handler = new HttpHandler(application, options);
+        application.setOptions(options);
 
         // Start the underlying HTTP server
-        final com.kniazkov.webserver.Server server =
-            com.kniazkov.webserver.Server.start(getWebServerOptions(cloned), handler);
+        final com.kniazkov.webserver.Server server;
+        try {
+            server = com.kniazkov.webserver.Server.start(
+                getWebServerOptions(options, handler)
+            );
+        } catch (final ServerException exception) {
+            throw new IllegalStateException("Unable to start the web server", exception);
+        }
 
         // Log startup
         LOGGER.info("Server started.");
@@ -49,13 +55,30 @@ public final class Server {
      * Returns configuration options for the underlying web server.
      * This method may be extended in the future.
      *
-     * @param o1 configuration options for widget application
+     * @param source configuration options for widget application
+     * @param handler framework HTTP request handler
      * @return web server options
      */
-    private static com.kniazkov.webserver.Options getWebServerOptions(Options o1) {
-        final com.kniazkov.webserver.Options o2 = new com.kniazkov.webserver.Options();
-        o2.port = o1.port;
-        o2.timeout = 5000;
-        return o2;
+    static com.kniazkov.webserver.Options getWebServerOptions(
+            final Options source, final Handler handler) {
+        final com.kniazkov.webserver.Options.Builder builder =
+            new com.kniazkov.webserver.Options.Builder()
+                .setPort(source.getPort())
+                .setBacklog(WebServerDefaults.BACKLOG)
+                .setMaxRequestSize(WebServerDefaults.MAX_REQUEST_SIZE)
+                .setMaxFileSize(WebServerDefaults.MAX_FILE_SIZE)
+                .setMaxInMemoryBodySize(WebServerDefaults.MAX_IN_MEMORY_BODY_SIZE)
+                .setMaxFormSize(WebServerDefaults.MAX_FORM_SIZE)
+                .setMaxMultipartParts(WebServerDefaults.MAX_MULTIPART_PARTS)
+                .setMaxMultipartHeaderSize(WebServerDefaults.MAX_MULTIPART_HEADER_SIZE)
+                .setMaxHeaderSize(WebServerDefaults.MAX_HEADER_SIZE)
+                .setMaxWorkers(source.getMaxWorkers())
+                .setReadTimeout(WebServerDefaults.READ_TIMEOUT)
+                .setWriteTimeout(WebServerDefaults.WRITE_TIMEOUT)
+                .setHandlerTimeout(WebServerDefaults.HANDLER_TIMEOUT)
+                .setHandler(handler);
+        source.getBindAddress().ifPresent(builder::setBindAddress);
+        source.getSslOptions().ifPresent(builder::setSslOptions);
+        return builder.build();
     }
 }

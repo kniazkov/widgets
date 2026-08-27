@@ -3,46 +3,256 @@
  */
 package com.kniazkov.widgets.base;
 
+import com.kniazkov.webserver.SslOptions;
+import java.net.InetAddress;
+import java.util.Objects;
+import java.util.Optional;
+
 /**
- * Configuration options used when starting the server.
+ * Immutable configuration used when starting a widget application.
  */
-public class Options implements Cloneable {
-    /**
-     * Maximum lifetime of a client without updates, in milliseconds.
-     * If no requests are received from a client (i.e., the browser tab) within this time,
-     * the client is considered disconnected and will be removed by the server watchdog.
-     * This value should be long enough to account for tabs running in the background,
-     * where JavaScript timers are throttled by the browser (often to 1 update per minute).
-     * A default of 3 minutes provides a balance between connection reliability and
-     * timely cleanup of zombie sessions.
-     */
-    public long clientLifetime = 3 * 60 * 1000;
+public final class Options {
+    /** Default maximum lifetime of an inactive browser client, in milliseconds. */
+    private static final long DEFAULT_CLIENT_LIFETIME = 3L * 60L * 1000L;
+
+    /** Default root directory for public application files. */
+    private static final String DEFAULT_WWW_ROOT = "www";
+
+    /** Default HTTP port. */
+    private static final int DEFAULT_PORT = 8080;
+
+    /** Default maximum number of concurrently processed connections. */
+    private static final int DEFAULT_MAX_WORKERS = 100;
+
+    /** Maximum lifetime of an inactive browser client, in milliseconds. */
+    private final long clientLifetime;
+
+    /** Root directory for public application files. */
+    private final String wwwRoot;
+
+    /** HTTP or HTTPS listener port. */
+    private final int port;
+
+    /** Local listener address, or {@code null} to bind to every local address. */
+    private final InetAddress bindAddress;
+
+    /** Maximum number of concurrently processed connections. */
+    private final int maxWorkers;
+
+    /** HTTPS configuration, or {@code null} for plain HTTP. */
+    private final SslOptions sslOptions;
+
+    /** Whether browser and server debug logging is enabled. */
+    private final boolean debug;
 
     /**
-     * Root directory for static files served via HTTP GET.
-     * Any request that points to a file path (including direct access from a browser address bar)
-     * is resolved relative to this directory. It should contain all project assets intended to be
-     * served as static content—HTML, JavaScript, CSS, images, and other public resources.
+     * Creates immutable options from a builder snapshot.
+     *
+     * @param builder source builder
      */
-    public String wwwRoot = "www";
+    private Options(final Builder builder) {
+        this.clientLifetime = builder.clientLifetime;
+        this.wwwRoot = builder.wwwRoot;
+        this.port = builder.port;
+        this.bindAddress = builder.bindAddress;
+        this.maxWorkers = builder.maxWorkers;
+        this.sslOptions = builder.sslOptions;
+        this.debug = builder.debug;
+    }
 
     /**
-     * The HTTP port number on which the server will run.
+     * Returns the maximum lifetime of an inactive browser client.
+     *
+     * @return lifetime in milliseconds
      */
-    public int port = 8080;
+    public long getClientLifetime() {
+        return this.clientLifetime;
+    }
 
     /**
-     * Outputs debug messages to the log on both the client and the server.
+     * Returns the root directory for public application files.
+     *
+     * @return public-file root
      */
-    public boolean debug = true;
+    public String getWwwRoot() {
+        return this.wwwRoot;
+    }
 
-    @Override
-    public Options clone() {
-        Options copy = new Options();
-        copy.clientLifetime = this.clientLifetime;
-        copy.wwwRoot = this.wwwRoot;
-        copy.port = this.port;
-        copy.debug = this.debug;
-        return copy;
+    /**
+     * Returns the HTTP or HTTPS listener port.
+     *
+     * @return configured port; {@code 0} requests an automatically selected port
+     */
+    public int getPort() {
+        return this.port;
+    }
+
+    /**
+     * Returns the local listener address.
+     *
+     * @return configured address, or an empty optional to bind to every local address
+     */
+    public Optional<InetAddress> getBindAddress() {
+        return Optional.ofNullable(this.bindAddress);
+    }
+
+    /**
+     * Returns the maximum number of concurrently processed connections.
+     *
+     * @return worker limit
+     */
+    public int getMaxWorkers() {
+        return this.maxWorkers;
+    }
+
+    /**
+     * Returns the HTTPS configuration.
+     *
+     * @return SSL options, or an empty optional for plain HTTP
+     */
+    public Optional<SslOptions> getSslOptions() {
+        return Optional.ofNullable(this.sslOptions);
+    }
+
+    /**
+     * Returns whether browser and server debug logging is enabled.
+     *
+     * @return debug flag
+     */
+    public boolean isDebug() {
+        return this.debug;
+    }
+
+    /** Builds immutable application options. */
+    public static final class Builder {
+        /** Maximum lifetime of an inactive browser client, in milliseconds. */
+        private long clientLifetime = DEFAULT_CLIENT_LIFETIME;
+
+        /** Root directory for public application files. */
+        private String wwwRoot = DEFAULT_WWW_ROOT;
+
+        /** HTTP or HTTPS listener port. */
+        private int port = DEFAULT_PORT;
+
+        /** Local listener address. */
+        private InetAddress bindAddress;
+
+        /** Maximum number of concurrently processed connections. */
+        private int maxWorkers = DEFAULT_MAX_WORKERS;
+
+        /** HTTPS configuration. */
+        private SslOptions sslOptions;
+
+        /** Whether browser and server debug logging is enabled. */
+        private boolean debug = true;
+
+        /** Creates a builder initialized with framework defaults. */
+        public Builder() {
+        }
+
+        /**
+         * Sets the maximum lifetime of an inactive browser client.
+         *
+         * @param value lifetime in milliseconds
+         * @return this builder
+         */
+        public Builder setClientLifetime(final long value) {
+            if (value < 1) {
+                throw new IllegalArgumentException("Client lifetime must be positive");
+            }
+            this.clientLifetime = value;
+            return this;
+        }
+
+        /**
+         * Sets the root directory for public application files.
+         *
+         * @param value public-file root
+         * @return this builder
+         */
+        public Builder setWwwRoot(final String value) {
+            Objects.requireNonNull(value, "WWW root must not be null");
+            if (value.isBlank()) {
+                throw new IllegalArgumentException("WWW root must not be empty");
+            }
+            this.wwwRoot = value;
+            return this;
+        }
+
+        /**
+         * Sets the HTTP or HTTPS listener port.
+         *
+         * @param value port in the range {@code 0..65535}
+         * @return this builder
+         */
+        public Builder setPort(final int value) {
+            if (value < 0 || value > 65535) {
+                throw new IllegalArgumentException("Port must be between 0 and 65535");
+            }
+            this.port = value;
+            return this;
+        }
+
+        /**
+         * Sets the local listener address.
+         *
+         * @param value address to bind
+         * @return this builder
+         */
+        public Builder setBindAddress(final InetAddress value) {
+            this.bindAddress = Objects.requireNonNull(
+                value,
+                "Bind address must not be null"
+            );
+            return this;
+        }
+
+        /**
+         * Sets the maximum number of concurrently processed connections.
+         *
+         * @param value positive worker limit
+         * @return this builder
+         */
+        public Builder setMaxWorkers(final int value) {
+            if (value < 1) {
+                throw new IllegalArgumentException("Maximum worker count must be positive");
+            }
+            this.maxWorkers = value;
+            return this;
+        }
+
+        /**
+         * Enables HTTPS using the supplied immutable configuration.
+         *
+         * @param value SSL/TLS configuration
+         * @return this builder
+         */
+        public Builder setSslOptions(final SslOptions value) {
+            this.sslOptions = Objects.requireNonNull(
+                value,
+                "SSL options must not be null"
+            );
+            return this;
+        }
+
+        /**
+         * Enables or disables browser and server debug logging.
+         *
+         * @param value debug flag
+         * @return this builder
+         */
+        public Builder setDebug(final boolean value) {
+            this.debug = value;
+            return this;
+        }
+
+        /**
+         * Builds an immutable snapshot of the current values.
+         *
+         * @return application options
+         */
+        public Options build() {
+            return new Options(this);
+        }
     }
 }

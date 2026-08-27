@@ -3,25 +3,37 @@
  */
 package com.kniazkov.widgets.base;
 
-import com.kniazkov.webserver.Method;
-import com.kniazkov.webserver.Request;
-import com.kniazkov.webserver.Response;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
-/** Reproduces security failures at the HTTP boundary. */
+/** Reproduces security failures at the real HTTP boundary. */
 public class HttpHandlerSecurityTest {
     /** Temporary static-file hierarchy. */
     @Rule
     public final TemporaryFolder folder = new TemporaryFolder();
+
+    /** Running server for the current test. */
+    private com.kniazkov.webserver.Server server;
+
+    /** Stops the Java 21 server, whose accept loop deliberately keeps the JVM alive. */
+    @After
+    public void stopServer() throws Exception {
+        if (this.server != null) {
+            this.server.stop();
+        }
+    }
 
     /** Static-file requests may not escape the configured public directory. */
     @Test
@@ -29,77 +41,140 @@ public class HttpHandlerSecurityTest {
         final File root = this.folder.newFolder("www");
         final File secret = this.folder.newFile("secret.txt");
         java.nio.file.Files.write(secret.toPath(), "private".getBytes(StandardCharsets.UTF_8));
-        final Options options = new Options();
-        options.wwwRoot = root.getAbsolutePath();
-        final HttpHandler handler = this.handler(options);
-        final Request request = get("../secret.txt");
+        this.start(root);
 
-        final Response response = handler.handle(request);
+        final String response = this.request("GET", "/../secret.txt", null);
 
-        assertNull("Path traversal exposed a file outside wwwRoot", response);
+        assertFalse("Path traversal exposed a file outside wwwRoot", response.contains("private"));
+        assertFalse(
+            "Path traversal returned a successful response",
+            response.startsWith("HTTP/1.1 200")
+        );
     }
 
-    /** Compiled classes and arbitrary resources must not become public static files. */
+    /** Compiled classes and arbitrary classpath resources must not become public static files. */
     @Test
-    public void classpathClassIsNotServedAsAStaticResource() {
-        final HttpHandler handler = this.handler(new Options());
+    public void classpathClassIsNotServedAsAStaticResource() throws Exception {
+        this.start(this.folder.newFolder("www"));
 
-        final Response response = handler.handle(
-            get("/com/kniazkov/widgets/base/Application.class")
+        final String response = this.request(
+            "GET",
+            "/com/kniazkov/widgets/base/Application.class",
+            null
         );
 
-        assertNull("HttpHandler exposed a compiled class from the classpath", response);
+        assertTrue(response.startsWith("HTTP/1.1 404"));
     }
 
     /** Page parameters embedded in an inline script must not be able to end that script. */
     @Test
-    public void pageParametersCannotBreakOutOfTheBootstrapScript() {
-        final HttpHandler handler = this.handler(new Options());
-        final Request request = get("/");
+    public void pageParametersCannotBreakOutOfTheBootstrapScript() throws Exception {
+        this.start(this.folder.newFolder("www"));
         final String payload = "</script><script>window.__widgetsXss=true</script>";
-        request.formData.put("payload", payload);
+        final String target = "/page?payload="
+            + URLEncoder.encode(payload, StandardCharsets.UTF_8);
 
-        final Response response = handler.handle(request);
+        final String response = this.request("GET", target, null);
 
-        assertNotNull(response);
-        final String html = new String(response.getData(), StandardCharsets.UTF_8);
-        assertFalse("A query parameter produced executable markup", html.contains(payload));
+        assertTrue(response.startsWith("HTTP/1.1 200"));
+        assertFalse("A query parameter produced executable markup", response.contains(payload));
     }
 
-    /** Missing external fields must produce an error response instead of a runtime exception. */
+    /** Missing external fields must produce JSON instead of crashing a request worker. */
     @Test
-    public void malformedCreateClientRequestDoesNotCrashTheHandler() {
-        final HttpHandler handler = this.handler(new Options());
-        final Request request = new Request();
-        request.method = Method.POST;
-        request.address = "/";
-        request.path = "/";
-        request.formData.put("action", "new instance");
-        request.formData.put("address", "/");
-        request.formData.put("mobile", "false");
+    public void malformedCreateClientRequestDoesNotCrashTheHandler() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        final String body = "action=new+instance&address=%2F&mobile=false";
 
-        try {
-            assertNotNull(
-                "Malformed requests need an explicit protocol error response",
-                handler.handle(request)
-            );
-        } catch (final RuntimeException error) {
-            fail("Malformed external input crashed HttpHandler: " + error);
+        final String response = this.request("POST", "/", body);
+
+        assertTrue(response.startsWith("HTTP/1.1 200"));
+        assertTrue(response.contains("Invalid new instance request"));
+    }
+
+    /** A Base16-encoded 64 KiB upload chunk must fit the fixed XMLHttpRequest profile. */
+    @Test
+    public void uploadSizedMultipartRequestIsAccepted() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        final String boundary = "widgets-test-boundary";
+        final String body = part(boundary, "action", "new instance")
+            + part(boundary, "address", "/")
+            + part(boundary, "browserId", "123e4567-e89b-12d3-a456-426614174000")
+            + part(boundary, "mobile", "false")
+            + part(boundary, "chunk", "a".repeat(2 * 64 * 1024))
+            + "--" + boundary + "--\r\n";
+
+        final String response = this.request(
+            "POST",
+            "/",
+            "multipart/form-data; boundary=" + boundary,
+            body
+        );
+
+        assertTrue(response.startsWith("HTTP/1.1 200"));
+        assertTrue(response.contains("\"id\""));
+    }
+
+    /** Starts the framework on an ephemeral loopback port. */
+    private void start(final File root) {
+        final Options options = new Options.Builder()
+            .setPort(0)
+            .setBindAddress(InetAddress.getLoopbackAddress())
+            .setWwwRoot(root.getAbsolutePath())
+            .build();
+        final Page page = (widget, context) -> { };
+        final Application application = BaseTestSupport.application(page);
+        application.addPage("page", page);
+        this.server = Server.start(application, options);
+    }
+
+    /** Sends one connection-closing HTTP request and returns its complete response. */
+    private String request(final String method, final String target, final String body)
+            throws Exception {
+        return this.request(
+            method,
+            target,
+            "application/x-www-form-urlencoded",
+            body
+        );
+    }
+
+    /** Sends one HTTP request with an explicit body content type. */
+    private String request(
+            final String method,
+            final String target,
+            final String contentType,
+            final String body) throws Exception {
+        try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), this.server.getPort())) {
+            socket.setSoTimeout(5000);
+            final byte[] content = body == null
+                ? new byte[0]
+                : body.getBytes(StandardCharsets.UTF_8);
+            final StringBuilder headers = new StringBuilder()
+                .append(method).append(' ').append(target).append(" HTTP/1.1\r\n")
+                .append("Host: localhost\r\n")
+                .append("Connection: close\r\n");
+            if (body != null) {
+                headers.append("Content-Type: ").append(contentType).append("\r\n")
+                    .append("Content-Length: ").append(content.length).append("\r\n");
+            }
+            headers.append("\r\n");
+            socket.getOutputStream().write(headers.toString().getBytes(StandardCharsets.US_ASCII));
+            socket.getOutputStream().write(content);
+            socket.getOutputStream().flush();
+
+            try (InputStream input = socket.getInputStream();
+                    ByteArrayOutputStream response = new ByteArrayOutputStream()) {
+                input.transferTo(response);
+                return response.toString(StandardCharsets.UTF_8);
+            }
         }
     }
 
-    /** Creates a handler with a registered index page. */
-    private HttpHandler handler(final Options options) {
-        final Application application = BaseTestSupport.application((root, context) -> { });
-        return new HttpHandler(application, options);
-    }
-
-    /** Creates a minimal GET request. */
-    private static Request get(final String path) {
-        final Request request = new Request();
-        request.method = Method.GET;
-        request.address = path;
-        request.path = path;
-        return request;
+    /** Creates one UTF-8 multipart form field. */
+    private static String part(final String boundary, final String name, final String value) {
+        return "--" + boundary + "\r\n"
+            + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"
+            + value + "\r\n";
     }
 }

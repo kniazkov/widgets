@@ -30,8 +30,9 @@ final class BaseTestSupport {
      */
     static Application application(final Page page) {
         final Application application = new Application(page);
-        final Options options = new Options();
-        options.clientLifetime = TEST_CLIENT_LIFETIME;
+        final Options options = new Options.Builder()
+            .setClientLifetime(TEST_CLIENT_LIFETIME)
+            .build();
         application.setOptions(options);
         return application;
     }
