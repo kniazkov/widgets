@@ -6,7 +6,6 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
-import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.protocol.Update;
@@ -87,7 +86,12 @@ public class ClientProtocolTest {
      */
     @Test
     public void uploadChunkReturnsProgressUpdatesImmediately() {
-        final Client client = new Client();
+        final int chunkSize = 4 * 1024;
+        final Options options = new Options.Builder()
+            .setChunkSize(chunkSize)
+            .setMaxFileSize(2 * chunkSize)
+            .build();
+        final Client client = new Client(options);
         final FileLoader loader = new FileLoader();
         final TextWidget progress = new TextWidget("0%");
         client.getRootWidget().add(new Section(loader, progress));
@@ -98,7 +102,7 @@ public class ClientProtocolTest {
         selection.fileId = 7;
         selection.name = "data.bin";
         selection.type = "application/octet-stream";
-        selection.size = 2 * UploadProtocol.CHUNK_SIZE;
+        selection.size = 2 * chunkSize;
         selection.totalChunks = 2;
         loader.handleUploadEvent(selection);
         final JsonObject initial = new JsonObject();
@@ -114,7 +118,7 @@ public class ClientProtocolTest {
             loader.getId(),
             7,
             0,
-            new byte[UploadProtocol.CHUNK_SIZE],
+            new byte[chunkSize],
             initialLastUpdate
         );
 
@@ -132,7 +136,7 @@ public class ClientProtocolTest {
             loader.getId(),
             7,
             1,
-            new byte[UploadProtocol.CHUNK_SIZE],
+            new byte[chunkSize],
             firstLastUpdate
         );
 

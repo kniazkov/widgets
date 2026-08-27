@@ -113,7 +113,7 @@ public final class Application {
      */
     RMId createClient(final String address, final PageContext context) {
         this.counter++;
-        final Client client = new Client();
+        final Client client = new Client(this.options);
         client.timer = this.options.getClientLifetime();
 
         final RMId id = client.getId();

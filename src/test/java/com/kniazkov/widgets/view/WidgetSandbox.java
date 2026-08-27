@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
@@ -34,12 +35,12 @@ final class WidgetSandbox<W extends Widget<?>> {
      *
      * @param widget widget under test
      */
-    private WidgetSandbox(final W widget) {
+    private WidgetSandbox(final W widget, final Options options) {
         this.subject = widget;
         if (widget instanceof RootWidget) {
             this.root = (RootWidget) widget;
         } else {
-            this.root = new RootWidget();
+            this.root = new RootWidget(options);
             this.mount(widget);
         }
     }
@@ -52,7 +53,21 @@ final class WidgetSandbox<W extends Widget<?>> {
      * @return initialized sandbox
      */
     static <W extends Widget<?>> WidgetSandbox<W> open(final W widget) {
-        return new WidgetSandbox<>(widget);
+        return new WidgetSandbox<>(widget, new Options.Builder().build());
+    }
+
+    /**
+     * Opens a sandbox for a widget with explicit application options.
+     *
+     * @param widget widget under test
+     * @param options application options shared by the widget tree
+     * @param <W> widget type
+     * @return initialized sandbox
+     */
+    static <W extends Widget<?>> WidgetSandbox<W> open(
+            final W widget,
+            final Options options) {
+        return new WidgetSandbox<>(widget, options);
     }
 
     /**

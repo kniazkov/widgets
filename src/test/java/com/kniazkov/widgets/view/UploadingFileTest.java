@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.common.UploadedFile;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.controller.Event;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -31,9 +33,13 @@ public final class UploadingFileTest {
         final FileLoader loader = new FileLoader();
         final AtomicReference<UploadingFile> selected = new AtomicReference<>();
         loader.onSelect(selected::set);
-        final WidgetSandbox<FileLoader> sandbox = WidgetSandbox.open(loader);
+        final int chunkSize = 4 * 1024;
+        final Options options = new Options.Builder()
+            .setChunkSize(chunkSize)
+            .setMaxFileSize(3 * chunkSize)
+            .build();
+        final WidgetSandbox<FileLoader> sandbox = WidgetSandbox.open(loader, options);
         sandbox.clearUpdates();
-        final int chunkSize = UploadProtocol.CHUNK_SIZE;
         final JsonObject selection = selection(17, 2 * chunkSize + 3, 3);
 
         sandbox.fire(Event.UPLOAD, selection);
@@ -80,6 +86,25 @@ public final class UploadingFileTest {
 
         final JsonObject response = loader.handleUploadChunk(8, 0, bytes(3, (byte) 5));
         assertFalse(response.get("result").getBooleanValue());
+    }
+
+    /**
+     * Complete-file limits are read from the options retained by the root widget.
+     */
+    @Test
+    public void rejectsSelectionBeyondRootFileLimit() {
+        final FileLoader loader = new FileLoader();
+        final AtomicReference<UploadingFile> selected = new AtomicReference<>();
+        loader.onSelect(selected::set);
+        final Options options = new Options.Builder()
+            .setChunkSize(4 * 1024)
+            .setMaxFileSize(3)
+            .build();
+        final WidgetSandbox<FileLoader> sandbox = WidgetSandbox.open(loader, options);
+
+        sandbox.fire(Event.UPLOAD, selection(18, 4, 1));
+
+        assertNull(selected.get());
     }
 
     /**

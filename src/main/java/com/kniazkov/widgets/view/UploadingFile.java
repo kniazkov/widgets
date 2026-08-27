@@ -3,8 +3,8 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.common.UploadedFile;
-import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
@@ -38,6 +38,11 @@ public class UploadingFile {
      * Total declared size of the complete file in bytes.
      */
     private final int size;
+
+    /**
+     * Binary chunk size configured for this widget tree.
+     */
+    private final int chunkSize;
 
     /**
      * Binary chunks retained until the complete file has been assembled.
@@ -86,13 +91,17 @@ public class UploadingFile {
      * @param event selected-file metadata
      */
     UploadingFile(final Widget<?> widget, final UploadEvent event) {
-        validate(event);
+        final Options options = widget.getRootWidget()
+            .orElseThrow(() -> new IllegalArgumentException("Widget is not attached to a root"))
+            .getOptions();
+        validate(event, options);
         this.widget = widget;
         this.name = event.name;
         this.type = event.type == null || event.type.isEmpty()
             ? Utils.getContentTypeByExtension(event.name)
             : event.type;
         this.size = event.size;
+        this.chunkSize = options.getChunkSize();
         this.totalChunks = event.totalChunks;
         this.content = new byte[this.totalChunks][];
         this.digests = new byte[this.totalChunks][];
@@ -243,24 +252,24 @@ public class UploadingFile {
      */
     private int expectedChunkSize(final int chunkIndex) {
         if (chunkIndex < this.totalChunks - 1) {
-            return UploadProtocol.CHUNK_SIZE;
+            return this.chunkSize;
         }
-        return this.size - chunkIndex * UploadProtocol.CHUNK_SIZE;
+        return this.size - chunkIndex * this.chunkSize;
     }
 
     /**
      * Validates browser-controlled upload metadata before allocating chunk storage.
      */
-    private static void validate(final UploadEvent event) {
+    private static void validate(final UploadEvent event, final Options options) {
         if (event == null || event.fileId <= 0 || event.name == null || event.name.isEmpty()
                 || event.name.indexOf('/') >= 0 || event.name.indexOf('\\') >= 0
                 || event.name.indexOf('\0') >= 0 || event.size < 0
-                || event.size > UploadProtocol.MAX_FILE_SIZE) {
+                || event.size > options.getMaxFileSize()) {
             throw new IllegalArgumentException("Invalid upload metadata");
         }
-        final int expectedChunks = Math.max(
-            1,
-            (event.size + UploadProtocol.CHUNK_SIZE - 1) / UploadProtocol.CHUNK_SIZE
+        final int expectedChunks = (int) Math.max(
+            1L,
+            ((long) event.size + options.getChunkSize() - 1L) / options.getChunkSize()
         );
         if (event.totalChunks != expectedChunks) {
             throw new IllegalArgumentException("Invalid upload chunk count");

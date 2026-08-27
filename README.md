@@ -93,9 +93,9 @@ Additional runnable examples are available in
 
 ### Server and HTTPS configuration
 
-`Options` exposes the listener port, bind address, worker count, and immutable HTTPS settings.
-Request limits and timeouts are an internal framework profile sized for short XMLHttpRequest
-exchanges and 4 KiB upload chunks. For example, a server intended to sit behind a local reverse
+`Options` exposes the listener port, bind address, worker count, immutable HTTPS settings, and
+file-upload limits. Request limits and timeouts remain an internal framework profile sized for
+short XMLHttpRequest exchanges. For example, a server intended to sit behind a local reverse
 proxy can bind only to loopback:
 
 ```java
@@ -131,17 +131,19 @@ for clearing its original password array after the TLS options have been built.
 ### File uploads
 
 `FileLoader` reports every selected file through `onSelect` immediately, with its loading model at
-zero percent. The browser retains the original `File` and sends 4 KiB `Blob.slice()` values as
-binary multipart parts; file contents are never expanded into Base16 or read into one browser-side
-buffer.
+zero percent. The browser retains the original `File` and sends 64 KiB `Blob.slice()` values as
+binary multipart parts by default; file contents are never expanded into Base16 or read into one
+browser-side buffer. The chunk and complete-file limits have one server-side source of truth and
+can be changed with `Options.Builder.setChunkSize(...)` and `setMaxFileSize(...)`; the selected
+values are injected into the browser bootstrap automatically.
 
 Up to five files are active across one browser tab. Their chunks are sent round-robin, while later
 files remain queued with zero progress. Every response acknowledges the first chunk still missing
 on the server. A request or response lost in transit therefore causes the same chunk to be retried;
 repeated chunks are verified and handled idempotently. Successful chunk responses also carry
 pending widget updates and acknowledge the last update applied by the browser, so upload progress
-is rendered immediately instead of waiting for the periodic synchronization cycle. The current
-in-memory `UploadedFile` API limits one complete file to 128 MiB.
+is rendered immediately instead of waiting for the periodic synchronization cycle. The default
+in-memory complete-file limit is 128 MiB.
 
 ## Documentation
 

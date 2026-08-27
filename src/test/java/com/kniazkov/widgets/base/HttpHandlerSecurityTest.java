@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets.base;
 
-import com.kniazkov.widgets.common.UploadProtocol;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -84,7 +83,7 @@ public class HttpHandlerSecurityTest {
      */
     @Test
     public void pageParametersCannotBreakOutOfTheBootstrapScript() throws Exception {
-        this.start(this.folder.newFolder("www"));
+        final Options options = this.start(this.folder.newFolder("www"));
         final String payload = "</script><script>window.__widgetsXss=true</script>";
         final String target = "/page?payload="
             + URLEncoder.encode(payload, StandardCharsets.UTF_8);
@@ -94,8 +93,8 @@ public class HttpHandlerSecurityTest {
         assertTrue(response.startsWith("HTTP/1.1 200"));
         assertFalse("A query parameter produced executable markup", response.contains(payload));
         assertTrue(response.contains(
-            "configureUploadProtocol(" + UploadProtocol.CHUNK_SIZE + ", "
-                + UploadProtocol.MAX_FILE_SIZE + ")"
+            "configureUploadProtocol(" + options.getChunkSize() + ", "
+                + options.getMaxFileSize() + ")"
         ));
     }
 
@@ -118,9 +117,9 @@ public class HttpHandlerSecurityTest {
      */
     @Test
     public void uploadSizedMultipartRequestIsAccepted() throws Exception {
-        this.start(this.folder.newFolder("www"));
+        final Options options = this.start(this.folder.newFolder("www"));
         final String boundary = "widgets-test-boundary";
-        final byte[] chunk = new byte[UploadProtocol.CHUNK_SIZE];
+        final byte[] chunk = new byte[options.getChunkSize()];
         for (int index = 0; index < chunk.length; index++) {
             chunk[index] = (byte) index;
         }
@@ -153,16 +152,19 @@ public class HttpHandlerSecurityTest {
     /**
      * Starts the framework on an ephemeral loopback port.
      */
-    private void start(final File root) {
+    private Options start(final File root) {
         final Options options = new Options.Builder()
             .setPort(0)
             .setBindAddress(InetAddress.getLoopbackAddress())
             .setWwwRoot(root.getAbsolutePath())
+            .setChunkSize(4 * 1024)
+            .setMaxFileSize(32 * 1024 * 1024)
             .build();
         final Page page = (widget, context) -> { };
         final Application application = BaseTestSupport.application(page);
         application.addPage("page", page);
         this.server = Server.start(application, options);
+        return options;
     }
 
     /**

@@ -6,19 +6,9 @@ package com.kniazkov.widgets.common;
 import com.kniazkov.json.JsonObject;
 
 /**
- * Shared constants and immutable-by-convention values for the file-upload protocol.
+ * Shared immutable-by-convention values for the file-upload protocol.
  */
 public final class UploadProtocol {
-    /**
-     * Binary chunk size selected by the server and injected into the browser bootstrap.
-     */
-    public static final int CHUNK_SIZE = 4 * 1024;
-
-    /**
-     * Maximum complete file size supported by the in-memory public API.
-     */
-    public static final int MAX_FILE_SIZE = 128 * 1024 * 1024;
-
     /**
      * Standard negative acknowledgement. Framework code must never mutate this object.
      */

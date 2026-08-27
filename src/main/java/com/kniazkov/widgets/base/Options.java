@@ -33,6 +33,16 @@ public final class Options {
     private static final int DEFAULT_MAX_WORKERS = 100;
 
     /**
+     * Default binary upload chunk size.
+     */
+    private static final int DEFAULT_CHUNK_SIZE = 64 * 1024;
+
+    /**
+     * Default maximum size of one complete uploaded file.
+     */
+    private static final int DEFAULT_MAX_FILE_SIZE = 128 * 1024 * 1024;
+
+    /**
      * Maximum lifetime of an inactive browser client, in milliseconds.
      */
     private final long clientLifetime;
@@ -63,6 +73,16 @@ public final class Options {
     private final SslOptions sslOptions;
 
     /**
+     * Binary upload chunk size.
+     */
+    private final int chunkSize;
+
+    /**
+     * Maximum size of one complete uploaded file.
+     */
+    private final int maxFileSize;
+
+    /**
      * Whether browser and server debug logging is enabled.
      */
     private final boolean debug;
@@ -79,6 +99,8 @@ public final class Options {
         this.bindAddress = builder.bindAddress;
         this.maxWorkers = builder.maxWorkers;
         this.sslOptions = builder.sslOptions;
+        this.chunkSize = builder.chunkSize;
+        this.maxFileSize = builder.maxFileSize;
         this.debug = builder.debug;
     }
 
@@ -137,6 +159,24 @@ public final class Options {
     }
 
     /**
+     * Returns the binary upload chunk size.
+     *
+     * @return chunk size in bytes
+     */
+    public int getChunkSize() {
+        return this.chunkSize;
+    }
+
+    /**
+     * Returns the maximum size of one complete uploaded file.
+     *
+     * @return file size limit in bytes
+     */
+    public int getMaxFileSize() {
+        return this.maxFileSize;
+    }
+
+    /**
      * Returns whether browser and server debug logging is enabled.
      *
      * @return debug flag
@@ -178,6 +218,16 @@ public final class Options {
          * HTTPS configuration.
          */
         private SslOptions sslOptions;
+
+        /**
+         * Binary upload chunk size.
+         */
+        private int chunkSize = DEFAULT_CHUNK_SIZE;
+
+        /**
+         * Maximum size of one complete uploaded file.
+         */
+        private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
 
         /**
          * Whether browser and server debug logging is enabled.
@@ -272,6 +322,39 @@ public final class Options {
                 value,
                 "SSL options must not be null"
             );
+            return this;
+        }
+
+        /**
+         * Sets the binary upload chunk size.
+         *
+         * @param value positive chunk size in bytes
+         * @return this builder
+         */
+        public Builder setChunkSize(final int value) {
+            if (value < 1) {
+                throw new IllegalArgumentException("Upload chunk size must be positive");
+            }
+            if (value > WebServerDefaults.MAX_FILE_SIZE) {
+                throw new IllegalArgumentException(
+                    "Upload chunk size exceeds the HTTP multipart limit"
+                );
+            }
+            this.chunkSize = value;
+            return this;
+        }
+
+        /**
+         * Sets the maximum size of one complete uploaded file.
+         *
+         * @param value non-negative file size limit in bytes
+         * @return this builder
+         */
+        public Builder setMaxFileSize(final int value) {
+            if (value < 0) {
+                throw new IllegalArgumentException("Maximum upload file size must not be negative");
+            }
+            this.maxFileSize = value;
             return this;
         }
 

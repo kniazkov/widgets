@@ -104,7 +104,7 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
 
     await retrySeen;
     await expect(page.getByText("Selected first.bin 0%", { exact: true })).toBeVisible();
-    await expect(page.getByText("Selected second.bin 5%", { exact: true })).toBeVisible();
+    await expect(page.getByText("Selected second.bin 50%", { exact: true })).toBeVisible();
     expect(chunks[2].lastUpdate).not.toBe(chunks[1].lastUpdate);
     blockSynchronize = false;
     releaseRetry();

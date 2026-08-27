@@ -60,8 +60,17 @@ public final class Client implements Comparable<Client> {
      * A new {@link RootWidget} is created and associated with this client.
      */
     Client() {
+        this(new Options.Builder().build());
+    }
+
+    /**
+     * Constructs a new client using the supplied immutable application options.
+     *
+     * @param options application options shared by the client widget tree
+     */
+    Client(final Options options) {
         this.id = RMId.create();
-        this.root = new RootWidget();
+        this.root = new RootWidget(options);
         this.updates = new TreeSet<>();
     }
 

@@ -146,11 +146,11 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 .replace("{data}", escapeInlineScriptData(obj.toString()))
                                 .replace(
                                     "__UPLOAD_CHUNK_SIZE__",
-                                    Integer.toString(UploadProtocol.CHUNK_SIZE)
+                                    Integer.toString(this.options.getChunkSize())
                                 )
                                 .replace(
                                     "__MAX_UPLOAD_FILE_SIZE__",
-                                    Integer.toString(UploadProtocol.MAX_FILE_SIZE)
+                                    Integer.toString(this.options.getMaxFileSize())
                                 );
                         }
                         if (removeLogs) {
@@ -208,7 +208,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             return UploadProtocol.rejected();
         }
         final UploadedFile chunk = files.get(0);
-        if (chunk.getSize() > UploadProtocol.CHUNK_SIZE) {
+        if (chunk.getSize() > this.options.getChunkSize()) {
             return UploadProtocol.rejected();
         }
         final String client = parameters.get("client");
