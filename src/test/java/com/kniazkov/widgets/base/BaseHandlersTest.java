@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets.base;
 
-import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
 import java.util.Collections;
@@ -43,6 +42,10 @@ public class BaseHandlersTest {
         final RMId clientId = RMId.parse(response.get("id").getStringValue());
 
         assertTrue(clientId.isValid());
+        assertEquals(
+            application.getServerId(),
+            UUID.fromString(response.get("serverId").getStringValue())
+        );
         assertNotNull(captured.get());
         assertEquals(browserId, captured.get().browserId);
         assertTrue(captured.get().mobile);
@@ -66,11 +69,36 @@ public class BaseHandlersTest {
             "client", clientId.toString()
         );
 
-        final JsonElement response = new Synchronize(application).process(request);
+        final JsonObject response = new Synchronize(application).process(request).toJsonObject();
 
         assertTrue(
             "A live client was synchronized, but the protocol still returned result=false",
-            response.toJsonObject().get("result").getBooleanValue()
+            response.get("result").getBooleanValue()
+        );
+        assertTrue(response.get("clientAlive").getBooleanValue());
+        assertEquals(
+            application.getServerId(),
+            UUID.fromString(response.get("serverId").getStringValue())
+        );
+    }
+
+    /**
+     * Synchronization must identify a client that the server no longer owns.
+     */
+    @Test
+    public void synchronizeReportsThatTheClientIsDead() {
+        final Application application = BaseTestSupport.application((root, context) -> { });
+        final Map<String, String> request = Collections.singletonMap(
+            "client", RMId.create().toString()
+        );
+
+        final JsonObject response = new Synchronize(application).process(request).toJsonObject();
+
+        assertFalse(response.get("result").getBooleanValue());
+        assertFalse(response.get("clientAlive").getBooleanValue());
+        assertEquals(
+            application.getServerId(),
+            UUID.fromString(response.get("serverId").getStringValue())
         );
     }
 }

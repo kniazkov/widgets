@@ -4,14 +4,67 @@
 
 // Connection state is shared by the classic scripts loaded for one browser tab.
 let clientId = null;
+let serverId = null;
 let browserId = null;
 const period = 2500;
 let mainCycleTask = null;
+const maxConsecutiveRequestFailures = 3;
+const connectionOverlayId = "connection-terminated-overlay";
+let consecutiveRequestFailures = 0;
+let reloadRequested = false;
 
 // Events stay in this queue until the server acknowledges their monotonically increasing IDs.
 const events = [];
 let lastEventId = 0;
 let lastProcessedUpdateId = 0;
+
+// A persistent transport failure blocks interaction without discarding the current page state.
+function showConnectionTerminated() {
+    if (document.getElementById(connectionOverlayId)) {
+        return;
+    }
+    const overlay = document.createElement("div");
+    overlay.id = connectionOverlayId;
+    overlay.textContent = "Connection terminated";
+    (document.body || document.documentElement).appendChild(overlay);
+}
+
+function hideConnectionTerminated() {
+    const overlay = document.getElementById(connectionOverlayId);
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+function recordRequestFailure() {
+    consecutiveRequestFailures++;
+    if (consecutiveRequestFailures >= maxConsecutiveRequestFailures) {
+        showConnectionTerminated();
+    }
+}
+
+function recordRequestSuccess() {
+    consecutiveRequestFailures = 0;
+    hideConnectionTerminated();
+}
+
+// Reloading the current location preserves both the page path and its query parameters.
+function reloadCurrentPage() {
+    if (reloadRequested) {
+        return;
+    }
+    reloadRequested = true;
+    clearInterval(mainCycleTask);
+    window.location.reload();
+}
+
+function serverStateIsCurrent(response) {
+    if (response.serverId !== serverId || response.clientAlive !== true) {
+        reloadCurrentPage();
+        return false;
+    }
+    return true;
+}
 
 // IDs travel over the wire as "#<number>" strings.
 function parseId(str) {
@@ -49,8 +102,24 @@ function startClient(address, data) {
     request.browserId = browserId;
     request.mobile = isMobileDevice();
     sendRequest(request, function (data) {
-        const json = JSON.parse(data);
+        if (!data) {
+            recordRequestFailure();
+            return;
+        }
+        let json;
+        try {
+            json = JSON.parse(data);
+        } catch (error) {
+            recordRequestFailure();
+            return;
+        }
+        if (typeof json.id !== "string" || typeof json.serverId !== "string") {
+            recordRequestFailure();
+            return;
+        }
+        recordRequestSuccess();
         clientId = json.id;
+        serverId = json.serverId;
         log("Client created, id: " + clientId + ".");
         mainCycleTask = setInterval(mainCycle, period);
         mainCycle();
@@ -130,12 +199,29 @@ function sendSynchronizeRequest(callback) {
         function (data) {
             if (!data) {
                 log("Network error.");
+                recordRequestFailure();
                 if (callback) {
                     callback(false);
                 }
                 return;
             }
-            const json = JSON.parse(data);
+            let json;
+            try {
+                json = JSON.parse(data);
+            } catch (error) {
+                recordRequestFailure();
+                if (callback) {
+                    callback(false);
+                }
+                return;
+            }
+            recordRequestSuccess();
+            if (!serverStateIsCurrent(json)) {
+                if (callback) {
+                    callback(false);
+                }
+                return;
+            }
             processUpdates(json.updates);
             removeProcessedEvents(json.lastEvent);
             if (callback) {
