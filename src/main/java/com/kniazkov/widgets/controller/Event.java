@@ -56,7 +56,9 @@ public abstract class Event<T> {
      * @param data the parsed event payload
      */
     public void updateWidget(final Widget<?> widget, final T data) {
-        // do nothing for default
+        /*
+         * do nothing for default
+         */
     }
 
     @Override

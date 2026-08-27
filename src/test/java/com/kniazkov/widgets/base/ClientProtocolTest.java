@@ -30,9 +30,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-/** Tests the event and update protocol implemented by {@link Client}. */
+/**
+ * Tests the event and update protocol implemented by {@link Client}.
+ */
 public class ClientProtocolTest {
-    /** Events are dispatched at most once and the last event is reported to the browser. */
+    /**
+     * Events are dispatched at most once and the last event is reported to the browser.
+     */
     @Test
     public void dispatchesAnEventOnlyOnce() {
         final Client client = new Client();
@@ -55,7 +59,9 @@ public class ClientProtocolTest {
         assertEquals(eventId.toString(), second.get("lastEvent").getStringValue());
     }
 
-    /** Acknowledged protocol updates are removed from subsequent responses. */
+    /**
+     * Acknowledged protocol updates are removed from subsequent responses.
+     */
     @Test
     public void removesAcknowledgedUpdates() {
         final Client client = new Client();
@@ -72,7 +78,9 @@ public class ClientProtocolTest {
         assertTrue(second.get("updates").toJsonArray().isEmpty());
     }
 
-    /** Malformed external events must not escape the protocol boundary as runtime failures. */
+    /**
+     * Malformed external events must not escape the protocol boundary as runtime failures.
+     */
     @Test
     public void malformedEventDoesNotCrashSynchronization() {
         final Client client = new Client();
@@ -88,7 +96,9 @@ public class ClientProtocolTest {
         }
     }
 
-    /** A model callback may not corrupt a widget queue while that queue is being drained. */
+    /**
+     * A model callback may not corrupt a widget queue while that queue is being drained.
+     */
     @Test(timeout = 5000)
     public void backgroundModelUpdateIsSafeWhileClientCollectsUpdates() throws Exception {
         final Client client = new Client();
@@ -119,14 +129,41 @@ public class ClientProtocolTest {
         }
     }
 
-    /** Set that pauses while the target widget's update list is being iterated. */
+    /**
+     * Set that pauses while the target widget's update list is being iterated.
+     */
+    @SuppressWarnings("serial")
     private static final class BlockingUpdateSet extends TreeSet<Update> {
+        /**
+         * Collection whose drain operation is intercepted.
+         */
         private final Collection<Update> target;
+
+        /**
+         * Signals that draining reached the blocking point.
+         */
         private final CountDownLatch draining = new CountDownLatch(1);
+
+        /**
+         * Releases the blocked drain operation.
+         */
         private final CountDownLatch proceed = new CountDownLatch(1);
+
+        /**
+         * Ensures the drain is paused only once.
+         */
         private final AtomicBoolean paused = new AtomicBoolean();
+
+        /**
+         * Whether the target collection is currently being added.
+         */
         private boolean targetCall;
 
+        /**
+         * Creates a set that blocks while the target collection is drained.
+         *
+         * @param target collection to intercept
+         */
         BlockingUpdateSet(final Collection<Update> target) {
             this.target = target;
         }
@@ -158,10 +195,19 @@ public class ClientProtocolTest {
             return super.add(update);
         }
 
+        /**
+         * Waits until the drain operation reaches the blocking point.
+         *
+         * @return whether the drain arrived before the timeout
+         * @throws InterruptedException if the waiting thread is interrupted
+         */
         boolean awaitDrain() throws InterruptedException {
             return this.draining.await(2, TimeUnit.SECONDS);
         }
 
+        /**
+         * Releases the blocked drain operation.
+         */
         void continueDrain() {
             this.proceed.countDown();
         }

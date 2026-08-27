@@ -13,8 +13,7 @@ import java.util.Set;
  * Style definition for {@link Cell}.
  */
 public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasPadding, HasVerticalAlignment
-{
+        HasPadding, HasVerticalAlignment {
     /**
      * Set of supported states.
      */

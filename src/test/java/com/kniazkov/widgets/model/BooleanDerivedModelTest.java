@@ -17,6 +17,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for boolean models derived from other models.
  */
 public final class BooleanDerivedModelTest {
+    /**
+     * Verifies the invertedModelTransformsReadsWritesValidityAndUpdates behavior.
+     */
     @Test
     public void invertedModelTransformsReadsWritesValidityAndUpdates() {
         final MutableTestModel<Boolean> base = new MutableTestModel<>(true, false);
@@ -38,6 +41,9 @@ public final class BooleanDerivedModelTest {
         inverted.removeListener(listener);
     }
 
+    /**
+     * Verifies the conjunctionCombinesValuesAndRequiresEveryModelToBeValid behavior.
+     */
     @Test
     public void conjunctionCombinesValuesAndRequiresEveryModelToBeValid() {
         final MutableTestModel<Boolean> first = new MutableTestModel<>(true);
@@ -60,6 +66,9 @@ public final class BooleanDerivedModelTest {
         conjunction.removeListener(listener);
     }
 
+    /**
+     * Verifies the emptyConjunctionUsesLogicalIdentity behavior.
+     */
     @Test
     public void emptyConjunctionUsesLogicalIdentity() {
         final Model<Boolean> conjunction = new ConjunctionModel();
@@ -68,6 +77,9 @@ public final class BooleanDerivedModelTest {
         assertTrue(conjunction.isValid());
     }
 
+    /**
+     * Verifies the disjunctionCombinesValuesAndAcceptsAnyValidModel behavior.
+     */
     @Test
     public void disjunctionCombinesValuesAndAcceptsAnyValidModel() {
         final MutableTestModel<Boolean> first = new MutableTestModel<>(false, false);
@@ -89,6 +101,9 @@ public final class BooleanDerivedModelTest {
         disjunction.removeListener(listener);
     }
 
+    /**
+     * Verifies the emptyDisjunctionUsesLogicalIdentity behavior.
+     */
     @Test
     public void emptyDisjunctionUsesLogicalIdentity() {
         final Model<Boolean> disjunction = new DisjunctionModel();
@@ -97,6 +112,9 @@ public final class BooleanDerivedModelTest {
         assertFalse(disjunction.isValid());
     }
 
+    /**
+     * Verifies the validFlagReflectsValidityAndRemainsReadOnly behavior.
+     */
     @Test
     public void validFlagReflectsValidityAndRemainsReadOnly() {
         final MutableTestModel<String> base = new MutableTestModel<>("value", false);
@@ -117,6 +135,9 @@ public final class BooleanDerivedModelTest {
         validFlag.removeListener(listener);
     }
 
+    /**
+     * Verifies the predicateNotifiesOnlyWhenDerivedValueChanges behavior.
+     */
     @Test
     public void predicateNotifiesOnlyWhenDerivedValueChanges() {
         final MutableTestModel<String> base = new MutableTestModel<>("a");

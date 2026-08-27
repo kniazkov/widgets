@@ -14,8 +14,7 @@ import java.util.Optional;
  * Represents a table row widget that contains {@link Cell} widgets.
  */
 public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
-        HasBgColor, HandlesPointerEvents
-{
+        HasBgColor, HandlesPointerEvents {
     /**
      * Returns the default style instance used by table rows.
      *
@@ -61,7 +60,11 @@ public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
      * @param style the style to apply to this row
      * @param children the initial cells, in display order
      */
+    @SuppressWarnings("this-escape")
     public Row(final RowStyle style, final Cell... children) {
+        /*
+         * Construction attaches the initial cells before this instance is published.
+         */
         super(style);
         for (final Cell child : children) {
             this.appendChild(child);

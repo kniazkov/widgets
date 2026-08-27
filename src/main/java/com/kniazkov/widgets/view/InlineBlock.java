@@ -25,8 +25,7 @@ import java.util.List;
  */
 public class InlineBlock extends InlineWidget<InlineBlockStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
-        HandlesPointerEvents
-{
+        HandlesPointerEvents {
     /**
      * Returns the default style instance used by inline blocks.
      *
@@ -72,7 +71,11 @@ public class InlineBlock extends InlineWidget<InlineBlockStyle> implements Block
      * @param style the block style to use
      * @param children the initial child widgets, in display order
      */
+    @SuppressWarnings("this-escape")
     public InlineBlock(final InlineBlockStyle style, final BlockWidget<?>... children) {
+        /*
+         * Construction attaches the initial children before this instance is published.
+         */
         super(style);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);

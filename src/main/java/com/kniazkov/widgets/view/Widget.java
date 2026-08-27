@@ -69,11 +69,15 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      */
     private final Map<Event<?>, Controller<?>> controllers;
 
+    /*
+     * The protocol requires the concrete widget type before the first update is queued.
+     */
     /**
      * Creates a new widget instance initialized from the specified {@link Style}.
      *
      * @param style the style providing the initial models and properties for this widget
      */
+    @SuppressWarnings("this-escape")
     public Widget(final S style) {
         this.id = RMId.create();
         this.style = style;
@@ -127,7 +131,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
             return stub;
         } else {
             @SuppressWarnings("unchecked")
-            Controller<T> typed = (Controller<T>)ctrl;
+            Controller<T> typed = (Controller<T>) ctrl;
             return typed;
         }
     }
@@ -217,10 +221,10 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      *  is not in the widget tree and, accordingly, the root widget is not accessible
      */
     public Optional<RootWidget> getRootWidget() {
-        if (!(this.parent instanceof Widget)) {
+        if (!(this.parent instanceof Widget<?> parentWidget)) {
             return Optional.empty();
         }
-        return ((Widget) this.parent).getRootWidget();
+        return parentWidget.getRootWidget();
     }
 
     /**
@@ -277,7 +281,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
         }
         Set<Update> pending = new TreeSet<>();
         if (this instanceof Container) {
-            for (final Widget child : (Container)this) {
+            for (final Widget<?> child : (Container) this) {
                 child.getUpdates(pending);
             }
         } else {
@@ -306,8 +310,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
             final Binding<?> binding = subset.get(property);
             if (binding == null) {
                 subset.put(property, property.bindModel(state, fork, this));
-            }
-            else {
+            } else {
                 property.rebindModel(binding, fork);
             }
         });

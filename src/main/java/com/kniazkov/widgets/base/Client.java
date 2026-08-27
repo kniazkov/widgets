@@ -137,7 +137,9 @@ public final class Client implements Comparable<Client> {
             }
             for (JsonElement item : events) {
                 final JsonObject event = item.toJsonObject();
-                if (event == null) continue;
+                if (event == null) {
+                    continue;
+                }
                 handleEventObject(event, map.get(getEventWidgetId(event)));
             }
 
@@ -234,7 +236,9 @@ public final class Client implements Comparable<Client> {
      * Cleans up client state before destruction.
      */
     void destroy() {
-        // nothing for now
+        /*
+         * nothing for now
+         */
     }
 
     /**

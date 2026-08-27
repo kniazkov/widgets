@@ -46,7 +46,9 @@ public class CustomModel {
 
             outputSection.add(new TextWidget("You entered: '"));
             final TextWidget echoText = new TextWidget();
-            //echoText.setFontWeight(FontWeight.BOLD);
+            /*
+             * echoText.setFontWeight(FontWeight.BOLD);
+             */
             echoText.setTextModel(new MyModel(inputField.getTextModel()));
             outputSection.add(echoText);
             outputSection.add(new TextWidget("'"));
@@ -62,8 +64,16 @@ public class CustomModel {
      * transforming it to uppercase and reversed.
      */
     static class MyModel extends ReadOnlyModel<String> {
+        /**
+         * Source model whose value is transformed.
+         */
         private final Model<String> source;
 
+        /**
+         * Creates a transformed view of the source model.
+         *
+         * @param source source text model
+         */
         MyModel(final Model<String> source) {
             this.source = source;
             source.addListener(data -> this.notifyListeners());

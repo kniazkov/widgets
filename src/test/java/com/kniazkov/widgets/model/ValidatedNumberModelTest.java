@@ -18,6 +18,9 @@ import static org.junit.Assert.assertTrue;
  * Tests for validated integer and real-number models.
  */
 public final class ValidatedNumberModelTest {
+    /**
+     * Verifies the validatesIntegerBoundaries behavior.
+     */
     @Test
     public void validatesIntegerBoundaries() {
         assertFalse(new ValidatedIntegerModel(-1,
@@ -30,6 +33,9 @@ public final class ValidatedNumberModelTest {
             ValidatedIntegerModel.POSITIVE).isValid());
     }
 
+    /**
+     * Verifies the validatesRealNumberBoundaries behavior.
+     */
     @Test
     public void validatesRealNumberBoundaries() {
         assertFalse(new ValidatedRealNumberModel(-0.1,
@@ -48,6 +54,9 @@ public final class ValidatedNumberModelTest {
             ValidatedRealNumberModel.UNIT_INTERVAL).isValid());
     }
 
+    /**
+     * Verifies the usesCriterionToValidateDefaultValue behavior.
+     */
     @Test
     public void usesCriterionToValidateDefaultValue() {
         assertTrue(new ValidatedIntegerModel(
@@ -60,6 +69,9 @@ public final class ValidatedNumberModelTest {
             ValidatedRealNumberModel.POSITIVE).isValid());
     }
 
+    /**
+     * Verifies the derivedModelsPreserveCustomCriteria behavior.
+     */
     @Test
     public void derivedModelsPreserveCustomCriteria() {
         final ValidatedIntegerModel integers = new ValidatedIntegerModel(2,
@@ -78,6 +90,9 @@ public final class ValidatedNumberModelTest {
         assertFalse(derivedReals.isValid());
     }
 
+    /**
+     * Verifies the notifiesListenersWhenValidatedValuesChange behavior.
+     */
     @Test
     public void notifiesListenersWhenValidatedValuesChange() {
         final ValidatedIntegerModel integers = new ValidatedIntegerModel(1,

@@ -134,6 +134,9 @@ for clearing its original password array after the TLS options have been built.
   validation, composition, and synchronization behavior.
 - [Widget catalog and hierarchy](docs/WIDGETS.md) — every widget class, its inheritance,
   containment rules, and related view types.
+- [Contribution guide](CONTRIBUTING.md) — development workflow and the checks required for a
+  pull request.
+- [Code style](CODE_STYLE.md) — Java and JavaScript conventions enforced by the build.
 
 ## Project layout
 
@@ -162,16 +165,16 @@ Development requires:
 
 ### Java
 
-Run the Java build:
+Compile the project, run unit tests, build artifacts, generate Javadocs, and check Java code style:
 
 ```bash
-mvn clean package
+mvn verify
 ```
 
-To install a development build locally without signing it:
+Signing is enabled only by the `release` profile. To install a development build locally:
 
 ```bash
-mvn clean install -Dgpg.skip=true
+mvn clean install
 ```
 
 ### Fast JavaScript tests
@@ -254,6 +257,18 @@ fails. Separate `.sh` and `.bat` files are therefore not required.
 
 GitHub Actions performs the same browser test on Linux after installing Chromium and its system
 dependencies.
+
+## Contributing
+
+Before opening a pull request, run the complete Java and browser gates:
+
+```bash
+mvn verify
+npm run test:browser
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
+[CODE_STYLE.md](CODE_STYLE.md) for the conventions enforced by those commands.
 
 ## License
 

@@ -29,13 +29,20 @@ public class DisjunctionModel extends ReadOnlyModel<Boolean> implements Listener
      */
     private final List<Model<Boolean>> list;
 
+    /*
+     * The varargs array is only read while constructing an independent list view.
+     */
     /**
      * Creates a new disjunction model that computes the logical OR of the
      * specified boolean-based models.
      *
      * @param base the models whose boolean values are combined
      */
+    @SuppressWarnings("this-escape")
     public DisjunctionModel(final List<Model<Boolean>> base) {
+        /*
+         * Construction registers the derived model before it is returned to the caller.
+         */
         this.list = base;
 
         for (final Model<Boolean> model : this.list) {
@@ -50,6 +57,7 @@ public class DisjunctionModel extends ReadOnlyModel<Boolean> implements Listener
      * @param base the models whose boolean values are combined
      */
     @SafeVarargs
+    @SuppressWarnings("varargs")
     public DisjunctionModel(final Model<Boolean>... base) {
         this(Arrays.asList(base));
     }

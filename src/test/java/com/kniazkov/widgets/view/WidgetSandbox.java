@@ -19,10 +19,14 @@ import java.util.TreeSet;
  * @param <W> subject widget type
  */
 final class WidgetSandbox<W extends Widget<?>> {
-    /** Root of the isolated widget tree. */
+    /**
+     * Root of the isolated widget tree.
+     */
     private final RootWidget root;
 
-    /** Widget under test. */
+    /**
+     * Widget under test.
+     */
     private final W subject;
 
     /**
@@ -89,7 +93,9 @@ final class WidgetSandbox<W extends Widget<?>> {
         return result;
     }
 
-    /** Clears all queued setup updates. */
+    /**
+     * Clears all queued setup updates.
+     */
     void clearUpdates() {
         this.drainUpdates();
     }

@@ -60,13 +60,17 @@ public class TextWidgetStyles {
      */
     public static void main(final String[] args) {
         final Page page = (root, parameters) -> {
-            // Section 1: text with default style
+            /*
+             * Section 1: text with default style
+             */
             Section section = new Section();
             root.add(section);
             TextWidget widget = new TextWidget("Default style");
             section.add(widget);
 
-            // Section 2: derived color style
+            /*
+             * Section 2: derived color style
+             */
             section = new Section();
             root.add(section);
             final TextWidgetStyle firstStyle = TextWidget.getDefaultStyle().derive();
@@ -84,18 +88,24 @@ public class TextWidgetStyles {
             widget.setStyle(secondStyle);
             section.add(widget);
 
-            // Section 3: interactive style changes
+            /*
+             * Section 3: interactive style changes
+             */
             section = new Section();
             root.add(section);
 
-            // Button 1: modifies the global default style
+            /*
+             * Button 1: modifies the global default style
+             */
             Button button = new Button("Change default style");
             section.add(button);
             button.onClick(data -> {
                 TextWidget.getDefaultStyle().setColor(Color.ORANGE);
             });
 
-            // Button 2: toggles a local derived style between red and green
+            /*
+             * Button 2: toggles a local derived style between red and green
+             */
             final AtomicBoolean flag = new AtomicBoolean();
             button = new Button("Color toggle");
             section.add(button);

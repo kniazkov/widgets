@@ -14,8 +14,7 @@ import java.util.TreeMap;
  * Represents a table widget that contains {@link Row} widgets.
  */
 public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row>,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing
-{
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing {
     /**
      * Returns the default style instance used by tables.
      *
@@ -77,7 +76,11 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
      * @param style the table style to use
      * @param children the initial rows, in display order
      */
+    @SuppressWarnings("this-escape")
     public Table(final TableStyle style, final Row... children) {
+        /*
+         * Construction attaches the initial rows before this instance is published.
+         */
         super(style);
         for (final Row child : children) {
             this.appendChild(child);

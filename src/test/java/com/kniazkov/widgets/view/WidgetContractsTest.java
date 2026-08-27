@@ -9,8 +9,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-/** Tests the common creation contract of every concrete widget. */
+/**
+ * Tests the common creation contract of every concrete widget.
+ */
 public final class WidgetContractsTest {
+    /**
+     * Verifies the createsEveryConcreteWidgetInIsolation behavior.
+     */
     @Test
     public void createsEveryConcreteWidgetInIsolation() {
         final Object[][] cases = {
@@ -48,6 +53,9 @@ public final class WidgetContractsTest {
         }
     }
 
+    /**
+     * Verifies the rejectsPropertiesForUnsupportedStates behavior.
+     */
     @Test
     public void rejectsPropertiesForUnsupportedStates() {
         final TextWidget widget = new TextWidget();

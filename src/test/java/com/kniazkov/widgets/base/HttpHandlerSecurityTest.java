@@ -18,16 +18,24 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/** Reproduces security failures at the real HTTP boundary. */
+/**
+ * Reproduces security failures at the real HTTP boundary.
+ */
 public class HttpHandlerSecurityTest {
-    /** Temporary static-file hierarchy. */
+    /**
+     * Temporary static-file hierarchy.
+     */
     @Rule
     public final TemporaryFolder folder = new TemporaryFolder();
 
-    /** Running server for the current test. */
+    /**
+     * Running server for the current test.
+     */
     private com.kniazkov.webserver.Server server;
 
-    /** Stops the Java 21 server, whose accept loop deliberately keeps the JVM alive. */
+    /**
+     * Stops the Java 21 server, whose accept loop deliberately keeps the JVM alive.
+     */
     @After
     public void stopServer() throws Exception {
         if (this.server != null) {
@@ -35,7 +43,9 @@ public class HttpHandlerSecurityTest {
         }
     }
 
-    /** Static-file requests may not escape the configured public directory. */
+    /**
+     * Static-file requests may not escape the configured public directory.
+     */
     @Test
     public void staticFileRequestCannotTraverseOutsideWwwRoot() throws Exception {
         final File root = this.folder.newFolder("www");
@@ -52,7 +62,9 @@ public class HttpHandlerSecurityTest {
         );
     }
 
-    /** Compiled classes and arbitrary classpath resources must not become public static files. */
+    /**
+     * Compiled classes and arbitrary classpath resources must not become public static files.
+     */
     @Test
     public void classpathClassIsNotServedAsAStaticResource() throws Exception {
         this.start(this.folder.newFolder("www"));
@@ -66,7 +78,9 @@ public class HttpHandlerSecurityTest {
         assertTrue(response.startsWith("HTTP/1.1 404"));
     }
 
-    /** Page parameters embedded in an inline script must not be able to end that script. */
+    /**
+     * Page parameters embedded in an inline script must not be able to end that script.
+     */
     @Test
     public void pageParametersCannotBreakOutOfTheBootstrapScript() throws Exception {
         this.start(this.folder.newFolder("www"));
@@ -80,7 +94,9 @@ public class HttpHandlerSecurityTest {
         assertFalse("A query parameter produced executable markup", response.contains(payload));
     }
 
-    /** Missing external fields must produce JSON instead of crashing a request worker. */
+    /**
+     * Missing external fields must produce JSON instead of crashing a request worker.
+     */
     @Test
     public void malformedCreateClientRequestDoesNotCrashTheHandler() throws Exception {
         this.start(this.folder.newFolder("www"));
@@ -92,7 +108,9 @@ public class HttpHandlerSecurityTest {
         assertTrue(response.contains("Invalid new instance request"));
     }
 
-    /** A Base16-encoded 64 KiB upload chunk must fit the fixed XMLHttpRequest profile. */
+    /**
+     * A Base16-encoded 64 KiB upload chunk must fit the fixed XMLHttpRequest profile.
+     */
     @Test
     public void uploadSizedMultipartRequestIsAccepted() throws Exception {
         this.start(this.folder.newFolder("www"));
@@ -115,7 +133,9 @@ public class HttpHandlerSecurityTest {
         assertTrue(response.contains("\"id\""));
     }
 
-    /** Starts the framework on an ephemeral loopback port. */
+    /**
+     * Starts the framework on an ephemeral loopback port.
+     */
     private void start(final File root) {
         final Options options = new Options.Builder()
             .setPort(0)
@@ -128,7 +148,9 @@ public class HttpHandlerSecurityTest {
         this.server = Server.start(application, options);
     }
 
-    /** Sends one connection-closing HTTP request and returns its complete response. */
+    /**
+     * Sends one connection-closing HTTP request and returns its complete response.
+     */
     private String request(final String method, final String target, final String body)
             throws Exception {
         return this.request(
@@ -139,7 +161,9 @@ public class HttpHandlerSecurityTest {
         );
     }
 
-    /** Sends one HTTP request with an explicit body content type. */
+    /**
+     * Sends one HTTP request with an explicit body content type.
+     */
     private String request(
             final String method,
             final String target,
@@ -171,7 +195,9 @@ public class HttpHandlerSecurityTest {
         }
     }
 
-    /** Creates one UTF-8 multipart form field. */
+    /**
+     * Creates one UTF-8 multipart form field.
+     */
     private static String part(final String boundary, final String name, final String value) {
         return "--" + boundary + "\r\n"
             + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"

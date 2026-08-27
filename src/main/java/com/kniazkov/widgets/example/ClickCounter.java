@@ -49,10 +49,14 @@ public class ClickCounter {
             final Button button = new Button("Click me");
             section.add(button);
 
-            // Increment model on click
+            /*
+             * Increment model on click
+             */
             button.onClick(data -> model.setData(model.getData() + 1));
 
-            // Display current counter value
+            /*
+             * Display current counter value
+             */
             section.add(new TextWidget("Click counter: "));
             final TextWidget counter = new TextWidget();
             section.add(counter);

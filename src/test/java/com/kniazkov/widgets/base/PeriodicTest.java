@@ -11,9 +11,13 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-/** Tests the reusable periodic task lifecycle. */
+/**
+ * Tests the reusable periodic task lifecycle.
+ */
 public class PeriodicTest {
-    /** Returning false stops subsequent ticks. */
+    /**
+     * Returning false stops subsequent ticks.
+     */
     @Test
     public void falseStopsThePeriodicTask() throws Exception {
         final AtomicInteger calls = new AtomicInteger();
@@ -34,7 +38,9 @@ public class PeriodicTest {
         periodic.stop();
     }
 
-    /** One faulty tick must not silently destroy all future periodic work. */
+    /**
+     * One faulty tick must not silently destroy all future periodic work.
+     */
     @Test
     public void exceptionInOneTickDoesNotStopFutureTicks() throws Exception {
         final AtomicInteger calls = new AtomicInteger();

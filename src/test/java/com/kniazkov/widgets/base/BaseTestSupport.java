@@ -13,13 +13,22 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-/** Shared reflection helpers for tests of package-private base infrastructure. */
+/**
+ * Shared reflection helpers for tests of package-private base infrastructure.
+ */
 final class BaseTestSupport {
-    /** A lifetime that keeps the real watchdog away from ordinary test clients. */
+    /**
+     * A lifetime that keeps the real watchdog away from ordinary test clients.
+     */
     private static final long TEST_CLIENT_LIFETIME = 60_000;
 
+    /**
+     * Prevents construction of the reflection helper class.
+     */
     private BaseTestSupport() {
-        // Utility class
+        /*
+         * Utility class
+         */
     }
 
     /**

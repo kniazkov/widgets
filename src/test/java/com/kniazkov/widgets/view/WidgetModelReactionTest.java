@@ -13,8 +13,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-/** Tests translation of model changes into widget protocol updates. */
+/**
+ * Tests translation of model changes into widget protocol updates.
+ */
 public final class WidgetModelReactionTest {
+    /**
+     * Verifies the textWidgetsReactToTheirTextModels behavior.
+     */
     @Test
     public void textWidgetsReactToTheirTextModels() {
         final List<Widget<?>> widgets = Arrays.<Widget<?>>asList(
@@ -36,6 +41,9 @@ public final class WidgetModelReactionTest {
         }
     }
 
+    /**
+     * Verifies the imageWidgetsReactToTheirSourceModels behavior.
+     */
     @Test
     public void imageWidgetsReactToTheirSourceModels() {
         final ImageWidget image = new ImageWidget("before.png");
@@ -62,6 +70,9 @@ public final class WidgetModelReactionTest {
         assertEquals("hovered.png", update.get("source").getStringValue());
     }
 
+    /**
+     * Verifies the controlsReactToBehaviorModels behavior.
+     */
     @Test
     public void controlsReactToBehaviorModels() {
         final Button button = new Button();
@@ -98,6 +109,9 @@ public final class WidgetModelReactionTest {
         assertEquals(1, WidgetSandbox.findUpdates(updates, "set multiple input", loader).size());
     }
 
+    /**
+     * Verifies the containersReactToTheirModels behavior.
+     */
     @Test
     public void containersReactToTheirModels() {
         assertModelUpdate(
@@ -140,7 +154,9 @@ public final class WidgetModelReactionTest {
         );
     }
 
-    /** Operation that mutates a widget model. */
+    /**
+     * Operation that mutates a widget model.
+     */
     private interface ModelChange {
         /**
          * Applies the change.

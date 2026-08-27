@@ -10,22 +10,34 @@ package com.kniazkov.widgets.common;
  */
 public enum Unit {
 
-    /** Pixels. */
+    /**
+     * Pixels.
+     */
     PX,
 
-    /** Points (1/72 of an inch). */
+    /**
+     * Points (1/72 of an inch).
+     */
     PT,
 
-    /** Picas (1 pica = 12 points). */
+    /**
+     * Picas (1 pica = 12 points).
+     */
     PC,
 
-    /** Inches. */
+    /**
+     * Inches.
+     */
     IN,
 
-    /** Centimeters. */
+    /**
+     * Centimeters.
+     */
     CM,
 
-    /** Millimeters. */
+    /**
+     * Millimeters.
+     */
     MM;
 
     /**

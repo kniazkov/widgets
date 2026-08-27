@@ -8,9 +8,13 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-/** Tests the contract of the run-local monotonic identifier. */
+/**
+ * Tests the contract of the run-local monotonic identifier.
+ */
 public class RMIdTest {
-    /** Generated identifiers are positive and strictly increase during the current run. */
+    /**
+     * Generated identifiers are positive and strictly increase during the current run.
+     */
     @Test
     public void generatedIdentifiersIncreaseWithinTheRun() {
         final RMId first = RMId.create();
@@ -20,7 +24,9 @@ public class RMIdTest {
         assertTrue(second.compareTo(first) > 0);
     }
 
-    /** The compact wire representation remains round-trippable. */
+    /**
+     * The compact wire representation remains round-trippable.
+     */
     @Test
     public void serializationRoundTrips() {
         final RMId id = RMId.create();

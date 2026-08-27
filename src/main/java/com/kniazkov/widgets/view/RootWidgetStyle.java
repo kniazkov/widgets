@@ -9,8 +9,7 @@ import java.util.Set;
 /**
  * Style definition for {@link RootWidget}.
  */
-public class RootWidgetStyle extends Style implements HasBgColor
-{
+public class RootWidgetStyle extends Style implements HasBgColor {
     /**
      * Set of supported states.
      */

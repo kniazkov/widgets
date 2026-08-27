@@ -28,7 +28,11 @@ public class ImageWidget extends BaseImageWidget<ImageWidgetStyle> {
      *
      * @param source the image source to use
      */
+    @SuppressWarnings("this-escape")
     public ImageWidget(final ImageSource source) {
+        /*
+         * Construction initializes the inherited source binding before publication.
+         */
         super(getDefaultStyle());
         this.setSourceModel(new ImageSourceModel(source));
     }
@@ -38,7 +42,11 @@ public class ImageWidget extends BaseImageWidget<ImageWidgetStyle> {
      *
      * @param href the raw hyperlink pointing to the image
      */
+    @SuppressWarnings("this-escape")
     public ImageWidget(final String href) {
+        /*
+         * Construction initializes the inherited source binding before publication.
+         */
         super(getDefaultStyle());
         this.setSourceModel(new ImageSourceModel(ImageSource.fromHyperlink(href)));
     }

@@ -14,8 +14,7 @@ import com.kniazkov.widgets.model.Model;
  * All states can share the same image source or have individual ones.
  */
 public class ActiveImage extends BaseImageWidget<ActiveImageStyle>
-        implements HandlesPointerEvents
-{
+        implements HandlesPointerEvents {
     /**
      * Returns the default style instance used by active image widgets.
      *
@@ -31,7 +30,11 @@ public class ActiveImage extends BaseImageWidget<ActiveImageStyle>
      *
      * @param source the {@link ImageSource} to display
      */
+    @SuppressWarnings("this-escape")
     public ActiveImage(final ImageSource source) {
+        /*
+         * Construction initializes the inherited source binding before publication.
+         */
         super(getDefaultStyle());
         final Model<ImageSource> model = new ImageSourceModel(source);
         this.setSourceModel(State.NORMAL, model);

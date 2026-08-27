@@ -11,8 +11,7 @@ import com.kniazkov.widgets.protocol.SetChild;
  */
 public class Button extends InlineWidget<ButtonStyle> implements Decorator<InlineWidget<?>>,
         HandlesPointerEvents, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
-        HasMargin, HasPadding, HasDisabledState, HasHiddenState
-{
+        HasMargin, HasPadding, HasDisabledState, HasHiddenState {
     /**
      * Returns the default style instance used by buttons.
      *
@@ -68,7 +67,11 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
      * @param style the style to apply to this widget
      * @param child the widget displayed inside the button
      */
+    @SuppressWarnings("this-escape")
     public Button(final ButtonStyle style, final InlineWidget<?> child) {
+        /*
+         * Construction establishes the required parent link before this instance is published.
+         */
         super(style);
         this.child = child;
         this.child.setParent(this);

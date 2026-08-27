@@ -11,8 +11,7 @@ import com.kniazkov.widgets.model.Model;
  */
 public class InputField extends InlineWidget<InputFieldStyle> implements HasTextInput,
         HasStyledText, HasColor, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
-        HasMargin, HasInvalidState, HasDisabledState, HandlesPointerEvents
-{
+        HasMargin, HasInvalidState, HasDisabledState, HandlesPointerEvents {
     /**
      * Returns the default style instance used by input fields.
      *
@@ -44,7 +43,11 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
      * @param style the style to apply to this widget
      * @param text the initial text to display
      */
+    @SuppressWarnings("this-escape")
     public InputField(final InputFieldStyle style, final String text) {
+        /*
+         * Construction initializes the inherited text binding before publication.
+         */
         super(style);
         this.setText(text);
     }

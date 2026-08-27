@@ -90,7 +90,9 @@ public abstract class Update implements Comparable<Update>, Cloneable {
      * @param json the JSON object to extend
      */
     protected void fillJsonObject(final JsonObject json) {
-        // default: no additional fields
+        /*
+         * default: no additional fields
+         */
     }
 
     @Override
@@ -107,7 +109,9 @@ public abstract class Update implements Comparable<Update>, Cloneable {
 
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) return true;
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof Update) {
             return this.id.equals(((Update) obj).id);
         }

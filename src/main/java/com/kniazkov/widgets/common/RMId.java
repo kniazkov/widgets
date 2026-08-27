@@ -15,7 +15,7 @@ public final class RMId implements Comparable<RMId> {
     /**
      * Next unique number.
      */
-    private static final AtomicLong next = new AtomicLong(0);
+    private static final AtomicLong NEXT = new AtomicLong(0);
 
     /**
      * Represents an invalid ID.
@@ -42,7 +42,7 @@ public final class RMId implements Comparable<RMId> {
      * @return a positive RMId greater than all previously generated identifiers
      */
     public static RMId create() {
-        return new RMId(next.incrementAndGet());
+        return new RMId(NEXT.incrementAndGet());
     }
 
     /**
@@ -77,7 +77,9 @@ public final class RMId implements Comparable<RMId> {
 
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) return true;
+        if (this == obj) {
+            return true;
+        }
         if (obj instanceof RMId) {
             final RMId other = (RMId) obj;
             return this.id == other.id;

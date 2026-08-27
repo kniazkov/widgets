@@ -13,7 +13,12 @@ public class And implements Filter {
     /**
      * Two filters.
      */
-    private final Filter first, second;
+    private final Filter first;
+
+    /**
+     * Second filter.
+     */
+    private final Filter second;
 
     /**
      * Constructs an AND filter from two component filters.

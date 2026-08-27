@@ -40,7 +40,11 @@ public class TextWidget extends InlineWidget<TextWidgetStyle> implements HasStyl
      * @param style the style to apply to this widget
      * @param text the initial text to display
      */
+    @SuppressWarnings("this-escape")
     public TextWidget(final TextWidgetStyle style, final String text) {
+        /*
+         * Construction initializes the inherited text binding before publication.
+         */
         super(style);
         this.setText(text);
     }
@@ -51,7 +55,11 @@ public class TextWidget extends InlineWidget<TextWidgetStyle> implements HasStyl
      * @param style the style to apply to this widget
      * @param model the model containing initial text
      */
+    @SuppressWarnings("this-escape")
     public TextWidget(final TextWidgetStyle style, final Model<String> model) {
+        /*
+         * Construction initializes the inherited text binding before publication.
+         */
         super(style);
         this.setTextModel(model);
     }

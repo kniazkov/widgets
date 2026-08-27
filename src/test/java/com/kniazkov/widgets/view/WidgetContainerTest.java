@@ -13,8 +13,13 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-/** Tests hierarchy and decorator changes through the widget protocol. */
+/**
+ * Tests hierarchy and decorator changes through the widget protocol.
+ */
 public final class WidgetContainerTest {
+    /**
+     * Verifies the everyMultiChildContainerEmitsAppendAndRemoveUpdates behavior.
+     */
     @Test
     public void everyMultiChildContainerEmitsAppendAndRemoveUpdates() {
         final RootWidget root = new RootWidget();
@@ -43,6 +48,9 @@ public final class WidgetContainerTest {
         assertContainerMutation(cell, new Section(), child -> cell.add((BlockWidget<?>) child));
     }
 
+    /**
+     * Verifies the removingDecoratorChildInstallsDetachedPlaceholder behavior.
+     */
     @Test
     public void removingDecoratorChildInstallsDetachedPlaceholder() {
         final TextWidget buttonChild = new TextWidget("button");
@@ -74,6 +82,9 @@ public final class WidgetContainerTest {
         ).size());
     }
 
+    /**
+     * Verifies the rootEmitsNavigationAndResetCommands behavior.
+     */
     @Test
     public void rootEmitsNavigationAndResetCommands() {
         final RootWidget root = new RootWidget();
@@ -90,7 +101,9 @@ public final class WidgetContainerTest {
         assertEquals(1, WidgetSandbox.findUpdates(updates, "reset").size());
     }
 
-    /** Operation that adds a child to a typed container. */
+    /**
+     * Operation that adds a child to a typed container.
+     */
     private interface AddChild {
         /**
          * Adds the child.

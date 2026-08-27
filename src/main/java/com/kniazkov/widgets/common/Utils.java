@@ -17,7 +17,9 @@ public class Utils {
      */
     public static String getContentTypeByExtension(final String path) {
         int index = path.lastIndexOf('.');
-        if (index < 0) return "application/unknown";
+        if (index < 0) {
+            return "application/unknown";
+        }
 
         String ext = path.substring(index + 1).toLowerCase(Locale.ROOT);
         switch (ext) {

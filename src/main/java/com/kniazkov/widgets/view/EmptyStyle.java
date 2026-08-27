@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2026 Ivan Kniazkov
+ */
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
@@ -22,7 +25,9 @@ public class EmptyStyle extends Style {
     @Override
     public <T> void setModel(final State state, final Property<T> property,
                              final Model<T> model) {
-        // do nothing
+        /*
+         * do nothing
+         */
     }
 
     @Override
