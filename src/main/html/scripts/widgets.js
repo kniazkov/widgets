@@ -1044,7 +1044,8 @@ function sendNextUploadChunk() {
             client: clientId,
             widget: file.widget._id,
             fileId: file.id,
-            chunkIndex: file.nextChunk
+            chunkIndex: file.nextChunk,
+            lastUpdate: "#" + lastProcessedUpdateId
         },
         function (data) {
             uploadRequestInFlight = false;
@@ -1059,6 +1060,7 @@ function sendNextUploadChunk() {
                 setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
                 return;
             }
+            processUpdates(receipt.updates);
             if (
                 receipt.result === true &&
                 Number.isInteger(receipt.nextChunk) &&

@@ -34,27 +34,47 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
     const chunks = [];
     let releaseFirstChunk;
     let reportFirstChunk;
+    let releaseRetry;
+    let reportRetry;
+    let blockSynchronize = false;
     const firstChunkReleased = new Promise(resolve => {
         releaseFirstChunk = resolve;
     });
     const firstChunkSeen = new Promise(resolve => {
         reportFirstChunk = resolve;
     });
+    const retryReleased = new Promise(resolve => {
+        releaseRetry = resolve;
+    });
+    const retrySeen = new Promise(resolve => {
+        reportRetry = resolve;
+    });
 
     page.on("pageerror", error => pageErrors.push(error.message));
     await page.route("**/*", async route => {
         const request = route.request();
         const body = request.postDataBuffer();
-        if (body && multipartField(body, "action") === "upload chunk") {
+        const action = body && multipartField(body, "action");
+        if (action === "synchronize" && blockSynchronize) {
+            await route.abort("failed");
+            return;
+        }
+        if (action === "upload chunk") {
             chunks.push({
                 fileId: Number(multipartField(body, "fileId")),
-                chunkIndex: Number(multipartField(body, "chunkIndex"))
+                chunkIndex: Number(multipartField(body, "chunkIndex")),
+                lastUpdate: multipartField(body, "lastUpdate")
             });
             if (chunks.length === 1) {
+                blockSynchronize = true;
                 reportFirstChunk();
                 await firstChunkReleased;
                 await route.abort("failed");
                 return;
+            }
+            if (chunks.length === 3) {
+                reportRetry();
+                await retryReleased;
             }
         }
         await route.continue();
@@ -82,13 +102,19 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
     await expect(page.getByText("Selected second.bin 0%", { exact: true })).toBeVisible();
     releaseFirstChunk();
 
+    await retrySeen;
+    await expect(page.getByText("Selected first.bin 0%", { exact: true })).toBeVisible();
+    await expect(page.getByText("Selected second.bin 5%", { exact: true })).toBeVisible();
+    expect(chunks[2].lastUpdate).not.toBe(chunks[1].lastUpdate);
+    releaseRetry();
+
     await expect(
         page.getByText(`Loaded first.bin 100% ${digest(first)}`, { exact: true })
     ).toBeVisible();
     await expect(
         page.getByText(`Loaded second.bin 100% ${digest(second)}`, { exact: true })
     ).toBeVisible();
-    expect(chunks.slice(0, 5)).toEqual([
+    expect(chunks.slice(0, 5).map(({ fileId, chunkIndex }) => ({ fileId, chunkIndex }))).toEqual([
         { fileId: 1, chunkIndex: 0 },
         { fileId: 2, chunkIndex: 0 },
         { fileId: 1, chunkIndex: 0 },

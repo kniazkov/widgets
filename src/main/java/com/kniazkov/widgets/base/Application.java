@@ -192,6 +192,7 @@ public final class Application {
      * @param fileId browser-local file identifier
      * @param chunkIndex zero-based chunk index
      * @param data binary chunk content
+     * @param lastUpdate last browser-applied widget update
      * @return serialized upload acknowledgement
      */
     JsonObject uploadChunk(
@@ -199,13 +200,20 @@ public final class Application {
             final RMId widgetId,
             final int fileId,
             final int chunkIndex,
-            final byte[] data) {
+            final byte[] data,
+            final String lastUpdate) {
         this.counter++;
         final JsonObject[] result = {UploadProtocol.rejected()};
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
                 client.timer = this.options.getClientLifetime();
-                result[0] = client.uploadChunk(widgetId, fileId, chunkIndex, data);
+                result[0] = client.uploadChunk(
+                    widgetId,
+                    fileId,
+                    chunkIndex,
+                    data,
+                    lastUpdate
+                );
             }
             return client;
         });

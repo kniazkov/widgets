@@ -25,11 +25,11 @@ public final class UploadProtocolTest {
 
         assertSame(
             UploadProtocol.rejected(),
-            application.uploadChunk(RMId.create(), RMId.create(), 1, 0, new byte[0])
+            application.uploadChunk(RMId.create(), RMId.create(), 1, 0, new byte[0], "#0")
         );
         assertSame(
             UploadProtocol.rejected(),
-            client.uploadChunk(RMId.create(), 1, 0, new byte[0])
+            client.uploadChunk(RMId.create(), 1, 0, new byte[0], "#0")
         );
         assertSame(
             UploadProtocol.rejected(),

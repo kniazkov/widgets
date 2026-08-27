@@ -138,8 +138,10 @@ buffer.
 Up to five files are active across one browser tab. Their chunks are sent round-robin, while later
 files remain queued with zero progress. Every response acknowledges the first chunk still missing
 on the server. A request or response lost in transit therefore causes the same chunk to be retried;
-repeated chunks are verified and handled idempotently. The current in-memory `UploadedFile` API
-limits one complete file to 128 MiB.
+repeated chunks are verified and handled idempotently. Successful chunk responses also carry
+pending widget updates and acknowledge the last update applied by the browser, so upload progress
+is rendered immediately instead of waiting for the periodic synchronization cycle. The current
+in-memory `UploadedFile` API limits one complete file to 128 MiB.
 
 ## Documentation
 

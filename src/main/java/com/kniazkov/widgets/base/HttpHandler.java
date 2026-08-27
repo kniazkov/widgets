@@ -229,7 +229,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 widgetId,
                 fileId,
                 chunkIndex,
-                chunk.readAllBytes()
+                chunk.readAllBytes(),
+                parameters.get("lastUpdate")
             );
         } catch (final NumberFormatException | NullPointerException ignored) {
             return UploadProtocol.rejected();

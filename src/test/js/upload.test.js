@@ -30,9 +30,17 @@ function createHarness() {
     dom.window.eval(`${optionsSource}\n${librarySource}\n
         configureUploadProtocol(4 * 1024, 128 * 1024 * 1024);
         window.__uploadEvents = [];
+        window.__processedUpdates = [];
         let clientId = "#1";
+        let lastProcessedUpdateId = 0;
         function createEvent(widget, type, data) {
             window.__uploadEvents.push({ widget, type, data });
+        }
+        function processUpdates(updates) {
+            if (updates && updates.length) {
+                window.__processedUpdates.push(...updates);
+                lastProcessedUpdateId = Number(updates[updates.length - 1].id.slice(1));
+            }
         }
         function sendSynchronizeRequest(callback) {
             callback(true);
@@ -46,6 +54,7 @@ function createHarness() {
     return {
         requests,
         events: dom.window.__uploadEvents,
+        processedUpdates: dom.window.__processedUpdates,
         widget: { _id: "#9" }
     };
 }
@@ -79,6 +88,7 @@ describe("binary upload scheduler", () => {
         expect(harness.events.map(event => event.data.fileId)).toEqual([1, 2, 3, 4, 5, 6, 7]);
         expect(harness.events.every(event => !("content" in event.data))).toBe(true);
         expect(harness.requests).toHaveLength(1);
+        expect(harness.requests[0].query.lastUpdate).toBe("#0");
 
         const sequence = [];
         for (let index = 0; index < 10; index++) {
@@ -90,9 +100,14 @@ describe("binary upload scheduler", () => {
                 JSON.stringify({
                     result: true,
                     nextChunk: request.query.chunkIndex + 1,
-                    complete: request.query.chunkIndex == 1
+                    complete: request.query.chunkIndex == 1,
+                    updates: index == 0 ? [{ id: "#7" }] : []
                 })
             );
+            if (index == 0) {
+                expect(harness.processedUpdates).toEqual([{ id: "#7" }]);
+                expect(harness.requests[1].query.lastUpdate).toBe("#7");
+            }
         }
 
         expect(sequence).toEqual([1, 2, 3, 4, 5, 1, 2, 3, 4, 5]);
