@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.webserver.ContentType;
 import com.kniazkov.webserver.Environment;
@@ -13,6 +14,7 @@ import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseFactory;
 import com.kniazkov.webserver.ServerException;
+import com.kniazkov.webserver.UploadedFile;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -85,6 +87,11 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             && !request.getQuery().isEmpty();
         if (method == HttpMethod.POST || rootQuery) {
             final String action = parameters.get("action");
+            if (method == HttpMethod.POST && "upload chunk".equals(action)) {
+                return responses.fromJson(
+                    this.handleUploadChunk(request, parameters).toString()
+                ).build();
+            }
             final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
                 return responses.fromJson(handler.process(parameters).toString()).build();
@@ -174,6 +181,60 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
          * Resource not found
          */
         return responses.notFound();
+    }
+
+    /**
+     * Validates and delivers one multipart binary upload chunk.
+     *
+     * @param request immutable web-server request
+     * @param parameters flattened multipart fields
+     * @return serialized upload acknowledgement
+     * @throws ServerException if the temporary upload data cannot be read
+     */
+    private JsonObject handleUploadChunk(
+            final Request request,
+            final Map<String, String> parameters) throws ServerException {
+        final JsonObject rejected = rejectedUpload();
+        final List<UploadedFile> files = request.getFiles().get("chunk");
+        if (request.getFiles().size() != 1 || files == null || files.size() != 1) {
+            return rejected;
+        }
+        final UploadedFile chunk = files.get(0);
+        if (chunk.getSize() > WebServerDefaults.MAX_UPLOAD_CHUNK_SIZE) {
+            return rejected;
+        }
+        final String client = parameters.get("client");
+        final String widget = parameters.get("widget");
+        if (client == null || widget == null) {
+            return rejected;
+        }
+        final RMId clientId = RMId.parse(client);
+        final RMId widgetId = RMId.parse(widget);
+        if (!clientId.isValid() || !widgetId.isValid()) {
+            return rejected;
+        }
+        try {
+            final int fileId = Integer.parseInt(parameters.get("fileId"));
+            final int chunkIndex = Integer.parseInt(parameters.get("chunkIndex"));
+            return this.application.uploadChunk(
+                clientId,
+                widgetId,
+                fileId,
+                chunkIndex,
+                chunk.readAllBytes()
+            );
+        } catch (final NumberFormatException | NullPointerException ignored) {
+            return rejected;
+        }
+    }
+
+    /**
+     * Creates a negative acknowledgement for malformed upload requests.
+     */
+    private static JsonObject rejectedUpload() {
+        final JsonObject response = new JsonObject();
+        response.addBoolean("result", false);
+        return response;
     }
 
     /**

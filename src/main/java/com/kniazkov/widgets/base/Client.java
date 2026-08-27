@@ -10,6 +10,7 @@ import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.Update;
+import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Map;
@@ -110,6 +111,39 @@ public final class Client implements Comparable<Client> {
             this.collectUpdates(request);
             this.serializeUpdates(response);
         }
+    }
+
+    /**
+     * Delivers one binary upload chunk to a file-loader widget.
+     *
+     * @param widgetId target file-loader identifier
+     * @param fileId browser-local file identifier
+     * @param chunkIndex zero-based chunk index
+     * @param data binary chunk content
+     * @return serialized upload acknowledgement
+     */
+    JsonObject uploadChunk(
+            final RMId widgetId,
+            final int fileId,
+            final int chunkIndex,
+            final byte[] data) {
+        synchronized (this.root) {
+            for (final Widget<?> widget : this.root) {
+                if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
+                    return ((FileLoader) widget).handleUploadChunk(fileId, chunkIndex, data);
+                }
+            }
+        }
+        return rejectedUpload();
+    }
+
+    /**
+     * Creates a negative acknowledgement for an unknown upload target.
+     */
+    private static JsonObject rejectedUpload() {
+        final JsonObject response = new JsonObject();
+        response.addBoolean("result", false);
+        return response;
     }
 
     /**

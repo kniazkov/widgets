@@ -214,7 +214,7 @@ public abstract class Event<T> {
     };
 
     /**
-     * Event triggered when a file upload chunk is received from the client.
+     * Event triggered immediately after the browser selects a file for upload.
      */
     public static final Event<UploadEvent> UPLOAD = new Event<UploadEvent>() {
         @Override

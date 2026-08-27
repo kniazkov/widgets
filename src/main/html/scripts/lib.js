@@ -26,7 +26,8 @@ function getXmlHttp() {
 function sendRequest(query, callback, method, files) {
     const req = getXmlHttp();
     let form = null;
-    const post = method == "post" || files;
+    const hasFiles = files && files.length;
+    const post = method == "post" || hasFiles;
     if (post) {
         form = new FormData();
         for (const key in query) {
@@ -36,9 +37,13 @@ function sendRequest(query, callback, method, files) {
             }
             form.append(key, value);
         }
-        if (files && files.length) {
+        if (hasFiles) {
             for (let i = 0; i < files.length; i++) {
-                form.append("file" + (i > 0 ? i + 1 : ""), files[i], files[i].name);
+                const entry = files[i];
+                const data = entry.data || entry;
+                const field = entry.field || "file" + (i > 0 ? i + 1 : "");
+                const name = entry.name || data.name || "upload.bin";
+                form.append(field, data, name);
             }
         }
         req.open("POST", server, true);
@@ -58,20 +63,27 @@ function sendRequest(query, callback, method, files) {
         }
         req.open("GET", server + "?" + queryString, true);
     }
+    let completed = false;
+    const complete = function (data) {
+        if (completed) {
+            return;
+        }
+        completed = true;
+        if (callback) {
+            callback(data);
+        }
+    };
+    req.timeout = typeof REQUEST_TIMEOUT == "number" ? REQUEST_TIMEOUT : 10 * 1000;
     req.onreadystatechange = function () {
         if (req.readyState == 4) {
-            if (req.status == 200) {
-                if (callback) {
-                    callback(req.responseText);
-                }
-            }
+            complete(req.status == 200 ? req.responseText : null);
         }
     };
     req.onerror = function () {
-        if (callback) {
-            callback(null);
-        }
+        complete(null);
     };
+    req.ontimeout = req.onerror;
+    req.onabort = req.onerror;
     req.send(form);
 }
 

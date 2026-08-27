@@ -5,6 +5,10 @@
 // The registry connects server-side widget IDs to their browser DOM nodes.
 const widgets = {};
 let lastFileId = 0;
+const pendingUploads = [];
+const activeUploads = [];
+let uploadRequestInFlight = false;
+let nextUploadIndex = 0;
 
 // Protocol widget type names map to factories that initialize the matching DOM element.
 const widgetsLibrary = {
@@ -105,7 +109,6 @@ const widgetsLibrary = {
     },
     "file loader": function () {
         const widget = document.createElement("button");
-        widget._files = [];
         widget._multiple = false;
         widget._accept = "";
         widget._onClick = function () {
@@ -118,9 +121,7 @@ const widgetsLibrary = {
             addEvent(input, "change", function (evt) {
                 const files = evt.target.files;
                 if (!files) return;
-                for (let index = 0; index < files.length; index++) {
-                    loadFile(widget, files[index]);
-                }
+                loadFiles(widget, files);
                 document.body.removeChild(input);
             });
             input.click();
@@ -833,17 +834,6 @@ function setAcceptedFiles(data) {
     return false;
 }
 
-function sendNextChunk(data) {
-    const widget = widgets[data.widget];
-    if (widget) {
-        setTimeout(function () {
-            sendNextChunkToServer(widget);
-        }, 0);
-        return true;
-    }
-    return false;
-}
-
 // Browser event handling and serialization.
 function createInputField() {
     const widget = document.createElement("input");
@@ -948,83 +938,159 @@ function initFocusEvents(widget, state) {
     });
 }
 
-// File contents are encoded as hexadecimal chunks for the existing upload protocol.
-const int2hex = "0123456789abcdef";
-function arrayBufferToHex(buffer) {
-    const bytes = new Uint8Array(buffer);
-    const result = [];
-    let chunk = [];
-    let size = 0;
-    for (let index = 0; index < bytes.length; index++) {
-        const byte = bytes[index];
-        chunk.push(int2hex[byte >> 4]);
-        chunk.push(int2hex[byte & 0xf]);
-        size++;
-        if (size == MAX_UPLOAD_CHUNK_SIZE) {
-            result.push(chunk.join(""));
-            chunk = [];
-            size = 0;
+// Registers all selected files before the binary scheduler starts sending their chunks.
+function loadFiles(widget, descriptions) {
+    const selected = [];
+    for (let index = 0; index < descriptions.length; index++) {
+        const descr = descriptions[index];
+        if (
+            !Number.isSafeInteger(descr.size) ||
+            descr.size < 0 ||
+            descr.size > MAX_UPLOAD_FILE_SIZE
+        ) {
+            log("The selected file '" + descr.name + "' is too large to upload.");
+            continue;
         }
-    }
-    result.push(chunk.join(""));
-    return result;
-}
-
-function loadFile(widget, descr) {
-    const reader = new FileReader();
-    addEvent(reader, "load", function (evt) {
         const file = {
             id: ++lastFileId,
             name: descr.name,
             type: descr.type,
             size: descr.size,
-            content: arrayBufferToHex(evt.target.result),
-            nextChunk: 0
+            source: descr,
+            totalChunks: Math.max(1, Math.ceil(descr.size / MAX_UPLOAD_CHUNK_SIZE)),
+            nextChunk: 0,
+            ready: false,
+            widget
         };
-        widget._files.push(file);
-        if (widget._files.length == 1) {
-            sendNextChunkToServer(widget);
-        } else {
-            sendEmptyChunkToServer(widget, file);
-        }
-    });
-    reader.readAsArrayBuffer(descr);
+        pendingUploads.push(file);
+        selected.push(file);
+        createEvent(widget, "upload", {
+            fileId: file.id,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            totalChunks: file.totalChunks
+        });
+    }
+    if (selected.length > 0) {
+        acknowledgeSelections(selected);
+    }
 }
 
-function sendNextChunkToServer(widget) {
-    const files = widget._files;
-    if (files.length == 0) {
-        log("The widget " + widget._id + " sent all the files that were selected by the user.");
+// Waits for the reliable event stream to register descriptors before sending binary data.
+function acknowledgeSelections(selected) {
+    sendSynchronizeRequest(function (accepted) {
+        if (!accepted) {
+            setTimeout(function () {
+                acknowledgeSelections(selected);
+            }, UPLOAD_RETRY_DELAY);
+            return;
+        }
+        for (let index = 0; index < selected.length; index++) {
+            selected[index].ready = true;
+        }
+        fillActiveUploads();
+        sendNextUploadChunk();
+    });
+}
+
+// Moves queued files into the five page-wide active upload slots in selection order.
+function fillActiveUploads() {
+    while (
+        activeUploads.length < MAX_ACTIVE_UPLOADS &&
+        pendingUploads.length > 0 &&
+        pendingUploads[0].ready
+    ) {
+        activeUploads.push(pendingUploads.shift());
+    }
+}
+
+// Removes a completed or rejected upload without skipping the next round-robin entry.
+function removeActiveUpload(file) {
+    const index = activeUploads.indexOf(file);
+    if (index < 0) {
         return;
     }
-    const file = files[0];
-    const data = {
-        fileId: file.id,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        content: file.content[file.nextChunk],
-        chunkIndex: file.nextChunk,
-        totalChunks: file.content.length
-    };
-    file.nextChunk++;
-    sendEventToServer(widget, "upload", data);
-    if (file.content.length == file.nextChunk) {
-        files.shift();
+    activeUploads.splice(index, 1);
+    if (index < nextUploadIndex) {
+        nextUploadIndex--;
     }
+    if (nextUploadIndex >= activeUploads.length) {
+        nextUploadIndex = 0;
+    }
+    fillActiveUploads();
 }
 
-function sendEmptyChunkToServer(widget, file) {
-    const data = {
-        fileId: file.id,
-        name: file.name,
-        type: file.type,
-        size: file.size,
-        content: "",
-        chunkIndex: -1,
-        totalChunks: file.content.length
-    };
-    createEvent(widget, "upload", data);
+// Sends one binary slice, then gives the next active file a turn.
+function sendNextUploadChunk() {
+    if (uploadRequestInFlight) {
+        return;
+    }
+    fillActiveUploads();
+    if (activeUploads.length == 0) {
+        return;
+    }
+    if (nextUploadIndex >= activeUploads.length) {
+        nextUploadIndex = 0;
+    }
+    const file = activeUploads[nextUploadIndex];
+    nextUploadIndex = (nextUploadIndex + 1) % activeUploads.length;
+    const offset = file.nextChunk * MAX_UPLOAD_CHUNK_SIZE;
+    const chunk = file.source.slice(offset, Math.min(file.size, offset + MAX_UPLOAD_CHUNK_SIZE));
+    uploadRequestInFlight = true;
+    sendRequest(
+        {
+            action: "upload chunk",
+            client: clientId,
+            widget: file.widget._id,
+            fileId: file.id,
+            chunkIndex: file.nextChunk
+        },
+        function (data) {
+            uploadRequestInFlight = false;
+            if (!data) {
+                setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+                return;
+            }
+            let receipt;
+            try {
+                receipt = JSON.parse(data);
+            } catch (error) {
+                setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+                return;
+            }
+            if (
+                receipt.result === true &&
+                Number.isInteger(receipt.nextChunk) &&
+                receipt.nextChunk >= 0 &&
+                receipt.nextChunk <= file.totalChunks &&
+                typeof receipt.complete == "boolean" &&
+                receipt.complete === (receipt.nextChunk == file.totalChunks)
+            ) {
+                file.nextChunk = receipt.nextChunk;
+                if (receipt.complete === true) {
+                    removeActiveUpload(file);
+                }
+                sendNextUploadChunk();
+                return;
+            }
+            if (receipt.result === false) {
+                log("The server rejected upload '" + file.name + "'.");
+                removeActiveUpload(file);
+                sendNextUploadChunk();
+                return;
+            }
+            setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+        },
+        "post",
+        [
+            {
+                field: "chunk",
+                name: "chunk.bin",
+                data: chunk
+            }
+        ]
+    );
 }
 
 // Rendering helpers.

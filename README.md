@@ -128,6 +128,19 @@ TLS versions and cipher suites, and optional or required mutual TLS. Run separat
 on different ports when both HTTP and HTTPS listeners are required. The caller remains responsible
 for clearing its original password array after the TLS options have been built.
 
+### File uploads
+
+`FileLoader` reports every selected file through `onSelect` immediately, with its loading model at
+zero percent. The browser retains the original `File` and sends 64 KiB `Blob.slice()` values as
+binary multipart parts; file contents are never expanded into Base16 or read into one browser-side
+buffer.
+
+Up to five files are active across one browser tab. Their chunks are sent round-robin, while later
+files remain queued with zero progress. Every response acknowledges the first chunk still missing
+on the server. A request or response lost in transit therefore causes the same chunk to be retried;
+repeated chunks are verified and handled idempotently. The current in-memory `UploadedFile` API
+limits one complete file to 128 MiB.
+
 ## Documentation
 
 - [Model catalog and hierarchy](docs/MODELS.md) — every model type, its contract, defaults,
@@ -140,17 +153,17 @@ for clearing its original password array after the TLS options have been built.
 
 ## Project layout
 
-| Package | Purpose |
-| --- | --- |
-| `base` | Application, pages, clients, HTTP handling, and server lifecycle |
-| `model` | Reactive values, validation, transformations, and bindings |
-| `view` | Widgets, containers, properties, states, and styles |
-| `controller` | Browser events and their Java handlers |
-| `protocol` | Commands used to synchronize the server-side tree with the browser |
-| `db` | Records, stores, filters, and JSON-backed persistence |
-| `images` | Image sources, loading, conversion, and processing |
-| `common` | Shared value objects and utilities |
-| `example` | Small runnable applications demonstrating the API |
+| Package      | Purpose                                                            |
+| ------------ | ------------------------------------------------------------------ |
+| `base`       | Application, pages, clients, HTTP handling, and server lifecycle   |
+| `model`      | Reactive values, validation, transformations, and bindings         |
+| `view`       | Widgets, containers, properties, states, and styles                |
+| `controller` | Browser events and their Java handlers                             |
+| `protocol`   | Commands used to synchronize the server-side tree with the browser |
+| `db`         | Records, stores, filters, and JSON-backed persistence              |
+| `images`     | Image sources, loading, conversion, and processing                 |
+| `common`     | Shared value objects and utilities                                 |
+| `example`    | Small runnable applications demonstrating the API                  |
 
 Browser runtime resources are stored in `src/main/html` and packaged into the library JAR.
 

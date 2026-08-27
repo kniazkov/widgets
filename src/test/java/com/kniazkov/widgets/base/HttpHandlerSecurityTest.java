@@ -109,24 +109,36 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
-     * A Base16-encoded 64 KiB upload chunk must fit the fixed XMLHttpRequest profile.
+     * A binary 64 KiB upload chunk must fit the fixed XMLHttpRequest profile unchanged.
      */
     @Test
     public void uploadSizedMultipartRequestIsAccepted() throws Exception {
         this.start(this.folder.newFolder("www"));
         final String boundary = "widgets-test-boundary";
-        final String body = part(boundary, "action", "new instance")
-            + part(boundary, "address", "/")
-            + part(boundary, "browserId", "123e4567-e89b-12d3-a456-426614174000")
-            + part(boundary, "mobile", "false")
-            + part(boundary, "chunk", "a".repeat(2 * 64 * 1024))
-            + "--" + boundary + "--\r\n";
+        final byte[] chunk = new byte[64 * 1024];
+        for (int index = 0; index < chunk.length; index++) {
+            chunk[index] = (byte) index;
+        }
+        final ByteArrayOutputStream body = new ByteArrayOutputStream();
+        write(body, part(boundary, "action", "new instance"));
+        write(body, part(boundary, "address", "/"));
+        write(body, part(
+            boundary,
+            "browserId",
+            "123e4567-e89b-12d3-a456-426614174000"
+        ));
+        write(body, part(boundary, "mobile", "false"));
+        write(body, "--" + boundary + "\r\n"
+            + "Content-Disposition: form-data; name=\"chunk\"; filename=\"chunk.bin\"\r\n"
+            + "Content-Type: application/octet-stream\r\n\r\n");
+        body.write(chunk);
+        write(body, "\r\n--" + boundary + "--\r\n");
 
         final String response = this.request(
             "POST",
             "/",
             "multipart/form-data; boundary=" + boundary,
-            body
+            body.toByteArray()
         );
 
         assertTrue(response.startsWith("HTTP/1.1 200"));
@@ -169,11 +181,27 @@ public class HttpHandlerSecurityTest {
             final String target,
             final String contentType,
             final String body) throws Exception {
+        return this.request(
+            method,
+            target,
+            contentType,
+            body == null ? null : body.getBytes(StandardCharsets.UTF_8)
+        );
+    }
+
+    /**
+     * Sends one HTTP request with an arbitrary binary body.
+     */
+    private String request(
+            final String method,
+            final String target,
+            final String contentType,
+            final byte[] body) throws Exception {
         try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), this.server.getPort())) {
             socket.setSoTimeout(5000);
             final byte[] content = body == null
                 ? new byte[0]
-                : body.getBytes(StandardCharsets.UTF_8);
+                : body;
             final StringBuilder headers = new StringBuilder()
                 .append(method).append(' ').append(target).append(" HTTP/1.1\r\n")
                 .append("Host: localhost\r\n")
@@ -202,5 +230,12 @@ public class HttpHandlerSecurityTest {
         return "--" + boundary + "\r\n"
             + "Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n"
             + value + "\r\n";
+    }
+
+    /**
+     * Writes one ASCII multipart fragment to a binary request buffer.
+     */
+    private static void write(final ByteArrayOutputStream output, final String value) {
+        output.writeBytes(value.getBytes(StandardCharsets.US_ASCII));
     }
 }

@@ -4,7 +4,7 @@
 package com.kniazkov.widgets.controller;
 
 /**
- * Represents a file chunk upload event sent from the client to the server.
+ * Represents metadata for a file selected by the browser.
  */
 public class UploadEvent {
     /**
@@ -27,17 +27,6 @@ public class UploadEvent {
      * Total size of the entire file in bytes.
      */
     public int size;
-
-    /**
-     * Hex-encoded content of this specific chunk.
-     */
-    public String content;
-
-    /**
-     * Zero-based index of this chunk within the total sequence.
-     * The first chunk has index 0.
-     */
-    public int chunkIndex;
 
     /**
      * Total number of chunks that constitute the complete file.

@@ -184,6 +184,43 @@ public final class Application {
     }
 
     /**
+     * Delivers one binary chunk to a live client and refreshes that client's lifetime.
+     *
+     * @param clientId target browser client
+     * @param widgetId target file-loader widget
+     * @param fileId browser-local file identifier
+     * @param chunkIndex zero-based chunk index
+     * @param data binary chunk content
+     * @return serialized upload acknowledgement
+     */
+    JsonObject uploadChunk(
+            final RMId clientId,
+            final RMId widgetId,
+            final int fileId,
+            final int chunkIndex,
+            final byte[] data) {
+        this.counter++;
+        final JsonObject[] result = {rejectedUpload()};
+        this.clients.computeIfPresent(clientId, (id, client) -> {
+            synchronized (client) {
+                client.timer = this.options.getClientLifetime();
+                result[0] = client.uploadChunk(widgetId, fileId, chunkIndex, data);
+            }
+            return client;
+        });
+        return result[0];
+    }
+
+    /**
+     * Creates a negative acknowledgement for a missing browser client.
+     */
+    private static JsonObject rejectedUpload() {
+        final JsonObject response = new JsonObject();
+        response.addBoolean("result", false);
+        return response;
+    }
+
+    /**
      * Watchdog that periodically walks through clients and removes stale ones.
      * Also logs performance stats every minute.
      */
