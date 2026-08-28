@@ -92,14 +92,6 @@ function sendRequest(query, callback, method, files) {
     completeRequest(req, form, callback);
 }
 
-// Sends a binary body without a multipart file part that public HTTP filters may reject.
-function sendBinaryRequest(query, callback, data) {
-    const req = getXmlHttp();
-    req.open("POST", server + "?" + createQueryString(query), true);
-    req.setRequestHeader("Content-Type", "application/octet-stream");
-    completeRequest(req, data, callback);
-}
-
 // Registers an event handler through either the standard or legacy DOM API.
 function addEvent(object, type, callback) {
     if (typeof object == "string") {

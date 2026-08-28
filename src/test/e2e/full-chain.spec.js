@@ -128,12 +128,16 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
             return;
         }
         if (action === "upload chunk") {
+            const field = name =>
+                target.searchParams.get(name) || (body && multipartField(body, name));
+            const encodedChunk = field("chunk");
             chunks.push({
-                fileId: Number(target.searchParams.get("fileId")),
-                chunkIndex: Number(target.searchParams.get("chunkIndex")),
-                lastUpdate: target.searchParams.get("lastUpdate"),
+                fileId: Number(field("fileId")),
+                chunkIndex: Number(field("chunkIndex")),
+                lastUpdate: field("lastUpdate"),
                 contentType: request.headers()["content-type"],
-                size: body.length
+                encodedChunk,
+                hasQuery: target.search.length > 0
             });
             if (chunks.length === 1) {
                 blockSynchronize = true;
@@ -192,8 +196,9 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
         { fileId: 2, chunkIndex: 1 },
         { fileId: 1, chunkIndex: 1 }
     ]);
-    expect(chunks.every(chunk => chunk.contentType === "application/octet-stream")).toBe(true);
-    expect(chunks[0].size).toBe(64 * 1024);
-    expect(chunks[1].size).toBe(64 * 1024);
+    expect(chunks.every(chunk => chunk.contentType.startsWith("multipart/form-data;"))).toBe(true);
+    expect(chunks.every(chunk => !chunk.hasQuery)).toBe(true);
+    expect(chunks[0].encodedChunk).toHaveLength(2 * 64 * 1024);
+    expect(chunks[1].encodedChunk).toHaveLength(2 * 64 * 1024);
     expect(pageErrors).toEqual([]);
 });

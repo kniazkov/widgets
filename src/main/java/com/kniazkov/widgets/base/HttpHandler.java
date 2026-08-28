@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -192,7 +193,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     /**
-     * Validates and delivers one raw or legacy multipart binary upload chunk.
+     * Validates and delivers one text, raw, or legacy multipart binary upload chunk.
      *
      * @param request immutable web-server request
      * @param parameters flattened protocol fields
@@ -203,7 +204,20 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             final Request request,
             final Map<String, String> parameters) throws ServerException {
         final byte[] data;
-        if (isBinaryRequest(request)) {
+        if (parameters.containsKey("chunk")) {
+            if (!request.getFiles().isEmpty()) {
+                return UploadProtocol.rejected();
+            }
+            final String chunk = parameters.get("chunk");
+            if (chunk.length() > this.options.getChunkSize() * 2) {
+                return UploadProtocol.rejected();
+            }
+            try {
+                data = HexFormat.of().parseHex(chunk);
+            } catch (final IllegalArgumentException ignored) {
+                return UploadProtocol.rejected();
+            }
+        } else if (isBinaryRequest(request)) {
             if (!request.getFiles().isEmpty()
                     || request.getBody().getSize() > this.options.getChunkSize()) {
                 return UploadProtocol.rejected();

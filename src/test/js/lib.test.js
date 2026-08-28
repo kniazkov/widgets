@@ -60,7 +60,7 @@ describe("sendRequest", () => {
         expect(requests.every(request => !request.aborted)).toBe(true);
     });
 
-    it("sends binary data as an octet-stream body with encoded query fields", () => {
+    it("sends an encoded upload chunk as ordinary text form fields", () => {
         const requests = [];
 
         class MockXmlHttpRequest {
@@ -74,10 +74,6 @@ describe("sendRequest", () => {
                 this.url = url;
             }
 
-            setRequestHeader(name, value) {
-                this.headers[name] = value;
-            }
-
             send(body) {
                 this.body = body;
             }
@@ -89,22 +85,19 @@ describe("sendRequest", () => {
         });
         dom.window.XMLHttpRequest = MockXmlHttpRequest;
         dom.window.eval(source);
-        const chunk = new dom.window.Blob([new Uint8Array([1, 2, 3])]);
-
-        dom.window.sendBinaryRequest(
-            { action: "upload chunk", client: "#1", metadata: { index: 2 } },
+        dom.window.sendRequest(
+            { action: "upload chunk", client: "#1", chunk: "010203" },
             null,
-            chunk
+            "post"
         );
 
         expect(requests).toHaveLength(1);
         expect(requests[0].method).toBe("POST");
-        expect(requests[0].url).toBe(
-            "http://example.test:8080?action=upload%20chunk&client=%231&metadata=%7B%22index%22%3A2%7D"
-        );
-        expect(requests[0].headers).toEqual({
-            "Content-Type": "application/octet-stream"
-        });
-        expect(requests[0].body).toBe(chunk);
+        expect(requests[0].url).toBe("http://example.test:8080");
+        expect(Array.from(requests[0].body.entries())).toEqual([
+            ["action", "upload chunk"],
+            ["client", "#1"],
+            ["chunk", "010203"]
+        ]);
     });
 });

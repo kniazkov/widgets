@@ -1038,57 +1038,79 @@ function sendNextUploadChunk() {
     const offset = file.nextChunk * uploadProtocol.chunkSize;
     const chunk = file.source.slice(offset, Math.min(file.size, offset + uploadProtocol.chunkSize));
     uploadRequestInFlight = true;
-    sendBinaryRequest(
-        {
-            action: "upload chunk",
-            client: clientId,
-            widget: file.widget._id,
-            fileId: file.id,
-            chunkIndex: file.nextChunk,
-            lastUpdate: "#" + lastProcessedUpdateId
+    chunk.arrayBuffer().then(
+        function (buffer) {
+            const bytes = new Uint8Array(buffer);
+            const encoded = new Array(bytes.length * 2);
+            const digits = "0123456789abcdef";
+            for (let index = 0; index < bytes.length; index++) {
+                encoded[index * 2] = digits[bytes[index] >> 4];
+                encoded[index * 2 + 1] = digits[bytes[index] & 0xf];
+            }
+            sendRequest(
+                {
+                    action: "upload chunk",
+                    client: clientId,
+                    widget: file.widget._id,
+                    fileId: file.id,
+                    chunkIndex: file.nextChunk,
+                    lastUpdate: "#" + lastProcessedUpdateId,
+                    chunk: encoded.join("")
+                },
+                function (data) {
+                    handleUploadChunkResponse(file, data);
+                },
+                "post"
+            );
         },
-        function (data) {
+        function () {
             uploadRequestInFlight = false;
-            if (!data) {
-                recordRequestFailure();
-                setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
-                return;
-            }
-            let receipt;
-            try {
-                receipt = JSON.parse(data);
-            } catch (error) {
-                recordRequestFailure();
-                setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
-                return;
-            }
-            recordRequestSuccess();
-            processUpdates(receipt.updates);
-            if (
-                receipt.result === true &&
-                Number.isInteger(receipt.nextChunk) &&
-                receipt.nextChunk >= 0 &&
-                receipt.nextChunk <= file.totalChunks &&
-                typeof receipt.complete == "boolean" &&
-                receipt.complete === (receipt.nextChunk == file.totalChunks)
-            ) {
-                file.nextChunk = receipt.nextChunk;
-                if (receipt.complete === true) {
-                    removeActiveUpload(file);
-                }
-                sendNextUploadChunk();
-                return;
-            }
-            if (receipt.result === false) {
-                log("The server rejected upload '" + file.name + "'.");
-                removeActiveUpload(file);
-                sendNextUploadChunk();
-                return;
-            }
+            recordRequestFailure();
             setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
-        },
-        chunk
+        }
     );
+}
+
+// Applies one upload acknowledgement or schedules the same chunk for retry.
+function handleUploadChunkResponse(file, data) {
+    uploadRequestInFlight = false;
+    if (!data) {
+        recordRequestFailure();
+        setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+        return;
+    }
+    let receipt;
+    try {
+        receipt = JSON.parse(data);
+    } catch (error) {
+        recordRequestFailure();
+        setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+        return;
+    }
+    recordRequestSuccess();
+    processUpdates(receipt.updates);
+    if (
+        receipt.result === true &&
+        Number.isInteger(receipt.nextChunk) &&
+        receipt.nextChunk >= 0 &&
+        receipt.nextChunk <= file.totalChunks &&
+        typeof receipt.complete == "boolean" &&
+        receipt.complete === (receipt.nextChunk == file.totalChunks)
+    ) {
+        file.nextChunk = receipt.nextChunk;
+        if (receipt.complete === true) {
+            removeActiveUpload(file);
+        }
+        sendNextUploadChunk();
+        return;
+    }
+    if (receipt.result === false) {
+        log("The server rejected upload '" + file.name + "'.");
+        removeActiveUpload(file);
+        sendNextUploadChunk();
+        return;
+    }
+    setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
 }
 
 // Rendering helpers.

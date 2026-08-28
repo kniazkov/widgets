@@ -54,8 +54,8 @@ function createHarness() {
         ${widgetsSource}`);
 
     const requests = [];
-    dom.window.sendBinaryRequest = (query, callback, data) => {
-        requests.push({ query, data, callback });
+    dom.window.sendRequest = (query, callback, method, files) => {
+        requests.push({ query, callback, method, files });
     };
     return {
         requests,
@@ -63,6 +63,13 @@ function createHarness() {
         processedUpdates: dom.window.__processedUpdates,
         widget: { _id: "#9" }
     };
+}
+
+async function waitForRequests(harness, count) {
+    for (let attempt = 0; attempt < 20 && harness.requests.length < count; attempt++) {
+        await new Promise(resolve => dom.window.setTimeout(resolve, 0));
+    }
+    expect(harness.requests.length).toBeGreaterThanOrEqual(count);
 }
 
 function file(name, size) {
@@ -76,7 +83,7 @@ function file(name, size) {
 }
 
 describe("binary upload scheduler", () => {
-    it("registers every file immediately and round-robins five active files", () => {
+    it("registers every file immediately and round-robins five active files", async () => {
         const harness = createHarness();
         dom.window.FileReader = class {
             constructor() {
@@ -93,14 +100,18 @@ describe("binary upload scheduler", () => {
         expect(harness.events.every(event => event.type === "upload")).toBe(true);
         expect(harness.events.map(event => event.data.fileId)).toEqual([1, 2, 3, 4, 5, 6, 7]);
         expect(harness.events.every(event => !("content" in event.data))).toBe(true);
+        await waitForRequests(harness, 1);
         expect(harness.requests).toHaveLength(1);
         expect(harness.requests[0].query.lastUpdate).toBe("#0");
 
         const sequence = [];
         for (let index = 0; index < 10; index++) {
+            await waitForRequests(harness, index + 1);
             const request = harness.requests[index];
             sequence.push(request.query.fileId);
-            expect(request.data).toBeInstanceOf(dom.window.Blob);
+            expect(request.method).toBe("post");
+            expect(request.files).toBeUndefined();
+            expect(request.query.chunk).toMatch(/^[0-9a-f]+$/);
             request.callback(
                 JSON.stringify({
                     result: true,
@@ -111,11 +122,13 @@ describe("binary upload scheduler", () => {
             );
             if (index == 0) {
                 expect(harness.processedUpdates).toEqual([{ id: "#7" }]);
+                await waitForRequests(harness, 2);
                 expect(harness.requests[1].query.lastUpdate).toBe("#7");
             }
         }
 
         expect(sequence).toEqual([1, 2, 3, 4, 5, 1, 2, 3, 4, 5]);
+        await waitForRequests(harness, 11);
         expect(harness.requests[10].query.fileId).toBe(6);
     });
 
@@ -123,6 +136,7 @@ describe("binary upload scheduler", () => {
         const harness = createHarness();
         dom.window.loadFiles(harness.widget, [file("first.bin", 3), file("second.bin", 3)]);
 
+        await waitForRequests(harness, 1);
         const firstAttempt = harness.requests[0];
         expect(firstAttempt.query.fileId).toBe(1);
         expect(firstAttempt.query.chunkIndex).toBe(0);
@@ -130,13 +144,16 @@ describe("binary upload scheduler", () => {
 
         await new Promise(resolve => dom.window.setTimeout(resolve, 300));
 
+        await waitForRequests(harness, 2);
         const secondFile = harness.requests[1];
         expect(secondFile.query.fileId).toBe(2);
         secondFile.callback(JSON.stringify({ result: true, nextChunk: 1, complete: true }));
 
+        await waitForRequests(harness, 3);
         const retry = harness.requests[2];
         expect(retry.query.fileId).toBe(1);
         expect(retry.query.chunkIndex).toBe(0);
-        expect(retry.data.size).toBe(3);
+        expect(retry.query.chunk).toBe(firstAttempt.query.chunk);
+        expect(retry.query.chunk).toHaveLength(6);
     });
 });

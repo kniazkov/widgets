@@ -15,24 +15,24 @@ final class WebServerDefaults {
     static final int BACKLOG = 50;
 
     /**
-     * Maximum complete request size, including legacy multipart framing.
-     */
-    static final long MAX_REQUEST_SIZE = 1024L * 1024L;
-
-    /**
      * Maximum direct legacy multipart file size.
      */
     static final long MAX_FILE_SIZE = 1024L * 1024L;
 
     /**
-     * Keeps one binary chunk or its legacy multipart envelope in memory.
+     * Maximum complete request size for a hex-encoded maximum-size chunk and framing.
+     */
+    static final long MAX_REQUEST_SIZE = MAX_FILE_SIZE * 2L + 64L * 1024L;
+
+    /**
+     * Keeps small request bodies in memory; larger encoded chunks use temporary storage.
      */
     static final long MAX_IN_MEMORY_BODY_SIZE = 128L * 1024L;
 
     /**
      * Maximum decoded form-data size.
      */
-    static final long MAX_FORM_SIZE = 1024L * 1024L;
+    static final long MAX_FORM_SIZE = MAX_REQUEST_SIZE;
 
     /**
      * Maximum number of fields in one multipart XMLHttpRequest.

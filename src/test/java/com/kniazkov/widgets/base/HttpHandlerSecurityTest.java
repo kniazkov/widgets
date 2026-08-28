@@ -164,21 +164,28 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
-     * Raw upload bodies with query metadata must pass through a public-host request unchanged.
+     * Encoded upload fields must use the same public-host form path as synchronization.
      */
     @Test
-    public void rawUploadRequestIsAcceptedFromAnExternalHost() throws Exception {
+    public void encodedUploadRequestIsAcceptedFromAnExternalHost() throws Exception {
         this.start(this.folder.newFolder("www"));
-        final byte[] chunk = new byte[] {1, 2, 3, 4};
-        final String target = "/?action=upload%20chunk&client=%231&widget=%239"
-            + "&fileId=1&chunkIndex=0&lastUpdate=%230";
+        final String boundary = "widgets-encoded-chunk";
+        final ByteArrayOutputStream body = new ByteArrayOutputStream();
+        write(body, part(boundary, "action", "upload chunk"));
+        write(body, part(boundary, "client", "#1"));
+        write(body, part(boundary, "widget", "#9"));
+        write(body, part(boundary, "fileId", "1"));
+        write(body, part(boundary, "chunkIndex", "0"));
+        write(body, part(boundary, "lastUpdate", "#0"));
+        write(body, part(boundary, "chunk", "01020304"));
+        write(body, "--" + boundary + "--\r\n");
 
         final String response = this.request(
             "POST",
-            target,
+            "/",
             "95.165.134.125:8080",
-            "application/octet-stream",
-            chunk
+            "multipart/form-data; boundary=" + boundary,
+            body.toByteArray()
         );
 
         assertTrue(response.startsWith("HTTP/1.1 200"));
