@@ -131,14 +131,15 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
             const field = name =>
                 target.searchParams.get(name) || (body && multipartField(body, name));
             const encodedChunk = field("chunk");
-            chunks.push({
+            const recordedChunk = {
                 fileId: Number(field("fileId")),
                 chunkIndex: Number(field("chunkIndex")),
                 lastUpdate: field("lastUpdate"),
                 contentType: request.headers()["content-type"],
                 encodedChunk,
                 hasQuery: target.search.length > 0
-            });
+            };
+            chunks.push(recordedChunk);
             if (chunks.length === 1) {
                 blockSynchronize = true;
                 reportFirstChunk();
@@ -150,6 +151,11 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
                 reportRetry();
                 await retryReleased;
             }
+            const response = await route.fetch();
+            recordedChunk.responseStatus = response.status();
+            recordedChunk.responseBody = await response.text();
+            await route.fulfill({ response, body: recordedChunk.responseBody });
+            return;
         }
         await route.continue();
     });
@@ -178,6 +184,8 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
 
     await retrySeen;
     await expect(page.getByText("Selected first.bin 0%", { exact: true })).toBeVisible();
+    expect(chunks[1].responseStatus).toBe(200);
+    expect(JSON.parse(chunks[1].responseBody).result).toBe(true);
     await expect(page.getByText("Selected second.bin 50%", { exact: true })).toBeVisible();
     expect(chunks[2].lastUpdate).not.toBe(chunks[1].lastUpdate);
     blockSynchronize = false;
