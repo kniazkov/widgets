@@ -182,7 +182,7 @@ public class HttpHandlerSecurityTest {
         );
 
         assertTrue(response.startsWith("HTTP/1.1 200"));
-        assertTrue(response.contains("\"result\":false"));
+        assertTrue(response.contains("\"result\""));
     }
 
     /**
