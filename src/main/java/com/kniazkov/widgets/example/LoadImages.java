@@ -19,8 +19,10 @@ import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Section;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * A demonstration program that allows uploading and displaying multiple images.
@@ -45,7 +47,8 @@ public class LoadImages {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Set<Listener<Integer>> listeners = new HashSet<>();
+        final Set<Listener<Integer>> listeners = ConcurrentHashMap.newKeySet();
+        final ExecutorService imageProcessors = Executors.newFixedThreadPool(3);
         final Page page = (root, parameters) -> {
             final Section main = new Section();
             root.add(main);
@@ -79,23 +82,25 @@ public class LoadImages {
                 descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file -> {
                     widget.setSource(progress.getWaitingImageSource());
-                    try {
-                        final BufferedImage original = ImageLoader.load(
-                            file.getType(),
-                            file.getContent()
-                        );
-                        final BufferedImage cropped = ImageProcessor.cropToSquare(original);
-                        final BufferedImage resized = ImageProcessor.resizeToFit(
-                            cropped,
-                            300
-                        );
-                        widget.setSource(ImageSource.fromImage(resized));
-                        widget.setBorderStyle(BorderStyle.SOLID);
-                    } catch (final IOException ignored) {
-                        images.remove(widget);
-                    } finally {
-                        listeners.remove(listener);
-                    }
+                    imageProcessors.execute(() -> {
+                        try {
+                            final BufferedImage original = ImageLoader.load(
+                                file.getType(),
+                                file.getContent()
+                            );
+                            final BufferedImage cropped = ImageProcessor.cropToSquare(original);
+                            final BufferedImage resized = ImageProcessor.resizeToFit(
+                                cropped,
+                                300
+                            );
+                            widget.setSource(ImageSource.fromImage(resized));
+                            widget.setBorderStyle(BorderStyle.SOLID);
+                        } catch (final IOException ignored) {
+                            images.remove(widget);
+                        } finally {
+                            listeners.remove(listener);
+                        }
+                    });
                 });
             });
         };
