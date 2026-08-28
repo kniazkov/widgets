@@ -269,5 +269,15 @@ try (Database database = Database.builder()
 Mutation methods are synchronous from the caller's point of view. A persistence error throws
 `PersistenceException`, and the corresponding in-memory change is not published.
 
-The complete runnable integration is available in
-[`SimpleDb.java`](../src/main/java/com/kniazkov/widgets/example/SimpleDb.java).
+## Examples
+
+The runnable examples are located in the common `com.kniazkov.widgets.example` package:
+
+- [`SimpleDb.java`](../src/main/java/com/kniazkov/widgets/example/SimpleDb.java) combines live
+  queries, direct model bindings, record creation, deletion, and JSON persistence.
+- [`DatabaseSearch.java`](../src/main/java/com/kniazkov/widgets/example/DatabaseSearch.java) shows
+  equality and comparison conditions, `and`, `or`, `not`, and multi-field ordering.
+- [`DatabaseEditing.java`](../src/main/java/com/kniazkov/widgets/example/DatabaseEditing.java) edits
+  several fields through an isolated `Draft` and commits them atomically.
+- [`DatabaseRelations.java`](../src/main/java/com/kniazkov/widgets/example/DatabaseRelations.java)
+  stores a related record UUID and binds widgets to the resolved record from another store.
