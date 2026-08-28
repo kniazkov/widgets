@@ -192,7 +192,8 @@ application-data/
 Each commit builds a new snapshot of the affected store, writes it to a temporary file, and
 replaces only that store's target file. An atomic filesystem move is used when supported. A JSON
 change set is restricted to one store because replacing several files cannot provide a real
-cross-store atomic commit.
+cross-store atomic commit. The store name comes from the file name and is not repeated in every
+record.
 
 This implementation is useful for examples and small, low-write applications. It rewrites the
 complete affected store for every committed model change. Binding a text input directly to a

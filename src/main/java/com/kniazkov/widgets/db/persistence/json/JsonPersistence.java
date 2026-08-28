@@ -14,6 +14,7 @@ import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -69,17 +70,11 @@ public final class JsonPersistence implements Persistence {
             new LinkedHashMap<>();
         final List<Path> files = this.listStoreFiles();
         for (final Path file : files) {
-            for (final StoredRecord record : this.parseFile(file)) {
-                final Path expected = this.fileForStore(record.getStore());
-                if (!expected.equals(file.toAbsolutePath())) {
-                    throw new PersistenceException(
-                        "Record for store '" + record.getStore()
-                            + "' is in unexpected file " + file
-                    );
-                }
+            final String store = this.storeFromFile(file);
+            for (final StoredRecord record : this.parseFile(file, store)) {
                 final Map<UUID, StoredRecord> records =
                     loaded.computeIfAbsent(
-                        record.getStore(),
+                        store,
                         ignored -> new LinkedHashMap<>()
                     );
                 if (records.putIfAbsent(record.getId(), record) != null) {
@@ -123,9 +118,13 @@ public final class JsonPersistence implements Persistence {
      * Parses one store file.
      *
      * @param file store file
+     * @param store store name
      * @return records
      */
-    private List<StoredRecord> parseFile(final Path file) {
+    private List<StoredRecord> parseFile(
+        final Path file,
+        final String store
+    ) {
         try {
             final JsonElement root = Json.parse(file.toFile());
             final JsonArray array = root == null ? null : root.toJsonArray();
@@ -136,7 +135,7 @@ public final class JsonPersistence implements Persistence {
             }
             final List<StoredRecord> records = new ArrayList<>();
             for (final JsonElement element : array) {
-                records.add(parseRecord(element));
+                records.add(parseRecord(element, store));
             }
             return records;
         } catch (final JsonException | IllegalArgumentException err) {
@@ -151,14 +150,17 @@ public final class JsonPersistence implements Persistence {
      * Parses one stored record.
      *
      * @param element JSON element
+     * @param store store name
      * @return stored record
      */
-    private static StoredRecord parseRecord(final JsonElement element) {
+    private static StoredRecord parseRecord(
+        final JsonElement element,
+        final String store
+    ) {
         final JsonObject object = element.toJsonObject();
         if (object == null) {
             throw new PersistenceException("Database record must be an object");
         }
-        final String store = requiredString(object, "store");
         final UUID id = UUID.fromString(requiredString(object, "id"));
         final Instant createdAt = Instant.parse(requiredString(object, "createdAt"));
         final long revision = Long.parseLong(requiredString(object, "revision"));
@@ -281,7 +283,6 @@ public final class JsonPersistence implements Persistence {
         ordered.sort(Comparator.comparing(StoredRecord::getId));
         for (final StoredRecord record : ordered) {
             final JsonObject object = array.createObject();
-            object.addString("store", record.getStore());
             object.addString("id", record.getId().toString());
             object.addString("createdAt", record.getCreatedAt().toString());
             object.addString("revision", Long.toString(record.getRevision()));
@@ -335,6 +336,39 @@ public final class JsonPersistence implements Persistence {
             StandardCharsets.UTF_8
         ).replace("+", "%20");
         return this.directory.resolve(encoded + ".json").normalize();
+    }
+
+    /**
+     * Decodes and validates the store name represented by a file.
+     *
+     * @param file store file
+     * @return store name
+     */
+    private String storeFromFile(final Path file) {
+        final String fileName = file.getFileName().toString();
+        final String suffix = ".json";
+        if (!fileName.endsWith(suffix)) {
+            throw new PersistenceException("Not a JSON store file: " + file);
+        }
+        final String encoded = fileName.substring(
+            0,
+            fileName.length() - suffix.length()
+        );
+        final String store;
+        try {
+            store = URLDecoder.decode(encoded, StandardCharsets.UTF_8);
+        } catch (final IllegalArgumentException err) {
+            throw new PersistenceException(
+                "Invalid encoded JSON store file name: " + file,
+                err
+            );
+        }
+        if (store.isBlank() || !this.fileForStore(store).equals(file)) {
+            throw new PersistenceException(
+                "Non-canonical JSON store file name: " + file
+            );
+        }
+        return store;
     }
 
     /**
