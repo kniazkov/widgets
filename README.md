@@ -33,7 +33,7 @@ controller can update one or more models.
 - Reusable, cascading styles with state-specific properties
 - Multiple pages and per-client page context
 - Built-in image loading and processing utilities
-- Lightweight record and JSON persistence APIs
+- Reactive in-memory records with JSON and optional JDBC persistence
 
 ## Quick start
 
@@ -159,6 +159,8 @@ in-memory complete-file limit is 128 MiB.
 
 ## Documentation
 
+- [Reactive database](docs/DATABASE.md) — shared record models, drafts, live queries, JSON and
+  JDBC persistence, examples, and operational limitations.
 - [Model catalog and hierarchy](docs/MODELS.md) — every model type, its contract, defaults,
   validation, composition, and synchronization behavior.
 - [Widget catalog and hierarchy](docs/WIDGETS.md) — every widget class, its inheritance,
@@ -176,7 +178,7 @@ in-memory complete-file limit is 128 MiB.
 | `view`       | Widgets, containers, properties, states, and styles                |
 | `controller` | Browser events and their Java handlers                             |
 | `protocol`   | Commands used to synchronize the server-side tree with the browser |
-| `db`         | Records, stores, filters, and JSON-backed persistence              |
+| `db`         | Reactive records, live queries, drafts, and persistence backends   |
 | `images`     | Image sources, loading, conversion, and processing                 |
 | `common`     | Shared value objects and utilities                                 |
 | `example`    | Small runnable applications demonstrating the API                  |
