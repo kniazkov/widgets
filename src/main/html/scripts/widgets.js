@@ -1038,7 +1038,7 @@ function sendNextUploadChunk() {
     const offset = file.nextChunk * uploadProtocol.chunkSize;
     const chunk = file.source.slice(offset, Math.min(file.size, offset + uploadProtocol.chunkSize));
     uploadRequestInFlight = true;
-    sendRequest(
+    sendBinaryRequest(
         {
             action: "upload chunk",
             client: clientId,
@@ -1087,14 +1087,7 @@ function sendNextUploadChunk() {
             }
             setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
         },
-        "post",
-        [
-            {
-                field: "chunk",
-                name: "chunk.bin",
-                data: chunk
-            }
-        ]
+        chunk
     );
 }
 

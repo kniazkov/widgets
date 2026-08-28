@@ -120,16 +120,20 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
     await page.route("**/*", async route => {
         const request = route.request();
         const body = request.postDataBuffer();
-        const action = body && multipartField(body, "action");
+        const target = new URL(request.url());
+        const action =
+            target.searchParams.get("action") || (body && multipartField(body, "action"));
         if (action === "synchronize" && blockSynchronize) {
             await route.abort("failed");
             return;
         }
         if (action === "upload chunk") {
             chunks.push({
-                fileId: Number(multipartField(body, "fileId")),
-                chunkIndex: Number(multipartField(body, "chunkIndex")),
-                lastUpdate: multipartField(body, "lastUpdate")
+                fileId: Number(target.searchParams.get("fileId")),
+                chunkIndex: Number(target.searchParams.get("chunkIndex")),
+                lastUpdate: target.searchParams.get("lastUpdate"),
+                contentType: request.headers()["content-type"],
+                size: body.length
             });
             if (chunks.length === 1) {
                 blockSynchronize = true;
@@ -188,5 +192,8 @@ test("binary uploads retry a lost chunk and preserve round-robin order", async (
         { fileId: 2, chunkIndex: 1 },
         { fileId: 1, chunkIndex: 1 }
     ]);
+    expect(chunks.every(chunk => chunk.contentType === "application/octet-stream")).toBe(true);
+    expect(chunks[0].size).toBe(64 * 1024);
+    expect(chunks[1].size).toBe(64 * 1024);
     expect(pageErrors).toEqual([]);
 });

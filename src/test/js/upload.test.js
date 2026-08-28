@@ -54,8 +54,8 @@ function createHarness() {
         ${widgetsSource}`);
 
     const requests = [];
-    dom.window.sendRequest = (query, callback, method, files) => {
-        requests.push({ query, callback, method, files });
+    dom.window.sendBinaryRequest = (query, callback, data) => {
+        requests.push({ query, data, callback });
     };
     return {
         requests,
@@ -100,8 +100,7 @@ describe("binary upload scheduler", () => {
         for (let index = 0; index < 10; index++) {
             const request = harness.requests[index];
             sequence.push(request.query.fileId);
-            expect(request.method).toBe("post");
-            expect(request.files[0].data).toBeInstanceOf(dom.window.Blob);
+            expect(request.data).toBeInstanceOf(dom.window.Blob);
             request.callback(
                 JSON.stringify({
                     result: true,
@@ -138,6 +137,6 @@ describe("binary upload scheduler", () => {
         const retry = harness.requests[2];
         expect(retry.query.fileId).toBe(1);
         expect(retry.query.chunkIndex).toBe(0);
-        expect(retry.files[0].data.size).toBe(3);
+        expect(retry.data.size).toBe(3);
     });
 });

@@ -76,9 +76,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         final ResponseFactory responses = environment.getResponseFactory();
         final HttpMethod method = request.getHeaders().getMethod();
         final String requestPath = request.getPath().getPath();
-        final Map<String, String> parameters = flatten(
-            method == HttpMethod.POST ? request.getForm() : request.getQuery()
-        );
+        final Map<String, String> parameters = flatten(request.getQuery());
+        parameters.putAll(flatten(request.getForm()));
 
         /*
          * Handle action requests: /?action=...
@@ -193,22 +192,35 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     /**
-     * Validates and delivers one multipart binary upload chunk.
+     * Validates and delivers one raw or legacy multipart binary upload chunk.
      *
      * @param request immutable web-server request
-     * @param parameters flattened multipart fields
+     * @param parameters flattened protocol fields
      * @return serialized upload acknowledgement
      * @throws ServerException if the temporary upload data cannot be read
      */
     private JsonObject handleUploadChunk(
             final Request request,
             final Map<String, String> parameters) throws ServerException {
-        final List<UploadedFile> files = request.getFiles().get("chunk");
-        if (request.getFiles().size() != 1 || files == null || files.size() != 1) {
-            return UploadProtocol.rejected();
+        final byte[] data;
+        if (isBinaryRequest(request)) {
+            if (!request.getFiles().isEmpty()
+                    || request.getBody().getSize() > this.options.getChunkSize()) {
+                return UploadProtocol.rejected();
+            }
+            data = request.getBody().readAllBytes();
+        } else {
+            final List<UploadedFile> files = request.getFiles().get("chunk");
+            if (request.getFiles().size() != 1 || files == null || files.size() != 1) {
+                return UploadProtocol.rejected();
+            }
+            final UploadedFile chunk = files.get(0);
+            if (chunk.getSize() > this.options.getChunkSize()) {
+                return UploadProtocol.rejected();
+            }
+            data = chunk.readAllBytes();
         }
-        final UploadedFile chunk = files.get(0);
-        if (chunk.getSize() > this.options.getChunkSize()) {
+        if (data.length > this.options.getChunkSize()) {
             return UploadProtocol.rejected();
         }
         final String client = parameters.get("client");
@@ -229,12 +241,29 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 widgetId,
                 fileId,
                 chunkIndex,
-                chunk.readAllBytes(),
+                data,
                 parameters.get("lastUpdate")
             );
         } catch (final NumberFormatException | NullPointerException ignored) {
             return UploadProtocol.rejected();
         }
+    }
+
+    /**
+     * Returns whether a request carries a raw binary upload body.
+     *
+     * @param request immutable web-server request
+     * @return true for the current non-multipart upload protocol
+     */
+    private static boolean isBinaryRequest(final Request request) {
+        final List<String> values = request.getHeaders().getValues().get("Content-Type");
+        if (values == null || values.size() != 1) {
+            return false;
+        }
+        final String value = values.get(0);
+        final int separator = value.indexOf(';');
+        final String mediaType = separator < 0 ? value : value.substring(0, separator);
+        return "application/octet-stream".equalsIgnoreCase(mediaType.trim());
     }
 
     /**

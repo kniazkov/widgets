@@ -144,8 +144,10 @@ dead client, the normal full-page reload takes over.
 
 `FileLoader` reports every selected file through `onSelect` immediately, with its loading model at
 zero percent. The browser retains the original `File` and sends 64 KiB `Blob.slice()` values as
-binary multipart parts by default; file contents are never expanded into Base16 or read into one
-browser-side buffer. The chunk and complete-file limits have one server-side source of truth and
+`application/octet-stream` request bodies, with chunk metadata in the query string. This avoids
+multipart file filtering by public HTTP frontends; the server still accepts the legacy multipart
+protocol. File contents are never expanded into Base16 or read into one browser-side buffer. The
+chunk and complete-file limits have one server-side source of truth and
 can be changed with `Options.Builder.setChunkSize(...)` and `setMaxFileSize(...)`; the selected
 values are injected into the browser bootstrap automatically.
 

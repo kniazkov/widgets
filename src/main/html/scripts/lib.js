@@ -22,7 +22,46 @@ function getXmlHttp() {
     return xmlHttpObject;
 }
 
-// Object-valued fields are serialized as JSON; POST and file requests use multipart form data.
+// Serializes protocol fields for a URL query string.
+function createQueryString(query) {
+    const fields = [];
+    for (const key in query) {
+        let value = query[key];
+        if (typeof value == "object") {
+            value = JSON.stringify(value);
+        }
+        fields.push(encodeURIComponent(key) + "=" + encodeURIComponent(value));
+    }
+    return fields.join("&");
+}
+
+// Completes one request exactly once on every XMLHttpRequest terminal path.
+function completeRequest(req, body, callback) {
+    let completed = false;
+    const complete = function (data) {
+        if (completed) {
+            return;
+        }
+        completed = true;
+        if (callback) {
+            callback(data);
+        }
+    };
+    req.timeout = typeof REQUEST_TIMEOUT == "number" ? REQUEST_TIMEOUT : 10 * 1000;
+    req.onreadystatechange = function () {
+        if (req.readyState == 4) {
+            complete(req.status == 200 ? req.responseText : null);
+        }
+    };
+    req.onerror = function () {
+        complete(null);
+    };
+    req.ontimeout = req.onerror;
+    req.onabort = req.onerror;
+    req.send(body);
+}
+
+// Object-valued fields are serialized as JSON; regular POST requests use multipart form data.
 function sendRequest(query, callback, method, files) {
     const req = getXmlHttp();
     let form = null;
@@ -48,43 +87,17 @@ function sendRequest(query, callback, method, files) {
         }
         req.open("POST", server, true);
     } else {
-        let queryString = "";
-        let count = 0;
-        for (const key in query) {
-            let value = query[key];
-            if (typeof value == "object") {
-                value = JSON.stringify(value);
-            }
-            if (count) {
-                queryString += "&";
-            }
-            count++;
-            queryString += key + "=" + encodeURIComponent(value);
-        }
-        req.open("GET", server + "?" + queryString, true);
+        req.open("GET", server + "?" + createQueryString(query), true);
     }
-    let completed = false;
-    const complete = function (data) {
-        if (completed) {
-            return;
-        }
-        completed = true;
-        if (callback) {
-            callback(data);
-        }
-    };
-    req.timeout = typeof REQUEST_TIMEOUT == "number" ? REQUEST_TIMEOUT : 10 * 1000;
-    req.onreadystatechange = function () {
-        if (req.readyState == 4) {
-            complete(req.status == 200 ? req.responseText : null);
-        }
-    };
-    req.onerror = function () {
-        complete(null);
-    };
-    req.ontimeout = req.onerror;
-    req.onabort = req.onerror;
-    req.send(form);
+    completeRequest(req, form, callback);
+}
+
+// Sends a binary body without a multipart file part that public HTTP filters may reject.
+function sendBinaryRequest(query, callback, data) {
+    const req = getXmlHttp();
+    req.open("POST", server + "?" + createQueryString(query), true);
+    req.setRequestHeader("Content-Type", "application/octet-stream");
+    completeRequest(req, data, callback);
 }
 
 // Registers an event handler through either the standard or legacy DOM API.

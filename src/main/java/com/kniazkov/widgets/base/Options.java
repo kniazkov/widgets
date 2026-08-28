@@ -337,7 +337,7 @@ public final class Options {
             }
             if (value > WebServerDefaults.MAX_FILE_SIZE) {
                 throw new IllegalArgumentException(
-                    "Upload chunk size exceeds the HTTP multipart limit"
+                    "Upload chunk size exceeds the HTTP request limit"
                 );
             }
             this.chunkSize = value;

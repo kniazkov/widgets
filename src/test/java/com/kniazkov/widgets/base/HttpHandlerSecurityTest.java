@@ -164,6 +164,28 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
+     * Raw upload bodies with query metadata must pass through a public-host request unchanged.
+     */
+    @Test
+    public void rawUploadRequestIsAcceptedFromAnExternalHost() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        final byte[] chunk = new byte[] {1, 2, 3, 4};
+        final String target = "/?action=upload%20chunk&client=%231&widget=%239"
+            + "&fileId=1&chunkIndex=0&lastUpdate=%230";
+
+        final String response = this.request(
+            "POST",
+            target,
+            "95.165.134.125:8080",
+            "application/octet-stream",
+            chunk
+        );
+
+        assertTrue(response.startsWith("HTTP/1.1 200"));
+        assertTrue(response.contains("\"result\":false"));
+    }
+
+    /**
      * Starts the framework on an ephemeral loopback port.
      */
     private Options start(final File root) {
@@ -218,6 +240,18 @@ public class HttpHandlerSecurityTest {
             final String target,
             final String contentType,
             final byte[] body) throws Exception {
+        return this.request(method, target, "localhost", contentType, body);
+    }
+
+    /**
+     * Sends one HTTP request with an explicit Host header and arbitrary binary body.
+     */
+    private String request(
+            final String method,
+            final String target,
+            final String host,
+            final String contentType,
+            final byte[] body) throws Exception {
         try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), this.server.getPort())) {
             socket.setSoTimeout(5000);
             final byte[] content = body == null
@@ -225,7 +259,7 @@ public class HttpHandlerSecurityTest {
                 : body;
             final StringBuilder headers = new StringBuilder()
                 .append(method).append(' ').append(target).append(" HTTP/1.1\r\n")
-                .append("Host: localhost\r\n")
+                .append("Host: ").append(host).append("\r\n")
                 .append("Connection: close\r\n");
             if (body != null) {
                 headers.append("Content-Type: ").append(contentType).append("\r\n")
