@@ -3,59 +3,31 @@
  */
 package com.kniazkov.widgets.db;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
- * Represents a database that manages named {@link Store} instances.
- * <p>
- * A {@code Database} acts as a registry and access point for stores that share
- * a common persistence backend or storage location. Implementations define how
- * stores are created, loaded, and flushed to the underlying medium.
+ * A reactive in-memory database whose records expose models that can be bound directly
+ * to widgets.
  */
-public abstract class Database {
+public interface Database extends AutoCloseable {
     /**
-     * Registers a store with the specified name and schema.
-     * <p>
-     * If the underlying implementation supports persistent storage, this method may
-     * also load previously saved records for the store from that storage.
+     * Creates a database builder.
      *
-     * @param name the unique store name
-     * @param fields the schema fields supported by the store
-     * @return this database instance
+     * @return new builder
      */
-    public abstract Database registerStore(String name, final List<Field<?>> fields);
-
-    /**
-     * Registers a store with the specified name and schema.
-     * <p>
-     * This is a convenience overload that accepts the store schema as a
-     * variable-length argument list and delegates to
-     * {@link #registerStore(String, java.util.List)}.
-     *
-     * @param name the unique store name
-     * @param fields the schema fields supported by the store
-     * @return this database instance
-     */
-    public Database registerStore(String name, final Field<?>... fields) {
-        return registerStore(name, Arrays.asList(fields));
+    static DatabaseBuilder builder() {
+        return new DatabaseBuilder();
     }
 
     /**
-     * Returns a previously registered store by name.
+     * Returns a configured store.
      *
-     * @param name the store name
-     * @return the registered store
+     * @param name store name
+     * @return store
      */
-    public abstract Store getStore(String name);
+    Store getStore(String name);
 
     /**
-     * Flushes the database state to persistent storage.
-     * <p>
-     * Depending on the implementation, this may write the entire database or only
-     * pending changes.
-     *
-     * @return {@code true} if flushing succeeded; {@code false} otherwise
+     * Stops the database dispatcher and closes its persistence backend.
      */
-    public abstract boolean flush();
+    @Override
+    void close();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Ivan Kniazkov
+ * Copyright (c) 2026 Ivan Kniazkov
  */
 package com.kniazkov.widgets.example;
 
@@ -9,12 +9,17 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
+import com.kniazkov.widgets.db.DataRecord;
 import com.kniazkov.widgets.db.Database;
+import com.kniazkov.widgets.db.Draft;
 import com.kniazkov.widgets.db.Field;
-import com.kniazkov.widgets.db.JsonDatabase;
-import com.kniazkov.widgets.db.Record;
+import com.kniazkov.widgets.db.LiveRecordSet;
+import com.kniazkov.widgets.db.RecordChange;
+import com.kniazkov.widgets.db.Schema;
 import com.kniazkov.widgets.db.Store;
-import com.kniazkov.widgets.db.Type;
+import com.kniazkov.widgets.db.ValueType;
+import com.kniazkov.widgets.db.persistence.json.JsonPersistence;
+import com.kniazkov.widgets.db.query.Query;
 import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Cell;
@@ -24,109 +29,72 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.Table;
 import com.kniazkov.widgets.view.TextWidget;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A minimal demonstration program showcasing the usage of the primitive database,
- * JSON persistence, and UI components working together in a simple editable table.
- *
- * <p>
- * The application:
- * <ul>
- *     <li>loads a small database from a JSON file,</li>
- *     <li>displays all records as editable rows in a table,</li>
- *     <li>allows creating new records dynamically,</li>
- *     <li>allows editing all fields directly in the browser,</li>
- *     <li>saves all changes back to the JSON file on demand.</li>
- * </ul>
- *
- * <p>
- * Each row in the UI corresponds to one {@link Record}. The models stored
- * inside the record are directly bound to input widgets, so any modifications in the browser
- * update the underlying database models immediately.
- *
- * <b>How to use</b>
- * <ol>
- *   <li>Run the program;</li>
- *   <li>
- *     Open your browser and go to
- *     <a href="http://localhost:8000">http://localhost:8000</a>.
- *   </li>
- *   <li>Edit the cells or click “Create record” to add new rows;</li>
- *   <li>Press “Save” to write all records to {@code database.json}.</li>
- * </ol>
- *
- * <p>
- * This example is intentionally minimal:
- * it demonstrates the interaction between records, models, stores, and widgets
- * without additional abstractions, validation logic, or styling.
+ * Demonstrates shared reactive records with JSON persistence.
  */
-public class SimpleDb {
+public final class SimpleDb {
     /**
      * Employee name field.
      */
-    static final Field<String> NAME = new Field<>(Type.STRING, "name");
+    private static final Field<String> NAME =
+        new Field<>(ValueType.STRING, "name");
 
     /**
      * Employee age field.
      */
-    static final Field<Integer> AGE = new Field<>(Type.POSITIVE_INTEGER, "age");
+    private static final Field<Integer> AGE =
+        new Field<>(ValueType.POSITIVE_INTEGER, "age");
 
     /**
      * Example database.
      */
-    static final Database DATABASE = new JsonDatabase(Paths.get("."))
-            .registerStore(
-                    "employee",
-                    Arrays.asList(
-                            NAME,
-                            AGE
-                    ));
+    private static final Database DATABASE = Database.builder()
+        .persistence(new JsonPersistence(Paths.get("database.json")))
+        .store("employee", Schema.of(NAME, AGE))
+        .build();
 
     /**
      * Employee store.
      */
-    static final Store STORE = DATABASE.getStore("employee");
+    private static final Store EMPLOYEES = DATABASE.getStore("employee");
 
     /**
-     * Entry point.
+     * Utility class.
+     */
+    private SimpleDb() {
+    }
+
+    /**
+     * Starts the example.
      *
      * @param args program arguments
      */
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         final Page page = (root, parameters) -> {
             final Table table = new Table();
             root.add(table);
+            createHeader(table);
 
-            final Row header = new Row();
-            table.add(header);
-            header.getCell(0).createText("Name");
-            header.getCell(1).createText("Age");
-            for (final Section section : header.collectChildren(Section.class)) {
-                section.setHorizontalAlignment(HorizontalAlignment.CENTER);
+            final Map<UUID, Row> rows = new ConcurrentHashMap<>();
+            final LiveRecordSet records = EMPLOYEES.query(Query.all());
+            for (final DataRecord record : records.getRecords()) {
+                rows.put(record.getId(), createRow(table, record));
             }
-            for (final TextWidget text : header.collectChildren(TextWidget.class)) {
-                text.setFontWeight(FontWeight.BOLD);
-            }
+            records.subscribe(change -> updateRows(table, rows, change));
 
-            for (final Record record : STORE.getRecordsOldFirst()) {
-                createRowFromRecord(table, record);
-            }
-
-            final Section buttonSection = new Section();
-            root.add(buttonSection);
-            final Button createRecord = new Button("Create record");
-            buttonSection.add(createRecord);
-            createRecord.onClick(evt -> {
-                final Record record = STORE.createRecord();
-                createRowFromRecord(table, record);
-            });
-
-            final Button save = new Button("Save");
-            buttonSection.add(save);
-            save.onClick(evt -> {
-                STORE.save();
-                DATABASE.flush();
+            final Section buttons = new Section();
+            root.add(buttons);
+            final Button create = new Button("Create record");
+            buttons.add(create);
+            create.onClick(event -> {
+                final Draft draft = EMPLOYEES.createDraft();
+                draft.model(NAME);
+                draft.model(AGE);
+                draft.commit();
             });
         };
 
@@ -136,33 +104,79 @@ public class SimpleDb {
     }
 
     /**
-     * Adds one editable database record to a table.
+     * Creates the table header.
      *
-     * @param table target table
-     * @param record source record
+     * @param table table
      */
-    private static void createRowFromRecord(final Table table, final Record record) {
+    private static void createHeader(final Table table) {
+        final Row header = new Row();
+        table.add(header);
+        header.getCell(0).createText("Name");
+        header.getCell(1).createText("Age");
+        for (final Section section : header.collectChildren(Section.class)) {
+            section.setHorizontalAlignment(HorizontalAlignment.CENTER);
+        }
+        for (final TextWidget text : header.collectChildren(TextWidget.class)) {
+            text.setFontWeight(FontWeight.BOLD);
+        }
+    }
+
+    /**
+     * Applies a live record-set change to one page table.
+     *
+     * @param table table
+     * @param rows rows by record identifier
+     * @param change change
+     */
+    private static void updateRows(
+        final Table table,
+        final Map<UUID, Row> rows,
+        final RecordChange change
+    ) {
+        if (change.kind() == RecordChange.Kind.ADDED) {
+            rows.computeIfAbsent(
+                change.record().getId(),
+                ignored -> createRow(table, change.record())
+            );
+        } else if (change.kind() == RecordChange.Kind.REMOVED) {
+            final Row row = rows.remove(change.record().getId());
+            if (row != null) {
+                table.remove(row);
+            }
+        }
+    }
+
+    /**
+     * Creates an editable row bound directly to record models.
+     *
+     * @param table table
+     * @param record record
+     * @return row
+     */
+    private static Row createRow(final Table table, final DataRecord record) {
         final Row row = new Row();
         table.add(row);
+
         Cell cell = row.getCell(0);
         Section section = new Section();
         cell.add(section);
-        InputField field = new InputField();
-        section.add(field);
-        field.setTextModel(record.getModel(NAME));
+        InputField input = new InputField();
+        section.add(input);
+        input.setTextModel(record.model(NAME));
+
         cell = row.getCell(1);
         section = new Section();
         cell.add(section);
-        field = new InputField();
-        section.add(field);
-        field.setTextModel(new IntegerToStringModel(record.getModel(AGE)));
+        input = new InputField();
+        section.add(input);
+        input.setTextModel(new IntegerToStringModel(record.model(AGE)));
+
         cell = row.getCell(2);
         section = new Section();
         cell.add(section);
-        final Button button = new Button("Save");
-        section.add(button);
-        button.onClick(data -> {
-            record.save();
-        });
+        final Button remove = new Button("Remove");
+        section.add(remove);
+        remove.onClick(event -> record.remove());
+        return row;
     }
 }
