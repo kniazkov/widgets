@@ -1050,6 +1050,7 @@ function sendNextUploadChunk() {
         function (data) {
             uploadRequestInFlight = false;
             if (!data) {
+                recordRequestFailure();
                 setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
                 return;
             }
@@ -1057,9 +1058,11 @@ function sendNextUploadChunk() {
             try {
                 receipt = JSON.parse(data);
             } catch (error) {
+                recordRequestFailure();
                 setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
                 return;
             }
+            recordRequestSuccess();
             processUpdates(receipt.updates);
             if (
                 receipt.result === true &&

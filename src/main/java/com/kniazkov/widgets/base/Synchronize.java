@@ -29,6 +29,8 @@ final class Synchronize extends ActionHandler {
     JsonElement process(final Map<String, String> data) {
         final JsonObject obj = new JsonObject();
         obj.addBoolean("result", false);
+        obj.addBoolean("clientAlive", false);
+        obj.addString("serverId", this.application.getServerId().toString());
 
         if (data.containsKey("client")) {
             final RMId clientId = RMId.parse(data.get("client"));

@@ -13,6 +13,72 @@ test("a browser click reaches Java and the resulting update reaches the DOM", as
     expect(pageErrors).toEqual([]);
 });
 
+test("persistent connection loss blocks the page until the server responds", async ({ page }) => {
+    let blockSynchronization = false;
+    await page.route("**/*", async route => {
+        const request = route.request();
+        const body = request.postDataBuffer();
+        if (blockSynchronization && body && multipartField(body, "action") === "synchronize") {
+            await route.abort("failed");
+            return;
+        }
+        await route.continue();
+    });
+
+    await page.goto("/");
+    await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
+
+    blockSynchronization = true;
+    await page.evaluate(() => {
+        mainCycle();
+        mainCycle();
+        mainCycle();
+    });
+    await expect(page.getByText("Connection terminated", { exact: true })).toBeVisible();
+
+    blockSynchronization = false;
+    await page.evaluate(() => mainCycle());
+    await expect(page.getByText("Connection terminated", { exact: true })).toBeHidden();
+});
+
+test("a dead client causes the browser to reload the same page", async ({ page }) => {
+    let rejectNextSynchronization = false;
+    const currentServer = { id: null };
+    await page.route("**/*", async route => {
+        const request = route.request();
+        const body = request.postDataBuffer();
+        if (rejectNextSynchronization && body && multipartField(body, "action") === "synchronize") {
+            rejectNextSynchronization = false;
+            await route.fulfill({
+                contentType: "application/json",
+                body: JSON.stringify({
+                    result: false,
+                    clientAlive: false,
+                    serverId: currentServer.id
+                })
+            });
+            return;
+        }
+        await route.continue();
+    });
+
+    await page.goto("/?item=42");
+    await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
+    currentServer.id = await page.evaluate(() => serverId);
+    const previousClientId = await page.evaluate(() => clientId);
+
+    rejectNextSynchronization = true;
+    const navigation = page.waitForEvent("framenavigated", {
+        predicate: frame => frame === page.mainFrame()
+    });
+    await page.evaluate(() => mainCycle());
+    await navigation;
+
+    await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
+    expect(await page.evaluate(() => clientId)).not.toBe(previousClientId);
+    expect(new URL(page.url()).search).toBe("?item=42");
+});
+
 function multipartField(body, name) {
     const text = body.toString("latin1");
     const marker = `name="${name}"\r\n\r\n`;

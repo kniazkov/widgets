@@ -128,6 +128,18 @@ TLS versions and cipher suites, and optional or required mutual TLS. Run separat
 on different ports when both HTTP and HTTPS listeners are required. The caller remains responsible
 for clearing its original password array after the TLS options have been built.
 
+### Connection recovery
+
+Every application instance has a random server identifier that is returned when a browser client
+is created and with every synchronization response. If the server restarts, or if the watchdog has
+already removed an inactive client, the browser reloads its current URL and rebuilds the page with
+the same path and query parameters.
+
+After three consecutive request failures, the browser blocks interaction with a translucent
+`Connection terminated` overlay. Synchronization attempts continue in the background, and the
+overlay is removed when the server responds again. If recovery reveals a restarted server or a
+dead client, the normal full-page reload takes over.
+
 ### File uploads
 
 `FileLoader` reports every selected file through `onSelect` immediately, with its loading model at

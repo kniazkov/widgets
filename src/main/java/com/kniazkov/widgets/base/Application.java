@@ -9,6 +9,7 @@ import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
@@ -29,6 +30,11 @@ public final class Application {
      * Interval at which the internal watchdog checks all clients, in milliseconds.
      */
     private static final long WATCHDOG_PERIOD = 100;
+
+    /**
+     * Unique identifier of this in-memory server state.
+     */
+    private final UUID serverId;
 
     /**
      * Application options (e.g., logger, client timeout).
@@ -56,6 +62,7 @@ public final class Application {
      * @param index the root page of the application
      */
     public Application(Page index) {
+        this.serverId = UUID.randomUUID();
         this.clients = new ConcurrentHashMap<>();
         this.pages = new TreeMap<>();
         this.pages.put("/", index);
@@ -66,6 +73,15 @@ public final class Application {
          */
         Watchdog watchdog = new Watchdog();
         watchdog.start(WATCHDOG_PERIOD);
+    }
+
+    /**
+     * Returns the identifier shared by every client of this application instance.
+     *
+     * @return server-state identifier
+     */
+    UUID getServerId() {
+        return this.serverId;
     }
 
     /**
@@ -179,6 +195,7 @@ public final class Application {
                 client.timer = this.options.getClientLifetime();
                 client.synchronize(request, response);
                 response.addBoolean("result", true);
+                response.addBoolean("clientAlive", true);
             }
             return client;
         });

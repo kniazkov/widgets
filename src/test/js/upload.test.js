@@ -45,6 +45,12 @@ function createHarness() {
         function sendSynchronizeRequest(callback) {
             callback(true);
         }
+        function recordRequestFailure() {
+            window.__requestFailures = (window.__requestFailures || 0) + 1;
+        }
+        function recordRequestSuccess() {
+            window.__requestSuccesses = (window.__requestSuccesses || 0) + 1;
+        }
         ${widgetsSource}`);
 
     const requests = [];

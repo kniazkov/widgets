@@ -79,6 +79,7 @@ final class CreateClient extends ActionHandler {
          */
         JsonObject obj = new JsonObject();
         obj.addString("id", id);
+        obj.addString("serverId", this.application.getServerId().toString());
 
         /*
          * Log creation for debugging or monitoring
