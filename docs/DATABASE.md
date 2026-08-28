@@ -170,23 +170,33 @@ the consumer is discarded.
 
 ## JSON persistence
 
-`JsonPersistence` stores every configured store in one file:
+`JsonPersistence` stores each configured store in a separate file inside one database directory:
 
 ```java
 Database database = Database.builder()
     .persistence(
-        new JsonPersistence(Path.of("application-data.json"))
+        new JsonPersistence(Path.of("application-data"))
     )
     .store("employees", Schema.of(name, age, active))
     .build();
 ```
 
-Each commit builds a new complete snapshot, writes it to a temporary file, and replaces the target
-file. An atomic filesystem move is used when supported.
+For example, stores named `employees` and `settings` produce this layout:
+
+```text
+application-data/
+├── employees.json
+└── settings.json
+```
+
+Each commit builds a new snapshot of the affected store, writes it to a temporary file, and
+replaces only that store's target file. An atomic filesystem move is used when supported. A JSON
+change set is restricted to one store because replacing several files cannot provide a real
+cross-store atomic commit.
 
 This implementation is useful for examples and small, low-write applications. It rewrites the
-complete snapshot for every committed model change. Binding a text input directly to a persisted
-record can therefore rewrite the file for every entered character.
+complete affected store for every committed model change. Binding a text input directly to a
+persisted record can therefore rewrite that store's file for every entered character.
 
 Use drafts to group form changes, or choose JDBC when frequent updates and a larger data set make
 whole-file snapshots inappropriate.

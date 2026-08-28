@@ -53,7 +53,7 @@ public final class SimpleDb {
      * Example database.
      */
     private static final Database DATABASE = Database.builder()
-        .persistence(new JsonPersistence(Paths.get("database.json")))
+        .persistence(new JsonPersistence(Paths.get("database")))
         .store("employee", Schema.of(NAME, AGE))
         .build();
 

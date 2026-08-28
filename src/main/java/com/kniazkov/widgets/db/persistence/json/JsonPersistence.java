@@ -14,12 +14,16 @@ import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,55 +31,117 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Persists the complete database snapshot in one atomically replaced JSON file.
+ * Persists each store in its own atomically replaced JSON file.
  */
 public final class JsonPersistence implements Persistence {
     /**
-     * Target file.
+     * Database directory.
      */
-    private final Path file;
+    private final Path directory;
 
     /**
-     * Current persisted records.
+     * Current records grouped by store.
      */
-    private Map<String, StoredRecord> records;
+    private Map<String, Map<UUID, StoredRecord>> stores;
 
     /**
      * Creates a JSON backend.
      *
-     * @param file target file
+     * @param directory database directory
      */
-    public JsonPersistence(final Path file) {
-        this.file = file.toAbsolutePath();
-        this.records = new LinkedHashMap<>();
+    public JsonPersistence(final Path directory) {
+        this.directory = directory.toAbsolutePath().normalize();
+        this.stores = new LinkedHashMap<>();
     }
 
     @Override
     public synchronized DatabaseSnapshot load() {
-        if (!Files.exists(this.file)) {
-            this.records = new LinkedHashMap<>();
+        if (!Files.exists(this.directory)) {
+            this.stores = new LinkedHashMap<>();
             return DatabaseSnapshot.empty();
         }
-        try {
-            final JsonElement root = Json.parse(this.file.toFile());
-            final JsonArray array = root == null ? null : root.toJsonArray();
-            if (array == null) {
-                throw new PersistenceException("Database JSON root must be an array");
-            }
-            final Map<String, StoredRecord> loaded = new LinkedHashMap<>();
-            for (final JsonElement element : array) {
-                final StoredRecord record = parseRecord(element);
-                if (loaded.put(key(record.getStore(), record.getId()), record) != null) {
+        if (!Files.isDirectory(this.directory)) {
+            throw new PersistenceException(
+                "JSON database path is not a directory: " + this.directory
+            );
+        }
+        final Map<String, Map<UUID, StoredRecord>> loaded =
+            new LinkedHashMap<>();
+        final List<Path> files = this.listStoreFiles();
+        for (final Path file : files) {
+            for (final StoredRecord record : this.parseFile(file)) {
+                final Path expected = this.fileForStore(record.getStore());
+                if (!expected.equals(file.toAbsolutePath())) {
+                    throw new PersistenceException(
+                        "Record for store '" + record.getStore()
+                            + "' is in unexpected file " + file
+                    );
+                }
+                final Map<UUID, StoredRecord> records =
+                    loaded.computeIfAbsent(
+                        record.getStore(),
+                        ignored -> new LinkedHashMap<>()
+                    );
+                if (records.putIfAbsent(record.getId(), record) != null) {
                     throw new PersistenceException(
                         "Duplicate record " + record.getId()
                     );
                 }
             }
-            this.records = loaded;
-            return new DatabaseSnapshot(new ArrayList<>(loaded.values()));
+        }
+        this.stores = loaded;
+        return new DatabaseSnapshot(flatten(loaded));
+    }
+
+    /**
+     * Lists store files in stable order.
+     *
+     * @return store files
+     */
+    private List<Path> listStoreFiles() {
+        final List<Path> files = new ArrayList<>();
+        try (
+            DirectoryStream<Path> stream =
+                Files.newDirectoryStream(this.directory, "*.json")
+        ) {
+            for (final Path file : stream) {
+                if (Files.isRegularFile(file)) {
+                    files.add(file.toAbsolutePath().normalize());
+                }
+            }
+        } catch (final IOException err) {
+            throw new PersistenceException(
+                "Cannot list JSON database directory " + this.directory,
+                err
+            );
+        }
+        files.sort(Comparator.comparing(Path::toString));
+        return files;
+    }
+
+    /**
+     * Parses one store file.
+     *
+     * @param file store file
+     * @return records
+     */
+    private List<StoredRecord> parseFile(final Path file) {
+        try {
+            final JsonElement root = Json.parse(file.toFile());
+            final JsonArray array = root == null ? null : root.toJsonArray();
+            if (array == null) {
+                throw new PersistenceException(
+                    "Store JSON root must be an array: " + file
+                );
+            }
+            final List<StoredRecord> records = new ArrayList<>();
+            for (final JsonElement element : array) {
+                records.add(parseRecord(element));
+            }
+            return records;
         } catch (final JsonException | IllegalArgumentException err) {
             throw new PersistenceException(
-                "Cannot read database JSON from " + this.file,
+                "Cannot read JSON store from " + file,
                 err
             );
         }
@@ -139,32 +205,80 @@ public final class JsonPersistence implements Persistence {
 
     @Override
     public synchronized void commit(final ChangeSet changes) {
-        final Map<String, StoredRecord> updated =
-            new LinkedHashMap<>(this.records);
+        String store = null;
+        for (final ChangeSet.Mutation mutation : changes.getMutations()) {
+            final String mutationStore = storeOf(mutation);
+            if (store == null) {
+                store = mutationStore;
+            } else if (!store.equals(mutationStore)) {
+                throw new PersistenceException(
+                    "JSON persistence cannot atomically change multiple stores"
+                );
+            }
+        }
+        if (store == null) {
+            return;
+        }
+        final Map<UUID, StoredRecord> updated = new LinkedHashMap<>(
+            this.stores.getOrDefault(store, Map.of())
+        );
         for (final ChangeSet.Mutation mutation : changes.getMutations()) {
             if (mutation instanceof ChangeSet.Upsert upsert) {
                 final StoredRecord record = upsert.record();
-                updated.put(key(record.getStore(), record.getId()), record);
+                updated.put(record.getId(), record);
             } else if (mutation instanceof ChangeSet.Delete delete) {
-                updated.remove(key(delete.store(), delete.id()));
+                updated.remove(delete.id());
             }
         }
-        this.write(updated.values());
-        this.records = updated;
+        this.write(store, updated.values());
+        final Map<String, Map<UUID, StoredRecord>> next =
+            new LinkedHashMap<>(this.stores);
+        next.put(store, updated);
+        this.stores = next;
     }
 
     /**
-     * Writes records to a temporary file and atomically replaces the target.
+     * Returns the store affected by a mutation.
      *
+     * @param mutation mutation
+     * @return store name
+     */
+    private static String storeOf(final ChangeSet.Mutation mutation) {
+        if (mutation instanceof ChangeSet.Upsert upsert) {
+            return upsert.record().getStore();
+        }
+        return ((ChangeSet.Delete) mutation).store();
+    }
+
+    /**
+     * Flattens records grouped by store.
+     *
+     * @param source records by store
+     * @return flat records
+     */
+    private static List<StoredRecord> flatten(
+        final Map<String, Map<UUID, StoredRecord>> source
+    ) {
+        final List<StoredRecord> records = new ArrayList<>();
+        for (final Map<UUID, StoredRecord> store : source.values()) {
+            records.addAll(store.values());
+        }
+        return records;
+    }
+
+    /**
+     * Writes one store to a temporary file and atomically replaces the target.
+     *
+     * @param store store name
      * @param source records
      */
-    private void write(final java.util.Collection<StoredRecord> source) {
+    private void write(
+        final String store,
+        final Collection<StoredRecord> source
+    ) {
         final JsonArray array = new JsonArray();
         final List<StoredRecord> ordered = new ArrayList<>(source);
-        ordered.sort(
-            Comparator.comparing(StoredRecord::getStore)
-                .thenComparing(StoredRecord::getId)
-        );
+        ordered.sort(Comparator.comparing(StoredRecord::getId));
         for (final StoredRecord record : ordered) {
             final JsonObject object = array.createObject();
             object.addString("store", record.getStore());
@@ -179,21 +293,21 @@ public final class JsonPersistence implements Persistence {
                 field.addString("value", entry.getValue());
             }
         }
-        final Path parent = this.file.getParent();
+        final Path target = this.fileForStore(store);
         Path temporary = null;
         try {
-            Files.createDirectories(parent);
+            Files.createDirectories(this.directory);
             temporary = Files.createTempFile(
-                parent,
-                this.file.getFileName().toString(),
+                this.directory,
+                target.getFileName().toString(),
                 ".tmp"
             );
             Files.writeString(temporary, array.toText("  "));
-            move(temporary, this.file);
+            move(temporary, target);
             temporary = null;
         } catch (final IOException err) {
             throw new PersistenceException(
-                "Cannot write database JSON to " + this.file,
+                "Cannot write JSON store to " + target,
                 err
             );
         } finally {
@@ -207,6 +321,20 @@ public final class JsonPersistence implements Persistence {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the file assigned to a store.
+     *
+     * @param store store name
+     * @return store file
+     */
+    private Path fileForStore(final String store) {
+        final String encoded = URLEncoder.encode(
+            store,
+            StandardCharsets.UTF_8
+        ).replace("+", "%20");
+        return this.directory.resolve(encoded + ".json").normalize();
     }
 
     /**
@@ -228,17 +356,6 @@ public final class JsonPersistence implements Persistence {
         } catch (final AtomicMoveNotSupportedException ignored) {
             Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
         }
-    }
-
-    /**
-     * Creates a stable compound key.
-     *
-     * @param store store name
-     * @param id record identifier
-     * @return key
-     */
-    private static String key(final String store, final UUID id) {
-        return store + '\u0000' + id;
     }
 
     @Override
