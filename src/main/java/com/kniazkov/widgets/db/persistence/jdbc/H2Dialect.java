@@ -22,7 +22,11 @@ public final class H2Dialect implements JdbcDialect {
                 + "store_name VARCHAR(255) NOT NULL, "
                 + "record_id VARCHAR(36) NOT NULL, "
                 + "field_name VARCHAR(255) NOT NULL, "
-                + "field_value CLOB NOT NULL, "
+                + "value_type VARCHAR(16) NOT NULL, "
+                + "string_value CLOB, "
+                + "integer_value INTEGER, "
+                + "real_value DOUBLE PRECISION, "
+                + "boolean_value BOOLEAN, "
                 + "PRIMARY KEY (store_name, record_id, field_name))"
         );
     }

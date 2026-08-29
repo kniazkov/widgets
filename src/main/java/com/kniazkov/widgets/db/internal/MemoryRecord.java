@@ -7,6 +7,7 @@ import com.kniazkov.widgets.db.DataRecord;
 import com.kniazkov.widgets.db.Draft;
 import com.kniazkov.widgets.db.Field;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
+import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.model.Model;
 import java.time.Instant;
 import java.util.IdentityHashMap;
@@ -59,33 +60,36 @@ final class MemoryRecord implements DataRecord {
     }
 
     /**
-     * Applies encoded field values without persistence.
+     * Applies stored field values without persistence.
      *
-     * @param values encoded values
+     * @param values stored values
      */
-    void applyFields(final Map<String, String> values) {
-        for (final Map.Entry<String, String> entry : values.entrySet()) {
+    void applyFields(final Map<String, StoredValue> values) {
+        for (final Map.Entry<String, StoredValue> entry : values.entrySet()) {
             final Field<?> field = this.store.getSchema().getField(entry.getKey());
             if (field == null) {
                 throw new IllegalStateException(
                     "Unknown persisted field '" + entry.getKey() + "'"
                 );
             }
-            this.applyEncoded(field, entry.getValue());
+            this.applyStored(field, entry.getValue());
         }
     }
 
     /**
-     * Applies one encoded field.
+     * Applies one stored field.
      *
      * @param field field
-     * @param value encoded value
+     * @param value stored value
      * @param <T> value type
      */
-    private <T> void applyEncoded(final Field<T> field, final String value) {
-        final T decoded = field.getType().decode(value);
-        final StoredModel<T> model = this.storedModel(field, decoded);
-        model.apply(decoded);
+    private <T> void applyStored(
+        final Field<T> field,
+        final StoredValue value
+    ) {
+        final T restored = field.getType().fromStoredValue(value);
+        final StoredModel<T> model = this.storedModel(field, restored);
+        model.apply(restored);
     }
 
     /**
@@ -137,8 +141,8 @@ final class MemoryRecord implements DataRecord {
         final T value,
         final long nextRevision
     ) {
-        final Map<String, String> fields = this.encodedFields();
-        fields.put(changed.getName(), changed.getType().encode(value));
+        final Map<String, StoredValue> fields = this.storedFields();
+        fields.put(changed.getName(), changed.getType().toStoredValue(value));
         return new StoredRecord(
             this.store.getName(),
             this.id,
@@ -159,42 +163,45 @@ final class MemoryRecord implements DataRecord {
             this.id,
             this.createdAt,
             this.revision,
-            this.encodedFields()
+            this.storedFields()
         );
     }
 
     /**
-     * Encodes instantiated field models.
+     * Converts instantiated field models to stored values.
      *
-     * @return encoded values
+     * @return stored values
      */
-    private Map<String, String> encodedFields() {
-        final Map<String, String> values = new LinkedHashMap<>();
+    private Map<String, StoredValue> storedFields() {
+        final Map<String, StoredValue> values = new LinkedHashMap<>();
         for (final Field<?> field : this.store.getSchema().getFields()) {
             final StoredModel<?> model = this.models.get(field);
             if (model != null) {
-                putEncoded(values, field, model);
+                putStored(values, field, model);
             }
         }
         return values;
     }
 
     /**
-     * Encodes one typed model.
+     * Converts one typed model to a stored value.
      *
      * @param values destination
      * @param field field
      * @param model model
      * @param <T> value type
      */
-    private static <T> void putEncoded(
-        final Map<String, String> values,
+    private static <T> void putStored(
+        final Map<String, StoredValue> values,
         final Field<T> field,
         final StoredModel<?> model
     ) {
         @SuppressWarnings("unchecked")
         final StoredModel<T> typed = (StoredModel<T>) model;
-        values.put(field.getName(), field.getType().encode(typed.getData()));
+        values.put(
+            field.getName(),
+            field.getType().toStoredValue(typed.getData())
+        );
     }
 
     /**

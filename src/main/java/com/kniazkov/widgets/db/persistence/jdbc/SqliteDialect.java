@@ -22,7 +22,11 @@ public final class SqliteDialect implements JdbcDialect {
                 + "store_name TEXT NOT NULL, "
                 + "record_id TEXT NOT NULL, "
                 + "field_name TEXT NOT NULL, "
-                + "field_value TEXT NOT NULL, "
+                + "value_type TEXT NOT NULL, "
+                + "string_value TEXT, "
+                + "integer_value INTEGER, "
+                + "real_value REAL, "
+                + "boolean_value INTEGER, "
                 + "PRIMARY KEY (store_name, record_id, field_name))"
         );
     }

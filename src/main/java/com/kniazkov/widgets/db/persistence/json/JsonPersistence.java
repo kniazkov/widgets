@@ -13,6 +13,11 @@ import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
 import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
+import com.kniazkov.widgets.db.persistence.StoredValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.RealValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -163,26 +168,47 @@ public final class JsonPersistence implements Persistence {
         }
         final UUID id = UUID.fromString(requiredString(object, "id"));
         final Instant createdAt = Instant.parse(requiredString(object, "createdAt"));
-        final long revision = Long.parseLong(requiredString(object, "revision"));
+        final long revision = requiredLong(object, "revision");
         final JsonElement fieldsElement = object.getElement("fields");
-        final JsonArray fieldsArray =
-            fieldsElement == null ? null : fieldsElement.toJsonArray();
-        if (fieldsArray == null) {
-            throw new PersistenceException("Record fields must be an array");
+        final JsonObject fieldsObject =
+            fieldsElement == null ? null : fieldsElement.toJsonObject();
+        if (fieldsObject == null) {
+            throw new PersistenceException("Record fields must be an object");
         }
-        final Map<String, String> fields = new LinkedHashMap<>();
-        for (final JsonElement fieldElement : fieldsArray) {
-            final JsonObject field = fieldElement.toJsonObject();
-            if (field == null) {
-                throw new PersistenceException("Field value must be an object");
-            }
-            final String name = requiredString(field, "name");
-            final String value = requiredString(field, "value");
-            if (fields.putIfAbsent(name, value) != null) {
-                throw new PersistenceException("Duplicate field '" + name + "'");
-            }
+        final Map<String, StoredValue> fields = new LinkedHashMap<>();
+        for (final Map.Entry<String, JsonElement> entry
+            : fieldsObject.entrySet()) {
+            fields.put(entry.getKey(), parseValue(entry.getKey(), entry.getValue()));
         }
         return new StoredRecord(store, id, createdAt, revision, fields);
+    }
+
+    /**
+     * Parses one native JSON scalar.
+     *
+     * @param name field name
+     * @param element JSON value
+     * @return stored value
+     */
+    private static StoredValue parseValue(
+        final String name,
+        final JsonElement element
+    ) {
+        if (element.isString()) {
+            return new StringValue(element.getStringValue());
+        }
+        if (element.isBoolean()) {
+            return new BooleanValue(element.getBooleanValue());
+        }
+        if (element.isInteger()) {
+            return new IntegerValue(element.getIntValue());
+        }
+        if (element.isNumber()) {
+            return new RealValue(element.getDoubleValue());
+        }
+        throw new PersistenceException(
+            "Field '" + name + "' must be a scalar value"
+        );
     }
 
     /**
@@ -203,6 +229,26 @@ public final class JsonPersistence implements Persistence {
             );
         }
         return value.getStringValue();
+    }
+
+    /**
+     * Reads a required integer property.
+     *
+     * @param object object
+     * @param name property name
+     * @return value
+     */
+    private static long requiredLong(
+        final JsonObject object,
+        final String name
+    ) {
+        final JsonElement value = object.getElement(name);
+        if (value == null || !value.isLongInteger()) {
+            throw new PersistenceException(
+                "Property '" + name + "' must be an integer"
+            );
+        }
+        return value.getLongValue();
     }
 
     @Override
@@ -285,13 +331,11 @@ public final class JsonPersistence implements Persistence {
             final JsonObject object = array.createObject();
             object.addString("id", record.getId().toString());
             object.addString("createdAt", record.getCreatedAt().toString());
-            object.addString("revision", Long.toString(record.getRevision()));
-            final JsonArray fields = object.createArray("fields");
-            for (final Map.Entry<String, String> entry
+            object.addNumber("revision", record.getRevision());
+            final JsonObject fields = object.createObject("fields");
+            for (final Map.Entry<String, StoredValue> entry
                 : record.getFields().entrySet()) {
-                final JsonObject field = fields.createObject();
-                field.addString("name", entry.getKey());
-                field.addString("value", entry.getValue());
+                writeValue(fields, entry.getKey(), entry.getValue());
             }
         }
         final Path target = this.fileForStore(store);
@@ -321,6 +365,26 @@ public final class JsonPersistence implements Persistence {
                      */
                 }
             }
+        }
+    }
+
+    /**
+     * Writes one native JSON scalar.
+     *
+     * @param object target object
+     * @param name field name
+     * @param value stored value
+     */
+    private static void writeValue(
+        final JsonObject object,
+        final String name,
+        final StoredValue value
+    ) {
+        switch (value.getKind()) {
+            case STRING -> object.addString(name, value.getString());
+            case INTEGER -> object.addNumber(name, value.getInteger());
+            case REAL -> object.addNumber(name, value.getReal());
+            case BOOLEAN -> object.addBoolean(name, value.getBoolean());
         }
     }
 

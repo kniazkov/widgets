@@ -4,12 +4,14 @@
 package com.kniazkov.widgets.db.persistence;
 
 import java.time.Instant;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Persistence-neutral encoded representation of one record.
+ * Persistence-neutral typed representation of one record.
  */
 public final class StoredRecord {
     /**
@@ -33,9 +35,9 @@ public final class StoredRecord {
     private final long revision;
 
     /**
-     * Encoded fields.
+     * Typed field values.
      */
-    private final Map<String, String> fields;
+    private final Map<String, StoredValue> fields;
 
     /**
      * Creates a stored record.
@@ -44,20 +46,27 @@ public final class StoredRecord {
      * @param id identifier
      * @param createdAt creation time
      * @param revision revision
-     * @param fields encoded fields
+     * @param fields typed fields
      */
     public StoredRecord(
         final String store,
         final UUID id,
         final Instant createdAt,
         final long revision,
-        final Map<String, String> fields
+        final Map<String, StoredValue> fields
     ) {
         this.store = Objects.requireNonNull(store, "store");
         this.id = Objects.requireNonNull(id, "id");
         this.createdAt = Objects.requireNonNull(createdAt, "createdAt");
         this.revision = revision;
-        this.fields = Map.copyOf(fields);
+        final Map<String, StoredValue> values = new LinkedHashMap<>(
+            Objects.requireNonNull(fields, "fields")
+        );
+        values.forEach((name, value) -> {
+            Objects.requireNonNull(name, "field name");
+            Objects.requireNonNull(value, "field value");
+        });
+        this.fields = Collections.unmodifiableMap(values);
     }
 
     /**
@@ -97,11 +106,11 @@ public final class StoredRecord {
     }
 
     /**
-     * Returns encoded field values.
+     * Returns typed field values.
      *
      * @return fields
      */
-    public Map<String, String> getFields() {
+    public Map<String, StoredValue> getFields() {
         return this.fields;
     }
 }

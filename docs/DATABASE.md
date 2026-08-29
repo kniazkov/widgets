@@ -23,7 +23,7 @@ or commit changes through JDBC while the live models remain in RAM.
 | `DataRecord` | Exposes canonical field models, identity, creation time, and revision |
 | `Draft` | Isolates several edits until an explicit atomic commit |
 | `LiveRecordSet` | Maintains the membership and ordering of a query result |
-| `Persistence` | Loads encoded records and atomically commits change sets |
+| `Persistence` | Loads typed record snapshots and atomically commits change sets |
 
 The in-memory representation is always the source used by widgets and queries. A persistence
 backend provides durability; it does not replace the canonical models.
@@ -58,11 +58,13 @@ process stops.
 
 - the runtime Java class;
 - a factory for the field's reactive model;
-- encoding and decoding functions for persistence;
+- conversion to and from a typed persistence scalar;
 - an optional comparator used by query conditions and ordering.
 
 The built-in types cover strings and validated strings, booleans, integers, real numbers, and
-UUIDs. Applications can create another `ValueType` for a custom model and value class.
+UUIDs. Applications can create another `ValueType` for a custom model and value class. Its
+persistence converter selects a string, integer, real, or boolean `StoredValue`; this type is
+retained by every backend.
 
 ## Creating and editing records
 
@@ -195,6 +197,22 @@ change set is restricted to one store because replacing several files cannot pro
 cross-store atomic commit. The store name comes from the file name and is not repeated in every
 record.
 
+Field values and record revisions use native JSON scalars. UUIDs and timestamps remain strings
+because JSON has no corresponding scalar types. A record looks like this:
+
+```json
+{
+  "id": "02d3dbe8-b28e-4c1a-a42e-934b577caafe",
+  "createdAt": "2026-08-29T10:15:30Z",
+  "revision": 3,
+  "fields": {
+    "name": "Alice",
+    "age": 34,
+    "active": true
+  }
+}
+```
+
 This implementation is useful for examples and small, low-write applications. It rewrites the
 complete affected store for every committed model change. Binding a text input directly to a
 persisted record can therefore rewrite that store's file for every entered character.
@@ -244,9 +262,10 @@ new JdbcPersistence(
 );
 ```
 
-The JDBC backend uses one record table and one field-value table. Values are encoded by their
-`ValueType`; queries still run against the canonical models in RAM. A single connection is enough
-because the database dispatcher serializes all mutations.
+The JDBC backend uses one record table and one field-value table. The field table has a type tag
+and separate nullable columns for strings, integers, real numbers, and booleans; only the column
+matching the tag is populated. Queries still run against the canonical models in RAM. A single
+connection is enough because the database dispatcher serializes all mutations.
 
 Updating the SQL tables through another connection does **not** update live models. All reactive
 changes must pass through `Database`. Likewise, two server JVMs connected to the same SQL database

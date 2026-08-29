@@ -8,12 +8,19 @@ import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
 import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
+import com.kniazkov.widgets.db.persistence.StoredValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.Kind;
+import com.kniazkov.widgets.db.persistence.StoredValue.RealValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -37,7 +44,8 @@ public final class JdbcPersistence implements Persistence {
      * Field loading query.
      */
     private static final String SELECT_FIELDS =
-        "SELECT store_name, record_id, field_name, field_value FROM widgets_field";
+        "SELECT store_name, record_id, field_name, value_type, string_value, "
+            + "integer_value, real_value, boolean_value FROM widgets_field";
 
     /**
      * Record deletion command.
@@ -63,7 +71,9 @@ public final class JdbcPersistence implements Persistence {
      */
     private static final String INSERT_FIELD =
         "INSERT INTO widgets_field "
-            + "(store_name, record_id, field_name, field_value) VALUES (?, ?, ?, ?)";
+            + "(store_name, record_id, field_name, value_type, string_value, "
+            + "integer_value, real_value, boolean_value) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * JDBC connection.
@@ -152,7 +162,7 @@ public final class JdbcPersistence implements Persistence {
                         "Field row refers to missing record " + id
                     );
                 }
-                record.fields.put(result.getString(3), result.getString(4));
+                record.fields.put(result.getString(3), readValue(result));
             }
         } catch (final SQLException | IllegalArgumentException err) {
             throw new PersistenceException("Cannot load JDBC fields", err);
@@ -223,16 +233,143 @@ public final class JdbcPersistence implements Persistence {
             statement.executeUpdate();
         }
         try (PreparedStatement statement = this.connection.prepareStatement(INSERT_FIELD)) {
-            for (final Map.Entry<String, String> field
+            for (final Map.Entry<String, StoredValue> field
                 : record.getFields().entrySet()) {
                 statement.setString(1, record.getStore());
                 statement.setString(2, record.getId().toString());
                 statement.setString(3, field.getKey());
-                statement.setString(4, field.getValue());
+                writeValue(statement, field.getValue());
                 statement.addBatch();
             }
             statement.executeBatch();
         }
+    }
+
+    /**
+     * Writes one typed field value to an insert statement.
+     *
+     * @param statement statement
+     * @param value stored value
+     * @throws SQLException when binding fails
+     */
+    private static void writeValue(
+        final PreparedStatement statement,
+        final StoredValue value
+    ) throws SQLException {
+        statement.setString(4, value.getKind().name());
+        statement.setNull(5, Types.VARCHAR);
+        statement.setNull(6, Types.INTEGER);
+        statement.setNull(7, Types.DOUBLE);
+        statement.setNull(8, Types.BOOLEAN);
+        switch (value.getKind()) {
+            case STRING -> statement.setString(5, value.getString());
+            case INTEGER -> statement.setInt(6, value.getInteger());
+            case REAL -> statement.setDouble(7, value.getReal());
+            case BOOLEAN -> statement.setBoolean(8, value.getBoolean());
+        }
+    }
+
+    /**
+     * Reads one typed field value from a result row.
+     *
+     * @param result result row
+     * @return stored value
+     * @throws SQLException when the row is malformed
+     */
+    private static StoredValue readValue(final ResultSet result)
+        throws SQLException {
+        final String type = result.getString(4);
+        if (type == null) {
+            throw new SQLException("Field value type is null");
+        }
+        final Kind kind;
+        try {
+            kind = Kind.valueOf(type);
+        } catch (final IllegalArgumentException err) {
+            throw new SQLException("Unknown field value type: " + type, err);
+        }
+        return switch (kind) {
+            case STRING -> new StringValue(requiredString(result, 5));
+            case INTEGER -> new IntegerValue(requiredInteger(result, 6));
+            case REAL -> new RealValue(requiredReal(result, 7));
+            case BOOLEAN -> new BooleanValue(requiredBoolean(result, 8));
+        };
+    }
+
+    /**
+     * Reads a required string column.
+     *
+     * @param result result row
+     * @param index column index
+     * @return value
+     * @throws SQLException when the column is null
+     */
+    private static String requiredString(
+        final ResultSet result,
+        final int index
+    ) throws SQLException {
+        final String value = result.getString(index);
+        if (value == null) {
+            throw new SQLException("Required string field value is null");
+        }
+        return value;
+    }
+
+    /**
+     * Reads a required integer column.
+     *
+     * @param result result row
+     * @param index column index
+     * @return value
+     * @throws SQLException when the column is null
+     */
+    private static int requiredInteger(
+        final ResultSet result,
+        final int index
+    ) throws SQLException {
+        final int value = result.getInt(index);
+        if (result.wasNull()) {
+            throw new SQLException("Required integer field value is null");
+        }
+        return value;
+    }
+
+    /**
+     * Reads a required real column.
+     *
+     * @param result result row
+     * @param index column index
+     * @return value
+     * @throws SQLException when the column is null
+     */
+    private static double requiredReal(
+        final ResultSet result,
+        final int index
+    ) throws SQLException {
+        final double value = result.getDouble(index);
+        if (result.wasNull()) {
+            throw new SQLException("Required real field value is null");
+        }
+        return value;
+    }
+
+    /**
+     * Reads a required boolean column.
+     *
+     * @param result result row
+     * @param index column index
+     * @return value
+     * @throws SQLException when the column is null
+     */
+    private static boolean requiredBoolean(
+        final ResultSet result,
+        final int index
+    ) throws SQLException {
+        final boolean value = result.getBoolean(index);
+        if (result.wasNull()) {
+            throw new SQLException("Required boolean field value is null");
+        }
+        return value;
     }
 
     /**
@@ -325,9 +462,9 @@ public final class JdbcPersistence implements Persistence {
         private final long revision;
 
         /**
-         * Encoded field values.
+         * Typed field values.
          */
-        private final Map<String, String> fields;
+        private final Map<String, StoredValue> fields;
 
         /**
          * Creates a loading record.

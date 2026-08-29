@@ -7,6 +7,7 @@ import com.kniazkov.widgets.db.DataRecord;
 import com.kniazkov.widgets.db.Draft;
 import com.kniazkov.widgets.db.Field;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
+import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.model.Model;
 import java.time.Instant;
 import java.util.IdentityHashMap;
@@ -39,9 +40,9 @@ final class MemoryDraft implements Draft {
     private final long baseRevision;
 
     /**
-     * Encoded values inherited from the record.
+     * Stored values inherited from the record.
      */
-    private final Map<String, String> encoded;
+    private final Map<String, StoredValue> stored;
 
     /**
      * Editable models created on demand.
@@ -63,7 +64,7 @@ final class MemoryDraft implements Draft {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.baseRevision = -1L;
-        this.encoded = new LinkedHashMap<>();
+        this.stored = new LinkedHashMap<>();
         this.models = new IdentityHashMap<>();
     }
 
@@ -79,7 +80,7 @@ final class MemoryDraft implements Draft {
         this.id = source.getId();
         this.createdAt = source.getCreatedAt();
         this.baseRevision = source.getRevision();
-        this.encoded = new LinkedHashMap<>(snapshot.getFields());
+        this.stored = new LinkedHashMap<>(snapshot.getFields());
         this.models = new IdentityHashMap<>();
     }
 
@@ -108,9 +109,9 @@ final class MemoryDraft implements Draft {
      * @return stored record
      */
     StoredRecord snapshot(final long revision) {
-        final Map<String, String> values = new LinkedHashMap<>(this.encoded);
+        final Map<String, StoredValue> values = new LinkedHashMap<>(this.stored);
         for (final Map.Entry<Field<?>, Model<?>> entry : this.models.entrySet()) {
-            putEncoded(values, entry.getKey(), entry.getValue());
+            putStored(values, entry.getKey(), entry.getValue());
         }
         return new StoredRecord(
             this.store.getName(),
@@ -122,15 +123,15 @@ final class MemoryDraft implements Draft {
     }
 
     /**
-     * Encodes a typed model.
+     * Converts a typed model to a stored value.
      *
      * @param destination destination
      * @param field field
      * @param model model
      * @param <T> value type
      */
-    private static <T> void putEncoded(
-        final Map<String, String> destination,
+    private static <T> void putStored(
+        final Map<String, StoredValue> destination,
         final Field<T> field,
         final Model<?> model
     ) {
@@ -138,7 +139,7 @@ final class MemoryDraft implements Draft {
         final Model<T> typed = (Model<T>) model;
         destination.put(
             field.getName(),
-            field.getType().encode(typed.getData())
+            field.getType().toStoredValue(typed.getData())
         );
     }
 
@@ -174,11 +175,11 @@ final class MemoryDraft implements Draft {
                 final Model<T> typed = (Model<T>) existing;
                 return typed;
             }
-            final String saved = this.encoded.get(field.getName());
+            final StoredValue saved = this.stored.get(field.getName());
             final Model<T> created = saved == null
                 ? field.getType().createModel().asSynchronized()
                 : field.getType().createModel(
-                    field.getType().decode(saved)
+                    field.getType().fromStoredValue(saved)
                 ).asSynchronized();
             this.models.put(field, created);
             return created;

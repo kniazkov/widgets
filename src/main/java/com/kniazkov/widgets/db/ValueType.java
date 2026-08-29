@@ -3,6 +3,11 @@
  */
 package com.kniazkov.widgets.db;
 
+import com.kniazkov.widgets.db.persistence.StoredValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.RealValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
 import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.EmailModel;
 import com.kniazkov.widgets.model.IntegerModel;
@@ -22,7 +27,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
- * Defines the model, runtime type, ordering and persistence encoding of a field value.
+ * Defines the model, runtime type, ordering and persistence conversion of a field value.
  *
  * @param <T> value type
  */
@@ -33,8 +38,8 @@ public final class ValueType<T> {
     public static final ValueType<Boolean> BOOLEAN = of(
         Boolean.class,
         BooleanModel::new,
-        Object::toString,
-        Boolean::valueOf,
+        BooleanValue::new,
+        StoredValue::getBoolean,
         null
     );
 
@@ -71,8 +76,8 @@ public final class ValueType<T> {
     public static final ValueType<Integer> INTEGER = of(
         Integer.class,
         IntegerModel::new,
-        Object::toString,
-        Integer::valueOf,
+        IntegerValue::new,
+        StoredValue::getInteger,
         Comparator.naturalOrder()
     );
 
@@ -82,8 +87,8 @@ public final class ValueType<T> {
     public static final ValueType<Integer> POSITIVE_INTEGER = of(
         Integer.class,
         () -> new ValidatedIntegerModel(ValidatedIntegerModel.POSITIVE),
-        Object::toString,
-        Integer::valueOf,
+        IntegerValue::new,
+        StoredValue::getInteger,
         Comparator.naturalOrder()
     );
 
@@ -93,8 +98,8 @@ public final class ValueType<T> {
     public static final ValueType<Double> REAL = of(
         Double.class,
         RealNumberModel::new,
-        Object::toString,
-        Double::valueOf,
+        RealValue::new,
+        StoredValue::getReal,
         Comparator.naturalOrder()
     );
 
@@ -104,8 +109,8 @@ public final class ValueType<T> {
     public static final ValueType<Double> POSITIVE_REAL = of(
         Double.class,
         () -> new ValidatedRealNumberModel(ValidatedRealNumberModel.POSITIVE),
-        Object::toString,
-        Double::valueOf,
+        RealValue::new,
+        StoredValue::getReal,
         Comparator.naturalOrder()
     );
 
@@ -115,8 +120,8 @@ public final class ValueType<T> {
     public static final ValueType<UUID> IDENTIFIER = of(
         UUID.class,
         UuidModel::new,
-        Object::toString,
-        UUID::fromString,
+        value -> new StringValue(value.toString()),
+        value -> UUID.fromString(value.getString()),
         Comparator.naturalOrder()
     );
 
@@ -131,14 +136,14 @@ public final class ValueType<T> {
     private final Supplier<Model<T>> modelFactory;
 
     /**
-     * Persistence encoder.
+     * Conversion to a stored scalar.
      */
-    private final Function<T, String> encoder;
+    private final Function<T, StoredValue> toStoredValue;
 
     /**
-     * Persistence decoder.
+     * Conversion from a stored scalar.
      */
-    private final Function<String, T> decoder;
+    private final Function<StoredValue, T> fromStoredValue;
 
     /**
      * Optional value comparator.
@@ -150,21 +155,27 @@ public final class ValueType<T> {
      *
      * @param valueClass runtime class
      * @param modelFactory model factory
-     * @param encoder persistence encoder
-     * @param decoder persistence decoder
+     * @param toStoredValue persistence conversion
+     * @param fromStoredValue reverse persistence conversion
      * @param comparator comparator, or {@code null}
      */
     private ValueType(
         final Class<T> valueClass,
         final Supplier<Model<T>> modelFactory,
-        final Function<T, String> encoder,
-        final Function<String, T> decoder,
+        final Function<T, StoredValue> toStoredValue,
+        final Function<StoredValue, T> fromStoredValue,
         final Comparator<T> comparator
     ) {
         this.valueClass = Objects.requireNonNull(valueClass, "valueClass");
         this.modelFactory = Objects.requireNonNull(modelFactory, "modelFactory");
-        this.encoder = Objects.requireNonNull(encoder, "encoder");
-        this.decoder = Objects.requireNonNull(decoder, "decoder");
+        this.toStoredValue = Objects.requireNonNull(
+            toStoredValue,
+            "toStoredValue"
+        );
+        this.fromStoredValue = Objects.requireNonNull(
+            fromStoredValue,
+            "fromStoredValue"
+        );
         this.comparator = comparator;
     }
 
@@ -173,8 +184,8 @@ public final class ValueType<T> {
      *
      * @param valueClass runtime class
      * @param modelFactory model factory
-     * @param encoder persistence encoder
-     * @param decoder persistence decoder
+     * @param toStoredValue persistence conversion
+     * @param fromStoredValue reverse persistence conversion
      * @param comparator comparator, or {@code null}
      * @param <T> value type
      * @return value type
@@ -182,15 +193,15 @@ public final class ValueType<T> {
     public static <T> ValueType<T> of(
         final Class<T> valueClass,
         final Supplier<Model<T>> modelFactory,
-        final Function<T, String> encoder,
-        final Function<String, T> decoder,
+        final Function<T, StoredValue> toStoredValue,
+        final Function<StoredValue, T> fromStoredValue,
         final Comparator<T> comparator
     ) {
         return new ValueType<>(
             valueClass,
             modelFactory,
-            encoder,
-            decoder,
+            toStoredValue,
+            fromStoredValue,
             comparator
         );
     }
@@ -205,8 +216,8 @@ public final class ValueType<T> {
         return of(
             String.class,
             factory,
-            Function.identity(),
-            Function.identity(),
+            StringValue::new,
+            StoredValue::getString,
             Comparator.naturalOrder()
         );
     }
@@ -240,23 +251,31 @@ public final class ValueType<T> {
     }
 
     /**
-     * Encodes a value for persistence.
+     * Converts a value to a persistence-neutral scalar.
      *
      * @param value value
-     * @return encoded value
+     * @return stored value
      */
-    public String encode(final T value) {
-        return this.encoder.apply(value);
+    public StoredValue toStoredValue(final T value) {
+        return Objects.requireNonNull(
+            this.toStoredValue.apply(Objects.requireNonNull(value, "value")),
+            "stored value"
+        );
     }
 
     /**
-     * Decodes a persisted value.
+     * Converts a persistence-neutral scalar to a value.
      *
-     * @param value encoded value
-     * @return decoded value
+     * @param value stored value
+     * @return restored value
      */
-    public T decode(final String value) {
-        return this.decoder.apply(value);
+    public T fromStoredValue(final StoredValue value) {
+        return Objects.requireNonNull(
+            this.fromStoredValue.apply(
+                Objects.requireNonNull(value, "stored value")
+            ),
+            "restored value"
+        );
     }
 
     /**
