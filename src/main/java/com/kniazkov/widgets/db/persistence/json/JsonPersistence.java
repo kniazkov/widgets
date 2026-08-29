@@ -448,16 +448,69 @@ public final class JsonPersistence implements Persistence {
                 "Field metadata property 'referencedStore' must be a string"
             );
         }
+        final StoredValue.Kind kind = StoredValue.Kind.valueOf(
+            requiredString(object, "valueKind")
+        );
         return new FieldMetadata(
             requiredString(object, "name"),
             requiredString(object, "type"),
-            StoredValue.Kind.valueOf(requiredString(object, "valueKind")),
-            parseValue(
-                "defaultValue",
-                requiredElement(object, "defaultValue")
-            ),
+            kind,
+            parseDefault(kind, requiredElement(object, "defaultValue")),
             requiredPosition(object, "position"),
             reference == null ? null : reference.getStringValue()
+        );
+    }
+
+    /**
+     * Parses a metadata default according to its declared scalar kind.
+     *
+     * @param kind declared scalar kind
+     * @param element JSON value
+     * @return stored default
+     */
+    private static StoredValue parseDefault(
+        final StoredValue.Kind kind,
+        final JsonElement element
+    ) {
+        return switch (kind) {
+            case STRING -> {
+                if (!element.isString()) {
+                    throw invalidDefault(kind);
+                }
+                yield new StringValue(element.getStringValue());
+            }
+            case INTEGER -> {
+                if (!element.isInteger()) {
+                    throw invalidDefault(kind);
+                }
+                yield new IntegerValue(element.getIntValue());
+            }
+            case REAL -> {
+                if (!element.isNumber()) {
+                    throw invalidDefault(kind);
+                }
+                yield new RealValue(element.getDoubleValue());
+            }
+            case BOOLEAN -> {
+                if (!element.isBoolean()) {
+                    throw invalidDefault(kind);
+                }
+                yield new BooleanValue(element.getBooleanValue());
+            }
+        };
+    }
+
+    /**
+     * Creates a malformed metadata default exception.
+     *
+     * @param kind expected kind
+     * @return exception
+     */
+    private static PersistenceException invalidDefault(
+        final StoredValue.Kind kind
+    ) {
+        return new PersistenceException(
+            "Metadata default must be a " + kind + " value"
         );
     }
 
