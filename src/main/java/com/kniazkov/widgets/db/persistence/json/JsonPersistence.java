@@ -9,9 +9,12 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.db.persistence.ChangeSet;
+import com.kniazkov.widgets.db.persistence.DatabaseMetadata;
 import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
+import com.kniazkov.widgets.db.persistence.FieldMetadata;
 import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
+import com.kniazkov.widgets.db.persistence.StoreMetadata;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
 import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
@@ -34,12 +37,18 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Persists each store in its own atomically replaced JSON file.
  */
 public final class JsonPersistence implements Persistence {
+    /**
+     * Schema catalog file name.
+     */
+    private static final String METADATA_FILE = "database.metadata";
+
     /**
      * Database directory.
      */
@@ -49,6 +58,11 @@ public final class JsonPersistence implements Persistence {
      * Current records grouped by store.
      */
     private Map<String, Map<UUID, StoredRecord>> stores;
+
+    /**
+     * Validated database metadata.
+     */
+    private DatabaseMetadata metadata;
 
     /**
      * Creates a JSON backend.
@@ -61,7 +75,29 @@ public final class JsonPersistence implements Persistence {
     }
 
     @Override
+    public synchronized void initialize(final DatabaseMetadata value) {
+        final DatabaseMetadata expected = Objects.requireNonNull(
+            value,
+            "metadata"
+        );
+        this.requireDirectory();
+        final Path file = this.directory.resolve(METADATA_FILE);
+        if (Files.exists(file)) {
+            final DatabaseMetadata stored = this.readMetadata(file);
+            if (!stored.equals(expected)) {
+                throw new PersistenceException(
+                    "JSON database metadata does not match configured schemas"
+                );
+            }
+        } else {
+            this.writeMetadata(file, expected);
+        }
+        this.metadata = expected;
+    }
+
+    @Override
     public synchronized DatabaseSnapshot load() {
+        this.requireInitialized();
         if (!Files.exists(this.directory)) {
             this.stores = new LinkedHashMap<>();
             return DatabaseSnapshot.empty();
@@ -253,6 +289,7 @@ public final class JsonPersistence implements Persistence {
 
     @Override
     public synchronized void commit(final ChangeSet changes) {
+        this.requireInitialized();
         String store = null;
         for (final ChangeSet.Mutation mutation : changes.getMutations()) {
             final String mutationStore = storeOf(mutation);
@@ -283,6 +320,261 @@ public final class JsonPersistence implements Persistence {
             new LinkedHashMap<>(this.stores);
         next.put(store, updated);
         this.stores = next;
+    }
+
+    /**
+     * Creates the database directory or validates an existing one.
+     */
+    private void requireDirectory() {
+        try {
+            if (Files.exists(this.directory)) {
+                if (!Files.isDirectory(this.directory)) {
+                    throw new PersistenceException(
+                        "JSON database path is not a directory: "
+                            + this.directory
+                    );
+                }
+            } else {
+                Files.createDirectories(this.directory);
+            }
+        } catch (final IOException err) {
+            throw new PersistenceException(
+                "Cannot create JSON database directory " + this.directory,
+                err
+            );
+        }
+    }
+
+    /**
+     * Verifies that schema metadata was initialized.
+     */
+    private void requireInitialized() {
+        if (this.metadata == null) {
+            throw new IllegalStateException(
+                "JSON persistence metadata is not initialized"
+            );
+        }
+    }
+
+    /**
+     * Reads the schema catalog.
+     *
+     * @param file metadata file
+     * @return metadata
+     */
+    private DatabaseMetadata readMetadata(final Path file) {
+        try {
+            final JsonElement rootElement = Json.parse(file.toFile());
+            final JsonObject root = rootElement == null
+                ? null : rootElement.toJsonObject();
+            if (root == null) {
+                throw new PersistenceException(
+                    "JSON database metadata root must be an object"
+                );
+            }
+            final long version = requiredLong(root, "formatVersion");
+            if (version > Integer.MAX_VALUE) {
+                throw new PersistenceException(
+                    "JSON database format version is too large"
+                );
+            }
+            final JsonElement storesElement = root.getElement("stores");
+            final JsonArray storeArray = storesElement == null
+                ? null : storesElement.toJsonArray();
+            if (storeArray == null) {
+                throw new PersistenceException(
+                    "Metadata property 'stores' must be an array"
+                );
+            }
+            final List<StoreMetadata> result = new ArrayList<>();
+            for (final JsonElement storeElement : storeArray) {
+                result.add(parseStoreMetadata(storeElement));
+            }
+            return new DatabaseMetadata((int) version, result);
+        } catch (final JsonException | IllegalArgumentException err) {
+            throw new PersistenceException(
+                "Cannot read JSON database metadata from " + file,
+                err
+            );
+        }
+    }
+
+    /**
+     * Parses one store metadata object.
+     *
+     * @param element JSON element
+     * @return store metadata
+     */
+    private static StoreMetadata parseStoreMetadata(
+        final JsonElement element
+    ) {
+        final JsonObject object = element.toJsonObject();
+        if (object == null) {
+            throw new PersistenceException("Store metadata must be an object");
+        }
+        final String name = requiredString(object, "name");
+        final int position = requiredPosition(object, "position");
+        final JsonElement fieldsElement = object.getElement("fields");
+        final JsonArray fieldArray = fieldsElement == null
+            ? null : fieldsElement.toJsonArray();
+        if (fieldArray == null) {
+            throw new PersistenceException(
+                "Store metadata property 'fields' must be an array"
+            );
+        }
+        final List<FieldMetadata> fields = new ArrayList<>();
+        for (final JsonElement fieldElement : fieldArray) {
+            fields.add(parseFieldMetadata(fieldElement));
+        }
+        return new StoreMetadata(name, position, fields);
+    }
+
+    /**
+     * Parses one field metadata object.
+     *
+     * @param element JSON element
+     * @return field metadata
+     */
+    private static FieldMetadata parseFieldMetadata(
+        final JsonElement element
+    ) {
+        final JsonObject object = element.toJsonObject();
+        if (object == null) {
+            throw new PersistenceException("Field metadata must be an object");
+        }
+        final JsonElement reference = object.getElement("referencedStore");
+        if (reference != null && !reference.isString()) {
+            throw new PersistenceException(
+                "Field metadata property 'referencedStore' must be a string"
+            );
+        }
+        return new FieldMetadata(
+            requiredString(object, "name"),
+            requiredString(object, "type"),
+            StoredValue.Kind.valueOf(requiredString(object, "valueKind")),
+            parseValue(
+                "defaultValue",
+                requiredElement(object, "defaultValue")
+            ),
+            requiredPosition(object, "position"),
+            reference == null ? null : reference.getStringValue()
+        );
+    }
+
+    /**
+     * Reads a required property.
+     *
+     * @param object object
+     * @param name property name
+     * @return JSON element
+     */
+    private static JsonElement requiredElement(
+        final JsonObject object,
+        final String name
+    ) {
+        final JsonElement value = object.getElement(name);
+        if (value == null) {
+            throw new PersistenceException(
+                "Property '" + name + "' is required"
+            );
+        }
+        return value;
+    }
+
+    /**
+     * Reads a required non-negative integer property.
+     *
+     * @param object object
+     * @param name property name
+     * @return position
+     */
+    private static int requiredPosition(
+        final JsonObject object,
+        final String name
+    ) {
+        final long value = requiredLong(object, name);
+        if (value < 0 || value > Integer.MAX_VALUE) {
+            throw new PersistenceException(
+                "Property '" + name + "' must be a non-negative integer"
+            );
+        }
+        return (int) value;
+    }
+
+    /**
+     * Writes the schema catalog atomically.
+     *
+     * @param file metadata file
+     * @param value metadata
+     */
+    private void writeMetadata(
+        final Path file,
+        final DatabaseMetadata value
+    ) {
+        final JsonObject root = new JsonObject();
+        root.addNumber("formatVersion", value.formatVersion());
+        final JsonArray storesArray = root.createArray("stores");
+        for (final StoreMetadata store : value.stores()) {
+            final JsonObject storeObject = storesArray.createObject();
+            storeObject.addString("name", store.name());
+            storeObject.addNumber("position", store.position());
+            final JsonArray fieldsArray = storeObject.createArray("fields");
+            for (final FieldMetadata field : store.fields()) {
+                final JsonObject fieldObject = fieldsArray.createObject();
+                fieldObject.addString("name", field.name());
+                fieldObject.addString("type", field.type());
+                fieldObject.addString("valueKind", field.valueKind().name());
+                writeValue(
+                    fieldObject,
+                    "defaultValue",
+                    field.defaultValue()
+                );
+                fieldObject.addNumber("position", field.position());
+                if (field.referencedStore() != null) {
+                    fieldObject.addString(
+                        "referencedStore",
+                        field.referencedStore()
+                    );
+                }
+            }
+        }
+        this.writeAtomically(file, root.toText("  "));
+    }
+
+    /**
+     * Writes text through a temporary file and atomically replaces the target.
+     *
+     * @param target target file
+     * @param content file content
+     */
+    private void writeAtomically(final Path target, final String content) {
+        Path temporary = null;
+        try {
+            Files.createDirectories(this.directory);
+            temporary = Files.createTempFile(
+                this.directory,
+                target.getFileName().toString(),
+                ".tmp"
+            );
+            Files.writeString(temporary, content);
+            move(temporary, target);
+            temporary = null;
+        } catch (final IOException err) {
+            throw new PersistenceException(
+                "Cannot write JSON database file " + target,
+                err
+            );
+        } finally {
+            if (temporary != null) {
+                try {
+                    Files.deleteIfExists(temporary);
+                } catch (final IOException ignored) {
+                    /*
+                     * Best-effort cleanup after a failed write.
+                     */
+                }
+            }
+        }
     }
 
     /**

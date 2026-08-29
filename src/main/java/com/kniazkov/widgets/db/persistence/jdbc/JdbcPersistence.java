@@ -4,9 +4,12 @@
 package com.kniazkov.widgets.db.persistence.jdbc;
 
 import com.kniazkov.widgets.db.persistence.ChangeSet;
+import com.kniazkov.widgets.db.persistence.DatabaseMetadata;
 import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
+import com.kniazkov.widgets.db.persistence.FieldMetadata;
 import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
+import com.kniazkov.widgets.db.persistence.StoreMetadata;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
 import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
@@ -34,6 +37,52 @@ import java.util.UUID;
  * The application supplies an H2, SQLite, or compatible JDBC driver at runtime.
  */
 public final class JdbcPersistence implements Persistence {
+    /**
+     * Format version loading query.
+     */
+    private static final String SELECT_METADATA =
+        "SELECT format_version FROM db_metadata WHERE metadata_id = 1";
+
+    /**
+     * Store metadata loading query.
+     */
+    private static final String SELECT_STORES =
+        "SELECT store_name, store_order FROM db_store ORDER BY store_order";
+
+    /**
+     * Field metadata loading query.
+     */
+    private static final String SELECT_FIELD_DEFINITIONS =
+        "SELECT fd.store_name, fd.field_name, fd.field_order, "
+            + "fd.type_name, fd.value_kind, fd.default_string, "
+            + "fd.default_integer, fd.default_real, fd.default_boolean, "
+            + "fd.referenced_store "
+            + "FROM db_field_definition fd JOIN db_store st "
+            + "ON fd.store_name = st.store_name "
+            + "ORDER BY st.store_order, fd.field_order";
+
+    /**
+     * Format version insertion command.
+     */
+    private static final String INSERT_METADATA =
+        "INSERT INTO db_metadata (metadata_id, format_version) VALUES (1, ?)";
+
+    /**
+     * Store metadata insertion command.
+     */
+    private static final String INSERT_STORE =
+        "INSERT INTO db_store (store_name, store_order) VALUES (?, ?)";
+
+    /**
+     * Field metadata insertion command.
+     */
+    private static final String INSERT_FIELD_DEFINITION =
+        "INSERT INTO db_field_definition "
+            + "(store_name, field_name, field_order, type_name, value_kind, "
+            + "default_string, default_integer, default_real, "
+            + "default_boolean, referenced_store) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
     /**
      * Record loading query.
      */
@@ -79,6 +128,11 @@ public final class JdbcPersistence implements Persistence {
      * JDBC connection.
      */
     private final Connection connection;
+
+    /**
+     * Validated database metadata.
+     */
+    private DatabaseMetadata metadata;
 
     /**
      * Creates and initializes a backend.
@@ -131,7 +185,169 @@ public final class JdbcPersistence implements Persistence {
     }
 
     @Override
+    public synchronized void initialize(final DatabaseMetadata value) {
+        final DatabaseMetadata expected = Objects.requireNonNull(
+            value,
+            "metadata"
+        );
+        final DatabaseMetadata stored = this.readMetadata();
+        if (stored == null) {
+            this.writeMetadata(expected);
+        } else if (!stored.equals(expected)) {
+            throw new PersistenceException(
+                "JDBC database metadata does not match configured schemas"
+            );
+        }
+        this.metadata = expected;
+    }
+
+    /**
+     * Reads the persisted schema catalog.
+     *
+     * @return metadata, or {@code null} when the catalog is empty
+     */
+    private DatabaseMetadata readMetadata() {
+        final Integer formatVersion;
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet result = statement.executeQuery(SELECT_METADATA)
+        ) {
+            formatVersion = result.next() ? result.getInt(1) : null;
+        } catch (final SQLException err) {
+            throw new PersistenceException("Cannot load JDBC metadata", err);
+        }
+        if (formatVersion == null) {
+            return null;
+        }
+        final Map<String, MutableStoreMetadata> stores = new LinkedHashMap<>();
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet result = statement.executeQuery(SELECT_STORES)
+        ) {
+            while (result.next()) {
+                final String name = result.getString(1);
+                stores.put(name, new MutableStoreMetadata(
+                    name,
+                    result.getInt(2)
+                ));
+            }
+        } catch (final SQLException err) {
+            throw new PersistenceException("Cannot load JDBC store metadata", err);
+        }
+        try (
+            Statement statement = this.connection.createStatement();
+            ResultSet result = statement.executeQuery(SELECT_FIELD_DEFINITIONS)
+        ) {
+            while (result.next()) {
+                final MutableStoreMetadata store = stores.get(
+                    result.getString(1)
+                );
+                if (store == null) {
+                    throw new PersistenceException(
+                        "Field metadata refers to an unknown store"
+                    );
+                }
+                store.fields.add(new FieldMetadata(
+                    result.getString(2),
+                    result.getString(4),
+                    Kind.valueOf(result.getString(5)),
+                    readValue(result, 5, 6),
+                    result.getInt(3),
+                    result.getString(10)
+                ));
+            }
+        } catch (final SQLException | IllegalArgumentException err) {
+            throw new PersistenceException("Cannot load JDBC field metadata", err);
+        }
+        final List<StoreMetadata> result = new ArrayList<>();
+        for (final MutableStoreMetadata store : stores.values()) {
+            result.add(store.freeze());
+        }
+        try {
+            return new DatabaseMetadata(formatVersion, result);
+        } catch (final IllegalArgumentException err) {
+            throw new PersistenceException("Invalid JDBC database metadata", err);
+        }
+    }
+
+    /**
+     * Writes the complete schema catalog in one transaction.
+     *
+     * @param value metadata
+     */
+    private void writeMetadata(final DatabaseMetadata value) {
+        final boolean autoCommit;
+        try {
+            autoCommit = this.connection.getAutoCommit();
+        } catch (final SQLException err) {
+            throw new PersistenceException(
+                "Cannot inspect JDBC auto-commit mode",
+                err
+            );
+        }
+        SQLException failure = null;
+        try {
+            this.connection.setAutoCommit(false);
+            try (PreparedStatement statement =
+                this.connection.prepareStatement(INSERT_METADATA)) {
+                statement.setInt(1, value.formatVersion());
+                statement.executeUpdate();
+            }
+            try (PreparedStatement statement =
+                this.connection.prepareStatement(INSERT_STORE)) {
+                for (final StoreMetadata store : value.stores()) {
+                    statement.setString(1, store.name());
+                    statement.setInt(2, store.position());
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+            }
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                INSERT_FIELD_DEFINITION
+            )) {
+                for (final StoreMetadata store : value.stores()) {
+                    for (final FieldMetadata field : store.fields()) {
+                        statement.setString(1, store.name());
+                        statement.setString(2, field.name());
+                        statement.setInt(3, field.position());
+                        statement.setString(4, field.type());
+                        statement.setString(5, field.valueKind().name());
+                        writeDefaultValue(statement, field.defaultValue());
+                        if (field.referencedStore() == null) {
+                            statement.setNull(10, Types.VARCHAR);
+                        } else {
+                            statement.setString(10, field.referencedStore());
+                        }
+                        statement.addBatch();
+                    }
+                }
+                statement.executeBatch();
+            }
+            this.connection.commit();
+        } catch (final SQLException err) {
+            failure = err;
+            this.rollback(err);
+        } finally {
+            try {
+                this.connection.setAutoCommit(autoCommit);
+            } catch (final SQLException err) {
+                if (failure == null) {
+                    throw new PersistenceException(
+                        "Cannot restore JDBC auto-commit mode",
+                        err
+                    );
+                }
+                failure.addSuppressed(err);
+            }
+        }
+        if (failure != null) {
+            throw new PersistenceException("Cannot write JDBC metadata", failure);
+        }
+    }
+
+    @Override
     public synchronized DatabaseSnapshot load() {
+        this.requireInitialized();
         final Map<String, MutableRecord> records = new LinkedHashMap<>();
         try (
             Statement statement = this.connection.createStatement();
@@ -162,7 +378,10 @@ public final class JdbcPersistence implements Persistence {
                         "Field row refers to missing record " + id
                     );
                 }
-                record.fields.put(result.getString(3), readValue(result));
+                record.fields.put(
+                    result.getString(3),
+                    readValue(result, 4, 5)
+                );
             }
         } catch (final SQLException | IllegalArgumentException err) {
             throw new PersistenceException("Cannot load JDBC fields", err);
@@ -176,6 +395,7 @@ public final class JdbcPersistence implements Persistence {
 
     @Override
     public synchronized void commit(final ChangeSet changes) {
+        this.requireInitialized();
         final boolean autoCommit;
         try {
             autoCommit = this.connection.getAutoCommit();
@@ -214,6 +434,17 @@ public final class JdbcPersistence implements Persistence {
         }
         if (failure != null) {
             throw new PersistenceException("Cannot commit JDBC changes", failure);
+        }
+    }
+
+    /**
+     * Verifies that schema metadata was initialized.
+     */
+    private void requireInitialized() {
+        if (this.metadata == null) {
+            throw new IllegalStateException(
+                "JDBC persistence metadata is not initialized"
+            );
         }
     }
 
@@ -270,15 +501,43 @@ public final class JdbcPersistence implements Persistence {
     }
 
     /**
+     * Writes one typed field default to metadata columns.
+     *
+     * @param statement statement
+     * @param value stored default
+     * @throws SQLException when binding fails
+     */
+    private static void writeDefaultValue(
+        final PreparedStatement statement,
+        final StoredValue value
+    ) throws SQLException {
+        statement.setNull(6, Types.VARCHAR);
+        statement.setNull(7, Types.INTEGER);
+        statement.setNull(8, Types.DOUBLE);
+        statement.setNull(9, Types.BOOLEAN);
+        switch (value.getKind()) {
+            case STRING -> statement.setString(6, value.getString());
+            case INTEGER -> statement.setInt(7, value.getInteger());
+            case REAL -> statement.setDouble(8, value.getReal());
+            case BOOLEAN -> statement.setBoolean(9, value.getBoolean());
+        }
+    }
+
+    /**
      * Reads one typed field value from a result row.
      *
      * @param result result row
+     * @param typeIndex type-tag column index
+     * @param valueIndex first typed-value column index
      * @return stored value
      * @throws SQLException when the row is malformed
      */
-    private static StoredValue readValue(final ResultSet result)
-        throws SQLException {
-        final String type = result.getString(4);
+    private static StoredValue readValue(
+        final ResultSet result,
+        final int typeIndex,
+        final int valueIndex
+    ) throws SQLException {
+        final String type = result.getString(typeIndex);
         if (type == null) {
             throw new SQLException("Field value type is null");
         }
@@ -289,10 +548,16 @@ public final class JdbcPersistence implements Persistence {
             throw new SQLException("Unknown field value type: " + type, err);
         }
         return switch (kind) {
-            case STRING -> new StringValue(requiredString(result, 5));
-            case INTEGER -> new IntegerValue(requiredInteger(result, 6));
-            case REAL -> new RealValue(requiredReal(result, 7));
-            case BOOLEAN -> new BooleanValue(requiredBoolean(result, 8));
+            case STRING -> new StringValue(requiredString(result, valueIndex));
+            case INTEGER -> new IntegerValue(requiredInteger(
+                result,
+                valueIndex + 1
+            ));
+            case REAL -> new RealValue(requiredReal(result, valueIndex + 2));
+            case BOOLEAN -> new BooleanValue(requiredBoolean(
+                result,
+                valueIndex + 3
+            ));
         };
     }
 
@@ -500,6 +765,47 @@ public final class JdbcPersistence implements Persistence {
                 this.revision,
                 this.fields
             );
+        }
+    }
+
+    /**
+     * Mutable store metadata used while loading the JDBC catalog.
+     */
+    private static final class MutableStoreMetadata {
+        /**
+         * Store name.
+         */
+        private final String name;
+
+        /**
+         * Store position.
+         */
+        private final int position;
+
+        /**
+         * Field metadata.
+         */
+        private final List<FieldMetadata> fields;
+
+        /**
+         * Creates mutable store metadata.
+         *
+         * @param name store name
+         * @param position store position
+         */
+        private MutableStoreMetadata(final String name, final int position) {
+            this.name = name;
+            this.position = position;
+            this.fields = new ArrayList<>();
+        }
+
+        /**
+         * Creates immutable store metadata.
+         *
+         * @return store metadata
+         */
+        private StoreMetadata freeze() {
+            return new StoreMetadata(this.name, this.position, this.fields);
         }
     }
 }

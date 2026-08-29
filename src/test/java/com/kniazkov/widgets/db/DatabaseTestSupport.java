@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.db;
 
 import com.kniazkov.widgets.db.persistence.ChangeSet;
+import com.kniazkov.widgets.db.persistence.DatabaseMetadata;
 import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
 import com.kniazkov.widgets.db.persistence.NoPersistence;
 import com.kniazkov.widgets.db.persistence.Persistence;
@@ -136,6 +137,11 @@ final class DatabaseTestSupport {
         private final List<ChangeSet> commits;
 
         /**
+         * Initialized database metadata.
+         */
+        private DatabaseMetadata metadata;
+
+        /**
          * Optional observer invoked before accepting a commit.
          */
         private Consumer<ChangeSet> observer;
@@ -167,6 +173,11 @@ final class DatabaseTestSupport {
             this.commits = new ArrayList<>();
             this.observer = ignored -> {
             };
+        }
+
+        @Override
+        public void initialize(final DatabaseMetadata value) {
+            this.metadata = value;
         }
 
         @Override
@@ -224,6 +235,15 @@ final class DatabaseTestSupport {
          */
         int getCloseCount() {
             return this.closeCount;
+        }
+
+        /**
+         * Returns initialized database metadata.
+         *
+         * @return metadata
+         */
+        DatabaseMetadata getMetadata() {
+            return this.metadata;
         }
     }
 }

@@ -4,12 +4,16 @@
 package com.kniazkov.widgets.db.persistence.jdbc;
 
 import com.kniazkov.widgets.db.persistence.ChangeSet;
+import com.kniazkov.widgets.db.persistence.DatabaseMetadata;
 import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
+import com.kniazkov.widgets.db.persistence.FieldMetadata;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
+import com.kniazkov.widgets.db.persistence.StoreMetadata;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
 import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.Kind;
 import com.kniazkov.widgets.db.persistence.StoredValue.RealValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
 import java.sql.Connection;
@@ -36,18 +40,77 @@ import static org.junit.Assert.assertTrue;
  */
 public final class JdbcPersistenceTest {
     /**
+     * Verifies JDBC exposes the complete schema catalog through SQL tables.
+     *
+     * @throws Exception when direct SQL inspection fails
+     */
+    @Test
+    public void writesDatabaseMetadata() throws Exception {
+        final String url = url();
+        open(url).close();
+
+        try (
+            Connection connection = DriverManager.getConnection(url);
+            Statement statement = connection.createStatement()
+        ) {
+            assertEquals(1, scalar(statement,
+                "SELECT format_version FROM db_metadata"));
+            assertEquals(2, count(statement, "db_store"));
+            assertEquals(5, count(statement, "db_field_definition"));
+            try (ResultSet result = statement.executeQuery(
+                "SELECT type_name, value_kind, default_string, field_order, "
+                    + "referenced_store "
+                    + "FROM db_field_definition "
+                    + "WHERE store_name = 'employees' "
+                    + "AND field_name = 'departmentId'"
+            )) {
+                assertTrue(result.next());
+                assertEquals("identifier", result.getString(1));
+                assertEquals("STRING", result.getString(2));
+                assertEquals(
+                    "a843176c-36df-44bd-b8a2-b1d8c956c431",
+                    result.getString(3)
+                );
+                assertEquals(4, result.getInt(4));
+                assertEquals("departments", result.getString(5));
+            }
+        }
+    }
+
+    /**
+     * Verifies persisted metadata must match the configured Java schemas.
+     */
+    @Test
+    public void rejectsMismatchedDatabaseMetadata() {
+        final String url = url();
+        open(url).close();
+        final JdbcPersistence persistence = new JdbcPersistence(
+            url,
+            new H2Dialect()
+        );
+        final DatabaseMetadata different = new DatabaseMetadata(
+            DatabaseMetadata.CURRENT_FORMAT_VERSION,
+            List.of()
+        );
+
+        assertThrows(PersistenceException.class,
+            () -> persistence.initialize(different));
+        persistence.close();
+    }
+
+    /**
      * Verifies all native scalar types survive a JDBC close and reopen.
      */
     @Test
     public void roundTripsAllNativeValues() {
         final String url = url();
         final StoredRecord source = record("employees", UUID.randomUUID(), 5L);
-        try (JdbcPersistence writer = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence writer = open(url)) {
             assertTrue(writer.load().getRecords().isEmpty());
             writer.commit(ChangeSet.upsert(source));
         }
 
-        try (JdbcPersistence reader = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence reader = open(url)) {
             final StoredRecord restored = reader.load().getRecords().get(0);
             assertEquals(source.getStore(), restored.getStore());
             assertEquals(source.getId(), restored.getId());
@@ -65,7 +128,7 @@ public final class JdbcPersistenceTest {
     @Test
     public void usesNativeSqlColumns() throws Exception {
         final String url = url();
-        try (JdbcPersistence persistence = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url)) {
             persistence.commit(ChangeSet.upsert(
                 record("employees", UUID.randomUUID(), 1L)
             ));
@@ -94,7 +157,7 @@ public final class JdbcPersistenceTest {
     public void replacesCompleteRecords() {
         final String url = url();
         final UUID id = UUID.randomUUID();
-        try (JdbcPersistence persistence = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url)) {
             persistence.commit(ChangeSet.upsert(record("employees", id, 1L)));
             final StoredRecord replacement = new StoredRecord(
                 "employees",
@@ -122,7 +185,7 @@ public final class JdbcPersistenceTest {
     public void deletesCompleteRecords() throws Exception {
         final String url = url();
         final UUID id = UUID.randomUUID();
-        try (JdbcPersistence persistence = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url)) {
             persistence.commit(ChangeSet.upsert(record("employees", id, 1L)));
             persistence.commit(ChangeSet.delete("employees", id));
 
@@ -148,7 +211,7 @@ public final class JdbcPersistenceTest {
             new ChangeSet.Upsert(record("employees", UUID.randomUUID(), 1L)),
             new ChangeSet.Upsert(record(oversizedStore, UUID.randomUUID(), 1L))
         ));
-        try (JdbcPersistence persistence = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url)) {
             assertThrows(PersistenceException.class,
                 () -> persistence.commit(changes));
 
@@ -164,7 +227,7 @@ public final class JdbcPersistenceTest {
     @Test
     public void rejectsMissingTypedColumnValue() throws Exception {
         final String url = url();
-        try (JdbcPersistence persistence = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url)) {
             insertMalformedField(url, "INTEGER", null);
 
             assertThrows(PersistenceException.class, persistence::load);
@@ -179,7 +242,7 @@ public final class JdbcPersistenceTest {
     @Test
     public void rejectsUnknownValueType() throws Exception {
         final String url = url();
-        try (JdbcPersistence persistence = new JdbcPersistence(url, new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url)) {
             insertMalformedField(url, "BINARY", 7);
 
             assertThrows(PersistenceException.class, persistence::load);
@@ -193,8 +256,8 @@ public final class JdbcPersistenceTest {
     public void initializesSchemaIdempotently() {
         final String url = url();
         try (
-            JdbcPersistence first = new JdbcPersistence(url, new H2Dialect());
-            JdbcPersistence second = new JdbcPersistence(url, new H2Dialect())
+            JdbcPersistence first = open(url);
+            JdbcPersistence second = open(url)
         ) {
             assertTrue(first.load().getRecords().isEmpty());
             assertTrue(second.load().getRecords().isEmpty());
@@ -247,6 +310,16 @@ public final class JdbcPersistenceTest {
             assertTrue(sql.contains("integer_value"));
             assertTrue(sql.contains("real_value"));
             assertTrue(sql.contains("boolean_value"));
+            assertTrue(sql.contains("db_metadata"));
+            assertTrue(sql.contains("db_store"));
+            assertTrue(sql.contains("db_field_definition"));
+            assertTrue(sql.contains("type_name"));
+            assertTrue(sql.contains("value_kind"));
+            assertTrue(sql.contains("default_string"));
+            assertTrue(sql.contains("default_integer"));
+            assertTrue(sql.contains("default_real"));
+            assertTrue(sql.contains("default_boolean"));
+            assertTrue(sql.contains("referenced_store"));
             assertFalse(sql.contains("field_value"));
             assertFalse(sql.contains("widget"));
         }
@@ -257,7 +330,7 @@ public final class JdbcPersistenceTest {
      */
     @Test
     public void acceptsEmptyChangeSets() {
-        try (JdbcPersistence persistence = new JdbcPersistence(url(), new H2Dialect())) {
+        try (JdbcPersistence persistence = open(url())) {
             persistence.commit(new ChangeSet(List.of()));
             final DatabaseSnapshot snapshot = persistence.load();
             assertTrue(snapshot.getRecords().isEmpty());
@@ -321,6 +394,24 @@ public final class JdbcPersistenceTest {
         try (ResultSet result = statement.executeQuery(
             "SELECT COUNT(*) FROM " + table
         )) {
+            result.next();
+            return result.getInt(1);
+        }
+    }
+
+    /**
+     * Reads one integer returned by a query.
+     *
+     * @param statement statement
+     * @param sql query
+     * @return integer value
+     * @throws Exception when the query fails
+     */
+    private static int scalar(
+        final Statement statement,
+        final String sql
+    ) throws Exception {
+        try (ResultSet result = statement.executeQuery(sql)) {
             result.next();
             return result.getInt(1);
         }
@@ -400,8 +491,65 @@ public final class JdbcPersistenceTest {
     }
 
     /**
+     * Initializes JDBC persistence with the test schema.
+     *
+     * @param url JDBC URL
+     * @return open persistence
+     */
+    private static JdbcPersistence open(final String url) {
+        final JdbcPersistence persistence = new JdbcPersistence(
+            url,
+            new H2Dialect()
+        );
+        persistence.initialize(METADATA);
+        return persistence;
+    }
+
+    /**
      * Deterministic creation time.
      */
     private static final Instant CREATED_AT =
         Instant.parse("2026-08-29T12:00:00Z");
+
+    /**
+     * Schema catalog shared by JDBC persistence tests.
+     */
+    private static final DatabaseMetadata METADATA = new DatabaseMetadata(
+        DatabaseMetadata.CURRENT_FORMAT_VERSION,
+        Arrays.asList(
+            new StoreMetadata(
+                "employees",
+                0,
+                Arrays.asList(
+                    new FieldMetadata(
+                        "name", "string", Kind.STRING,
+                        new StringValue(""), 0, null
+                    ),
+                    new FieldMetadata(
+                        "age", "integer", Kind.INTEGER,
+                        new IntegerValue(0), 1, null
+                    ),
+                    new FieldMetadata(
+                        "score", "real", Kind.REAL,
+                        new RealValue(0.0), 2, null
+                    ),
+                    new FieldMetadata(
+                        "active", "boolean", Kind.BOOLEAN,
+                        new BooleanValue(false), 3, null
+                    ),
+                    new FieldMetadata(
+                        "departmentId",
+                        "identifier",
+                        Kind.STRING,
+                        new StringValue(
+                            "a843176c-36df-44bd-b8a2-b1d8c956c431"
+                        ),
+                        4,
+                        "departments"
+                    )
+                )
+            ),
+            new StoreMetadata("departments", 1, List.of())
+        )
+    );
 }

@@ -54,10 +54,12 @@ Store employees = database.getStore("employees");
 Without an explicit backend, the builder uses `NoPersistence`. All records disappear when the
 process stops.
 
-`ValueType` combines four pieces of field metadata:
+`ValueType` combines the runtime and persistence behavior of a field:
 
+- a stable semantic type name;
 - the runtime Java class;
 - a factory for the field's reactive model;
+- the physical persistence scalar kind and model default;
 - conversion to and from a typed persistence scalar;
 - an optional comparator used by query conditions and ordering.
 
@@ -170,35 +172,103 @@ Subscription subscription = adults.subscribe(change -> {
 Keep the `Subscription` for as long as updates are required and call `subscription.close()` when
 the consumer is discarded.
 
-## JSON persistence
+## Persistence formats
 
-`JsonPersistence` stores each configured store in a separate file inside one database directory:
+Every durable backend stores a schema catalog in addition to records. The catalog has format
+version `1` and contains stores and fields in declaration order. Each field definition contains:
+
+| Property | Meaning |
+| --- | --- |
+| `name` | Field name used in records |
+| `type` | Stable semantic `ValueType` name, such as `email` or `positive-integer` |
+| `valueKind` | Physical scalar kind: `STRING`, `INTEGER`, `REAL`, or `BOOLEAN` |
+| `defaultValue` | Native scalar used when a stored record omits the field |
+| `position` | Zero-based declaration position |
+| `referencedStore` | Target store for a UUID relation, otherwise absent or SQL `NULL` |
+
+`Database` creates this metadata from its configured schemas before loading records. A durable
+backend writes the catalog when a database is created and compares it on every later open. A
+mismatch raises `PersistenceException`; automatic schema migration is intentionally not guessed.
+
+Built-in semantic types are `boolean`, `string`, `not-empty-string`, `username`, `phone-number`,
+`email`, `integer`, `positive-integer`, `real`, `positive-real`, and `identifier`. A custom
+`ValueType` must provide its own stable name and physical `StoredValue.Kind`.
+
+A relation is declared explicitly so an external editor can discover it:
+
+```java
+Field<UUID> departmentId = new Field<>(
+    ValueType.IDENTIFIER,
+    "departmentId",
+    "departments"
+);
+```
+
+### NoPersistence
+
+`NoPersistence` keeps no external files, tables, or metadata. Its `initialize` method validates
+that metadata was supplied and then discards it. Records and the schema catalog disappear with the
+server process.
+
+### JSON persistence
+
+`JsonPersistence` stores its schema catalog and one record file per store inside one directory:
 
 ```java
 Database database = Database.builder()
-    .persistence(
-        new JsonPersistence(Path.of("application-data"))
-    )
+    .persistence(new JsonPersistence(Path.of("application-data")))
     .store("employees", Schema.of(name, age, active))
     .build();
 ```
 
-For example, stores named `employees` and `settings` produce this layout:
+For stores named `employees` and `departments`, the physical layout is:
 
 ```text
 application-data/
-├── employees.json
-└── settings.json
+├── database.metadata
+├── departments.json
+└── employees.json
 ```
 
-Each commit builds a new snapshot of the affected store, writes it to a temporary file, and
-replaces only that store's target file. An atomic filesystem move is used when supported. A JSON
-change set is restricted to one store because replacing several files cannot provide a real
-cross-store atomic commit. The store name comes from the file name and is not repeated in every
-record.
+`database.metadata` is JSON despite its extension. The different extension prevents a metadata
+file from being mistaken for a store file. A catalog looks like this:
 
-Field values and record revisions use native JSON scalars. UUIDs and timestamps remain strings
-because JSON has no corresponding scalar types. A record looks like this:
+```json
+{
+  "formatVersion": 1,
+  "stores": [
+    {
+      "name": "employees",
+      "position": 0,
+      "fields": [
+        {
+          "name": "name",
+          "type": "not-empty-string",
+          "valueKind": "STRING",
+          "defaultValue": "",
+          "position": 0
+        },
+        {
+          "name": "departmentId",
+          "type": "identifier",
+          "valueKind": "STRING",
+          "defaultValue": "a843176c-36df-44bd-b8a2-b1d8c956c431",
+          "position": 1,
+          "referencedStore": "departments"
+        }
+      ]
+    },
+    {
+      "name": "departments",
+      "position": 1,
+      "fields": []
+    }
+  ]
+}
+```
+
+Store names are URL-encoded in file names. The store name is not repeated inside its records.
+Each store file is a JSON array whose records have this form:
 
 ```json
 {
@@ -213,64 +283,110 @@ because JSON has no corresponding scalar types. A record looks like this:
 }
 ```
 
-This implementation is useful for examples and small, low-write applications. It rewrites the
-complete affected store for every committed model change. Binding a text input directly to a
-persisted record can therefore rewrite that store's file for every entered character.
+Strings, integers, real numbers, and booleans use native JSON scalars. UUIDs and timestamps are
+strings because JSON has no corresponding native types. Missing fields receive their model's
+default value when loaded; unknown fields are rejected by the configured Java schema.
 
-Use drafts to group form changes, or choose JDBC when frequent updates and a larger data set make
-whole-file snapshots inappropriate.
+Each commit writes a temporary file and replaces only the affected store file. An atomic move is
+used when the filesystem supports it. A JSON change set cannot span stores because replacing
+several files cannot provide a real cross-store transaction. The complete affected store is
+rewritten, so drafts should group frequent form changes.
 
-## JDBC persistence
+### JDBC persistence
 
-`JdbcPersistence` uses only the standard `java.sql` API. The widgets library does not include a
-JDBC driver, ORM, connection pool, or migration framework.
-
-For an embedded H2 database:
+`JdbcPersistence` uses only `java.sql`. The library includes no JDBC driver, ORM, connection pool,
+or migration framework. H2 and SQLite differ only in physical SQL column types; their logical
+schema is identical.
 
 ```java
-import com.kniazkov.widgets.db.persistence.jdbc.H2Dialect;
-import com.kniazkov.widgets.db.persistence.jdbc.JdbcPersistence;
-
 Database database = Database.builder()
-    .persistence(
-        new JdbcPersistence(
-            "jdbc:h2:file:./data/application",
-            new H2Dialect()
-        )
-    )
+    .persistence(new JdbcPersistence(
+        "jdbc:h2:file:./data/application",
+        new H2Dialect()
+    ))
     .store("employees", Schema.of(name, age, active))
     .build();
 ```
 
-The application must provide the driver at runtime:
+The application supplies the H2 driver at runtime. SQLite is selected with
+`jdbc:sqlite:application.db` and `SqliteDialect`.
 
-```xml
-<dependency>
-    <groupId>com.h2database</groupId>
-    <artifactId>h2</artifactId>
-    <version>2.4.240</version>
-    <scope>runtime</scope>
-</dependency>
-```
+#### JDBC metadata tables
 
-SQLite is selected in the same way:
+`db_metadata` contains exactly one logical row:
 
-```java
-new JdbcPersistence(
-    "jdbc:sqlite:application.db",
-    new SqliteDialect()
-);
-```
+| Column | H2 | SQLite | Meaning |
+| --- | --- | --- | --- |
+| `metadata_id` | `INTEGER` | `INTEGER` | Constant identifier `1`, primary key |
+| `format_version` | `INTEGER` | `INTEGER` | Persistence format version |
 
-The JDBC backend uses one record table and one field-value table. The field table has a type tag
-and separate nullable columns for strings, integers, real numbers, and booleans; only the column
-matching the tag is populated. Queries still run against the canonical models in RAM. A single
-connection is enough because the database dispatcher serializes all mutations.
+`db_store` contains one row per configured store:
 
-Updating the SQL tables through another connection does **not** update live models. All reactive
-changes must pass through `Database`. Likewise, two server JVMs connected to the same SQL database
-do not notify each other. Horizontal deployment requires an additional shared change log or
-publish/subscribe mechanism.
+| Column | H2 | SQLite | Meaning |
+| --- | --- | --- | --- |
+| `store_name` | `VARCHAR(255)` | `TEXT` | Store name, primary key |
+| `store_order` | `INTEGER` | `INTEGER` | Zero-based declaration position, unique |
+
+`db_field_definition` contains the field catalog:
+
+| Column | H2 | SQLite | Meaning |
+| --- | --- | --- | --- |
+| `store_name` | `VARCHAR(255)` | `TEXT` | Owning store; part of the primary key |
+| `field_name` | `VARCHAR(255)` | `TEXT` | Field name; part of the primary key |
+| `field_order` | `INTEGER` | `INTEGER` | Zero-based declaration position |
+| `type_name` | `VARCHAR(255)` | `TEXT` | Stable semantic `ValueType` name |
+| `value_kind` | `VARCHAR(16)` | `TEXT` | `STRING`, `INTEGER`, `REAL`, or `BOOLEAN` |
+| `default_string` | `CLOB` | `TEXT` | String default or `NULL` |
+| `default_integer` | `INTEGER` | `INTEGER` | Integer default or `NULL` |
+| `default_real` | `DOUBLE PRECISION` | `REAL` | Real default or `NULL` |
+| `default_boolean` | `BOOLEAN` | `INTEGER` | Boolean default or `NULL` |
+| `referenced_store` | `VARCHAR(255)` | `TEXT` | Target store, or `NULL` |
+
+Exactly one default column is non-`NULL`, selected by `value_kind`.
+
+#### JDBC data tables
+
+`db_record` contains record identity and revision metadata:
+
+| Column | H2 | SQLite | Meaning |
+| --- | --- | --- | --- |
+| `store_name` | `VARCHAR(255)` | `TEXT` | Store name; part of the primary key |
+| `record_id` | `VARCHAR(36)` | `TEXT` | UUID string; part of the primary key |
+| `created_at` | `VARCHAR(40)` | `TEXT` | ISO-8601 `Instant` string |
+| `revision` | `BIGINT` | `INTEGER` | Positive optimistic-lock revision |
+
+`db_field` contains one typed value per present record field:
+
+| Column | H2 | SQLite | Meaning |
+| --- | --- | --- | --- |
+| `store_name` | `VARCHAR(255)` | `TEXT` | Store name; part of the primary key |
+| `record_id` | `VARCHAR(36)` | `TEXT` | Record UUID; part of the primary key |
+| `field_name` | `VARCHAR(255)` | `TEXT` | Field name; part of the primary key |
+| `value_type` | `VARCHAR(16)` | `TEXT` | Physical scalar kind |
+| `string_value` | `CLOB` | `TEXT` | String payload or `NULL` |
+| `integer_value` | `INTEGER` | `INTEGER` | Integer payload or `NULL` |
+| `real_value` | `DOUBLE PRECISION` | `REAL` | Real payload or `NULL` |
+| `boolean_value` | `BOOLEAN` | `INTEGER` | Boolean payload or `NULL` |
+
+Exactly one payload column must be non-`NULL`, and it must match `value_type`. A complete record
+replacement deletes its old `db_field` rows and inserts the new set in the same transaction.
+
+#### Rules for an external editor
+
+A program that edits JDBC tables directly must run while the widgets server is stopped. The
+server keeps canonical records in RAM, does not poll SQL, and may overwrite unseen external
+changes. An online editor must call a server API instead of writing these tables directly.
+
+For an offline edit:
+
+1. Read `db_metadata`, `db_store`, and `db_field_definition` before displaying records.
+2. Update the one payload column selected by `value_type`; clear the other payload columns.
+3. Increase the corresponding `db_record.revision` once per logical record edit.
+4. Preserve UUID and `Instant` string formats.
+5. Commit all changes to one record in a single SQL transaction.
+
+Two server JVMs connected to the same SQL database do not notify one another. Horizontal
+deployment still requires a shared change log or publish/subscribe mechanism.
 
 ## Lifecycle and failure behavior
 

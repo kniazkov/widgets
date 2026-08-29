@@ -44,7 +44,7 @@ public final class DatabaseRelations {
      * Identifier of an employee's department.
      */
     private static final Field<UUID> DEPARTMENT_ID =
-        new Field<>(ValueType.IDENTIFIER, "departmentId");
+        new Field<>(ValueType.IDENTIFIER, "departmentId", "departments");
 
     /**
      * Example database.

@@ -212,15 +212,101 @@ public final class StoredValueTest {
     }
 
     /**
+     * Verifies persistence metadata is immutable and validates ordering,
+     * uniqueness, and references.
+     */
+    @Test
+    public void validatesDatabaseMetadata() {
+        final List<FieldMetadata> fields = new ArrayList<>();
+        fields.add(new FieldMetadata(
+            "departmentId",
+            "identifier",
+            Kind.STRING,
+            new StringValue("11111111-1111-1111-1111-111111111111"),
+            0,
+            "departments"
+        ));
+        final StoreMetadata employees = new StoreMetadata(
+            "employees",
+            0,
+            fields
+        );
+        fields.clear();
+        final StoreMetadata departments = new StoreMetadata(
+            "departments",
+            1,
+            List.of()
+        );
+        final DatabaseMetadata metadata = new DatabaseMetadata(
+            DatabaseMetadata.CURRENT_FORMAT_VERSION,
+            Arrays.asList(employees, departments)
+        );
+
+        assertEquals(1, metadata.formatVersion());
+        assertEquals(2, metadata.stores().size());
+        assertEquals("departmentId",
+            metadata.stores().get(0).fields().get(0).name());
+        assertThrows(UnsupportedOperationException.class,
+            () -> metadata.stores().clear());
+        assertThrows(UnsupportedOperationException.class,
+            () -> employees.fields().clear());
+        assertThrows(IllegalArgumentException.class,
+            () -> new DatabaseMetadata(0, List.of()));
+        assertThrows(IllegalArgumentException.class,
+            () -> new DatabaseMetadata(1, List.of(
+                new StoreMetadata("employees", 1, List.of())
+            )));
+        assertThrows(IllegalArgumentException.class,
+            () -> new FieldMetadata(
+                "name",
+                "string",
+                Kind.STRING,
+                new StringValue(""),
+                -1,
+                null
+            ));
+        assertThrows(IllegalArgumentException.class,
+            () -> new FieldMetadata(
+                "age",
+                "integer",
+                Kind.INTEGER,
+                new StringValue("0"),
+                0,
+                null
+            ));
+        assertThrows(IllegalArgumentException.class,
+            () -> new DatabaseMetadata(1, List.of(
+                new StoreMetadata("employees", 0, List.of(
+                    new FieldMetadata(
+                        "missingId",
+                        "identifier",
+                        Kind.STRING,
+                        new StringValue(
+                            "11111111-1111-1111-1111-111111111111"
+                        ),
+                        0,
+                        "missing"
+                    )
+                ))
+            )));
+    }
+
+    /**
      * Verifies the memory-only backend implements the complete no-op contract.
      */
     @Test
     public void supportsNoPersistenceBackend() {
         final NoPersistence persistence = new NoPersistence();
 
+        persistence.initialize(new DatabaseMetadata(
+            DatabaseMetadata.CURRENT_FORMAT_VERSION,
+            List.of()
+        ));
         assertTrue(persistence.load().getRecords().isEmpty());
         persistence.commit(new ChangeSet(List.of()));
         persistence.close();
+        assertThrows(NullPointerException.class,
+            () -> persistence.initialize(null));
     }
 
     /**

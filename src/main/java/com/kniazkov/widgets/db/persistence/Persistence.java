@@ -5,8 +5,16 @@ package com.kniazkov.widgets.db.persistence;
 
 /**
  * Stores committed database changes and loads the state used to seed RAM.
+ * {@link #initialize(DatabaseMetadata)} is called before loading or committing.
  */
 public interface Persistence extends AutoCloseable {
+    /**
+     * Creates or validates the persisted schema catalog.
+     *
+     * @param metadata configured database metadata
+     */
+    void initialize(DatabaseMetadata metadata);
+
     /**
      * Loads all known records.
      *

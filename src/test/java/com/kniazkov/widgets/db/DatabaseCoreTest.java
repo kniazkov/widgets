@@ -7,12 +7,15 @@ import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.db.DatabaseTestSupport.Fixture;
 import com.kniazkov.widgets.db.DatabaseTestSupport.RecordingPersistence;
 import com.kniazkov.widgets.db.persistence.ChangeSet;
+import com.kniazkov.widgets.db.persistence.DatabaseMetadata;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
 import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.Kind;
 import com.kniazkov.widgets.model.Model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import org.junit.Test;
 
 import static com.kniazkov.widgets.db.DatabaseTestSupport.ACTIVE;
@@ -40,15 +43,26 @@ public final class DatabaseCoreTest {
     @Test
     public void validatesFieldConstruction() {
         final Field<String> field = new Field<>(ValueType.STRING, "title");
+        final Field<UUID> reference = new Field<>(
+            ValueType.IDENTIFIER,
+            "departmentId",
+            "departments"
+        );
 
         assertEquals("title", field.getName());
         assertSame(ValueType.STRING, field.getType());
+        assertEquals(null, field.getReferencedStore());
+        assertEquals("departments", reference.getReferencedStore());
         assertThrows(NullPointerException.class,
             () -> new Field<String>(null, "title"));
         assertThrows(NullPointerException.class,
             () -> new Field<>(ValueType.STRING, null));
         assertThrows(IllegalArgumentException.class,
             () -> new Field<>(ValueType.STRING, " \t"));
+        assertThrows(IllegalArgumentException.class,
+            () -> new Field<>(ValueType.STRING, "name", "employees"));
+        assertThrows(IllegalArgumentException.class,
+            () -> new Field<>(ValueType.IDENTIFIER, "parentId", " "));
     }
 
     /**
@@ -102,6 +116,31 @@ public final class DatabaseCoreTest {
             assertSame(fixture.store(), fixture.database().getStore("employees"));
             assertThrows(IllegalArgumentException.class,
                 () -> fixture.database().getStore("missing"));
+        }
+    }
+
+    /**
+     * Verifies configured schemas initialize persistence metadata before load.
+     */
+    @Test
+    public void initializesPersistenceMetadata() {
+        final RecordingPersistence persistence = new RecordingPersistence();
+        try (Fixture ignored = open(persistence)) {
+            final DatabaseMetadata metadata = persistence.getMetadata();
+
+            assertEquals(1, metadata.formatVersion());
+            assertEquals(1, metadata.stores().size());
+            assertEquals("employees", metadata.stores().get(0).name());
+            assertEquals(4, metadata.stores().get(0).fields().size());
+            assertEquals("integer",
+                metadata.stores().get(0).fields().get(1).type());
+            assertEquals(
+                Kind.INTEGER,
+                metadata.stores().get(0).fields().get(1).valueKind()
+            );
+            assertEquals(0,
+                metadata.stores().get(0).fields().get(1)
+                    .defaultValue().getInteger());
         }
     }
 
@@ -318,6 +357,12 @@ public final class DatabaseCoreTest {
     @Test
     public void exposesBuiltInValueTypeContracts() {
         assertEquals(String.class, ValueType.STRING.getValueClass());
+        assertEquals("string", ValueType.STRING.getName());
+        assertEquals(
+            Kind.STRING,
+            ValueType.STRING.getStoredKind()
+        );
+        assertEquals("", ValueType.STRING.getStoredDefault().getString());
         assertEquals(Integer.class, ValueType.INTEGER.getValueClass());
         assertEquals(Boolean.class, ValueType.BOOLEAN.getValueClass());
         assertNotSame(ValueType.STRING.createModel(), ValueType.STRING.createModel());
@@ -338,8 +383,10 @@ public final class DatabaseCoreTest {
     @Test
     public void supportsCustomValueTypes() {
         final ValueType<String> length = ValueType.of(
+            "length",
             String.class,
             com.kniazkov.widgets.model.StringModel::new,
+            Kind.INTEGER,
             value -> new IntegerValue(value.length()),
             value -> "x".repeat(value.getInteger()),
             String::compareToIgnoreCase

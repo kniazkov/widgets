@@ -7,10 +7,14 @@ import com.kniazkov.widgets.db.Database;
 import com.kniazkov.widgets.db.Schema;
 import com.kniazkov.widgets.db.Store;
 import com.kniazkov.widgets.db.persistence.ChangeSet;
+import com.kniazkov.widgets.db.persistence.DatabaseMetadata;
 import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
+import com.kniazkov.widgets.db.persistence.FieldMetadata;
 import com.kniazkov.widgets.db.persistence.Persistence;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
+import com.kniazkov.widgets.db.persistence.StoreMetadata;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -60,8 +64,46 @@ public final class MemoryDatabase implements Database {
                 new MemoryStore(this, entry.getKey(), entry.getValue())
             );
         }
+        this.persistence.initialize(metadata(schemas));
         final DatabaseSnapshot snapshot = this.persistence.load();
         this.dispatcher.run(() -> this.load(snapshot));
+    }
+
+    /**
+     * Creates persistence-neutral metadata from configured schemas.
+     *
+     * @param schemas configured schemas
+     * @return database metadata
+     */
+    private static DatabaseMetadata metadata(
+        final Map<String, Schema> schemas
+    ) {
+        final ArrayList<StoreMetadata> stores = new ArrayList<>();
+        int storePosition = 0;
+        for (final Map.Entry<String, Schema> entry : schemas.entrySet()) {
+            final ArrayList<FieldMetadata> fields = new ArrayList<>();
+            int fieldPosition = 0;
+            for (final com.kniazkov.widgets.db.Field<?> field
+                : entry.getValue().getFields()) {
+                fields.add(new FieldMetadata(
+                    field.getName(),
+                    field.getType().getName(),
+                    field.getType().getStoredKind(),
+                    field.getType().getStoredDefault(),
+                    fieldPosition++,
+                    field.getReferencedStore()
+                ));
+            }
+            stores.add(new StoreMetadata(
+                entry.getKey(),
+                storePosition++,
+                fields
+            ));
+        }
+        return new DatabaseMetadata(
+            DatabaseMetadata.CURRENT_FORMAT_VERSION,
+            stores
+        );
     }
 
     /**

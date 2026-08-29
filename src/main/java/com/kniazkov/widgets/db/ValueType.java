@@ -6,6 +6,7 @@ package com.kniazkov.widgets.db;
 import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.Kind;
 import com.kniazkov.widgets.db.persistence.StoredValue.RealValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
 import com.kniazkov.widgets.model.BooleanModel;
@@ -36,8 +37,10 @@ public final class ValueType<T> {
      * Boolean values.
      */
     public static final ValueType<Boolean> BOOLEAN = of(
+        "boolean",
         Boolean.class,
         BooleanModel::new,
+        Kind.BOOLEAN,
         BooleanValue::new,
         StoredValue::getBoolean,
         null
@@ -46,36 +49,47 @@ public final class ValueType<T> {
     /**
      * String values.
      */
-    public static final ValueType<String> STRING = stringType(StringModel::new);
+    public static final ValueType<String> STRING = stringType(
+        "string",
+        StringModel::new
+    );
 
     /**
      * Non-empty string values.
      */
     public static final ValueType<String> NOT_EMPTY_STRING =
-        stringType(NotEmptyStringModel::new);
+        stringType("not-empty-string", NotEmptyStringModel::new);
 
     /**
      * Username values.
      */
-    public static final ValueType<String> USERNAME = stringType(UsernameModel::new);
+    public static final ValueType<String> USERNAME = stringType(
+        "username",
+        UsernameModel::new
+    );
 
     /**
      * Phone number values.
      */
     public static final ValueType<String> PHONE_NUMBER =
-        stringType(PhoneNumberModel::new);
+        stringType("phone-number", PhoneNumberModel::new);
 
     /**
      * Email values.
      */
-    public static final ValueType<String> EMAIL = stringType(EmailModel::new);
+    public static final ValueType<String> EMAIL = stringType(
+        "email",
+        EmailModel::new
+    );
 
     /**
      * Integer values.
      */
     public static final ValueType<Integer> INTEGER = of(
+        "integer",
         Integer.class,
         IntegerModel::new,
+        Kind.INTEGER,
         IntegerValue::new,
         StoredValue::getInteger,
         Comparator.naturalOrder()
@@ -85,8 +99,10 @@ public final class ValueType<T> {
      * Positive integer values.
      */
     public static final ValueType<Integer> POSITIVE_INTEGER = of(
+        "positive-integer",
         Integer.class,
         () -> new ValidatedIntegerModel(ValidatedIntegerModel.POSITIVE),
+        Kind.INTEGER,
         IntegerValue::new,
         StoredValue::getInteger,
         Comparator.naturalOrder()
@@ -96,8 +112,10 @@ public final class ValueType<T> {
      * Real values.
      */
     public static final ValueType<Double> REAL = of(
+        "real",
         Double.class,
         RealNumberModel::new,
+        Kind.REAL,
         RealValue::new,
         StoredValue::getReal,
         Comparator.naturalOrder()
@@ -107,8 +125,10 @@ public final class ValueType<T> {
      * Positive real values.
      */
     public static final ValueType<Double> POSITIVE_REAL = of(
+        "positive-real",
         Double.class,
         () -> new ValidatedRealNumberModel(ValidatedRealNumberModel.POSITIVE),
+        Kind.REAL,
         RealValue::new,
         StoredValue::getReal,
         Comparator.naturalOrder()
@@ -118,12 +138,24 @@ public final class ValueType<T> {
      * UUID values.
      */
     public static final ValueType<UUID> IDENTIFIER = of(
+        "identifier",
         UUID.class,
         UuidModel::new,
+        Kind.STRING,
         value -> new StringValue(value.toString()),
         value -> UUID.fromString(value.getString()),
         Comparator.naturalOrder()
     );
+
+    /**
+     * Stable semantic type name stored in database metadata.
+     */
+    private final String name;
+
+    /**
+     * Physical persistence scalar kind.
+     */
+    private final Kind storedKind;
 
     /**
      * Runtime value class.
@@ -153,21 +185,30 @@ public final class ValueType<T> {
     /**
      * Creates a value type.
      *
+     * @param name stable semantic type name
      * @param valueClass runtime class
      * @param modelFactory model factory
+     * @param storedKind physical persistence scalar kind
      * @param toStoredValue persistence conversion
      * @param fromStoredValue reverse persistence conversion
      * @param comparator comparator, or {@code null}
      */
     private ValueType(
+        final String name,
         final Class<T> valueClass,
         final Supplier<Model<T>> modelFactory,
+        final Kind storedKind,
         final Function<T, StoredValue> toStoredValue,
         final Function<StoredValue, T> fromStoredValue,
         final Comparator<T> comparator
     ) {
+        this.name = Objects.requireNonNull(name, "name");
+        if (this.name.isBlank()) {
+            throw new IllegalArgumentException("Value type name cannot be blank");
+        }
         this.valueClass = Objects.requireNonNull(valueClass, "valueClass");
         this.modelFactory = Objects.requireNonNull(modelFactory, "modelFactory");
+        this.storedKind = Objects.requireNonNull(storedKind, "storedKind");
         this.toStoredValue = Objects.requireNonNull(
             toStoredValue,
             "toStoredValue"
@@ -182,8 +223,10 @@ public final class ValueType<T> {
     /**
      * Creates a custom value type.
      *
+     * @param name stable semantic type name
      * @param valueClass runtime class
      * @param modelFactory model factory
+     * @param storedKind physical persistence scalar kind
      * @param toStoredValue persistence conversion
      * @param fromStoredValue reverse persistence conversion
      * @param comparator comparator, or {@code null}
@@ -191,15 +234,19 @@ public final class ValueType<T> {
      * @return value type
      */
     public static <T> ValueType<T> of(
+        final String name,
         final Class<T> valueClass,
         final Supplier<Model<T>> modelFactory,
+        final Kind storedKind,
         final Function<T, StoredValue> toStoredValue,
         final Function<StoredValue, T> fromStoredValue,
         final Comparator<T> comparator
     ) {
         return new ValueType<>(
+            name,
             valueClass,
             modelFactory,
+            storedKind,
             toStoredValue,
             fromStoredValue,
             comparator
@@ -209,17 +256,50 @@ public final class ValueType<T> {
     /**
      * Creates a string value type.
      *
+     * @param name semantic type name
      * @param factory model factory
      * @return value type
      */
-    private static ValueType<String> stringType(final Supplier<Model<String>> factory) {
+    private static ValueType<String> stringType(
+        final String name,
+        final Supplier<Model<String>> factory
+    ) {
         return of(
+            name,
             String.class,
             factory,
+            Kind.STRING,
             StringValue::new,
             StoredValue::getString,
             Comparator.naturalOrder()
         );
+    }
+
+    /**
+     * Returns the stable semantic type name.
+     *
+     * @return type name
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Returns the physical persistence scalar kind.
+     *
+     * @return stored kind
+     */
+    public Kind getStoredKind() {
+        return this.storedKind;
+    }
+
+    /**
+     * Returns the model default converted to its persistence scalar.
+     *
+     * @return stored default value
+     */
+    public StoredValue getStoredDefault() {
+        return this.toStoredValue(this.createModel().getData());
     }
 
     /**
@@ -257,10 +337,17 @@ public final class ValueType<T> {
      * @return stored value
      */
     public StoredValue toStoredValue(final T value) {
-        return Objects.requireNonNull(
+        final StoredValue stored = Objects.requireNonNull(
             this.toStoredValue.apply(Objects.requireNonNull(value, "value")),
             "stored value"
         );
+        if (stored.getKind() != this.storedKind) {
+            throw new IllegalArgumentException(
+                "Value type '" + this.name + "' produced " + stored.getKind()
+                    + " instead of " + this.storedKind
+            );
+        }
+        return stored;
     }
 
     /**
