@@ -28,6 +28,12 @@ import com.kniazkov.widgets.view.Table;
  */
 public class Ex02Table {
     /**
+     * Creates the example.
+     */
+    public Ex02Table() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

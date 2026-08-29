@@ -13,6 +13,12 @@ import com.kniazkov.widgets.model.Model;
  */
 public class EmptyStyle extends Style {
     /**
+     * Creates an empty style.
+     */
+    public EmptyStyle() {
+    }
+
+    /**
      * The singleton instance of the empty style.
      */
     public static final EmptyStyle INSTANCE = new EmptyStyle();

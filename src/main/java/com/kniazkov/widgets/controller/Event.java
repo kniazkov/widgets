@@ -29,6 +29,12 @@ import java.util.stream.Stream;
  */
 public abstract class Event<T> {
     /**
+     * Creates an event.
+     */
+    public Event() {
+    }
+
+    /**
      * Returns the unique string identifier of this event.
      * The name is used for serialization, deserialization, and lookup
      * in the global event registry.

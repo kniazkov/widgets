@@ -29,6 +29,12 @@ import com.kniazkov.widgets.view.TextWidget;
  * </ol>
  */
 public class InputFieldStyles {
+    /**
+     * Creates the example.
+     */
+    public InputFieldStyles() {
+    }
+
 
     /**
      * Application entry point.

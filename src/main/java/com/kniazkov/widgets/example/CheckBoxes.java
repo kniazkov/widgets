@@ -29,6 +29,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class CheckBoxes {
     /**
+     * Creates the example.
+     */
+    public CheckBoxes() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

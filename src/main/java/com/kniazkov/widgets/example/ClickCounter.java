@@ -36,6 +36,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class ClickCounter {
     /**
+     * Creates the example.
+     */
+    public ClickCounter() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

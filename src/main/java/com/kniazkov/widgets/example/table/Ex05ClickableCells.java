@@ -44,6 +44,12 @@ import com.kniazkov.widgets.view.Widget;
  */
 public class Ex05ClickableCells {
     /**
+     * Creates the example.
+     */
+    public Ex05ClickableCells() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

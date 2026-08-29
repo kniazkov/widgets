@@ -8,6 +8,12 @@ package com.kniazkov.widgets.common;
  */
 public final class Point {
     /**
+     * Creates a point at the origin.
+     */
+    public Point() {
+    }
+
+    /**
      * The X coordinate.
      */
     public int x;

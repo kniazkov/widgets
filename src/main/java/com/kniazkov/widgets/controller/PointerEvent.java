@@ -9,6 +9,12 @@ package com.kniazkov.widgets.controller;
  */
 public final class PointerEvent {
     /**
+     * Creates an empty pointer event.
+     */
+    public PointerEvent() {
+    }
+
+    /**
      * The pointer's position relative to various coordinate systems.
      */
     public PointerPosition position;

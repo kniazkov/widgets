@@ -47,6 +47,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class TwoPages {
     /**
+     * Creates the example.
+     */
+    public TwoPages() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

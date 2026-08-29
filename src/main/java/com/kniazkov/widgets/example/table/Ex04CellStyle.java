@@ -42,6 +42,12 @@ import com.kniazkov.widgets.view.TextWidgetStyle;
  */
 public class Ex04CellStyle {
     /**
+     * Creates the example.
+     */
+    public Ex04CellStyle() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

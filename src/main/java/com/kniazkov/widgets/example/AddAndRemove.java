@@ -25,6 +25,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  * </ol>
  */
 public class AddAndRemove {
+    /**
+     * Creates the example.
+     */
+    public AddAndRemove() {
+    }
+
 
     /**
      * Entry point.

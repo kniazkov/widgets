@@ -14,6 +14,12 @@ package com.kniazkov.widgets.model;
  * @param <T> the type of data managed by this model
  */
 public abstract class ReadOnlyModel<T> extends SingleThreadModel<T> {
+    /**
+     * Creates a read-only model.
+     */
+    public ReadOnlyModel() {
+    }
+
     @Override
     public boolean setData(final T data) {
         return false;

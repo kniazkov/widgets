@@ -28,6 +28,12 @@ import com.kniazkov.widgets.view.Section;
  */
 public class ActiveReference {
     /**
+     * Creates the example.
+     */
+    public ActiveReference() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

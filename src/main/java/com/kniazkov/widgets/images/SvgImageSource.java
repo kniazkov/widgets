@@ -13,6 +13,12 @@ import java.nio.charset.StandardCharsets;
  */
 public abstract class SvgImageSource implements ImageSource {
     /**
+     * Creates an SVG image source.
+     */
+    public SvgImageSource() {
+    }
+
+    /**
      * An empty SVG image source containing a valid SVG document with no visible content.
      */
     public static final SvgImageSource EMPTY = new SvgImageSource() {

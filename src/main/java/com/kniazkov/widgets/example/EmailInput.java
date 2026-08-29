@@ -37,6 +37,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class EmailInput {
     /**
+     * Creates the example.
+     */
+    public EmailInput() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

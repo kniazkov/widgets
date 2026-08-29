@@ -44,6 +44,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class CustomWidget {
     /**
+     * Creates the example.
+     */
+    public CustomWidget() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

@@ -31,6 +31,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class IntegerInput {
     /**
+     * Creates the example.
+     */
+    public IntegerInput() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

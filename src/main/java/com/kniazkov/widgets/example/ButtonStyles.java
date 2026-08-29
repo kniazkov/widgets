@@ -26,6 +26,12 @@ import com.kniazkov.widgets.view.TextWidget;
  * </ol>
  */
 public class ButtonStyles {
+    /**
+     * Creates the example.
+     */
+    public ButtonStyles() {
+    }
+
 
     /**
      * Application entry point.

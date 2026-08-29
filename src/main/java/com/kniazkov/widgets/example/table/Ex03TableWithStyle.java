@@ -36,6 +36,12 @@ import com.kniazkov.widgets.view.TextWidgetStyle;
  */
 public class Ex03TableWithStyle {
     /**
+     * Creates the example.
+     */
+    public Ex03TableWithStyle() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

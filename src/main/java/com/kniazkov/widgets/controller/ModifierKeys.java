@@ -9,6 +9,12 @@ package com.kniazkov.widgets.controller;
  */
 public class ModifierKeys {
     /**
+     * Creates an empty modifier-key state.
+     */
+    public ModifierKeys() {
+    }
+
+    /**
      * {@code true} if the Control (Ctrl) key was pressed.
      */
     public boolean ctrl;

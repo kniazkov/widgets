@@ -33,6 +33,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class PasswordField {
     /**
+     * Creates the example.
+     */
+    public PasswordField() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

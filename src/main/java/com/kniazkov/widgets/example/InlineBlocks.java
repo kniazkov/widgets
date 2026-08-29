@@ -32,6 +32,12 @@ import com.kniazkov.widgets.view.Section;
 
 public class InlineBlocks {
     /**
+     * Creates the example.
+     */
+    public InlineBlocks() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

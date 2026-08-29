@@ -52,6 +52,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * {@link TextWidgetStyle#derive()} instead.
  */
 public class TextWidgetStyles {
+    /**
+     * Creates the example.
+     */
+    public TextWidgetStyles() {
+    }
+
 
     /**
      * Application entry point.

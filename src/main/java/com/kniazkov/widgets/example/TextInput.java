@@ -29,6 +29,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class TextInput {
     /**
+     * Creates the example.
+     */
+    public TextInput() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

@@ -18,6 +18,12 @@ import java.util.WeakHashMap;
  */
 public abstract class SingleThreadModel<T> implements Model<T> {
     /**
+     * Creates a single-threaded model.
+     */
+    public SingleThreadModel() {
+    }
+
+    /**
      * Weakly referenced listener registry.
      * When a listener is garbage-collected, its entry disappears automatically.
      */

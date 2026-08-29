@@ -10,6 +10,12 @@ import java.util.Locale;
  */
 public class Utils {
     /**
+     * Creates a utility object.
+     */
+    public Utils() {
+    }
+
+    /**
      * Infers HTTP content type based on file extension.
      *
      * @param path Resource file path
