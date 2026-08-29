@@ -35,6 +35,12 @@ import java.nio.file.Paths;
  */
 public class LoadFiles {
     /**
+     * Creates the example.
+     */
+    public LoadFiles() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

@@ -29,6 +29,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class HelloWorld {
     /**
+     * Creates the example.
+     */
+    public HelloWorld() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

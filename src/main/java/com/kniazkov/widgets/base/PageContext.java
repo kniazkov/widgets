@@ -15,6 +15,12 @@ import java.util.UUID;
  */
 public class PageContext {
     /**
+     * Creates an empty page context.
+     */
+    public PageContext() {
+    }
+
+    /**
      * A unique identifier for the browser/client instance.
      * <p>
      * This UUID is generated once per browser installation and persists across sessions

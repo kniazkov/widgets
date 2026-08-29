@@ -11,6 +11,12 @@ import com.kniazkov.widgets.common.Point;
  */
 public final class PointerPosition {
     /**
+     * Creates an empty pointer position.
+     */
+    public PointerPosition() {
+    }
+
+    /**
      * The pointer's position relative to the target element.
      */
     public Point element;

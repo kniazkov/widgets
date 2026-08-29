@@ -9,6 +9,12 @@ import java.util.List;
  * H2 schema dialect.
  */
 public final class H2Dialect implements JdbcDialect {
+    /**
+     * Creates an H2 dialect.
+     */
+    public H2Dialect() {
+    }
+
     @Override
     public List<String> initializationSql() {
         return List.of(

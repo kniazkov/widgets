@@ -8,6 +8,12 @@ package com.kniazkov.widgets.controller;
  */
 public class UploadEvent {
     /**
+     * Creates empty upload metadata.
+     */
+    public UploadEvent() {
+    }
+
+    /**
      * Unique identifier of the file being uploaded.
      * This ID remains consistent across all chunks of the same file.
      */

@@ -9,6 +9,12 @@ import java.util.List;
  * SQLite schema dialect.
  */
 public final class SqliteDialect implements JdbcDialect {
+    /**
+     * Creates a SQLite dialect.
+     */
+    public SqliteDialect() {
+    }
+
     @Override
     public List<String> initializationSql() {
         return List.of(

@@ -45,6 +45,12 @@ import com.kniazkov.widgets.model.WidgetSizeModel;
  */
 public abstract class Property<T> {
     /**
+     * Creates a property.
+     */
+    public Property() {
+    }
+
+    /**
      * Returns the canonical name of this property.
      *
      * @return the unique, human-readable name of this property

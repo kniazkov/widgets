@@ -9,6 +9,12 @@ import java.util.Objects;
  * Memory-only persistence backend.
  */
 public final class NoPersistence implements Persistence {
+    /**
+     * Creates a memory-only persistence backend.
+     */
+    public NoPersistence() {
+    }
+
     @Override
     public void initialize(final DatabaseMetadata metadata) {
         Objects.requireNonNull(metadata, "metadata");

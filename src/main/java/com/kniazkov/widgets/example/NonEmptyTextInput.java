@@ -31,6 +31,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class NonEmptyTextInput {
     /**
+     * Creates the example.
+     */
+    public NonEmptyTextInput() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

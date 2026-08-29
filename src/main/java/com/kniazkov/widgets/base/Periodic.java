@@ -14,6 +14,12 @@ import java.util.logging.Logger;
  * If {@code tick()} returns {@code false}, the periodic execution stops automatically.
  */
 public abstract class Periodic {
+    /**
+     * Creates a periodic task.
+     */
+    public Periodic() {
+    }
+
 
     /**
      * Periodic task logger.

@@ -28,6 +28,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class CustomModel {
     /**
+     * Creates the example.
+     */
+    public CustomModel() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

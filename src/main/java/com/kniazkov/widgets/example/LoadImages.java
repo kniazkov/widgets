@@ -42,6 +42,12 @@ import java.util.concurrent.Executors;
  */
 public class LoadImages {
     /**
+     * Creates the example.
+     */
+    public LoadImages() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

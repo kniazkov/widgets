@@ -31,6 +31,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class MultiLineTextInput {
     /**
+     * Creates the example.
+     */
+    public MultiLineTextInput() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

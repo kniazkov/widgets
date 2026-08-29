@@ -30,6 +30,12 @@ import com.kniazkov.widgets.view.Section;
  */
 public class StaticImage {
     /**
+     * Creates the example.
+     */
+    public StaticImage() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments

@@ -39,6 +39,12 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class ClickCounterExt {
     /**
+     * Creates the example.
+     */
+    public ClickCounterExt() {
+    }
+
+    /**
      * Entry point.
      *
      * @param args program arguments
