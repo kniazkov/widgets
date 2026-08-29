@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -152,7 +153,11 @@ final class MemoryLiveRecordSet implements LiveRecordSet {
 
     @Override
     public Subscription subscribe(final RecordSetListener listener) {
-        this.store.run(() -> this.listeners.add(listener));
-        return () -> this.store.run(() -> this.listeners.remove(listener));
+        final RecordSetListener checked = Objects.requireNonNull(
+            listener,
+            "listener"
+        );
+        this.store.run(() -> this.listeners.add(checked));
+        return () -> this.store.run(() -> this.listeners.remove(checked));
     }
 }

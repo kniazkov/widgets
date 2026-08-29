@@ -134,12 +134,13 @@ public final class MemoryDatabase implements Database {
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
+        if (this.closed) {
+            return;
+        }
         this.dispatcher.run(() -> {
-            if (!this.closed) {
-                this.closed = true;
-                this.persistence.close();
-            }
+            this.closed = true;
+            this.persistence.close();
         });
         this.dispatcher.close();
     }
