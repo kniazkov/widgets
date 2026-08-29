@@ -1,61 +1,158 @@
 /*
- * Copyright (c) 2025 Ivan Kniazkov
+ * Copyright (c) 2026 Ivan Kniazkov
  */
 package com.kniazkov.widgets.db;
 
-/**
- * Describes a single field in the primitive database schema.
- *
- * @param <T> the Java type of data represented by this field
- */
-public class Field<T> {
-    /**
-     * The logical data type of the field.
-     */
-    private final Type<T> type;
+import com.kniazkov.widgets.db.query.Condition;
+import com.kniazkov.widgets.db.query.Conditions;
+import com.kniazkov.widgets.db.query.Order;
+import java.util.Objects;
+import java.util.UUID;
 
+/**
+ * A typed field in a {@link Schema}.
+ *
+ * @param <T> value type
+ */
+public final class Field<T> {
     /**
-     * The field name.
+     * Field name.
      */
     private final String name;
 
     /**
-     * Creates a new field descriptor with the given type and name.
-     *
-     * @param type the logical data type of the field (must not be {@code null})
-     * @param name the field name used in schemas and record structures
+     * Field value type.
      */
-    public Field(final Type<T> type, final String name) {
-        this.type = type;
-        this.name = name;
+    private final ValueType<T> type;
+
+    /**
+     * Referenced store for identifier fields.
+     */
+    private final String referencedStore;
+
+    /**
+     * Creates a field.
+     *
+     * @param type value type
+     * @param name field name
+     */
+    public Field(final ValueType<T> type, final String name) {
+        this(type, name, null);
     }
 
     /**
-     * Returns the logical data type of this field.
+     * Creates a field that may reference another store.
      *
-     * @return the type associated with this field
+     * @param type value type
+     * @param name field name
+     * @param referencedStore referenced store, or {@code null}
      */
-    public Type<T> getType() {
-        return this.type;
+    public Field(
+        final ValueType<T> type,
+        final String name,
+        final String referencedStore
+    ) {
+        this.type = Objects.requireNonNull(type, "type");
+        this.name = Objects.requireNonNull(name, "name");
+        if (this.name.isBlank()) {
+            throw new IllegalArgumentException("Field name cannot be blank");
+        }
+        if (referencedStore != null && referencedStore.isBlank()) {
+            throw new IllegalArgumentException(
+                "Referenced store name cannot be blank"
+            );
+        }
+        if (referencedStore != null
+            && !UUID.class.equals(this.type.getValueClass())) {
+            throw new IllegalArgumentException(
+                "Only UUID fields can reference another store"
+            );
+        }
+        this.referencedStore = referencedStore;
     }
 
     /**
-     * Returns the name of this field.
+     * Returns the field name.
      *
-     * @return the field name
+     * @return name
      */
     public String getName() {
         return this.name;
     }
 
     /**
-     * Creates a filter that matches records where this field's value exactly matches
-     * the specified value.
+     * Returns the field value type.
      *
-     * @param value the value to compare against
-     * @return a filter that returns {@code true} for records with matching field value
+     * @return value type
      */
-    public Filter is(final T value) {
-        return record -> record.getModel(this).getData().equals(value);
+    public ValueType<T> getType() {
+        return this.type;
+    }
+
+    /**
+     * Returns the referenced store for an identifier field.
+     *
+     * @return referenced store, or {@code null}
+     */
+    public String getReferencedStore() {
+        return this.referencedStore;
+    }
+
+    /**
+     * Creates an equality condition.
+     *
+     * @param value expected value
+     * @return condition
+     */
+    public Condition is(final T value) {
+        return Conditions.equal(this, value);
+    }
+
+    /**
+     * Creates an inequality condition.
+     *
+     * @param value unexpected value
+     * @return condition
+     */
+    public Condition isNot(final T value) {
+        return Conditions.notEqual(this, value);
+    }
+
+    /**
+     * Creates a greater-than condition.
+     *
+     * @param value boundary
+     * @return condition
+     */
+    public Condition greaterThan(final T value) {
+        return Conditions.greaterThan(this, value);
+    }
+
+    /**
+     * Creates a less-than condition.
+     *
+     * @param value boundary
+     * @return condition
+     */
+    public Condition lessThan(final T value) {
+        return Conditions.lessThan(this, value);
+    }
+
+    /**
+     * Creates ascending ordering.
+     *
+     * @return ordering
+     */
+    public Order ascending() {
+        return Order.ascending(this);
+    }
+
+    /**
+     * Creates descending ordering.
+     *
+     * @return ordering
+     */
+    public Order descending() {
+        return Order.descending(this);
     }
 }
