@@ -21,6 +21,7 @@ import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,13 +88,36 @@ public final class JsonPersistenceTest {
         final Path directory = this.directory("metadata-mismatch");
         open(directory).close();
         final JsonPersistence persistence = new JsonPersistence(directory);
-        final DatabaseMetadata different = new DatabaseMetadata(
-            DatabaseMetadata.CURRENT_FORMAT_VERSION,
-            List.of()
-        );
+        final DatabaseMetadata different = withoutLastEmployeeField();
 
         assertThrows(PersistenceException.class,
             () -> persistence.initialize(different));
+    }
+
+    /**
+     * Verifies fields appended to a store upgrade persisted metadata.
+     *
+     * @throws Exception when temporary file access fails
+     */
+    @Test
+    public void upgradesMetadataWithAppendedFields() throws Exception {
+        final Path directory = this.directory("metadata-upgrade");
+        final JsonPersistence old = new JsonPersistence(directory);
+        old.initialize(withoutLastEmployeeField());
+        old.load();
+        old.close();
+
+        open(directory).close();
+
+        final JsonObject root = Json.parse(
+            directory.resolve("database.metadata").toFile()
+        ).toJsonObject();
+        final JsonArray stores = root.get("stores").toJsonArray();
+        final JsonArray fields = stores.getElement(0).toJsonObject()
+            .get("fields").toJsonArray();
+        assertEquals(5, fields.size());
+        assertEquals("departmentId", fields.getElement(4).toJsonObject()
+            .get("name").getStringValue());
     }
 
     /**
@@ -406,6 +430,27 @@ public final class JsonPersistenceTest {
         persistence.initialize(METADATA);
         persistence.load();
         return persistence;
+    }
+
+    /**
+     * Returns test metadata without the last employee field.
+     *
+     * @return older compatible metadata
+     */
+    private static DatabaseMetadata withoutLastEmployeeField() {
+        final List<StoreMetadata> stores = new ArrayList<>();
+        for (final StoreMetadata store : METADATA.stores()) {
+            if (store.name().equals("employees")) {
+                stores.add(new StoreMetadata(
+                    store.name(),
+                    store.position(),
+                    store.fields().subList(0, store.fields().size() - 1)
+                ));
+            } else {
+                stores.add(store);
+            }
+        }
+        return new DatabaseMetadata(METADATA.formatVersion(), stores);
     }
 
     /**

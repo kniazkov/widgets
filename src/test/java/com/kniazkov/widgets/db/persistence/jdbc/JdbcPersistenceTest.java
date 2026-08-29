@@ -22,6 +22,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -88,14 +89,38 @@ public final class JdbcPersistenceTest {
             url,
             new H2Dialect()
         );
-        final DatabaseMetadata different = new DatabaseMetadata(
-            DatabaseMetadata.CURRENT_FORMAT_VERSION,
-            List.of()
-        );
+        final DatabaseMetadata different = withoutLastEmployeeField();
 
         assertThrows(PersistenceException.class,
             () -> persistence.initialize(different));
         persistence.close();
+    }
+
+    /**
+     * Verifies fields appended to a store upgrade the SQL catalog.
+     *
+     * @throws Exception when direct SQL inspection fails
+     */
+    @Test
+    public void upgradesMetadataWithAppendedFields() throws Exception {
+        final String url = url();
+        final JdbcPersistence old = new JdbcPersistence(url, new H2Dialect());
+        old.initialize(withoutLastEmployeeField());
+        old.close();
+
+        open(url).close();
+
+        try (
+            Connection connection = DriverManager.getConnection(url);
+            Statement statement = connection.createStatement()
+        ) {
+            assertEquals(5, count(statement, "db_field_definition"));
+            assertEquals(1, scalar(statement,
+                "SELECT COUNT(*) FROM db_field_definition "
+                    + "WHERE store_name = 'employees' "
+                    + "AND field_name = 'departmentId' "
+                    + "AND field_order = 4"));
+        }
     }
 
     /**
@@ -503,6 +528,27 @@ public final class JdbcPersistenceTest {
         );
         persistence.initialize(METADATA);
         return persistence;
+    }
+
+    /**
+     * Returns test metadata without the last employee field.
+     *
+     * @return older compatible metadata
+     */
+    private static DatabaseMetadata withoutLastEmployeeField() {
+        final List<StoreMetadata> stores = new ArrayList<>();
+        for (final StoreMetadata store : METADATA.stores()) {
+            if (store.name().equals("employees")) {
+                stores.add(new StoreMetadata(
+                    store.name(),
+                    store.position(),
+                    store.fields().subList(0, store.fields().size() - 1)
+                ));
+            } else {
+                stores.add(store);
+            }
+        }
+        return new DatabaseMetadata(METADATA.formatVersion(), stores);
     }
 
     /**

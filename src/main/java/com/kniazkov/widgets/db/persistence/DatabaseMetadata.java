@@ -64,4 +64,40 @@ public record DatabaseMetadata(
             }
         }
     }
+
+    /**
+     * Checks whether this catalog can be upgraded to another by appending
+     * fields without changing existing definitions.
+     *
+     * @param next configured metadata
+     * @return whether the upgrade is compatible
+     */
+    public boolean canUpgradeTo(final DatabaseMetadata next) {
+        Objects.requireNonNull(next, "next");
+        if (this.formatVersion != next.formatVersion
+            || this.stores.size() != next.stores.size()) {
+            return false;
+        }
+        for (int storeIndex = 0;
+            storeIndex < this.stores.size();
+            storeIndex++) {
+            final StoreMetadata currentStore = this.stores.get(storeIndex);
+            final StoreMetadata nextStore = next.stores.get(storeIndex);
+            if (!currentStore.name().equals(nextStore.name())
+                || currentStore.position() != nextStore.position()
+                || currentStore.fields().size() > nextStore.fields().size()) {
+                return false;
+            }
+            for (int fieldIndex = 0;
+                fieldIndex < currentStore.fields().size();
+                fieldIndex++) {
+                if (!currentStore.fields().get(fieldIndex).equals(
+                    nextStore.fields().get(fieldIndex)
+                )) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

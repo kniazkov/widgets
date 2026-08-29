@@ -193,7 +193,11 @@ public final class JdbcPersistence implements Persistence {
         final DatabaseMetadata stored = this.readMetadata();
         if (stored == null) {
             this.writeMetadata(expected);
-        } else if (!stored.equals(expected)) {
+        } else if (stored.canUpgradeTo(expected)) {
+            if (!stored.equals(expected)) {
+                this.appendMetadata(stored, expected);
+            }
+        } else {
             throw new PersistenceException(
                 "JDBC database metadata does not match configured schemas"
             );
@@ -307,17 +311,7 @@ public final class JdbcPersistence implements Persistence {
             )) {
                 for (final StoreMetadata store : value.stores()) {
                     for (final FieldMetadata field : store.fields()) {
-                        statement.setString(1, store.name());
-                        statement.setString(2, field.name());
-                        statement.setInt(3, field.position());
-                        statement.setString(4, field.type());
-                        statement.setString(5, field.valueKind().name());
-                        writeDefaultValue(statement, field.defaultValue());
-                        if (field.referencedStore() == null) {
-                            statement.setNull(10, Types.VARCHAR);
-                        } else {
-                            statement.setString(10, field.referencedStore());
-                        }
+                        bindFieldDefinition(statement, store.name(), field);
                         statement.addBatch();
                     }
                 }
@@ -342,6 +336,100 @@ public final class JdbcPersistence implements Persistence {
         }
         if (failure != null) {
             throw new PersistenceException("Cannot write JDBC metadata", failure);
+        }
+    }
+
+    /**
+     * Appends compatible field definitions in one transaction.
+     *
+     * @param stored persisted metadata
+     * @param expected configured metadata
+     */
+    private void appendMetadata(
+        final DatabaseMetadata stored,
+        final DatabaseMetadata expected
+    ) {
+        final boolean autoCommit;
+        try {
+            autoCommit = this.connection.getAutoCommit();
+        } catch (final SQLException err) {
+            throw new PersistenceException(
+                "Cannot inspect JDBC auto-commit mode",
+                err
+            );
+        }
+        SQLException failure = null;
+        try {
+            this.connection.setAutoCommit(false);
+            try (PreparedStatement statement = this.connection.prepareStatement(
+                INSERT_FIELD_DEFINITION
+            )) {
+                for (int storeIndex = 0;
+                    storeIndex < expected.stores().size();
+                    storeIndex++) {
+                    final StoreMetadata oldStore = stored.stores().get(storeIndex);
+                    final StoreMetadata newStore = expected.stores().get(storeIndex);
+                    for (int fieldIndex = oldStore.fields().size();
+                        fieldIndex < newStore.fields().size();
+                        fieldIndex++) {
+                        bindFieldDefinition(
+                            statement,
+                            newStore.name(),
+                            newStore.fields().get(fieldIndex)
+                        );
+                        statement.addBatch();
+                    }
+                }
+                statement.executeBatch();
+            }
+            this.connection.commit();
+        } catch (final SQLException err) {
+            failure = err;
+            this.rollback(err);
+        } finally {
+            try {
+                this.connection.setAutoCommit(autoCommit);
+            } catch (final SQLException err) {
+                if (failure == null) {
+                    throw new PersistenceException(
+                        "Cannot restore JDBC auto-commit mode",
+                        err
+                    );
+                }
+                failure.addSuppressed(err);
+            }
+        }
+        if (failure != null) {
+            throw new PersistenceException(
+                "Cannot append JDBC metadata",
+                failure
+            );
+        }
+    }
+
+    /**
+     * Binds one field definition to an insertion statement.
+     *
+     * @param statement statement
+     * @param store store name
+     * @param field field metadata
+     * @throws SQLException when binding fails
+     */
+    private static void bindFieldDefinition(
+        final PreparedStatement statement,
+        final String store,
+        final FieldMetadata field
+    ) throws SQLException {
+        statement.setString(1, store);
+        statement.setString(2, field.name());
+        statement.setInt(3, field.position());
+        statement.setString(4, field.type());
+        statement.setString(5, field.valueKind().name());
+        writeDefaultValue(statement, field.defaultValue());
+        if (field.referencedStore() == null) {
+            statement.setNull(10, Types.VARCHAR);
+        } else {
+            statement.setString(10, field.referencedStore());
         }
     }
 

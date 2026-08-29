@@ -84,7 +84,11 @@ public final class JsonPersistence implements Persistence {
         final Path file = this.directory.resolve(METADATA_FILE);
         if (Files.exists(file)) {
             final DatabaseMetadata stored = this.readMetadata(file);
-            if (!stored.equals(expected)) {
+            if (stored.canUpgradeTo(expected)) {
+                if (!stored.equals(expected)) {
+                    this.writeMetadata(file, expected);
+                }
+            } else {
                 throw new PersistenceException(
                     "JSON database metadata does not match configured schemas"
                 );

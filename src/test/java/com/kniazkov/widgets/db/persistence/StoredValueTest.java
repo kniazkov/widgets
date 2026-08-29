@@ -19,6 +19,7 @@ import java.util.UUID;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -289,6 +290,89 @@ public final class StoredValueTest {
                     )
                 ))
             )));
+
+        final FieldMetadata addedField = new FieldMetadata(
+            "title",
+            "string",
+            Kind.STRING,
+            new StringValue(""),
+            1,
+            null
+        );
+        final DatabaseMetadata appended = new DatabaseMetadata(
+            1,
+            Arrays.asList(
+                new StoreMetadata(
+                    "employees",
+                    0,
+                    Arrays.asList(
+                        employees.fields().get(0),
+                        addedField
+                    )
+                ),
+                departments
+            )
+        );
+        final DatabaseMetadata modified = new DatabaseMetadata(
+            1,
+            Arrays.asList(
+                new StoreMetadata(
+                    "employees",
+                    0,
+                    List.of(new FieldMetadata(
+                        "departmentId",
+                        "identifier",
+                        Kind.STRING,
+                        new StringValue(
+                            "22222222-2222-2222-2222-222222222222"
+                        ),
+                        0,
+                        "departments"
+                    ))
+                ),
+                departments
+            )
+        );
+        final DatabaseMetadata insertedFirst = new DatabaseMetadata(
+            1,
+            Arrays.asList(
+                new StoreMetadata(
+                    "employees",
+                    0,
+                    Arrays.asList(
+                        new FieldMetadata(
+                            "title",
+                            "string",
+                            Kind.STRING,
+                            new StringValue(""),
+                            0,
+                            null
+                        ),
+                        new FieldMetadata(
+                            "departmentId",
+                            "identifier",
+                            Kind.STRING,
+                            employees.fields().get(0).defaultValue(),
+                            1,
+                            "departments"
+                        )
+                    )
+                ),
+                departments
+            )
+        );
+
+        assertTrue(metadata.canUpgradeTo(metadata));
+        assertTrue(metadata.canUpgradeTo(appended));
+        assertFalse(metadata.canUpgradeTo(modified));
+        assertFalse(metadata.canUpgradeTo(insertedFirst));
+        assertFalse(appended.canUpgradeTo(metadata));
+        assertFalse(metadata.canUpgradeTo(new DatabaseMetadata(
+            2,
+            metadata.stores()
+        )));
+        assertThrows(NullPointerException.class,
+            () -> metadata.canUpgradeTo(null));
     }
 
     /**
