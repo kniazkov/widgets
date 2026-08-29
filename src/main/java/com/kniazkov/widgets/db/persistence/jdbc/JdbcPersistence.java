@@ -38,39 +38,39 @@ public final class JdbcPersistence implements Persistence {
      * Record loading query.
      */
     private static final String SELECT_RECORDS =
-        "SELECT store_name, record_id, created_at, revision FROM widgets_record";
+        "SELECT store_name, record_id, created_at, revision FROM db_record";
 
     /**
      * Field loading query.
      */
     private static final String SELECT_FIELDS =
         "SELECT store_name, record_id, field_name, value_type, string_value, "
-            + "integer_value, real_value, boolean_value FROM widgets_field";
+            + "integer_value, real_value, boolean_value FROM db_field";
 
     /**
      * Record deletion command.
      */
     private static final String DELETE_RECORD =
-        "DELETE FROM widgets_record WHERE store_name = ? AND record_id = ?";
+        "DELETE FROM db_record WHERE store_name = ? AND record_id = ?";
 
     /**
      * Field deletion command.
      */
     private static final String DELETE_FIELDS =
-        "DELETE FROM widgets_field WHERE store_name = ? AND record_id = ?";
+        "DELETE FROM db_field WHERE store_name = ? AND record_id = ?";
 
     /**
      * Record insertion command.
      */
     private static final String INSERT_RECORD =
-        "INSERT INTO widgets_record "
+        "INSERT INTO db_record "
             + "(store_name, record_id, created_at, revision) VALUES (?, ?, ?, ?)";
 
     /**
      * Field insertion command.
      */
     private static final String INSERT_FIELD =
-        "INSERT INTO widgets_field "
+        "INSERT INTO db_field "
             + "(store_name, record_id, field_name, value_type, string_value, "
             + "integer_value, real_value, boolean_value) "
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";

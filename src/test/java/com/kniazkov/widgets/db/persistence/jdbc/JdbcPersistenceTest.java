@@ -74,7 +74,7 @@ public final class JdbcPersistenceTest {
                 Statement statement = connection.createStatement();
                 ResultSet result = statement.executeQuery(
                     "SELECT field_name, value_type, string_value, integer_value, "
-                        + "real_value, boolean_value FROM widgets_field"
+                        + "real_value, boolean_value FROM db_field"
                 )
             ) {
                 int rows = 0;
@@ -131,8 +131,8 @@ public final class JdbcPersistenceTest {
                 Connection connection = DriverManager.getConnection(url);
                 Statement statement = connection.createStatement()
             ) {
-                assertEquals(0, count(statement, "widgets_record"));
-                assertEquals(0, count(statement, "widgets_field"));
+                assertEquals(0, count(statement, "db_record"));
+                assertEquals(0, count(statement, "db_field"));
             }
         }
     }
@@ -248,6 +248,7 @@ public final class JdbcPersistenceTest {
             assertTrue(sql.contains("real_value"));
             assertTrue(sql.contains("boolean_value"));
             assertFalse(sql.contains("field_value"));
+            assertFalse(sql.contains("widget"));
         }
     }
 
@@ -341,7 +342,7 @@ public final class JdbcPersistenceTest {
         final UUID id = UUID.randomUUID();
         try (Connection connection = DriverManager.getConnection(url)) {
             try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO widgets_record "
+                "INSERT INTO db_record "
                     + "(store_name, record_id, created_at, revision) "
                     + "VALUES (?, ?, ?, ?)"
             )) {
@@ -352,7 +353,7 @@ public final class JdbcPersistenceTest {
                 statement.executeUpdate();
             }
             try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO widgets_field "
+                "INSERT INTO db_field "
                     + "(store_name, record_id, field_name, value_type, "
                     + "integer_value) VALUES (?, ?, ?, ?, ?)"
             )) {
