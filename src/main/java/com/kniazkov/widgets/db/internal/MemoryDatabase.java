@@ -14,6 +14,7 @@ import com.kniazkov.widgets.db.persistence.StoredRecord;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.RejectedExecutionException;
 
 /**
  * Default database implementation backed by canonical objects in memory.
@@ -37,7 +38,7 @@ public final class MemoryDatabase implements Database {
     /**
      * Closed flag.
      */
-    private boolean closed;
+    private volatile boolean closed;
 
     /**
      * Creates and loads a database.
@@ -97,10 +98,18 @@ public final class MemoryDatabase implements Database {
      * @return result
      */
     <T> T call(final java.util.concurrent.Callable<T> action) {
-        return this.dispatcher.call(() -> {
-            this.requireOpen();
-            return action.call();
-        });
+        this.requireOpen();
+        try {
+            return this.dispatcher.call(() -> {
+                this.requireOpen();
+                return action.call();
+            });
+        } catch (final RejectedExecutionException err) {
+            if (this.closed) {
+                throw new IllegalStateException("Database is closed", err);
+            }
+            throw err;
+        }
     }
 
     /**
