@@ -145,6 +145,36 @@ public abstract class Event<T> {
     };
 
     /**
+     * Event triggered when a widget receives focus.
+     */
+    public static final Event<Void> FOCUS = new Event<Void>() {
+        @Override
+        public String getName() {
+            return "focus";
+        }
+
+        @Override
+        public Void parseData(final JsonObject object) {
+            return null;
+        }
+    };
+
+    /**
+     * Event triggered when a widget loses focus.
+     */
+    public static final Event<Void> BLUR = new Event<Void>() {
+        @Override
+        public String getName() {
+            return "blur";
+        }
+
+        @Override
+        public Void parseData(final JsonObject object) {
+            return null;
+        }
+    };
+
+    /**
      * Event triggered when a pointer click occurs on a widget.
      */
     public static final Event<PointerEvent> CLICK = new Event<PointerEvent>() {
@@ -249,6 +279,8 @@ public abstract class Event<T> {
             Stream.of(
                 TEXT_INPUT,
                 CHECK,
+                FOCUS,
+                BLUR,
                 CLICK,
                 POINTER_ENTER,
                 POINTER_LEAVE,

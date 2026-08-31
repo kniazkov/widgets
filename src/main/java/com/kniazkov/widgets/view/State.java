@@ -29,6 +29,11 @@ public enum State {
     HOVERED("hovered"),
 
     /**
+     * The widget currently has input focus.
+     */
+    FOCUSED("focused"),
+
+    /**
      * The widget is currently pressed or active.
      */
     ACTIVE("active"),

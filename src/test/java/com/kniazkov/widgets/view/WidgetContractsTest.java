@@ -4,10 +4,13 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the common creation contract of every concrete widget.
@@ -67,5 +70,40 @@ public final class WidgetContractsTest {
             return;
         }
         throw new AssertionError("Unsupported state was accepted");
+    }
+
+    /**
+     * Verifies that only native focusable widgets expose the focused style state.
+     */
+    @Test
+    public void focusedStateIsLimitedToFocusableWidgets() {
+        final List<Widget<?>> focusable = Arrays.<Widget<?>>asList(
+            new Button(),
+            new FileLoader(),
+            new InputField(),
+            new PasswordInput(),
+            new TextArea()
+        );
+        final List<Widget<?>> notFocusable = Arrays.<Widget<?>>asList(
+            new Panel(),
+            new Section(),
+            new InlineBlock(),
+            new Table(),
+            new Row(),
+            new Cell(),
+            new MarginDecorator(new TextWidget()),
+            new TextWidget(),
+            new ActiveText(),
+            new ImageWidget("image.png"),
+            new ActiveImage("active.png"),
+            new CheckBox()
+        );
+
+        for (final Widget<?> widget : focusable) {
+            assertTrue(widget.getType(), widget.getSupportedStates().contains(State.FOCUSED));
+        }
+        for (final Widget<?> widget : notFocusable) {
+            assertFalse(widget.getType(), widget.getSupportedStates().contains(State.FOCUSED));
+        }
     }
 }

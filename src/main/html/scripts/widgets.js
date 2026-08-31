@@ -98,13 +98,13 @@ const widgetsLibrary = {
             sendEventToServer(widget, "text input", { text: widget.value });
         });
         initPointerEvents(widget);
-        initFocusEvents(widget, "active");
+        initFocusEvents(widget);
         return widget;
     },
     button: function () {
         const widget = document.createElement("button");
         initPointerEvents(widget, true);
-        initFocusEvents(widget, "hovered");
+        initFocusEvents(widget);
         return widget;
     },
     "file loader": function () {
@@ -127,6 +127,7 @@ const widgetsLibrary = {
             input.click();
         };
         initPointerEvents(widget, true);
+        initFocusEvents(widget);
         return widget;
     },
     image: function () {
@@ -216,6 +217,9 @@ function getWidgetProperty(widget, name) {
     if (states.hovered) {
         value = properties.hovered[name];
     }
+    if (states.focused) {
+        value = properties.focused[name];
+    }
     if (states.active) {
         value = properties.active[name];
     }
@@ -239,6 +243,9 @@ function refreshWidget(widget) {
         const set = { ...properties.normal };
         if (states.hovered) {
             Object.assign(set, properties.hovered);
+        }
+        if (states.focused) {
+            Object.assign(set, properties.focused);
         }
         if (states.active) {
             Object.assign(set, properties.active);
@@ -266,12 +273,14 @@ function createWidget(data) {
     widget._properties = {
         normal: {},
         hovered: {},
+        focused: {},
         active: {},
         invalid: {},
         disabled: {}
     };
     widget._states = {
         hovered: false,
+        focused: false,
         active: false,
         invalid: false,
         disabled: false
@@ -927,14 +936,16 @@ function initPointerEvents(widget, activeOnPointerDown) {
     });
 }
 
-function initFocusEvents(widget, state) {
-    addEvent(widget, "focus", function (event) {
-        widget._states[state] = true;
+function initFocusEvents(widget) {
+    addEvent(widget, "focus", function () {
+        widget._states.focused = true;
         refreshWidget(widget);
+        sendEventToServer(widget, "focus", {});
     });
-    addEvent(widget, "blur", function (event) {
-        widget._states[state] = false;
+    addEvent(widget, "blur", function () {
+        widget._states.focused = false;
         refreshWidget(widget);
+        sendEventToServer(widget, "blur", {});
     });
 }
 

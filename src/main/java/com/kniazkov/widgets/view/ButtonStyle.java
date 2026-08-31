@@ -20,6 +20,7 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
     private static final Set<State> SUPPORTED_STATES = State.setOf(
         State.NORMAL,
         State.HOVERED,
+        State.FOCUSED,
         State.ACTIVE,
         State.DISABLED
     );
@@ -35,17 +36,20 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
     private ButtonStyle() {
         this.setBgColor(State.NORMAL, new Color(224, 224, 224));
         this.setBgColor(State.HOVERED, new Color(240, 240, 240));
+        this.setBgColor(State.FOCUSED, new Color(240, 240, 240));
         this.setBgColor(State.ACTIVE, new Color(255, 255, 230));
         this.setBgColor(State.DISABLED, Color.WHITE);
 
         this.setBorderColor(State.NORMAL, Color.GRAY);
         this.setBorderColor(State.HOVERED, Color.DARK_GRAY);
+        this.setBorderColor(State.FOCUSED, Color.DARK_GRAY);
         this.setBorderColor(State.ACTIVE, Color.BLACK);
         this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
 
         final BorderStyleModel style = new BorderStyleModel(BorderStyle.SOLID);
         this.setBorderStyleModel(State.NORMAL, style);
         this.setBorderStyleModel(State.HOVERED, style.asCascading());
+        this.setBorderStyleModel(State.FOCUSED, style.asCascading());
         this.setBorderStyleModel(State.ACTIVE, style.asCascading());
         this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
 
