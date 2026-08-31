@@ -7,31 +7,55 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.images.MonochromaticImageSource;
+import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.TimingFunction;
+import com.kniazkov.widgets.common.Transition;
+import com.kniazkov.widgets.images.ImageSource;
+import com.kniazkov.widgets.images.SvgImageSource;
 import com.kniazkov.widgets.view.ActiveImage;
+import com.kniazkov.widgets.view.ActiveImageStyle;
 import com.kniazkov.widgets.view.ActiveText;
+import com.kniazkov.widgets.view.ActiveTextStyle;
 import com.kniazkov.widgets.view.Button;
+import com.kniazkov.widgets.view.ButtonStyle;
 import com.kniazkov.widgets.view.Cell;
+import com.kniazkov.widgets.view.CellStyle;
 import com.kniazkov.widgets.view.CheckBox;
+import com.kniazkov.widgets.view.CheckBoxStyle;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
+import com.kniazkov.widgets.view.ImageWidgetStyle;
 import com.kniazkov.widgets.view.InlineBlock;
+import com.kniazkov.widgets.view.InlineBlockStyle;
 import com.kniazkov.widgets.view.InlineWidget;
 import com.kniazkov.widgets.view.InputField;
-import com.kniazkov.widgets.view.MarginDecorator;
+import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Panel;
+import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
 import com.kniazkov.widgets.view.RootWidget;
+import com.kniazkov.widgets.view.RootWidgetStyle;
 import com.kniazkov.widgets.view.Row;
+import com.kniazkov.widgets.view.RowStyle;
 import com.kniazkov.widgets.view.Section;
+import com.kniazkov.widgets.view.SectionStyle;
+import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.Table;
+import com.kniazkov.widgets.view.TableStyle;
 import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
+import com.kniazkov.widgets.view.TextWidgetStyle;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Displays every concrete widget provided by the framework.
+ * Displays the framework's visible widgets as an interactive component gallery.
  *
  * <b>How to use</b>
  * <ol>
@@ -44,6 +68,56 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class AllWidgets {
     /**
+     * Font family shared by the gallery.
+     */
+    private static final FontFace FONT = () -> "Arial, sans-serif";
+
+    /**
+     * Main text color.
+     */
+    private static final Color TEXT = new Color(15, 23, 42);
+
+    /**
+     * Secondary text color.
+     */
+    private static final Color MUTED = new Color(100, 116, 139);
+
+    /**
+     * Primary accent color.
+     */
+    private static final Color PRIMARY = new Color(37, 99, 235);
+
+    /**
+     * Primary hover color.
+     */
+    private static final Color PRIMARY_HOVER = new Color(29, 78, 216);
+
+    /**
+     * Primary pressed color.
+     */
+    private static final Color PRIMARY_ACTIVE = new Color(30, 64, 175);
+
+    /**
+     * Destructive action color.
+     */
+    private static final Color DANGER = new Color(220, 38, 38);
+
+    /**
+     * Destructive action hover color.
+     */
+    private static final Color DANGER_HOVER = new Color(185, 28, 28);
+
+    /**
+     * Neutral border color.
+     */
+    private static final Color BORDER = new Color(226, 232, 240);
+
+    /**
+     * Soft page background color.
+     */
+    private static final Color PAGE_BG = new Color(241, 245, 249);
+
+    /**
      * Creates the example.
      */
     public AllWidgets() {
@@ -55,105 +129,875 @@ public class AllWidgets {
      * @param args program arguments
      */
     public static void main(final String[] args) {
-        final Page page = (root, parameters) -> {
-            addDescription(root, "RootWidget", "the entire page");
-
-            final Section section = new Section();
-            root.add(section);
-            addName(section, "Section");
-            section.add(new TextWidget("inline widget container"));
-
-            final Panel panel = new Panel();
-            root.add(panel);
-            final Section panelContent = new Section();
-            panel.add(panelContent);
-            addName(panelContent, "Panel");
-            panelContent.add(new TextWidget("block widget container"));
-
-            final InlineBlock inlineBlock = new InlineBlock();
-            inlineBlock.createText("block content inside an inline widget");
-            addInlineExample(root, "InlineBlock", inlineBlock);
-
-            final MarginDecorator margin = new MarginDecorator(new TextWidget("decorated text"));
-            margin.setMargin(5);
-            addInlineExample(root, "MarginDecorator", margin);
-
-            addInlineExample(root, "TextWidget", new TextWidget("plain text"));
-            addInlineExample(root, "ActiveText", new ActiveText("clickable text"));
-            addInlineExample(root, "InputField", new InputField("editable text"));
-            addInlineExample(root, "PasswordInput", new PasswordInput("password"));
-            addInlineExample(root, "TextArea", new TextArea("multiline\ntext"));
-            addInlineExample(root, "CheckBox", new CheckBox());
-            addInlineExample(root, "Button", new Button("button"));
-            addInlineExample(root, "FileLoader", new FileLoader("choose file"));
-
-            final ImageWidget image = new ImageWidget(
-                new MonochromaticImageSource(Color.BLUE, 80, 40)
-            );
-            addInlineExample(root, "ImageWidget", image);
-
-            final ActiveImage activeImage = new ActiveImage(
-                new MonochromaticImageSource(Color.GREEN, 80, 40)
-            );
-            addInlineExample(root, "ActiveImage", activeImage);
-
-            addDescription(root, "Table", "contains the Row and Cell widgets below");
-            final Table table = new Table();
-            root.add(table);
-            final Row row = new Row();
-            table.add(row);
-            final Cell rowCell = new Cell();
-            row.add(rowCell);
-            rowCell.createText("Row");
-            final Cell cell = new Cell();
-            row.add(cell);
-            cell.createText("Cell");
-        };
-
+        final Page page = (root, parameters) -> buildGallery(root);
         final Application application = new Application(page);
         final Options options = new Options.Builder().build();
         Server.start(application, options);
     }
 
     /**
-     * Adds a named inline widget on its own line.
+     * Builds the complete gallery for one page.
      *
      * @param root page root
-     * @param name widget class name
+     */
+    private static void buildGallery(final RootWidget root) {
+        configurePage(root);
+        final TextWidget status = addIntroduction(root);
+        addTextWidgets(root);
+        addActiveTextWidgets(root, status);
+        addInputFields(root);
+        addPasswordInputs(root);
+        addTextAreas(root);
+        addCheckBoxes(root, status);
+        addButtons(root, status);
+        addFileLoaders(root, status);
+        addImages(root);
+        addActiveImages(root, status);
+        addTables(root);
+    }
+
+    /**
+     * Applies the page-level appearance.
+     *
+     * @param root page root
+     */
+    private static void configurePage(final RootWidget root) {
+        final RootWidgetStyle style = RootWidget.getDefaultStyle().derive();
+        style.setBgColor(PAGE_BG);
+        root.setStyle(style);
+    }
+
+    /**
+     * Adds the gallery heading and shared event status line.
+     *
+     * @param root page root
+     * @return status widget updated by interactive controls
+     */
+    private static TextWidget addIntroduction(final RootWidget root) {
+        final Panel panel = new Panel(cardStyle());
+        panel.setMargin(24, 24, 24, 12);
+        root.add(panel);
+        panel.add(new Section(new TextWidget(
+            textStyle(TEXT, "30px", FontWeight.BOLD), "All widgets"
+        )));
+        panel.add(new Section(new TextWidget(
+            textStyle(MUTED, "15px", FontWeight.NORMAL),
+            "A gallery of visible widgets, their states and common variations."
+        )));
+        final TextWidget status = new TextWidget(
+            textStyle(PRIMARY_ACTIVE, "14px", FontWeight.SEMIBOLD),
+            "Ready — interact with a control below"
+        );
+        final Section statusLine = new Section(status);
+        statusLine.setPadding(0, 10);
+        panel.add(statusLine);
+        return status;
+    }
+
+    /**
+     * Adds text widget variations.
+     *
+     * @param root page root
+     */
+    private static void addTextWidgets(final RootWidget root) {
+        final Panel card = addCard(root, "TextWidget",
+            "Static text with typography and color variations.");
+        final Section row = variantRow();
+        card.add(row);
+        row.add(variant("Body", new TextWidget(
+            textStyle(TEXT, "16px", FontWeight.NORMAL), "Readable body text"
+        )));
+        row.add(variant("Muted", new TextWidget(
+            textStyle(MUTED, "15px", FontWeight.NORMAL), "Secondary information"
+        )));
+        row.add(variant("Accent", new TextWidget(
+            textStyle(PRIMARY, "16px", FontWeight.SEMIBOLD), "Important value: 42"
+        )));
+        final TextWidget italic = new TextWidget(
+            textStyle(new Color(124, 58, 237), "18px", FontWeight.MEDIUM),
+            "Expressive italic text"
+        );
+        italic.setItalic(true);
+        row.add(variant("Italic", italic));
+    }
+
+    /**
+     * Adds interactive text variations.
+     *
+     * @param root page root
+     * @param status shared event status
+     */
+    private static void addActiveTextWidgets(final RootWidget root, final TextWidget status) {
+        final Panel card = addCard(root, "ActiveText",
+            "Clickable text with hover, pressed and click behavior.");
+        final Section row = variantRow();
+        card.add(row);
+        final ActiveText link = activeText("Open details", PRIMARY, PRIMARY_HOVER);
+        link.onClick(event -> status.setText("ActiveText: details requested"));
+        row.add(variant("Link", link));
+        final ActiveText success = activeText(
+            "Mark as complete", new Color(5, 150, 105), new Color(4, 120, 87)
+        );
+        success.onClick(event -> status.setText("ActiveText: item marked as complete"));
+        row.add(variant("Positive action", success));
+        final ActiveText danger = activeText("Delete draft", DANGER, DANGER_HOVER);
+        danger.onClick(event -> status.setText("ActiveText: delete action clicked"));
+        row.add(variant("Destructive action", danger));
+    }
+
+    /**
+     * Adds single-line input field variations.
+     *
+     * @param root page root
+     */
+    private static void addInputFields(final RootWidget root) {
+        final Panel card = addCard(root, "InputField",
+            "Editable text in normal, filled, invalid and disabled states.");
+        final Section row = variantRow();
+        card.add(row);
+        row.add(variant("Default", new InputField(inputStyle(), "Ivan Kniazkov")));
+        final InputFieldStyle filledStyle = inputStyle();
+        filledStyle.setBgColor(State.NORMAL, new Color(248, 250, 252));
+        filledStyle.setBgColor(State.HOVERED, new Color(241, 245, 249));
+        row.add(variant("Filled", new InputField(filledStyle, "Filled field")));
+        final InputField invalid = new InputField(inputStyle(), "ivan@");
+        invalid.setValidState(false);
+        row.add(variant("Invalid", invalid));
+        final InputField disabled = new InputField(inputStyle(), "Unavailable value");
+        disabled.disable();
+        row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds password input variations.
+     *
+     * @param root page root
+     */
+    private static void addPasswordInputs(final RootWidget root) {
+        final Panel card = addCard(root, "PasswordInput",
+            "Password fields use the same states while hiding entered characters.");
+        final Section row = variantRow();
+        card.add(row);
+        row.add(variant("Default", new PasswordInput(inputStyle(), "secret")));
+        final PasswordInput invalid = new PasswordInput(inputStyle(), "123");
+        invalid.setValidState(false);
+        row.add(variant("Invalid", invalid));
+        final PasswordInput disabled = new PasswordInput(inputStyle(), "password");
+        disabled.disable();
+        row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds multi-line text area variations.
+     *
+     * @param root page root
+     */
+    private static void addTextAreas(final RootWidget root) {
+        final Panel card = addCard(root, "TextArea",
+            "Multi-line editing with normal, invalid and disabled states.");
+        final Section row = variantRow();
+        card.add(row);
+        row.add(variant("Default", new TextArea(textAreaStyle(),
+            "A longer message can be edited here.\nIt may span several lines.")));
+        final TextArea invalid = new TextArea(textAreaStyle(), "This description is too short.");
+        invalid.setValidState(false);
+        row.add(variant("Invalid", invalid));
+        final TextArea disabled = new TextArea(textAreaStyle(),
+            "This generated note cannot be edited.");
+        disabled.disable();
+        row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds checkbox variations and click feedback.
+     *
+     * @param root page root
+     * @param status shared event status
+     */
+    private static void addCheckBoxes(final RootWidget root, final TextWidget status) {
+        final Panel card = addCard(root, "CheckBox",
+            "Unchecked, checked and disabled selections with click feedback.");
+        final Section row = variantRow();
+        card.add(row);
+        final CheckBox unchecked = checkBox(false, false);
+        unchecked.onClick(event -> status.setText(
+            "CheckBox: notifications " + (unchecked.isChecked() ? "enabled" : "disabled")
+        ));
+        row.add(variant("Unchecked", unchecked));
+        final CheckBox checked = checkBox(true, false);
+        checked.onClick(event -> status.setText(
+            "CheckBox: automatic updates " + (checked.isChecked() ? "enabled" : "disabled")
+        ));
+        row.add(variant("Checked", checked));
+        row.add(variant("Disabled", checkBox(true, true)));
+    }
+
+    /**
+     * Adds button variations and click reactions.
+     *
+     * @param root page root
+     * @param status shared event status
+     */
+    private static void addButtons(final RootWidget root, final TextWidget status) {
+        final Panel card = addCard(root, "Button",
+            "Primary, secondary, destructive and disabled actions.");
+        final Section row = variantRow();
+        card.add(row);
+        final AtomicInteger clicks = new AtomicInteger();
+        final Button primary = button(primaryButtonStyle(), "Primary", Color.WHITE);
+        primary.onClick(event -> status.setText(
+            "Button: primary clicked " + clicks.incrementAndGet() + " time(s)"
+        ));
+        row.add(variant("Primary", primary));
+        final Button secondary = button(secondaryButtonStyle(), "Secondary", TEXT);
+        secondary.onClick(event -> status.setText("Button: secondary action clicked"));
+        row.add(variant("Secondary", secondary));
+        final Button destructive = button(dangerButtonStyle(), "Delete", Color.WHITE);
+        destructive.onClick(event -> status.setText("Button: destructive action clicked"));
+        row.add(variant("Destructive", destructive));
+        final Button disabled = button(disabledButtonStyle(), "Disabled", MUTED);
+        disabled.disable();
+        row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds file loader variations and upload feedback.
+     *
+     * @param root page root
+     * @param status shared event status
+     */
+    private static void addFileLoaders(final RootWidget root, final TextWidget status) {
+        final Panel card = addCard(root, "FileLoader",
+            "File selection for any file, images only, or several files at once.");
+        final Section row = variantRow();
+        card.add(row);
+        final FileLoader anyFile = fileLoader("Choose file", secondaryButtonStyle(), TEXT);
+        attachUploadFeedback(anyFile, "File", status);
+        row.add(variant("Any file", anyFile));
+        final FileLoader images = fileLoader("Choose image", primaryButtonStyle(), Color.WHITE);
+        images.acceptImagesOnly();
+        attachUploadFeedback(images, "Image", status);
+        row.add(variant("Images only", images));
+        final FileLoader multiple = fileLoader("Choose files", secondaryButtonStyle(), TEXT);
+        multiple.setMultipleInputFlag(true);
+        attachUploadFeedback(multiple, "Multiple upload", status);
+        row.add(variant("Multiple", multiple));
+    }
+
+    /**
+     * Adds static image variations.
+     *
+     * @param root page root
+     */
+    private static void addImages(final RootWidget root) {
+        final Panel card = addCard(root, "ImageWidget",
+            "The same image source can be rounded, elevated or displayed as an avatar.");
+        final Section row = variantRow();
+        card.add(row);
+        final ImageWidget rounded = new ImageWidget(demoImage("#2563eb", "#7c3aed", "W"));
+        rounded.setStyle(imageStyle(160, 96, 10));
+        row.add(variant("Rounded", rounded));
+        final ImageWidget elevated = new ImageWidget(demoImage("#059669", "#06b6d4", "UI"));
+        final ImageWidgetStyle elevatedStyle = imageStyle(160, 96, 16);
+        elevatedStyle.setBorderColor(BORDER);
+        elevatedStyle.setBorderStyle(BorderStyle.SOLID);
+        elevatedStyle.setBorderWidth(1);
+        elevatedStyle.setBoxShadow(new BoxShadow(0, 8, 20, new Color(15, 23, 42, 38)));
+        elevated.setStyle(elevatedStyle);
+        row.add(variant("Elevated", elevated));
+        final ImageWidget avatar = new ImageWidget(demoImage("#f97316", "#db2777", "IK"));
+        final ImageWidgetStyle avatarStyle = imageStyle(96, 96, 48);
+        avatarStyle.setBorderColor(Color.WHITE);
+        avatarStyle.setBorderStyle(BorderStyle.SOLID);
+        avatarStyle.setBorderWidth(4);
+        avatarStyle.setBoxShadow(new BoxShadow(0, 6, 18, new Color(15, 23, 42, 45)));
+        avatar.setStyle(avatarStyle);
+        row.add(variant("Avatar", avatar));
+    }
+
+    /**
+     * Adds interactive image variations and click reactions.
+     *
+     * @param root page root
+     * @param status shared event status
+     */
+    private static void addActiveImages(final RootWidget root, final TextWidget status) {
+        final Panel card = addCard(root, "ActiveImage",
+            "Interactive images change appearance on hover and while pressed.");
+        final Section row = variantRow();
+        card.add(row);
+        final ActiveImage tile = activeImage(160, 96, 14, "Open card");
+        tile.onClick(event -> status.setText("ActiveImage: card opened"));
+        row.add(variant("Interactive tile", tile));
+        final ActiveImage avatar = activeImage(96, 96, 48, "Profile");
+        avatar.onClick(event -> status.setText("ActiveImage: profile selected"));
+        row.add(variant("Interactive avatar", avatar));
+    }
+
+    /**
+     * Adds table variations.
+     *
+     * @param root page root
+     */
+    private static void addTables(final RootWidget root) {
+        final Panel card = addCard(root, "Table",
+            "Tables compose rows and cells, with optional row hover feedback.");
+        card.add(blockVariant("Compact", table(false)));
+        card.add(blockVariant("Interactive rows", table(true)));
+    }
+
+    /**
+     * Creates a styled gallery card and adds it to the page.
+     *
+     * @param root page root
+     * @param title card title
+     * @param description short card description
+     * @return created card
+     */
+    private static Panel addCard(final RootWidget root, final String title,
+                                 final String description) {
+        final Panel card = new Panel(cardStyle());
+        card.setMargin(24, 12);
+        root.add(card);
+        card.add(new Section(new TextWidget(
+            textStyle(TEXT, "22px", FontWeight.BOLD), title
+        )));
+        final Section descriptionLine = new Section(new TextWidget(
+            textStyle(MUTED, "14px", FontWeight.NORMAL), description
+        ));
+        descriptionLine.setMargin(0, 3, 0, 10);
+        card.add(descriptionLine);
+        return card;
+    }
+
+    /**
+     * Creates the common surface style for gallery cards.
+     *
+     * @return card style
+     */
+    private static PanelStyle cardStyle() {
+        final PanelStyle style = Panel.getDefaultStyle().derive();
+        style.setBgColor(Color.WHITE);
+        style.setBorderColor(BORDER);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(14);
+        style.setPadding(22, 18);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setBoxShadow(new BoxShadow(0, 4, 16, new Color(15, 23, 42, 20)));
+        return style;
+    }
+
+    /**
+     * Creates a row used to display several variants.
+     *
+     * @return variant row
+     */
+    private static Section variantRow() {
+        final SectionStyle style = Section.getDefaultStyle().derive();
+        style.setPadding(0);
+        return new Section(style);
+    }
+
+    /**
+     * Wraps one inline widget in a labeled variation surface.
+     *
+     * @param caption variation caption
      * @param widget widget to display
+     * @return inline variation surface
      */
-    private static void addInlineExample(final RootWidget root, final String name,
-                                         final InlineWidget<?> widget) {
-        final Section section = new Section();
-        root.add(section);
-        addName(section, name);
-        section.add(widget);
+    private static InlineBlock variant(final String caption, final InlineWidget<?> widget) {
+        final InlineBlockStyle style = InlineBlock.getDefaultStyle().derive();
+        style.setBgColor(new Color(248, 250, 252));
+        style.setBorderColor(BORDER);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(10);
+        style.setMargin(6);
+        style.setPadding(14);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        final InlineBlock block = new InlineBlock(style);
+        final Section captionLine = new Section(new TextWidget(
+            textStyle(MUTED, "12px", FontWeight.SEMIBOLD), caption.toUpperCase()
+        ));
+        captionLine.setMargin(0, 0, 0, 10);
+        block.add(captionLine);
+        block.add(new Section(widget));
+        return block;
     }
 
     /**
-     * Adds a named text description on its own line.
+     * Wraps a table in a labeled full-width variation surface.
      *
-     * @param root page root
-     * @param name widget class name
-     * @param description description to display
+     * @param caption variation caption
+     * @param widget table to display
+     * @return block variation surface
      */
-    private static void addDescription(final RootWidget root, final String name,
-                                       final String description) {
-        final Section section = new Section();
-        root.add(section);
-        addName(section, name);
-        section.add(new TextWidget(description));
+    private static Panel blockVariant(final String caption, final Table widget) {
+        final PanelStyle style = Panel.getDefaultStyle().derive();
+        style.setBgColor(new Color(248, 250, 252));
+        style.setBorderColor(BORDER);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(10);
+        style.setMargin(0, 8);
+        style.setPadding(14);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        final Panel panel = new Panel(style);
+        final Section captionLine = new Section(new TextWidget(
+            textStyle(MUTED, "12px", FontWeight.SEMIBOLD), caption.toUpperCase()
+        ));
+        captionLine.setMargin(0, 0, 0, 10);
+        panel.add(captionLine);
+        panel.add(widget);
+        return panel;
     }
 
     /**
-     * Adds a bold name to a section.
+     * Creates a text style used by labels and content.
      *
-     * @param section target section
-     * @param name name to display
+     * @param color text color
+     * @param size CSS font size
+     * @param weight font weight
+     * @return text style
      */
-    private static void addName(final Section section, final String name) {
-        final TextWidget title = new TextWidget(name + ": ");
-        title.setFontWeight(FontWeight.BOLD);
-        section.add(title);
+    private static TextWidgetStyle textStyle(final Color color, final String size,
+                                             final FontWeight weight) {
+        final TextWidgetStyle style = TextWidget.getDefaultStyle().derive();
+        style.setFontFace(FONT);
+        style.setFontSize(size);
+        style.setFontWeight(weight);
+        style.setColor(color);
+        return style;
+    }
+
+    /**
+     * Creates an interactive text widget.
+     *
+     * @param text displayed text
+     * @param color normal color
+     * @param hoverColor hover color
+     * @return active text widget
+     */
+    private static ActiveText activeText(final String text, final Color color,
+                                         final Color hoverColor) {
+        final ActiveTextStyle style = ActiveText.getDefaultStyle().derive();
+        style.setFontFace(FONT);
+        style.setFontSize("16px");
+        style.setFontWeight(FontWeight.SEMIBOLD);
+        style.setColor(State.NORMAL, color);
+        style.setColor(State.HOVERED, hoverColor);
+        style.setColor(State.ACTIVE, TEXT);
+        style.setCursor(Cursor.POINTER);
+        style.setTransition(new Transition(140, TimingFunction.EASE_OUT));
+        return new ActiveText(style, text);
+    }
+
+    /**
+     * Creates the shared modern input style.
+     *
+     * @return input style
+     */
+    private static InputFieldStyle inputStyle() {
+        final InputFieldStyle style = InputField.getDefaultStyle().derive();
+        style.setFontFace(FONT);
+        style.setFontSize("15px");
+        style.setColor(TEXT);
+        style.setColor(State.INVALID, DANGER);
+        style.setColor(State.DISABLED, MUTED);
+        style.setBgColor(Color.WHITE);
+        style.setBgColor(State.HOVERED, new Color(248, 250, 252));
+        style.setBgColor(State.FOCUSED, Color.WHITE);
+        style.setBgColor(State.INVALID, new Color(254, 242, 242));
+        style.setBgColor(State.DISABLED, new Color(241, 245, 249));
+        style.setBorderColor(BORDER);
+        style.setBorderColor(State.HOVERED, new Color(148, 163, 184));
+        style.setBorderColor(State.FOCUSED, PRIMARY);
+        style.setBorderColor(State.ACTIVE, PRIMARY);
+        style.setBorderColor(State.INVALID, DANGER);
+        style.setBorderColor(State.DISABLED, BORDER);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(8);
+        style.setWidth(240);
+        style.setHeight(42);
+        style.setMargin(0);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setCursor(Cursor.TEXT);
+        style.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
+        style.setOutline(State.FOCUSED,
+            new Outline(new Color(147, 197, 253), BorderStyle.SOLID, 2, 1));
+        style.setBoxShadow(State.FOCUSED,
+            new BoxShadow(0, 0, 0, 3, new Color(37, 99, 235, 25)));
+        style.setTransition(new Transition(140, TimingFunction.EASE_OUT));
+        return style;
+    }
+
+    /**
+     * Creates the shared text area style.
+     *
+     * @return text area style
+     */
+    private static InputFieldStyle textAreaStyle() {
+        final InputFieldStyle style = inputStyle();
+        style.setWidth(300);
+        style.setHeight(96);
+        return style;
+    }
+
+    /**
+     * Creates one modern checkbox.
+     *
+     * @param checked initial checked state
+     * @param disabled initial disabled state
+     * @return checkbox
+     */
+    private static CheckBox checkBox(final boolean checked, final boolean disabled) {
+        final CheckBoxStyle style = CheckBox.getDefaultStyle().derive();
+        style.setWidth(24);
+        style.setHeight(24);
+        style.setMargin(0);
+        style.setSelectedImageSource(checkBoxImage(true));
+        style.setUnselectedImageSource(checkBoxImage(false));
+        style.setCursor(Cursor.POINTER);
+        style.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
+        style.setBoxShadow(State.HOVERED,
+            new BoxShadow(0, 0, 0, 3, new Color(37, 99, 235, 28)));
+        style.setTransition(new Transition(120, TimingFunction.EASE_OUT));
+        final CheckBox checkBox = new CheckBox();
+        checkBox.setStyle(style);
+        checkBox.setCheckedFlag(checked);
+        checkBox.setDisabledFlag(disabled);
+        return checkBox;
+    }
+
+    /**
+     * Creates the SVG source for a selected or unselected checkbox.
+     *
+     * @param checked whether to draw the check mark
+     * @return checkbox image source
+     */
+    private static SvgImageSource checkBoxImage(final boolean checked) {
+        return new SvgImageSource() {
+            @Override
+            protected String getSvg() {
+                final String mark = checked
+                    ? "<path d='M6 12.5l4 4L18 8' fill='none' stroke='white' "
+                        + "stroke-width='2.4' stroke-linecap='round' "
+                        + "stroke-linejoin='round'/>"
+                    : "";
+                final String fill = checked ? "#2563eb" : "#ffffff";
+                final String stroke = checked ? "#2563eb" : "#94a3b8";
+                return "<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' "
+                    + "viewBox='0 0 24 24'><rect x='1.5' y='1.5' width='21' height='21' "
+                    + "rx='6' fill='" + fill + "' stroke='" + stroke + "' "
+                    + "stroke-width='1.5'/>" + mark + "</svg>";
+            }
+        };
+    }
+
+    /**
+     * Creates a primary button style.
+     *
+     * @return primary button style
+     */
+    private static ButtonStyle primaryButtonStyle() {
+        return coloredButtonStyle(PRIMARY, PRIMARY_HOVER, PRIMARY_ACTIVE, PRIMARY);
+    }
+
+    /**
+     * Creates a destructive button style.
+     *
+     * @return destructive button style
+     */
+    private static ButtonStyle dangerButtonStyle() {
+        return coloredButtonStyle(DANGER, DANGER_HOVER, new Color(153, 27, 27), DANGER);
+    }
+
+    /**
+     * Creates a button style with a colored background.
+     *
+     * @param normal normal background
+     * @param hovered hover background
+     * @param active pressed background
+     * @param focus focus color
+     * @return button style
+     */
+    private static ButtonStyle coloredButtonStyle(final Color normal, final Color hovered,
+                                                  final Color active, final Color focus) {
+        final ButtonStyle style = baseButtonStyle();
+        style.setBgColor(State.NORMAL, normal);
+        style.setBgColor(State.HOVERED, hovered);
+        style.setBgColor(State.FOCUSED, normal);
+        style.setBgColor(State.ACTIVE, active);
+        style.setBorderColor(normal);
+        style.setBorderColor(State.HOVERED, hovered);
+        style.setBorderColor(State.ACTIVE, active);
+        style.setBorderColor(State.FOCUSED, focus);
+        style.setBoxShadow(State.NORMAL,
+            new BoxShadow(0, 2, 5, new Color(15, 23, 42, 28)));
+        style.setBoxShadow(State.HOVERED,
+            new BoxShadow(0, 5, 12, new Color(15, 23, 42, 40)));
+        style.setBoxShadow(State.ACTIVE,
+            new BoxShadow(0, 1, 3, new Color(15, 23, 42, 35)));
+        style.setOutline(State.FOCUSED,
+            new Outline(new Color(147, 197, 253), BorderStyle.SOLID, 2, 2));
+        return style;
+    }
+
+    /**
+     * Creates a secondary button style.
+     *
+     * @return secondary button style
+     */
+    private static ButtonStyle secondaryButtonStyle() {
+        final ButtonStyle style = baseButtonStyle();
+        style.setBgColor(State.NORMAL, Color.WHITE);
+        style.setBgColor(State.HOVERED, new Color(248, 250, 252));
+        style.setBgColor(State.FOCUSED, Color.WHITE);
+        style.setBgColor(State.ACTIVE, new Color(241, 245, 249));
+        style.setBorderColor(BORDER);
+        style.setBorderColor(State.HOVERED, new Color(148, 163, 184));
+        style.setBorderColor(State.FOCUSED, PRIMARY);
+        style.setBorderColor(State.ACTIVE, new Color(148, 163, 184));
+        style.setBoxShadow(State.HOVERED,
+            new BoxShadow(0, 3, 8, new Color(15, 23, 42, 24)));
+        style.setOutline(State.FOCUSED,
+            new Outline(new Color(147, 197, 253), BorderStyle.SOLID, 2, 2));
+        return style;
+    }
+
+    /**
+     * Creates a disabled button style.
+     *
+     * @return disabled button style
+     */
+    private static ButtonStyle disabledButtonStyle() {
+        final ButtonStyle style = secondaryButtonStyle();
+        style.setBgColor(State.DISABLED, new Color(241, 245, 249));
+        style.setBorderColor(State.DISABLED, BORDER);
+        style.setBorderStyle(State.DISABLED, BorderStyle.SOLID);
+        style.setBoxShadow(State.DISABLED, BoxShadow.NONE);
+        return style;
+    }
+
+    /**
+     * Creates the common button geometry and motion.
+     *
+     * @return base button style
+     */
+    private static ButtonStyle baseButtonStyle() {
+        final ButtonStyle style = Button.getDefaultStyle().derive();
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(8);
+        style.setHeight(40);
+        style.setMargin(0);
+        style.setPadding(16, 8);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setCursor(Cursor.POINTER);
+        style.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
+        style.setTransition(new Transition(140, TimingFunction.EASE_OUT));
+        return style;
+    }
+
+    /**
+     * Creates a button with explicitly styled child text.
+     *
+     * @param style button style
+     * @param text button label
+     * @param color label color
+     * @return button
+     */
+    private static Button button(final ButtonStyle style, final String text, final Color color) {
+        return new Button(style, new TextWidget(
+            textStyle(color, "14px", FontWeight.SEMIBOLD), text
+        ));
+    }
+
+    /**
+     * Creates a file loader with explicitly styled child text.
+     *
+     * @param text button label
+     * @param style button style
+     * @param color label color
+     * @return file loader
+     */
+    private static FileLoader fileLoader(final String text, final ButtonStyle style,
+                                         final Color color) {
+        final FileLoader loader = new FileLoader(style, text);
+        loader.put(new TextWidget(textStyle(color, "14px", FontWeight.SEMIBOLD), text));
+        return loader;
+    }
+
+    /**
+     * Connects a file loader to the shared status line.
+     *
+     * @param loader file loader
+     * @param kind short upload kind
+     * @param status shared event status
+     */
+    private static void attachUploadFeedback(final FileLoader loader, final String kind,
+                                             final TextWidget status) {
+        loader.onSelect(file -> {
+            status.setText(kind + " selected: " + file.getName());
+            file.onLoad(uploaded -> status.setText(
+                kind + " uploaded: " + uploaded.getName() + " (" + uploaded.getSize()
+                    + " bytes)"
+            ));
+        });
+    }
+
+    /**
+     * Creates a static image style.
+     *
+     * @param width image width
+     * @param height image height
+     * @param radius corner radius
+     * @return image style
+     */
+    private static ImageWidgetStyle imageStyle(final int width, final int height,
+                                               final int radius) {
+        final ImageWidgetStyle style = ImageWidget.getDefaultStyle().derive();
+        style.setWidth(width);
+        style.setHeight(height);
+        style.setBorderRadius(radius);
+        style.setMargin(0);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        return style;
+    }
+
+    /**
+     * Creates an interactive image with distinct sources for all pointer states.
+     *
+     * @param width image width
+     * @param height image height
+     * @param radius corner radius
+     * @param label image label
+     * @return active image
+     */
+    private static ActiveImage activeImage(final int width, final int height,
+                                           final int radius, final String label) {
+        final ActiveImage image = new ActiveImage(demoImage("#2563eb", "#7c3aed", label));
+        image.setSource(State.HOVERED, demoImage("#1d4ed8", "#6d28d9", label));
+        image.setSource(State.ACTIVE, demoImage("#1e3a8a", "#581c87", label));
+        final ActiveImageStyle style = ActiveImage.getDefaultStyle().derive();
+        style.setWidth(width);
+        style.setHeight(height);
+        style.setBorderRadius(radius);
+        style.setMargin(0);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setCursor(Cursor.POINTER);
+        style.setOpacity(State.NORMAL, 1.0);
+        style.setOpacity(State.HOVERED, 0.92);
+        style.setOpacity(State.ACTIVE, 0.82);
+        style.setBoxShadow(State.NORMAL,
+            new BoxShadow(0, 5, 14, new Color(15, 23, 42, 35)));
+        style.setBoxShadow(State.HOVERED,
+            new BoxShadow(0, 10, 22, new Color(15, 23, 42, 48)));
+        style.setBoxShadow(State.ACTIVE,
+            new BoxShadow(0, 2, 6, new Color(15, 23, 42, 40)));
+        style.setTransition(new Transition(160, TimingFunction.EASE_OUT));
+        image.setStyle(style);
+        return image;
+    }
+
+    /**
+     * Creates a self-contained gradient SVG for image examples.
+     *
+     * @param first first gradient color
+     * @param second second gradient color
+     * @param label centered image label
+     * @return image source
+     */
+    private static ImageSource demoImage(final String first, final String second,
+                                         final String label) {
+        return new SvgImageSource() {
+            @Override
+            protected String getSvg() {
+                return "<svg xmlns='http://www.w3.org/2000/svg' width='320' height='192' "
+                    + "viewBox='0 0 320 192'><defs><linearGradient id='g' x1='0' y1='0' "
+                    + "x2='1' y2='1'><stop stop-color='" + first + "'/><stop offset='1' "
+                    + "stop-color='" + second + "'/></linearGradient></defs>"
+                    + "<rect width='320' height='192' fill='url(#g)'/>"
+                    + "<circle cx='270' cy='38' r='54' fill='white' opacity='.12'/>"
+                    + "<circle cx='48' cy='178' r='76' fill='white' opacity='.09'/>"
+                    + "<text x='160' y='108' text-anchor='middle' fill='white' "
+                    + "font-family='Arial,sans-serif' font-size='38' font-weight='700'>"
+                    + label + "</text></svg>";
+            }
+        };
+    }
+
+    /**
+     * Creates a compact example table.
+     *
+     * @param interactive whether data rows react to pointer hover
+     * @return table widget
+     */
+    private static Table table(final boolean interactive) {
+        final TableStyle style = Table.getDefaultStyle().derive();
+        style.setWidth("100%");
+        style.setBgColor(Color.WHITE);
+        style.setBorderColor(BORDER);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(8);
+        style.setCellSpacing(0);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setTransition(new Transition(140, TimingFunction.EASE_OUT));
+        final Table table = new Table(style);
+        table.setDefaultCellStyle(tableCellStyle());
+        addTableRow(table, true, false, "Name", "Role", "Status");
+        addTableRow(table, false, interactive, "Alice", "Designer", "Active");
+        addTableRow(table, false, interactive, "Bob", "Developer", "Reviewing");
+        addTableRow(table, false, interactive, "Carol", "Support", "Offline");
+        return table;
+    }
+
+    /**
+     * Adds one row to a table.
+     *
+     * @param table target table
+     * @param header whether this is a header row
+     * @param interactive whether hover styling is enabled
+     * @param values cell values
+     */
+    private static void addTableRow(final Table table, final boolean header,
+                                    final boolean interactive, final String... values) {
+        final RowStyle rowStyle = Row.getDefaultStyle().derive();
+        rowStyle.setBgColor(header ? new Color(241, 245, 249) : Color.WHITE);
+        if (interactive) {
+            rowStyle.setBgColor(State.HOVERED, new Color(239, 246, 255));
+            rowStyle.setCursor(Cursor.POINTER);
+            rowStyle.setTransition(new Transition(120, TimingFunction.EASE_OUT));
+        }
+        final Row row = new Row(rowStyle);
+        table.add(row);
+        for (final String value : values) {
+            final Cell cell = new Cell(tableCellStyle());
+            final TextWidgetStyle text = textStyle(
+                header ? MUTED : TEXT,
+                "14px",
+                header ? FontWeight.SEMIBOLD : FontWeight.NORMAL
+            );
+            cell.add(new Section(new TextWidget(text, value)));
+            row.add(cell);
+        }
+    }
+
+    /**
+     * Creates the common table cell style.
+     *
+     * @return cell style
+     */
+    private static CellStyle tableCellStyle() {
+        final CellStyle style = Cell.getDefaultStyle().derive();
+        style.setPadding(14, 11);
+        style.setBorderColor(BORDER);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        return style;
     }
 }
