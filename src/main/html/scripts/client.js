@@ -203,12 +203,10 @@ function processUpdates(updates) {
         if (handler) {
             result = handler(update);
             if (!result) {
-                throw new Error(
-                    "Update " + update.id + " was not processed due to incorrect data."
-                );
+                log("Update " + update.id + " was not processed due to incorrect data.");
             }
         } else {
-            throw new Error("Unknown action: '" + update.action + "'.");
+            log("Unknown action: '" + update.action + "'.");
         }
         lastProcessedUpdateId = id;
     }
