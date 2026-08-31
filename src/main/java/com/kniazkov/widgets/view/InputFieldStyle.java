@@ -26,6 +26,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
     private static final Set<State> SUPPORTED_STATES = State.setOf(
         State.NORMAL,
         State.HOVERED,
+        State.FOCUSED,
         State.ACTIVE,
         State.DISABLED,
         State.INVALID
@@ -43,6 +44,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         final FontFaceModel face = new FontFaceModel(FontFace.DEFAULT);
         this.setFontFaceModel(State.NORMAL, face);
         this.setFontFaceModel(State.HOVERED, face.asCascading());
+        this.setFontFaceModel(State.FOCUSED, face.asCascading());
         this.setFontFaceModel(State.ACTIVE, face.asCascading());
         this.setFontFaceModel(State.INVALID, face.asCascading());
         this.setFontFaceModel(State.DISABLED, face.asCascading());
@@ -50,6 +52,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         final FontSizeModel size = new FontSizeModel(FontSize.DEFAULT);
         this.setFontSizeModel(State.NORMAL, size);
         this.setFontSizeModel(State.HOVERED, size.asCascading());
+        this.setFontSizeModel(State.FOCUSED, size.asCascading());
         this.setFontSizeModel(State.ACTIVE, size.asCascading());
         this.setFontSizeModel(State.INVALID, size.asCascading());
         this.setFontSizeModel(State.DISABLED, size.asCascading());
@@ -57,6 +60,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         final FontWeightModel weight = new FontWeightModel(FontWeight.NORMAL);
         this.setFontWeightModel(State.NORMAL, weight);
         this.setFontWeightModel(State.HOVERED, weight.asCascading());
+        this.setFontWeightModel(State.FOCUSED, weight.asCascading());
         this.setFontWeightModel(State.ACTIVE, weight.asCascading());
         this.setFontWeightModel(State.INVALID, weight.asCascading());
         this.setFontWeightModel(State.DISABLED, weight.asCascading());
@@ -64,6 +68,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         final BooleanModel italic = new BooleanModel(false);
         this.setItalicModel(State.NORMAL, italic);
         this.setItalicModel(State.HOVERED, italic.asCascading());
+        this.setItalicModel(State.FOCUSED, italic.asCascading());
         this.setItalicModel(State.ACTIVE, italic.asCascading());
         this.setItalicModel(State.INVALID, italic.asCascading());
         this.setItalicModel(State.DISABLED, italic.asCascading());
@@ -74,18 +79,21 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
 
         this.setBgColor(State.NORMAL, Color.WHITE);
         this.setBgColor(State.HOVERED, new Color(255, 255, 230));
+        this.setBgColor(State.FOCUSED, new Color(255, 255, 204));
         this.setBgColor(State.ACTIVE, new Color(255, 255, 204));
         this.setBgColor(State.INVALID, new Color(255, 230, 230));
         this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
 
         this.setBorderColor(State.NORMAL, Color.GRAY);
         this.setBorderColor(State.HOVERED, Color.DARK_GRAY);
+        this.setBorderColor(State.FOCUSED, Color.BLACK);
         this.setBorderColor(State.ACTIVE, Color.BLACK);
         this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
 
         final BorderStyleModel style = new BorderStyleModel(BorderStyle.SOLID);
         this.setBorderStyleModel(State.NORMAL, style);
         this.setBorderStyleModel(State.HOVERED, style.asCascading());
+        this.setBorderStyleModel(State.FOCUSED, style.asCascading());
         this.setBorderStyleModel(State.ACTIVE, style.asCascading());
         this.setBorderStyleModel(State.INVALID, style.asCascading());
         this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);

@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.model.Model;
 
@@ -11,7 +12,7 @@ import com.kniazkov.widgets.model.Model;
  */
 public class InputField extends InlineWidget<InputFieldStyle> implements HasTextInput,
         HasStyledText, HasColor, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
-        HasMargin, HasInvalidState, HasDisabledState, HandlesPointerEvents {
+        HasMargin, HasInvalidState, HasDisabledState, HandlesFocusEvents, HandlesPointerEvents {
     /**
      * Returns the default style instance used by input fields.
      *

@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.protocol.SetChild;
 
@@ -10,8 +11,8 @@ import com.kniazkov.widgets.protocol.SetChild;
  * A clickable button widget that decorates a single {@link InlineWidget}.
  */
 public class Button extends InlineWidget<ButtonStyle> implements Decorator<InlineWidget<?>>,
-        HandlesPointerEvents, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
-        HasMargin, HasPadding, HasDisabledState, HasHiddenState {
+        HandlesFocusEvents, HandlesPointerEvents, HasBgColor, HasBorder, HasAbsoluteWidth,
+        HasAbsoluteHeight, HasMargin, HasPadding, HasDisabledState, HasHiddenState {
     /**
      * Returns the default style instance used by buttons.
      *

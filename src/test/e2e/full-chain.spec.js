@@ -34,11 +34,11 @@ test("persistent connection loss blocks the page until the server responds", asy
         mainCycle();
         mainCycle();
     });
-    await expect(page.getByText("Connection terminated", { exact: true })).toBeVisible();
+    await expect(page.getByText("Connection Terminated", { exact: true })).toBeVisible();
 
     blockSynchronization = false;
     await page.evaluate(() => mainCycle());
-    await expect(page.getByText("Connection terminated", { exact: true })).toBeHidden();
+    await expect(page.getByText("Connection Terminated", { exact: true })).toBeHidden();
 });
 
 test("a dead client causes the browser to reload the same page", async ({ page }) => {

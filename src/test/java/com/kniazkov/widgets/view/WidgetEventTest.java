@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.controller.Event;
+import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import java.util.Arrays;
 import java.util.List;
@@ -112,6 +113,44 @@ public final class WidgetEventTest {
             sandbox.fire(Event.CLICK, new JsonObject());
 
             assertEquals("click count for " + widget.getType(), 1, calls.get());
+        }
+    }
+
+    /**
+     * Verifies that focusable widgets subscribe to and handle focus transitions.
+     */
+    @Test
+    public void focusableWidgetsSubscribeAndHandleFocusTransitions() {
+        final List<Widget<?>> widgets = Arrays.<Widget<?>>asList(
+            new Button(),
+            new FileLoader(),
+            new InputField(),
+            new PasswordInput(),
+            new TextArea()
+        );
+
+        for (final Widget<?> widget : widgets) {
+            final AtomicInteger focusCalls = new AtomicInteger();
+            final AtomicInteger blurCalls = new AtomicInteger();
+            final WidgetSandbox<?> sandbox = WidgetSandbox.open(widget);
+            sandbox.clearUpdates();
+            final HandlesFocusEvents focusable = (HandlesFocusEvents) widget;
+
+            focusable.onFocus(event -> focusCalls.incrementAndGet());
+            focusable.onBlur(event -> blurCalls.incrementAndGet());
+
+            final List<JsonObject> subscriptions = WidgetSandbox.findUpdates(
+                sandbox.drainUpdates(), "subscribe", widget
+            );
+            assertEquals("subscription count for " + widget.getType(), 2, subscriptions.size());
+            assertEquals("focus", subscriptions.get(0).get("event").getStringValue());
+            assertEquals("blur", subscriptions.get(1).get("event").getStringValue());
+
+            sandbox.fire(Event.FOCUS, new JsonObject());
+            sandbox.fire(Event.BLUR, new JsonObject());
+
+            assertEquals("focus count for " + widget.getType(), 1, focusCalls.get());
+            assertEquals("blur count for " + widget.getType(), 1, blurCalls.get());
         }
     }
 
