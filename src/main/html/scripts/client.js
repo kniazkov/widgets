@@ -292,10 +292,7 @@ function mainCycle() {
 }
 
 window.addEventListener("error", event => showClientError(event.error));
-window.addEventListener(
-    "unhandledrejection",
-    event => showClientError(event.reason)
-);
+window.addEventListener("unhandledrejection", event => showClientError(event.reason));
 
 function reset() {
     log("The server initiated the client reset.");

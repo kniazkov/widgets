@@ -99,9 +99,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     if (failure instanceof VirtualMachineError fatal) {
                         throw fatal;
                     }
-                    if (failure instanceof ThreadDeath death) {
-                        throw death;
-                    }
                     return responses.fromJson(
                         ActionHandler.clientError().toString()
                     ).build();

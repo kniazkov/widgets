@@ -65,9 +65,6 @@ abstract class ActionHandler {
             if (failure instanceof VirtualMachineError fatal) {
                 throw fatal;
             }
-            if (failure instanceof ThreadDeath death) {
-                throw death;
-            }
             return clientError();
         }
     }
