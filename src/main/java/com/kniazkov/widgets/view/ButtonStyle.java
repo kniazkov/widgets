@@ -10,8 +10,6 @@ import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.Outline;
-import com.kniazkov.widgets.common.Transition;
-import com.kniazkov.widgets.model.BorderStyleModel;
 import java.util.Set;
 
 /**
@@ -41,36 +39,36 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
      */
     private ButtonStyle() {
         this.setBoxShadow(BoxShadow.NONE);
+        this.setBoxShadow(State.HOVERED,
+            new BoxShadow(0, 3, 8, new Color(15, 23, 42, 32)));
+        this.setBoxShadow(State.FOCUSED, DefaultTheme.FOCUS_SHADOW);
         this.setOutline(Outline.NONE);
-        this.setCursor(Cursor.AUTO);
-        this.setTransition(Transition.NONE);
-        this.setBoxSizing(BoxSizing.CONTENT_BOX);
-        this.setBgColor(State.NORMAL, new Color(224, 224, 224));
-        this.setBgColor(State.HOVERED, new Color(240, 240, 240));
-        this.setBgColor(State.FOCUSED, new Color(240, 240, 240));
-        this.setBgColor(State.ACTIVE, new Color(255, 255, 230));
-        this.setBgColor(State.DISABLED, Color.WHITE);
+        this.setOutline(State.FOCUSED, DefaultTheme.FOCUS_OUTLINE);
+        this.setCursor(Cursor.POINTER);
+        this.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
+        this.setTransition(DefaultTheme.TRANSITION);
+        this.setBoxSizing(BoxSizing.BORDER_BOX);
+        this.setBgColor(State.NORMAL, Color.WHITE);
+        this.setBgColor(State.HOVERED, DefaultTheme.SURFACE_MUTED);
+        this.setBgColor(State.FOCUSED, Color.WHITE);
+        this.setBgColor(State.ACTIVE, DefaultTheme.SURFACE_DISABLED);
+        this.setBgColor(State.DISABLED, DefaultTheme.SURFACE_MUTED);
 
-        this.setBorderColor(State.NORMAL, Color.GRAY);
-        this.setBorderColor(State.HOVERED, Color.DARK_GRAY);
-        this.setBorderColor(State.FOCUSED, Color.DARK_GRAY);
-        this.setBorderColor(State.ACTIVE, Color.BLACK);
-        this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
+        this.setBorderColor(State.NORMAL, DefaultTheme.BORDER_STRONG);
+        this.setBorderColor(State.HOVERED, DefaultTheme.TEXT);
+        this.setBorderColor(State.FOCUSED, DefaultTheme.PRIMARY);
+        this.setBorderColor(State.ACTIVE, DefaultTheme.BORDER_STRONG);
+        this.setBorderColor(State.DISABLED, DefaultTheme.BORDER);
 
-        final BorderStyleModel style = new BorderStyleModel(BorderStyle.SOLID);
-        this.setBorderStyleModel(State.NORMAL, style);
-        this.setBorderStyleModel(State.HOVERED, style.asCascading());
-        this.setBorderStyleModel(State.FOCUSED, style.asCascading());
-        this.setBorderStyleModel(State.ACTIVE, style.asCascading());
-        this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
+        this.setBorderStyle(BorderStyle.SOLID);
 
         this.setBorderWidth(1);
-        this.setBorderRadius(5);
+        this.setBorderRadius(8);
 
         this.setWidth(AbsoluteSize.UNDEFINED);
-        this.setHeight(AbsoluteSize.UNDEFINED);
+        this.setHeight(40);
         this.setMargin(2);
-        this.setPadding(10);
+        this.setPadding(16, 8);
     }
 
     /**

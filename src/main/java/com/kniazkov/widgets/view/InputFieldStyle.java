@@ -8,13 +8,9 @@ import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
-import com.kniazkov.widgets.common.FontFace;
-import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.Outline;
-import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.model.BooleanModel;
-import com.kniazkov.widgets.model.BorderStyleModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
@@ -24,8 +20,8 @@ import java.util.Set;
  * Style definition for {@link InputField}.
  */
 public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasBgColor,
-        HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasBoxShadow, HasOutline,
-        HasCursor, HasTransition, HasBoxSizing {
+        HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding, HasBoxShadow,
+        HasOutline, HasCursor, HasTransition, HasBoxSizing {
     /**
      * Set of supported states.
      */
@@ -48,11 +44,14 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
      */
     private InputFieldStyle() {
         this.setBoxShadow(BoxShadow.NONE);
+        this.setBoxShadow(State.FOCUSED, DefaultTheme.FOCUS_SHADOW);
         this.setOutline(Outline.NONE);
-        this.setCursor(Cursor.AUTO);
-        this.setTransition(Transition.NONE);
-        this.setBoxSizing(BoxSizing.CONTENT_BOX);
-        final FontFaceModel face = new FontFaceModel(FontFace.DEFAULT);
+        this.setOutline(State.FOCUSED, DefaultTheme.FOCUS_OUTLINE);
+        this.setCursor(Cursor.TEXT);
+        this.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
+        this.setTransition(DefaultTheme.TRANSITION);
+        this.setBoxSizing(BoxSizing.BORDER_BOX);
+        final FontFaceModel face = new FontFaceModel(DefaultTheme.FONT);
         this.setFontFaceModel(State.NORMAL, face);
         this.setFontFaceModel(State.HOVERED, face.asCascading());
         this.setFontFaceModel(State.FOCUSED, face.asCascading());
@@ -60,7 +59,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setFontFaceModel(State.INVALID, face.asCascading());
         this.setFontFaceModel(State.DISABLED, face.asCascading());
 
-        final FontSizeModel size = new FontSizeModel(FontSize.DEFAULT);
+        final FontSizeModel size = new FontSizeModel("15px");
         this.setFontSizeModel(State.NORMAL, size);
         this.setFontSizeModel(State.HOVERED, size.asCascading());
         this.setFontSizeModel(State.FOCUSED, size.asCascading());
@@ -84,37 +83,36 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setItalicModel(State.INVALID, italic.asCascading());
         this.setItalicModel(State.DISABLED, italic.asCascading());
 
-        this.setColor(State.NORMAL, Color.BLACK);
-        this.setColor(State.INVALID, Color.RED);
-        this.setColor(State.DISABLED, Color.DARK_GRAY);
+        this.setColor(State.NORMAL, DefaultTheme.TEXT);
+        this.setColor(State.HOVERED, DefaultTheme.TEXT);
+        this.setColor(State.FOCUSED, DefaultTheme.TEXT);
+        this.setColor(State.ACTIVE, DefaultTheme.TEXT);
+        this.setColor(State.INVALID, DefaultTheme.DANGER);
+        this.setColor(State.DISABLED, DefaultTheme.MUTED);
 
         this.setBgColor(State.NORMAL, Color.WHITE);
-        this.setBgColor(State.HOVERED, new Color(255, 255, 230));
-        this.setBgColor(State.FOCUSED, new Color(255, 255, 204));
-        this.setBgColor(State.ACTIVE, new Color(255, 255, 204));
-        this.setBgColor(State.INVALID, new Color(255, 230, 230));
-        this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
+        this.setBgColor(State.HOVERED, DefaultTheme.SURFACE_MUTED);
+        this.setBgColor(State.FOCUSED, Color.WHITE);
+        this.setBgColor(State.ACTIVE, Color.WHITE);
+        this.setBgColor(State.INVALID, DefaultTheme.SURFACE_RED);
+        this.setBgColor(State.DISABLED, DefaultTheme.SURFACE_DISABLED);
 
-        this.setBorderColor(State.NORMAL, Color.GRAY);
-        this.setBorderColor(State.HOVERED, Color.DARK_GRAY);
-        this.setBorderColor(State.FOCUSED, Color.BLACK);
-        this.setBorderColor(State.ACTIVE, Color.BLACK);
-        this.setBorderColor(State.DISABLED, Color.DARK_GRAY);
+        this.setBorderColor(State.NORMAL, DefaultTheme.BORDER_STRONG);
+        this.setBorderColor(State.HOVERED, DefaultTheme.TEXT);
+        this.setBorderColor(State.FOCUSED, DefaultTheme.PRIMARY);
+        this.setBorderColor(State.ACTIVE, DefaultTheme.PRIMARY);
+        this.setBorderColor(State.INVALID, DefaultTheme.DANGER);
+        this.setBorderColor(State.DISABLED, DefaultTheme.BORDER);
 
-        final BorderStyleModel style = new BorderStyleModel(BorderStyle.SOLID);
-        this.setBorderStyleModel(State.NORMAL, style);
-        this.setBorderStyleModel(State.HOVERED, style.asCascading());
-        this.setBorderStyleModel(State.FOCUSED, style.asCascading());
-        this.setBorderStyleModel(State.ACTIVE, style.asCascading());
-        this.setBorderStyleModel(State.INVALID, style.asCascading());
-        this.setBorderStyle(State.DISABLED, BorderStyle.DASHED);
+        this.setBorderStyle(BorderStyle.SOLID);
 
         this.setBorderWidth(1);
-        this.setBorderRadius(0);
+        this.setBorderRadius(8);
 
-        this.setWidth(100);
-        this.setHeight(25);
+        this.setWidth(240);
+        this.setHeight(42);
         this.setMargin(2, 1);
+        this.setPadding(14, 8);
     }
 
     /**

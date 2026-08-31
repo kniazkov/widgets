@@ -8,7 +8,6 @@ import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
@@ -30,14 +29,17 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
      * Creates the default table style.
      */
     private TableStyle() {
-        this.setBoxShadow(BoxShadow.NONE);
-        this.setTransition(Transition.NONE);
-        this.setBoxSizing(BoxSizing.CONTENT_BOX);
-        this.setBgColor(Color.TRANSPARENT);
-        this.setBorderStyle(BorderStyle.NONE);
-        this.setWidth(AbsoluteSize.UNDEFINED);
+        this.setBoxShadow(new BoxShadow(0, 2, 8, new Color(15, 23, 42, 24)));
+        this.setTransition(DefaultTheme.TRANSITION);
+        this.setBoxSizing(BoxSizing.BORDER_BOX);
+        this.setBgColor(Color.WHITE);
+        this.setBorderColor(DefaultTheme.BORDER_STRONG);
+        this.setBorderStyle(BorderStyle.SOLID);
+        this.setBorderWidth(1);
+        this.setBorderRadius(8);
+        this.setWidth("100%");
         this.setHeight(AbsoluteSize.UNDEFINED);
-        this.setMargin(0);
+        this.setMargin(2, 1);
         this.setPadding(0);
         this.setCellSpacing(0);
     }

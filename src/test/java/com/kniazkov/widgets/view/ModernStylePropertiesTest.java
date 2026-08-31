@@ -90,6 +90,54 @@ public final class ModernStylePropertiesTest {
     }
 
     /**
+     * Verifies text fields expose padding through the regular style protocol.
+     */
+    @Test
+    public void inputFieldSupportsPadding() {
+        final InputField input = new InputField();
+        assertEquals("14px", input.getLeftPadding().getCSSCode());
+        assertEquals("14px", input.getRightPadding().getCSSCode());
+        assertEquals("8px", input.getTopPadding().getCSSCode());
+        assertEquals("8px", input.getBottomPadding().getCSSCode());
+
+        final WidgetSandbox<InputField> sandbox = WidgetSandbox.open(input);
+        sandbox.clearUpdates();
+        input.setPadding(18, 9);
+
+        final JsonObject update = singleUpdate(
+            sandbox.drainUpdates(), "set padding", input
+        );
+        final JsonObject padding = (JsonObject) update.get("padding");
+        assertEquals("18px", padding.get("left").getStringValue());
+        assertEquals("18px", padding.get("right").getStringValue());
+        assertEquals("9px", padding.get("top").getStringValue());
+        assertEquals("9px", padding.get("bottom").getStringValue());
+    }
+
+    /**
+     * Verifies visible widgets are usable without constructing custom styles.
+     */
+    @Test
+    public void visibleWidgetsHaveModernDefaults() {
+        final Button button = new Button();
+        assertEquals(Cursor.POINTER, button.getCursor());
+        assertEquals(BoxSizing.BORDER_BOX, button.getBoxSizing());
+        assertEquals("8px", button.getBorderRadius().getCSSCode());
+
+        final InputField input = new InputField();
+        assertEquals(Cursor.TEXT, input.getCursor());
+        assertEquals(BoxSizing.BORDER_BOX, input.getBoxSizing());
+        assertEquals("8px", input.getBorderRadius().getCSSCode());
+
+        assertEquals("96px", new TextArea().getHeight().getCSSCode());
+        assertEquals("10px", new ImageWidget("image.png").getBorderRadius().getCSSCode());
+        assertEquals(Cursor.POINTER, new ActiveImage("image.png").getCursor());
+        assertEquals(0.5, new CheckBox().getOpacity(State.DISABLED), 0.0);
+        assertEquals("100.0%", new Table().getWidth().getCSSCode());
+        assertEquals("14px", new Cell().getLeftPadding().getCSSCode());
+    }
+
+    /**
      * Returns the only matching update.
      *
      * @param updates serialized updates

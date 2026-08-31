@@ -7,7 +7,6 @@ import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Cursor;
-import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
@@ -36,9 +35,10 @@ public class ImageWidgetStyle extends Style implements HasBorder, HasMargin,
          */
         this.setBoxShadow(BoxShadow.NONE);
         this.setCursor(Cursor.AUTO);
-        this.setTransition(Transition.NONE);
-        this.setBoxSizing(BoxSizing.CONTENT_BOX);
+        this.setTransition(DefaultTheme.TRANSITION);
+        this.setBoxSizing(BoxSizing.BORDER_BOX);
         this.setBorderStyle(BorderStyle.NONE);
+        this.setBorderRadius(10);
         this.setMargin(0);
         this.setOpacity(1.0);
     }
