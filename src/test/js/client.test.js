@@ -66,6 +66,7 @@ function createHarness() {
         window.__clientHarness = {
             fail: recordRequestFailure,
             succeed: recordRequestSuccess,
+            reportClientError: responseHasClientError,
             setServerId: function (value) { serverId = value; },
             serverStateIsCurrent: serverStateIsCurrent
         };
@@ -87,6 +88,17 @@ describe("connection recovery", () => {
 
         harness.succeed();
         expect(dom.window.document.getElementById("connection-terminated-overlay")).toBeNull();
+    });
+
+    it("shows a permanent client error reported by the server", () => {
+        const harness = createHarness();
+
+        expect(harness.reportClientError({ clientError: true })).toBe(true);
+        const overlay = dom.window.document.getElementById("client-error-overlay");
+        expect(overlay?.textContent).toBe("CLIENT ERROR");
+
+        harness.succeed();
+        expect(dom.window.document.getElementById("client-error-overlay")).toBe(overlay);
     });
 
     it("reloads when the server instance changes", () => {

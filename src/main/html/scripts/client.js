@@ -10,8 +10,10 @@ const period = 2500;
 let mainCycleTask = null;
 const maxConsecutiveRequestFailures = 3;
 const connectionOverlayId = "connection-terminated-overlay";
+const clientErrorOverlayId = "client-error-overlay";
 let consecutiveRequestFailures = 0;
 let reloadRequested = false;
+let clientFailed = false;
 
 // Events stay in this queue until the server acknowledges their monotonically increasing IDs.
 const events = [];
@@ -20,7 +22,7 @@ let lastProcessedUpdateId = 0;
 
 // A persistent transport failure blocks interaction without discarding the current page state.
 function showConnectionTerminated() {
-    if (document.getElementById(connectionOverlayId)) {
+    if (clientFailed || document.getElementById(connectionOverlayId)) {
         return;
     }
     const overlay = document.createElement("div");
@@ -36,7 +38,35 @@ function hideConnectionTerminated() {
     }
 }
 
+// A client failure is fatal for the current page and must not be retried as a network failure.
+function showClientError(error) {
+    if (clientFailed) {
+        return;
+    }
+    clientFailed = true;
+    clearInterval(mainCycleTask);
+    hideConnectionTerminated();
+    if (error) {
+        console.error("Client error", error);
+    }
+    const overlay = document.createElement("div");
+    overlay.id = clientErrorOverlayId;
+    overlay.textContent = "CLIENT ERROR";
+    (document.body || document.documentElement).appendChild(overlay);
+}
+
+function responseHasClientError(response) {
+    if (response && response.clientError === true) {
+        showClientError();
+        return true;
+    }
+    return false;
+}
+
 function recordRequestFailure() {
+    if (clientFailed) {
+        return;
+    }
     consecutiveRequestFailures++;
     if (consecutiveRequestFailures >= maxConsecutiveRequestFailures) {
         showConnectionTerminated();
@@ -96,6 +126,9 @@ function initClient(sessionId, address, data) {
 }
 
 function startClient(address, data) {
+    if (clientFailed) {
+        return;
+    }
     const request = { ...data };
     request.action = "new instance";
     request.address = address;
@@ -113,6 +146,9 @@ function startClient(address, data) {
             recordRequestFailure();
             return;
         }
+        if (responseHasClientError(json)) {
+            return;
+        }
         if (typeof json.id !== "string" || typeof json.serverId !== "string") {
             recordRequestFailure();
             return;
@@ -125,7 +161,7 @@ function startClient(address, data) {
         mainCycle();
     });
     setTimeout(function () {
-        if (clientId == null) {
+        if (clientId == null && !clientFailed) {
             startClient(address, data);
         }
     }, 1000);
@@ -215,6 +251,12 @@ function sendSynchronizeRequest(callback) {
                 }
                 return;
             }
+            if (responseHasClientError(json)) {
+                if (callback) {
+                    callback(false);
+                }
+                return;
+            }
             recordRequestSuccess();
             if (!serverStateIsCurrent(json)) {
                 if (callback) {
@@ -222,8 +264,16 @@ function sendSynchronizeRequest(callback) {
                 }
                 return;
             }
-            processUpdates(json.updates);
-            removeProcessedEvents(json.lastEvent);
+            try {
+                processUpdates(json.updates);
+                removeProcessedEvents(json.lastEvent);
+            } catch (error) {
+                showClientError(error);
+                if (callback) {
+                    callback(false);
+                }
+                return;
+            }
             if (callback) {
                 callback(json.result === true);
             }
@@ -233,8 +283,14 @@ function sendSynchronizeRequest(callback) {
 }
 
 function mainCycle() {
+    if (clientFailed) {
+        return;
+    }
     sendSynchronizeRequest();
 }
+
+window.addEventListener("error", event => showClientError(event.error));
+window.addEventListener("unhandledrejection", event => showClientError(event.reason));
 
 function reset() {
     log("The server initiated the client reset.");

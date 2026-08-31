@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -89,13 +90,25 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         if (method == HttpMethod.POST || rootAction) {
             final String action = parameters.get("action");
             if (method == HttpMethod.POST && "upload chunk".equals(action)) {
-                return responses.fromJson(
-                    this.handleUploadChunk(request, parameters).toString()
-                ).build();
+                try {
+                    return responses.fromJson(
+                        this.handleUploadChunk(request, parameters).toString()
+                    ).build();
+                } catch (final ServerException | RuntimeException | Error failure) {
+                    LOGGER.log(Level.SEVERE, "Client upload failed", failure);
+                    if (failure instanceof VirtualMachineError fatal) {
+                        throw fatal;
+                    }
+                    return responses.fromJson(
+                        ActionHandler.clientError().toString()
+                    ).build();
+                }
             }
             final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
-                return responses.fromJson(handler.process(parameters).toString()).build();
+                return responses.fromJson(
+                    handler.processSafely(parameters).toString()
+                ).build();
             }
             return responses.notFound();
         }
@@ -182,8 +195,12 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 data
             ).build();
 
-        } catch (IOException e) {
-            LOGGER.warning("File not found or cannot be read: '" + requestPath + "': " + e);
+        } catch (final IOException error) {
+            LOGGER.log(
+                Level.SEVERE,
+                "File not found or cannot be read: '" + requestPath + "'",
+                error
+            );
         }
 
         /*

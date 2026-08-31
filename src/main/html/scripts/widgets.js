@@ -1023,7 +1023,7 @@ function removeActiveUpload(file) {
 
 // Sends one binary slice, then gives the next active file a turn.
 function sendNextUploadChunk() {
-    if (uploadRequestInFlight) {
+    if ((typeof clientFailed !== "undefined" && clientFailed) || uploadRequestInFlight) {
         return;
     }
     fillActiveUploads();
@@ -1060,6 +1060,9 @@ function sendNextUploadChunk() {
             } catch (error) {
                 recordRequestFailure();
                 setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+                return;
+            }
+            if (typeof responseHasClientError === "function" && responseHasClientError(receipt)) {
                 return;
             }
             recordRequestSuccess();
