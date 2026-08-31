@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.ServerException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 
@@ -50,6 +51,7 @@ public final class Server {
                 getWebServerOptions(options, handler)
             );
         } catch (final ServerException exception) {
+            LOGGER.log(Level.SEVERE, "Unable to start the web server", exception);
             throw new IllegalStateException("Unable to start the web server", exception);
         }
 

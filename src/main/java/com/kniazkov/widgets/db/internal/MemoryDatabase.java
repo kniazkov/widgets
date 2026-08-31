@@ -19,11 +19,20 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Default database implementation backed by canonical objects in memory.
  */
 public final class MemoryDatabase implements Database {
+    /**
+     * Database logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(
+        MemoryDatabase.class.getName()
+    );
+
     /**
      * Serial dispatcher.
      */
@@ -64,9 +73,20 @@ public final class MemoryDatabase implements Database {
                 new MemoryStore(this, entry.getKey(), entry.getValue())
             );
         }
-        this.persistence.initialize(metadata(schemas));
-        final DatabaseSnapshot snapshot = this.persistence.load();
-        this.dispatcher.run(() -> this.load(snapshot));
+        try {
+            this.persistence.initialize(metadata(schemas));
+            final DatabaseSnapshot snapshot = this.persistence.load();
+            this.dispatcher.run(() -> this.load(snapshot));
+        } catch (final RuntimeException | Error failure) {
+            LOGGER.log(Level.SEVERE, "Unable to initialize database", failure);
+            try {
+                this.persistence.close();
+            } catch (final RuntimeException closeFailure) {
+                failure.addSuppressed(closeFailure);
+            }
+            this.dispatcher.close();
+            throw failure;
+        }
     }
 
     /**
