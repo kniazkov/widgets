@@ -5,7 +5,12 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.model.BorderStyleModel;
 import java.util.Set;
 
@@ -35,6 +40,11 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
      * Creates the default button style.
      */
     private ButtonStyle() {
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setOutline(Outline.NONE);
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setBgColor(State.NORMAL, new Color(224, 224, 224));
         this.setBgColor(State.HOVERED, new Color(240, 240, 240));
         this.setBgColor(State.FOCUSED, new Color(240, 240, 240));

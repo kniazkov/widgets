@@ -4,6 +4,8 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
@@ -28,6 +30,8 @@ public class RowStyle extends Style implements HasBgColor, HasCursor, HasTransit
      * Creates the default row style.
      */
     private RowStyle() {
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
         this.setBgColor(Color.TRANSPARENT);
     }
 

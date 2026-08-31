@@ -4,6 +4,10 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
@@ -30,6 +34,10 @@ public class ImageWidgetStyle extends Style implements HasBorder, HasMargin,
         /*
          * Construction initializes inherited style models before publication.
          */
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setBorderStyle(BorderStyle.NONE);
         this.setMargin(0);
         this.setOpacity(1.0);

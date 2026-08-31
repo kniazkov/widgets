@@ -5,7 +5,11 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
@@ -31,6 +35,10 @@ public class InlineBlockStyle extends Style implements HasBgColor, HasBorder, Ha
      * Creates the default cell style.
      */
     private InlineBlockStyle() {
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);

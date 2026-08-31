@@ -4,10 +4,15 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.BorderStyleModel;
 import com.kniazkov.widgets.model.FontFaceModel;
@@ -42,6 +47,11 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
      * Creates the default input field style.
      */
     private InputFieldStyle() {
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setOutline(Outline.NONE);
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         final FontFaceModel face = new FontFaceModel(FontFace.DEFAULT);
         this.setFontFaceModel(State.NORMAL, face);
         this.setFontFaceModel(State.HOVERED, face.asCascading());
