@@ -12,7 +12,8 @@ import java.util.Set;
  * Style definition for {@link CheckBox}.
  */
 public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbsoluteWidth,
-        HasAbsoluteHeight, HasMargin, HasSelectableImage {
+        HasAbsoluteHeight, HasMargin, HasSelectableImage, HasBoxShadow, HasCursor, HasTransition,
+        HasBoxSizing {
     /**
      * Set of supported states.
      */

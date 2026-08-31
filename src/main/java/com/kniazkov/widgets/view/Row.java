@@ -14,7 +14,7 @@ import java.util.Optional;
  * Represents a table row widget that contains {@link Cell} widgets.
  */
 public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
-        HasBgColor, HandlesPointerEvents {
+        HasBgColor, HandlesPointerEvents, HasCursor, HasTransition {
     /**
      * Returns the default style instance used by table rows.
      *

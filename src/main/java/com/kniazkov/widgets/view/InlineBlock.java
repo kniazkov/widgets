@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class InlineBlock extends InlineWidget<InlineBlockStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
-        HandlesPointerEvents {
+        HandlesPointerEvents, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
     /**
      * Returns the default style instance used by inline blocks.
      *

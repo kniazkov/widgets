@@ -11,7 +11,7 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
  */
 
 public class ActiveText extends InlineWidget<ActiveTextStyle> implements HasStyledText, HasColor,
-        HandlesPointerEvents {
+        HandlesPointerEvents, HasCursor, HasTransition {
     /**
      * Returns the default style instance used by active text widgets.
      *

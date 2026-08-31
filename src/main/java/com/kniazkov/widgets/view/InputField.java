@@ -12,7 +12,8 @@ import com.kniazkov.widgets.model.Model;
  */
 public class InputField extends InlineWidget<InputFieldStyle> implements HasTextInput,
         HasStyledText, HasColor, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
-        HasMargin, HasInvalidState, HasDisabledState, HandlesFocusEvents, HandlesPointerEvents {
+        HasMargin, HasInvalidState, HasDisabledState, HandlesFocusEvents, HandlesPointerEvents,
+        HasBoxShadow, HasOutline, HasCursor, HasTransition, HasBoxSizing {
     /**
      * Returns the default style instance used by input fields.
      *

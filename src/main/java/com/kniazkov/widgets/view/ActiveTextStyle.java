@@ -12,7 +12,8 @@ import java.util.Set;
 /**
  * Style definition for {@link ActiveText}.
  */
-public class ActiveTextStyle extends Style implements HasStyledText, HasColor {
+public class ActiveTextStyle extends Style implements HasStyledText, HasColor, HasCursor,
+        HasTransition {
     /**
      * Set of supported states.
      */

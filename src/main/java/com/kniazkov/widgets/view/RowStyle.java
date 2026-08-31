@@ -9,7 +9,7 @@ import java.util.Set;
 /**
  * Style definition for {@link Row}.
  */
-public class RowStyle extends Style implements HasBgColor {
+public class RowStyle extends Style implements HasBgColor, HasCursor, HasTransition {
     /**
      * Set of supported states.
      */
