@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Cell extends Widget<CellStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasPadding, HasVerticalAlignment,
-        HandlesPointerEvents {
+        HandlesPointerEvents, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
     /**
      * Returns the default style instance used by table cells.
      *

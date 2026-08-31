@@ -4,15 +4,18 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
  * Style definition for {@link ActiveText}.
  */
-public class ActiveTextStyle extends Style implements HasStyledText, HasColor {
+public class ActiveTextStyle extends Style implements HasStyledText, HasColor, HasCursor,
+        HasTransition {
     /**
      * Set of supported states.
      */
@@ -31,6 +34,8 @@ public class ActiveTextStyle extends Style implements HasStyledText, HasColor {
      * Creates the default active text style.
      */
     private ActiveTextStyle() {
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
         this.setFontFace(FontFace.DEFAULT);
         this.setFontSize(FontSize.DEFAULT);
         this.setFontWeight(FontWeight.NORMAL);

@@ -14,7 +14,8 @@ import java.util.TreeMap;
  * Represents a table widget that contains {@link Row} widgets.
  */
 public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row>,
-        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing {
+        HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing,
+        HasBoxShadow, HasTransition, HasBoxSizing {
     /**
      * Returns the default style instance used by tables.
      *

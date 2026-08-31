@@ -3,7 +3,11 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.images.SvgImageSource;
 
 import java.util.Set;
@@ -12,7 +16,8 @@ import java.util.Set;
  * Style definition for {@link CheckBox}.
  */
 public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbsoluteWidth,
-        HasAbsoluteHeight, HasMargin, HasSelectableImage {
+        HasAbsoluteHeight, HasMargin, HasSelectableImage, HasBoxShadow, HasCursor, HasTransition,
+        HasBoxSizing {
     /**
      * Set of supported states.
      */
@@ -54,6 +59,10 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
      * Creates the default text style.
      */
     private CheckBoxStyle() {
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setColor(State.NORMAL, Color.BLACK);
         this.setColor(State.HOVERED, Color.BLACK);
         this.setColor(State.ACTIVE, Color.BLACK);

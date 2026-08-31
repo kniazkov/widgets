@@ -9,7 +9,8 @@ package com.kniazkov.widgets.view;
  * @param <S> Widget style
  */
 public abstract class BaseImageWidget<S extends Style> extends InlineWidget<S>
-        implements HasBorder, HasMargin, HasAbsoluteWidth, HasAbsoluteHeight, HasOpacity {
+        implements HasBorder, HasMargin, HasAbsoluteWidth, HasAbsoluteHeight, HasOpacity,
+        HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
     /**
      * Creates a new image widget.
      *

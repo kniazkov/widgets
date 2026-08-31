@@ -5,14 +5,17 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
  * Style definition for {@link Table}.
  */
 public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasMargin, HasPadding, HasCellSpacing {
+        HasMargin, HasPadding, HasCellSpacing, HasBoxShadow, HasTransition, HasBoxSizing {
     /**
      * Set of supported states.
      */
@@ -27,6 +30,9 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
      * Creates the default table style.
      */
     private TableStyle() {
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);

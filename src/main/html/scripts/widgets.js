@@ -686,6 +686,99 @@ function setBorderRadius(data) {
     return false;
 }
 
+function setBoxShadow(data) {
+    const widget = widgets[data.widget];
+    const value = data["box shadow"];
+    const state = data.state;
+    if (widget && typeof value == "string" && typeof state == "string") {
+        widget._properties[state].boxShadow = value;
+        refreshWidget(widget);
+        log(
+            'The box shadow "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
+        return true;
+    }
+    return false;
+}
+
+function setOutline(data) {
+    const widget = widgets[data.widget];
+    const value = data.outline;
+    const state = data.state;
+    if (
+        widget &&
+        value !== null &&
+        typeof value == "object" &&
+        value.color !== null &&
+        typeof value.color == "object" &&
+        typeof value.style == "string" &&
+        typeof value.width == "string" &&
+        typeof value.offset == "string" &&
+        typeof state == "string"
+    ) {
+        const properties = widget._properties[state];
+        properties.outlineColor = composeColor(value.color);
+        properties.outlineStyle = value.style;
+        properties.outlineWidth = value.width;
+        properties.outlineOffset = value.offset;
+        refreshWidget(widget);
+        log(
+            'The outline for state "' + state + '" has been set to the widget ' + data.widget + "."
+        );
+        return true;
+    }
+    return false;
+}
+
+function setCursor(data) {
+    const widget = widgets[data.widget];
+    const value = data.cursor;
+    const state = data.state;
+    if (widget && typeof value == "string" && typeof state == "string") {
+        widget._properties[state].cursor = value;
+        refreshWidget(widget);
+        log(
+            'The cursor "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
+        return true;
+    }
+    return false;
+}
+
+function setTransition(data) {
+    const widget = widgets[data.widget];
+    const value = data.transition;
+    if (widget && typeof value == "string") {
+        widget.style.transition = value;
+        log("The transition of the widget " + data.widget + ' has been set to "' + value + '".');
+        return true;
+    }
+    return false;
+}
+
+function setBoxSizing(data) {
+    const widget = widgets[data.widget];
+    const value = data["box sizing"];
+    if (widget && typeof value == "string") {
+        widget.style.boxSizing = value;
+        log("The box sizing of the widget " + data.widget + ' has been set to "' + value + '".');
+        return true;
+    }
+    return false;
+}
+
 function setSource(data) {
     const widget = widgets[data.widget];
     const source = data["source"];

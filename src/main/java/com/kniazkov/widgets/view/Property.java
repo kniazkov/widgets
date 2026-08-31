@@ -9,12 +9,17 @@ import com.kniazkov.json.JsonNumber;
 import com.kniazkov.json.JsonString;
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.Offset;
+import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;
 import com.kniazkov.widgets.images.ImageSource;
@@ -23,7 +28,10 @@ import com.kniazkov.widgets.model.AbsoluteSizeModel;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.BorderStyleModel;
+import com.kniazkov.widgets.model.BoxShadowModel;
+import com.kniazkov.widgets.model.BoxSizingModel;
 import com.kniazkov.widgets.model.ColorModel;
+import com.kniazkov.widgets.model.CursorModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
@@ -31,9 +39,11 @@ import com.kniazkov.widgets.model.HorizontalAlignmentModel;
 import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
+import com.kniazkov.widgets.model.OutlineModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SvgImageSourceModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
+import com.kniazkov.widgets.model.TransitionModel;
 import com.kniazkov.widgets.model.ValidatedRealNumberModel;
 import com.kniazkov.widgets.model.VerticalAlignmentModel;
 import com.kniazkov.widgets.model.WidgetSizeModel;
@@ -463,6 +473,56 @@ public abstract class Property<T> {
      */
     public static final Property<AbsoluteSize> BORDER_RADIUS =
             absoluteSizeProperty("border radius", "0px");
+
+    /**
+     * Property defining a state-dependent shadow around the widget box.
+     */
+    public static final Property<BoxShadow> BOX_SHADOW = of(
+            "box shadow",
+            BoxShadow.class,
+            BoxShadowModel::new,
+            data -> new JsonString(data.getCSSCode())
+    );
+
+    /**
+     * Property defining a state-dependent outline around the widget.
+     */
+    public static final Property<Outline> OUTLINE = of(
+            "outline",
+            Outline.class,
+            OutlineModel::new,
+            Outline::toJsonObject
+    );
+
+    /**
+     * Property defining the cursor displayed over the widget.
+     */
+    public static final Property<Cursor> CURSOR = of(
+            "cursor",
+            Cursor.class,
+            CursorModel::new,
+            data -> new JsonString(data.getCSSCode())
+    );
+
+    /**
+     * Property defining smooth transitions between visual states.
+     */
+    public static final Property<Transition> TRANSITION = of(
+            "transition",
+            Transition.class,
+            TransitionModel::new,
+            data -> new JsonString(data.getCSSCode())
+    );
+
+    /**
+     * Property defining whether borders and padding participate in declared dimensions.
+     */
+    public static final Property<BoxSizing> BOX_SIZING = of(
+            "box sizing",
+            BoxSizing.class,
+            BoxSizingModel::new,
+            data -> new JsonString(data.getCSSCode())
+    );
 
     /**
      * Property storing the image source used by image widgets.

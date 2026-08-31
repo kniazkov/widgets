@@ -5,7 +5,11 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.AbsoluteSize;
 import com.kniazkov.widgets.common.BorderStyle;
+import com.kniazkov.widgets.common.BoxShadow;
+import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import java.util.Set;
 
@@ -13,7 +17,7 @@ import java.util.Set;
  * Style definition for {@link Cell}.
  */
 public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasPadding, HasVerticalAlignment {
+        HasPadding, HasVerticalAlignment, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
     /**
      * Set of supported states.
      */
@@ -32,6 +36,10 @@ public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth,
      * Creates the default cell style.
      */
     private CellStyle() {
+        this.setBoxShadow(BoxShadow.NONE);
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);

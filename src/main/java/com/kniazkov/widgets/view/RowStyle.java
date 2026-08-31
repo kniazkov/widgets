@@ -4,12 +4,14 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
  * Style definition for {@link Row}.
  */
-public class RowStyle extends Style implements HasBgColor {
+public class RowStyle extends Style implements HasBgColor, HasCursor, HasTransition {
     /**
      * Set of supported states.
      */
@@ -28,6 +30,8 @@ public class RowStyle extends Style implements HasBgColor {
      * Creates the default row style.
      */
     private RowStyle() {
+        this.setCursor(Cursor.AUTO);
+        this.setTransition(Transition.NONE);
         this.setBgColor(Color.TRANSPARENT);
     }
 
