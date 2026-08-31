@@ -25,12 +25,10 @@ img, textarea, button {
     color: #650000;
     font-family: Inter, sans-serif;
     font-size: clamp(32px, 6vw, 72px);
-    font-weight: 900;
-    letter-spacing: 0.08em;
+    font-weight: 700;
     line-height: 1.1;
     text-align: center;
     text-shadow: 0 0 12px rgba(80, 0, 0, 0.45), 0 0 32px rgba(80, 0, 0, 0.35);
-    text-transform: uppercase;
 }
 
 #client-error-overlay {

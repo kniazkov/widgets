@@ -27,7 +27,7 @@ function showConnectionTerminated() {
     }
     const overlay = document.createElement("div");
     overlay.id = connectionOverlayId;
-    overlay.textContent = "Connection terminated";
+    overlay.textContent = "Connection Terminated";
     (document.body || document.documentElement).appendChild(overlay);
 }
 
@@ -47,7 +47,7 @@ function showClientError(error) {
     clearInterval(mainCycleTask);
     hideConnectionTerminated();
     if (error) {
-        console.error("Client error", error);
+        console.error("Client Error", error);
     }
     const overlay = document.createElement("div");
     overlay.id = clientErrorOverlayId;
