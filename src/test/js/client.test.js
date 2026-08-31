@@ -84,7 +84,7 @@ describe("connection recovery", () => {
 
         harness.fail();
         const overlay = dom.window.document.getElementById("connection-terminated-overlay");
-        expect(overlay?.textContent).toBe("Connection terminated");
+        expect(overlay?.textContent).toBe("Connection Terminated");
 
         harness.succeed();
         expect(dom.window.document.getElementById("connection-terminated-overlay")).toBeNull();
