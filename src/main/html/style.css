@@ -23,7 +23,7 @@ img, textarea, button {
     padding: 32px;
     background: rgba(255, 255, 255, 0.78);
     color: #650000;
-    font-family: Inter, sans-serif;
+    font-family: Arial, sans-serif;
     font-size: clamp(32px, 6vw, 72px);
     font-weight: 700;
     line-height: 1.1;

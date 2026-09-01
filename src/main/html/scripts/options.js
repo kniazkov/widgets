@@ -2,7 +2,7 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 
-const DEFAULT_FONT_FACE = "Inter";
+const DEFAULT_FONT_FACE = "Arial, sans-serif";
 const MAX_ACTIVE_UPLOADS = 5;
 const REQUEST_TIMEOUT = 10 * 1000;
 const UPLOAD_RETRY_DELAY = 100;
