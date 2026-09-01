@@ -20,6 +20,7 @@ import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.common.Outline;
 import com.kniazkov.widgets.common.Overflow;
+import com.kniazkov.widgets.common.TextDecoration;
 import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;
@@ -45,6 +46,7 @@ import com.kniazkov.widgets.model.OverflowModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SvgImageSourceModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
+import com.kniazkov.widgets.model.TextDecorationModel;
 import com.kniazkov.widgets.model.TransitionModel;
 import com.kniazkov.widgets.model.ValidatedRealNumberModel;
 import com.kniazkov.widgets.model.VerticalAlignmentModel;
@@ -428,6 +430,16 @@ public abstract class Property<T> {
      * Property indicating whether the widget’s text is rendered in italic style.
      */
     public static final Property<Boolean> ITALIC = boolProperty("italic");
+
+    /**
+     * Property defining a decorative line applied to text.
+     */
+    public static final Property<TextDecoration> TEXT_DECORATION = of(
+            "text decoration",
+            TextDecoration.class,
+            TextDecorationModel::new,
+            data -> new JsonString(data.getCSSCode())
+    );
 
     /**
      * Property defining the widget’s width in CSS units.

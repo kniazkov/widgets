@@ -42,6 +42,7 @@ function createHarness() {
             setTransition,
             setBoxSizing,
             setOverflow,
+            setTextDecoration,
             setColor,
             setBgColor,
             setOpacity,
@@ -91,6 +92,32 @@ describe("modern style properties", () => {
         expect(widget.style.outlineWidth).toBe("2px");
         expect(widget.style.outlineOffset).toBe("2px");
         expect(widget.style.cursor).toBe("pointer");
+    });
+
+    it("applies state-dependent text decoration", () => {
+        const harness = createHarness();
+        const id = "#15";
+        harness.createWidget({ type: "active text", widget: id });
+        const widget = harness.widgets[id];
+
+        expect(
+            harness.setTextDecoration({
+                widget: id,
+                state: "hovered",
+                "text decoration": "underline"
+            })
+        ).toBe(true);
+
+        widget._states.hovered = true;
+        harness.refreshWidget(widget);
+        expect(widget.style.textDecoration).toBe("underline");
+        expect(
+            harness.setTextDecoration({
+                widget: id,
+                state: "hovered",
+                "text decoration": 42
+            })
+        ).toBe(false);
     });
 
     it("applies state-independent transition and box sizing", () => {

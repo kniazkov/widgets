@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.TextDecoration;
 import java.util.Set;
 
 /**
@@ -28,6 +29,7 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
         this.setFontSize("15px");
         this.setFontWeight(FontWeight.NORMAL);
         this.setItalic(false);
+        this.setTextDecoration(TextDecoration.NONE);
         this.setColor(DefaultTheme.TEXT);
     }
 

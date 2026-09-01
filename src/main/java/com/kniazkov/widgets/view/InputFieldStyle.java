@@ -10,10 +10,12 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.TextDecoration;
 import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.model.FontFaceModel;
 import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
+import com.kniazkov.widgets.model.TextDecorationModel;
 import java.util.Set;
 
 /**
@@ -82,6 +84,14 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setItalicModel(State.ACTIVE, italic.asCascading());
         this.setItalicModel(State.INVALID, italic.asCascading());
         this.setItalicModel(State.DISABLED, italic.asCascading());
+
+        final TextDecorationModel decoration = new TextDecorationModel(TextDecoration.NONE);
+        this.setTextDecorationModel(State.NORMAL, decoration);
+        this.setTextDecorationModel(State.HOVERED, decoration.asCascading());
+        this.setTextDecorationModel(State.FOCUSED, decoration.asCascading());
+        this.setTextDecorationModel(State.ACTIVE, decoration.asCascading());
+        this.setTextDecorationModel(State.INVALID, decoration.asCascading());
+        this.setTextDecorationModel(State.DISABLED, decoration.asCascading());
 
         this.setColor(State.NORMAL, DefaultTheme.TEXT);
         this.setColor(State.HOVERED, DefaultTheme.TEXT);

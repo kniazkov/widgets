@@ -32,6 +32,7 @@ const handlerNames = [
     "setFontSize",
     "setFontWeight",
     "setItalic",
+    "setTextDecoration",
     "setBorderColor",
     "setBorderStyle",
     "setBorderWidth",
