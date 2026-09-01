@@ -97,8 +97,8 @@ public final class ModernStylePropertiesTest {
     @Test
     public void inputFieldSupportsPadding() {
         final InputField input = new InputField();
-        assertEquals("14px", input.getLeftPadding().getCSSCode());
-        assertEquals("14px", input.getRightPadding().getCSSCode());
+        assertEquals("8px", input.getLeftPadding().getCSSCode());
+        assertEquals("8px", input.getRightPadding().getCSSCode());
         assertEquals("8px", input.getTopPadding().getCSSCode());
         assertEquals("8px", input.getBottomPadding().getCSSCode());
 
@@ -156,14 +156,38 @@ public final class ModernStylePropertiesTest {
         assertEquals(Overflow.HIDDEN, decorated.getOverflow());
         assertEquals("100.0%", decorated.getWidth().getCSSCode());
         assertEquals("1px", decorated.getCellSpacing().getCSSCode());
-        assertEquals("14px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
+        assertEquals("11px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
 
         final TableStyle custom = TableStyle.DECORATED.derive();
         custom.getDefaultCellStyle().setPadding(20);
-        assertEquals("14px", TableStyle.DECORATED.getDefaultCellStyle()
+        assertEquals("11px", TableStyle.DECORATED.getDefaultCellStyle()
             .getLeftPadding().getCSSCode());
         assertEquals("20px", new Table(custom).getCell(0, 0)
             .getLeftPadding().getCSSCode());
+    }
+
+    /**
+     * Verifies ready-to-use button styles include matching text styles.
+     */
+    @Test
+    public void buttonOffersDefaultPrimaryAndDangerStyles() {
+        final Button standard = new Button(ButtonStyle.DEFAULT, "Default");
+        assertEquals(Color.WHITE, standard.getBgColor());
+        assertEquals(DefaultTheme.TEXT, ((TextWidget) standard.getChild()).getColor());
+
+        final Button primary = new Button(ButtonStyle.PRIMARY, "Save");
+        assertEquals(DefaultTheme.PRIMARY, primary.getBgColor());
+        assertEquals(Color.WHITE, ((TextWidget) primary.getChild()).getColor());
+
+        final Button danger = new Button(ButtonStyle.DANGER, "Delete");
+        assertEquals(DefaultTheme.DANGER, danger.getBgColor());
+        assertEquals(Color.WHITE, ((TextWidget) danger.getChild()).getColor());
+
+        final ButtonStyle custom = ButtonStyle.PRIMARY.derive();
+        custom.getDefaultTextStyle().setColor(Color.BLACK);
+        assertEquals(Color.WHITE, ButtonStyle.PRIMARY.getDefaultTextStyle().getColor());
+        assertEquals(Color.BLACK, ((TextWidget) new Button(custom, "Custom").getChild())
+            .getColor());
     }
 
     /**

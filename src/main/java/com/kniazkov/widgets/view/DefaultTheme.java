@@ -51,6 +51,16 @@ final class DefaultTheme {
     static final Color DANGER = new Color(220, 38, 38);
 
     /**
+     * Error hover color.
+     */
+    static final Color DANGER_HOVER = new Color(185, 28, 28);
+
+    /**
+     * Error pressed color.
+     */
+    static final Color DANGER_ACTIVE = new Color(153, 27, 27);
+
+    /**
      * Regular border color.
      */
     static final Color BORDER = new Color(203, 213, 225);

@@ -75,16 +75,6 @@ public class AllWidgets {
     private static final Color PRIMARY = new Color(37, 99, 235);
 
     /**
-     * Primary hover color.
-     */
-    private static final Color PRIMARY_HOVER = new Color(29, 78, 216);
-
-    /**
-     * Primary pressed color.
-     */
-    private static final Color PRIMARY_ACTIVE = new Color(30, 64, 175);
-
-    /**
      * Destructive action color.
      */
     private static final Color DANGER = new Color(220, 38, 38);
@@ -321,7 +311,7 @@ public class AllWidgets {
      */
     private static void addButtons(final RootWidget root) {
         final Panel card = addCard(root, "Button",
-            "Default, primary, destructive and disabled actions.");
+            "Ready-to-use styles, a custom design and an image child.");
         final Section row = variantRow();
         card.add(row);
         final AtomicInteger clicks = new AtomicInteger();
@@ -331,14 +321,22 @@ public class AllWidgets {
             "Clicked " + clicks.incrementAndGet() + " time(s)"
         ));
         row.add(variant("Default", standard, standardResult));
-        final Button primary = button(primaryButtonStyle(), "Primary", Color.WHITE);
+        final Button primary = new Button(ButtonStyle.PRIMARY, "Primary");
         final TextWidget primaryResult = feedback("Not clicked yet");
         primary.onClick(event -> primaryResult.setText("Primary action clicked"));
         row.add(variant("Primary", primary, primaryResult));
-        final Button destructive = button(dangerButtonStyle(), "Delete", Color.WHITE);
+        final Button destructive = new Button(ButtonStyle.DANGER, "Delete");
         final TextWidget dangerResult = feedback("Not clicked yet");
         destructive.onClick(event -> dangerResult.setText("Destructive action clicked"));
         row.add(variant("Destructive", destructive, dangerResult));
+        final Button custom = new Button(customButtonStyle(), "Custom");
+        final TextWidget customResult = feedback("Not clicked yet");
+        custom.onClick(event -> customResult.setText("Custom action clicked"));
+        row.add(variant("Fully custom", custom, customResult));
+        final Button icon = new Button(ButtonStyle.PRIMARY, addIcon());
+        final TextWidget iconResult = feedback("Not clicked yet");
+        icon.onClick(event -> iconResult.setText("Icon action clicked"));
+        row.add(variant("Image child", icon, iconResult));
         final Button disabled = new Button("Disabled");
         disabled.disable();
         row.add(variant("Disabled", disabled));
@@ -358,7 +356,7 @@ public class AllWidgets {
         final TextWidget anyFileResult = feedback("No file selected");
         attachUploadFeedback(anyFile, "File", anyFileResult);
         row.add(variant("Default", anyFile, anyFileResult));
-        final FileLoader images = fileLoader("Choose image", primaryButtonStyle(), Color.WHITE);
+        final FileLoader images = new FileLoader(ButtonStyle.PRIMARY, "Choose image");
         images.acceptImagesOnly();
         final TextWidget imageResult = feedback("No image selected");
         attachUploadFeedback(images, "Image", imageResult);
@@ -604,79 +602,53 @@ public class AllWidgets {
     }
 
     /**
-     * Creates a primary button style.
+     * Creates a deliberately distinct button style using only the public style API.
      *
-     * @return primary button style
+     * @return custom button style
      */
-    private static ButtonStyle primaryButtonStyle() {
-        return coloredButtonStyle(PRIMARY, PRIMARY_HOVER, PRIMARY_ACTIVE, PRIMARY);
-    }
-
-    /**
-     * Creates a destructive button style.
-     *
-     * @return destructive button style
-     */
-    private static ButtonStyle dangerButtonStyle() {
-        return coloredButtonStyle(DANGER, DANGER_HOVER, new Color(153, 27, 27), DANGER);
-    }
-
-    /**
-     * Creates a button style with a colored background.
-     *
-     * @param normal normal background
-     * @param hovered hover background
-     * @param active pressed background
-     * @param focus focus color
-     * @return button style
-     */
-    private static ButtonStyle coloredButtonStyle(final Color normal, final Color hovered,
-                                                  final Color active, final Color focus) {
+    private static ButtonStyle customButtonStyle() {
         final ButtonStyle style = Button.getDefaultStyle().derive();
+        final Color normal = new Color(124, 58, 237);
+        final Color hovered = new Color(109, 40, 217);
+        final Color active = new Color(91, 33, 182);
         style.setBgColor(State.NORMAL, normal);
         style.setBgColor(State.HOVERED, hovered);
         style.setBgColor(State.FOCUSED, normal);
         style.setBgColor(State.ACTIVE, active);
-        style.setBorderColor(normal);
+        style.setBorderColor(State.NORMAL, normal);
         style.setBorderColor(State.HOVERED, hovered);
+        style.setBorderColor(State.FOCUSED, normal);
         style.setBorderColor(State.ACTIVE, active);
-        style.setBorderColor(State.FOCUSED, focus);
+        style.setBorderRadius(20);
+        style.setHeight(42);
+        style.setPadding(22, 8);
         style.setBoxShadow(State.NORMAL,
-            new BoxShadow(0, 2, 5, new Color(15, 23, 42, 28)));
+            new BoxShadow(0, 4, 10, new Color(124, 58, 237, 55)));
         style.setBoxShadow(State.HOVERED,
-            new BoxShadow(0, 5, 12, new Color(15, 23, 42, 40)));
+            new BoxShadow(0, 7, 16, new Color(124, 58, 237, 72)));
         style.setBoxShadow(State.ACTIVE,
-            new BoxShadow(0, 1, 3, new Color(15, 23, 42, 35)));
+            new BoxShadow(0, 2, 5, new Color(124, 58, 237, 50)));
+        style.getDefaultTextStyle().setColor(Color.WHITE);
+        style.getDefaultTextStyle().setFontWeight(FontWeight.BOLD);
         return style;
     }
 
     /**
-     * Creates a button with explicitly styled child text.
+     * Creates a small plus pictogram used as a button child.
      *
-     * @param style button style
-     * @param text button label
-     * @param color label color
-     * @return button
+     * @return image widget containing the pictogram
      */
-    private static Button button(final ButtonStyle style, final String text, final Color color) {
-        return new Button(style, new TextWidget(
-            textStyle(color, "14px", FontWeight.SEMIBOLD), text
-        ));
-    }
-
-    /**
-     * Creates a file loader with explicitly styled child text.
-     *
-     * @param text button label
-     * @param style button style
-     * @param color label color
-     * @return file loader
-     */
-    private static FileLoader fileLoader(final String text, final ButtonStyle style,
-                                         final Color color) {
-        final FileLoader loader = new FileLoader(style, text);
-        loader.put(new TextWidget(textStyle(color, "14px", FontWeight.SEMIBOLD), text));
-        return loader;
+    private static ImageWidget addIcon() {
+        final ImageWidget icon = new ImageWidget(new SvgImageSource() {
+            @Override
+            protected String getSvg() {
+                return "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' "
+                    + "viewBox='0 0 18 18'><path d='M9 3v12M3 9h12' fill='none' "
+                    + "stroke='white' stroke-width='2.2' stroke-linecap='round'/></svg>";
+            }
+        });
+        icon.setStyle(imageStyle(18, 18, 0));
+        return icon;
     }
 
     /**
