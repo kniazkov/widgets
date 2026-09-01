@@ -19,6 +19,7 @@ import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.Overflow;
 import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.common.WidgetSize;
@@ -40,6 +41,7 @@ import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.OutlineModel;
+import com.kniazkov.widgets.model.OverflowModel;
 import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.model.SvgImageSourceModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
@@ -521,6 +523,16 @@ public abstract class Property<T> {
             "box sizing",
             BoxSizing.class,
             BoxSizingModel::new,
+            data -> new JsonString(data.getCSSCode())
+    );
+
+    /**
+     * Property defining how content outside the widget's box is displayed.
+     */
+    public static final Property<Overflow> OVERFLOW = of(
+            "overflow",
+            Overflow.class,
+            OverflowModel::new,
             data -> new JsonString(data.getCSSCode())
     );
 

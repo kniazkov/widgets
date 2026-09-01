@@ -8,12 +8,25 @@ package com.kniazkov.widgets.view;
  * Extends {@link InputField} to provide similar functionality with multi-line support.
  */
 public class TextArea extends InputField {
+    /**
+     * Default text area style derived from the regular input style.
+     */
+    private static final InputFieldStyle DEFAULT = createDefaultStyle();
+
+    /**
+     * Returns the default style instance used by text areas.
+     *
+     * @return the singleton default text area style
+     */
+    public static InputFieldStyle getDefaultStyle() {
+        return DEFAULT;
+    }
 
     /**
      * Creates a new text area with empty text.
      */
     public TextArea() {
-        super();
+        this("");
     }
 
     /**
@@ -22,7 +35,7 @@ public class TextArea extends InputField {
      * @param text the initial text to display in the text area
      */
     public TextArea(final String text) {
-        super(text);
+        this(getDefaultStyle(), text);
     }
 
     /**
@@ -38,5 +51,17 @@ public class TextArea extends InputField {
     @Override
     public String getType() {
         return "text area";
+    }
+
+    /**
+     * Creates the larger default geometry required by a multi-line editor.
+     *
+     * @return text area default style
+     */
+    private static InputFieldStyle createDefaultStyle() {
+        final InputFieldStyle style = InputField.getDefaultStyle().derive();
+        style.setWidth(300);
+        style.setHeight(96);
+        return style;
     }
 }

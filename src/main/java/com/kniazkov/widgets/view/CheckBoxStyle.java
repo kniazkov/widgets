@@ -7,7 +7,6 @@ import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
-import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.images.SvgImageSource;
 
 import java.util.Set;
@@ -17,7 +16,7 @@ import java.util.Set;
  */
 public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbsoluteWidth,
         HasAbsoluteHeight, HasMargin, HasSelectableImage, HasBoxShadow, HasCursor, HasTransition,
-        HasBoxSizing {
+        HasBoxSizing, HasOpacity {
     /**
      * Set of supported states.
      */
@@ -32,22 +31,23 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
      * Default image for checked checkbox.
      */
     private static final String CHECKED_SVG =
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" "
-            + "viewBox=\"0 0 64 64\" fill=\"none\">"
-            + "<rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"6\" fill=\"white\" "
-            + "stroke=\"black\" stroke-width=\"4\"/>"
-            + "<path d=\"M10 34 L24 48 L54 14\" stroke=\"black\" stroke-width=\"4\" "
-            + "stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" "
+            + "viewBox=\"0 0 24 24\">"
+            + "<rect x=\"1.5\" y=\"1.5\" width=\"21\" height=\"21\" rx=\"6\" "
+            + "fill=\"white\" stroke=\"black\" stroke-width=\"1.5\"/>"
+            + "<path d=\"M6 12.5l4 4L18 8\" fill=\"none\" stroke=\"white\" "
+            + "stroke-width=\"2.4\" stroke-linecap=\"round\" "
+            + "stroke-linejoin=\"round\"/>"
             + "</svg>";
 
     /**
      * Default image for unchecked checkbox.
      */
     private static final String UNCHECKED_SVG =
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"64\" "
-            + "viewBox=\"0 0 64 64\" fill=\"none\">"
-            + "<rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"6\" fill=\"white\" "
-            + "stroke=\"black\" stroke-width=\"4\"/>"
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" "
+            + "viewBox=\"0 0 24 24\">"
+            + "<rect x=\"1.5\" y=\"1.5\" width=\"21\" height=\"21\" rx=\"6\" "
+            + "fill=\"none\" stroke=\"black\" stroke-width=\"1.5\"/>"
             + "</svg>";
 
     /**
@@ -60,18 +60,26 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
      */
     private CheckBoxStyle() {
         this.setBoxShadow(BoxShadow.NONE);
-        this.setCursor(Cursor.AUTO);
-        this.setTransition(Transition.NONE);
-        this.setBoxSizing(BoxSizing.CONTENT_BOX);
-        this.setColor(State.NORMAL, Color.BLACK);
-        this.setColor(State.HOVERED, Color.BLACK);
-        this.setColor(State.ACTIVE, Color.BLACK);
-        this.setColor(State.DISABLED, Color.GRAY);
+        this.setBoxShadow(State.HOVERED,
+            new BoxShadow(0, 0, 0, 3, new Color(37, 99, 235, 38)));
+        this.setCursor(Cursor.POINTER);
+        this.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
+        this.setTransition(DefaultTheme.TRANSITION);
+        this.setBoxSizing(BoxSizing.BORDER_BOX);
+        this.setColor(State.NORMAL, DefaultTheme.PRIMARY_HOVER);
+        this.setColor(State.HOVERED, DefaultTheme.PRIMARY_ACTIVE);
+        this.setColor(State.ACTIVE, DefaultTheme.TEXT);
+        this.setColor(State.DISABLED, DefaultTheme.MUTED);
 
-        this.setBgColor(State.NORMAL, Color.WHITE);
-        this.setBgColor(State.HOVERED, new Color(224, 224, 224));
-        this.setBgColor(State.ACTIVE, new Color(255, 255, 230));
-        this.setBgColor(State.DISABLED, Color.LIGHT_GRAY);
+        this.setBgColor(State.NORMAL, DefaultTheme.PRIMARY);
+        this.setBgColor(State.HOVERED, DefaultTheme.PRIMARY_HOVER);
+        this.setBgColor(State.ACTIVE, DefaultTheme.PRIMARY_ACTIVE);
+        this.setBgColor(State.DISABLED, DefaultTheme.BORDER);
+
+        this.setOpacity(State.NORMAL, 1.0);
+        this.setOpacity(State.HOVERED, 1.0);
+        this.setOpacity(State.ACTIVE, 1.0);
+        this.setOpacity(State.DISABLED, 0.75);
 
         this.setWidth(24);
         this.setHeight(24);

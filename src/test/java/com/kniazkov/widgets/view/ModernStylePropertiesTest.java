@@ -10,6 +10,7 @@ import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.Overflow;
 import com.kniazkov.widgets.common.TimingFunction;
 import com.kniazkov.widgets.common.Transition;
 import java.util.List;
@@ -40,6 +41,7 @@ public final class ModernStylePropertiesTest {
         );
         assertEquals("none", BoxShadow.NONE.getCSSCode());
         assertEquals("none", Transition.NONE.getCSSCode());
+        assertEquals("hidden", Overflow.HIDDEN.getCSSCode());
     }
 
     /**
@@ -87,6 +89,122 @@ public final class ModernStylePropertiesTest {
             "border-box",
             singleUpdate(updates, "set box sizing", button).get("box sizing").getStringValue()
         );
+    }
+
+    /**
+     * Verifies text fields expose padding through the regular style protocol.
+     */
+    @Test
+    public void inputFieldSupportsPadding() {
+        final InputField input = new InputField();
+        assertEquals("8px", input.getLeftPadding().getCSSCode());
+        assertEquals("8px", input.getRightPadding().getCSSCode());
+        assertEquals("8px", input.getTopPadding().getCSSCode());
+        assertEquals("8px", input.getBottomPadding().getCSSCode());
+
+        final WidgetSandbox<InputField> sandbox = WidgetSandbox.open(input);
+        sandbox.clearUpdates();
+        input.setPadding(18, 9);
+
+        final JsonObject update = singleUpdate(
+            sandbox.drainUpdates(), "set padding", input
+        );
+        final JsonObject padding = (JsonObject) update.get("padding");
+        assertEquals("18px", padding.get("left").getStringValue());
+        assertEquals("18px", padding.get("right").getStringValue());
+        assertEquals("9px", padding.get("top").getStringValue());
+        assertEquals("9px", padding.get("bottom").getStringValue());
+    }
+
+    /**
+     * Verifies visible widgets are usable without constructing custom styles.
+     */
+    @Test
+    public void visibleWidgetsHaveModernDefaults() {
+        final Button button = new Button();
+        assertEquals(Cursor.POINTER, button.getCursor());
+        assertEquals(BoxSizing.BORDER_BOX, button.getBoxSizing());
+        assertEquals("8px", button.getBorderRadius().getCSSCode());
+
+        final InputField input = new InputField();
+        assertEquals(Cursor.TEXT, input.getCursor());
+        assertEquals(BoxSizing.BORDER_BOX, input.getBoxSizing());
+        assertEquals("8px", input.getBorderRadius().getCSSCode());
+
+        assertEquals("96px", new TextArea().getHeight().getCSSCode());
+        assertEquals("10px", new ImageWidget("image.png").getBorderRadius().getCSSCode());
+        assertEquals(Cursor.POINTER, new ActiveImage("image.png").getCursor());
+        assertEquals(0.75, new CheckBox().getOpacity(State.DISABLED), 0.0);
+        assertEquals("", new Table().getWidth().getCSSCode());
+        assertEquals("0px", new Cell().getLeftPadding().getCSSCode());
+    }
+
+    /**
+     * Verifies tables offer neutral layout and decorated data-table defaults.
+     */
+    @Test
+    public void tableOffersNeutralAndDecoratedStyles() {
+        final Table plain = new Table();
+        assertEquals(BorderStyle.NONE, plain.getBorderStyle());
+        assertEquals(Overflow.VISIBLE, plain.getOverflow());
+        assertEquals("", plain.getWidth().getCSSCode());
+        assertEquals("0px", plain.getCellSpacing().getCSSCode());
+        assertEquals("0px", plain.getCell(0, 0).getLeftPadding().getCSSCode());
+
+        final Table decorated = new Table(TableStyle.DECORATED);
+        assertEquals(BorderStyle.SOLID, decorated.getBorderStyle());
+        assertEquals(Overflow.HIDDEN, decorated.getOverflow());
+        assertEquals("100.0%", decorated.getWidth().getCSSCode());
+        assertEquals("1px", decorated.getCellSpacing().getCSSCode());
+        assertEquals("11px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
+
+        final TableStyle custom = TableStyle.DECORATED.derive();
+        custom.getDefaultCellStyle().setPadding(20);
+        assertEquals("11px", TableStyle.DECORATED.getDefaultCellStyle()
+            .getLeftPadding().getCSSCode());
+        assertEquals("20px", new Table(custom).getCell(0, 0)
+            .getLeftPadding().getCSSCode());
+    }
+
+    /**
+     * Verifies ready-to-use button styles include matching text styles.
+     */
+    @Test
+    public void buttonOffersDefaultPrimaryAndDangerStyles() {
+        final Button standard = new Button(ButtonStyle.DEFAULT, "Default");
+        assertEquals(Color.WHITE, standard.getBgColor());
+        assertEquals(DefaultTheme.TEXT, ((TextWidget) standard.getChild()).getColor());
+
+        final Button primary = new Button(ButtonStyle.PRIMARY, "Save");
+        assertEquals(DefaultTheme.PRIMARY, primary.getBgColor());
+        assertEquals(Color.WHITE, ((TextWidget) primary.getChild()).getColor());
+
+        final Button danger = new Button(ButtonStyle.DANGER, "Delete");
+        assertEquals(DefaultTheme.DANGER, danger.getBgColor());
+        assertEquals(Color.WHITE, ((TextWidget) danger.getChild()).getColor());
+
+        final ButtonStyle custom = ButtonStyle.PRIMARY.derive();
+        custom.getDefaultTextStyle().setColor(Color.BLACK);
+        assertEquals(Color.WHITE, ButtonStyle.PRIMARY.getDefaultTextStyle().getColor());
+        assertEquals(Color.BLACK, ((TextWidget) new Button(custom, "Custom").getChild())
+            .getColor());
+    }
+
+    /**
+     * Verifies overflow changes use the typed style protocol.
+     */
+    @Test
+    public void tableProducesOverflowUpdate() {
+        final Table table = new Table();
+        final WidgetSandbox<Table> sandbox = WidgetSandbox.open(table);
+        sandbox.clearUpdates();
+
+        table.setOverflow(Overflow.HIDDEN);
+
+        final JsonObject update = singleUpdate(
+            sandbox.drainUpdates(), "set overflow", table
+        );
+        assertEquals("hidden", update.get("overflow").getStringValue());
     }
 
     /**

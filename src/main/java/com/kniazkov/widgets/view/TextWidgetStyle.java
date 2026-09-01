@@ -3,9 +3,6 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.FontFace;
-import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import java.util.Set;
 
@@ -27,11 +24,11 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      * Creates the default text style.
      */
     private TextWidgetStyle() {
-        this.setFontFace(FontFace.DEFAULT);
-        this.setFontSize(FontSize.DEFAULT);
+        this.setFontFace(DefaultTheme.FONT);
+        this.setFontSize("15px");
         this.setFontWeight(FontWeight.NORMAL);
         this.setItalic(false);
-        this.setColor(Color.BLACK);
+        this.setColor(DefaultTheme.TEXT);
     }
 
     /**

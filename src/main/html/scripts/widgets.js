@@ -186,6 +186,7 @@ const widgetsLibrary = {
         widget._selected = false;
         widget._selSrc = "#";
         widget._unselSrc = "#";
+        widget._usesSvgColors = true;
         widget._refresh = function () {
             const color = getWidgetProperty(widget, "color");
             const bgColor = getWidgetProperty(widget, "backgroundColor");
@@ -194,7 +195,7 @@ const widgetsLibrary = {
             } else {
                 widget.src = replaceColorsInSvg(widget._unselSrc, color, bgColor);
             }
-            return false; // don't refresh properties
+            return true;
         };
         initPointerEvents(widget, true);
         widget._onClick = function () {
@@ -255,6 +256,10 @@ function refreshWidget(widget) {
         }
         if (states.disabled) {
             Object.assign(set, properties.disabled);
+        }
+        if (widget._usesSvgColors) {
+            delete set.color;
+            delete set.backgroundColor;
         }
         Object.assign(widget.style, set);
     }
@@ -774,6 +779,17 @@ function setBoxSizing(data) {
     if (widget && typeof value == "string") {
         widget.style.boxSizing = value;
         log("The box sizing of the widget " + data.widget + ' has been set to "' + value + '".');
+        return true;
+    }
+    return false;
+}
+
+function setOverflow(data) {
+    const widget = widgets[data.widget];
+    const value = data.overflow;
+    if (widget && typeof value == "string") {
+        widget.style.overflow = value;
+        log("The overflow of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
     return false;

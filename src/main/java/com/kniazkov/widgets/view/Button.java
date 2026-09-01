@@ -60,7 +60,7 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
      * @param text the button text
      */
     public Button(final ButtonStyle style, final String text) {
-        this(style, new TextWidget(text));
+        this(style, new TextWidget(style.getDefaultTextStyle(), text));
     }
 
     /**

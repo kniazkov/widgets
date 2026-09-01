@@ -41,6 +41,13 @@ function createHarness() {
             setCursor,
             setTransition,
             setBoxSizing,
+            setOverflow,
+            setColor,
+            setBgColor,
+            setOpacity,
+            setDisabledFlag,
+            setSelectedSource,
+            setCheckedFlag,
             widgets
         };
     `);
@@ -96,9 +103,50 @@ describe("modern style properties", () => {
             true
         );
         expect(harness.setBoxSizing({ widget: id, "box sizing": "border-box" })).toBe(true);
+        expect(harness.setOverflow({ widget: id, overflow: "hidden" })).toBe(true);
 
         expect(widget.style.transition).toBe("all 150ms ease-out 0ms");
         expect(widget.style.boxSizing).toBe("border-box");
+        expect(widget.style.overflow).toBe("hidden");
+    });
+
+    it("applies disabled colors and opacity to a checked checkbox", () => {
+        const harness = createHarness();
+        const id = "#14";
+        harness.createWidget({ type: "checkbox", widget: id });
+        const widget = harness.widgets[id];
+        const source =
+            "data:image/svg+xml," +
+            encodeURIComponent(
+                "<svg xmlns='http://www.w3.org/2000/svg'>" +
+                    "<rect fill='white' stroke='black'/>" +
+                    "</svg>"
+            );
+
+        expect(harness.setSelectedSource({ widget: id, "sel source": source })).toBe(true);
+        expect(
+            harness.setColor({
+                widget: id,
+                state: "disabled",
+                color: { r: 71, g: 85, b: 105 }
+            })
+        ).toBe(true);
+        expect(
+            harness.setBgColor({
+                widget: id,
+                state: "disabled",
+                "bg color": { r: 203, g: 213, b: 225 }
+            })
+        ).toBe(true);
+        expect(harness.setOpacity({ widget: id, state: "disabled", opacity: 0.75 })).toBe(true);
+        expect(harness.setCheckedFlag({ widget: id, checked: true })).toBe(true);
+        expect(harness.setDisabledFlag({ widget: id, disabled: true })).toBe(true);
+
+        expect(widget.style.opacity).toBe("0.75");
+        expect(widget.style.backgroundColor).toBe("");
+        const svg = decodeURIComponent(widget.src.substring("data:image/svg+xml,".length));
+        expect(svg).toContain('fill="rgb(203,213,225)"');
+        expect(svg).toContain('stroke="rgb(71,85,105)"');
     });
 
     it("rejects malformed values", () => {
@@ -112,5 +160,6 @@ describe("modern style properties", () => {
         expect(harness.setCursor({ widget: id, state: "normal", cursor: null })).toBe(false);
         expect(harness.setTransition({ widget: id, transition: null })).toBe(false);
         expect(harness.setBoxSizing({ widget: id, "box sizing": null })).toBe(false);
+        expect(harness.setOverflow({ widget: id, overflow: null })).toBe(false);
     });
 });
