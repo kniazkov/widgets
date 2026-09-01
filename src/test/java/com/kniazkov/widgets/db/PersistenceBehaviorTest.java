@@ -9,10 +9,13 @@ import com.kniazkov.widgets.db.persistence.ChangeSet;
 import com.kniazkov.widgets.db.persistence.DatabaseSnapshot;
 import com.kniazkov.widgets.db.persistence.PersistenceException;
 import com.kniazkov.widgets.db.persistence.StoredRecord;
+import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
+import com.kniazkov.widgets.db.persistence.StoredValue.Kind;
 import com.kniazkov.widgets.db.persistence.StoredValue.RealValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.StringValue;
+import com.kniazkov.widgets.model.StringModel;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +42,22 @@ import static org.junit.Assert.assertTrue;
  * Tests for the boundary between canonical memory and persistence backends.
  */
 public final class PersistenceBehaviorTest {
+    /**
+     * Verifies snapshot restoration does not wait for the class that builds the
+     * database to finish static initialization.
+     */
+    @Test(timeout = 5000)
+    public void loadsCustomTypesDuringStaticInitialization() {
+        try (Database database = StaticInitializationFixture.DATABASE) {
+            final DataRecord record = database.getStore("values")
+                .getRecord(StaticInitializationFixture.RECORD_ID);
+
+            assertEquals("restored", record.model(
+                StaticInitializationFixture.VALUE
+            ).getData());
+        }
+    }
+
     /**
      * Verifies configured records are loaded with metadata and native field values.
      */
@@ -381,5 +400,83 @@ public final class PersistenceBehaviorTest {
                 "score", new RealValue(1.5)
             )
         );
+    }
+
+    /**
+     * Database declared in the same class as its custom value conversion.
+     */
+    private static final class StaticInitializationFixture {
+        /**
+         * Store name.
+         */
+        private static final String STORE = "values";
+
+        /**
+         * Stored record identifier.
+         */
+        private static final UUID RECORD_ID = UUID.randomUUID();
+
+        /**
+         * Custom value type whose converter belongs to this initializing class.
+         */
+        private static final ValueType<String> TYPE = ValueType.of(
+            "static-initialization-value",
+            String.class,
+            StringModel::new,
+            Kind.STRING,
+            StringValue::new,
+            StaticInitializationFixture::restore,
+            String::compareTo
+        );
+
+        /**
+         * Custom field.
+         */
+        private static final Field<String> VALUE = new Field<>(TYPE, "value");
+
+        /**
+         * Database built while this class is still being initialized.
+         */
+        private static final Database DATABASE = createDatabase();
+
+        /**
+         * Utility class.
+         */
+        private StaticInitializationFixture() {
+        }
+
+        /**
+         * Builds a database whose initial snapshot uses the custom field.
+         *
+         * @return initialized database
+         */
+        private static Database createDatabase() {
+            final StoredRecord record = new StoredRecord(
+                STORE,
+                RECORD_ID,
+                Instant.now(),
+                1L,
+                Map.of("value", new StringValue("restored"))
+            );
+            return Database.builder()
+                .persistence(new RecordingPersistence(
+                    new DatabaseSnapshot(List.of(record))
+                ))
+                .store(STORE, Schema.of(VALUE))
+                .build();
+        }
+
+        /**
+         * Restores one custom value. Calling this method from another thread
+         * during class initialization reproduces the original deadlock.
+         *
+         * @param stored persisted scalar
+         * @return restored value
+         */
+        private static String restore(
+            final StoredValue stored
+        ) {
+            return stored.getString();
+        }
     }
 }
