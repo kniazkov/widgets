@@ -47,11 +47,11 @@ function showClientError(error) {
     clearInterval(mainCycleTask);
     hideConnectionTerminated();
     if (error) {
-        console.error("Client Error", error);
+        console.error("Client error", error);
     }
     const overlay = document.createElement("div");
     overlay.id = clientErrorOverlayId;
-    overlay.textContent = "CLIENT ERROR";
+    overlay.textContent = "Client Error";
     (document.body || document.documentElement).appendChild(overlay);
 }
 

@@ -102,7 +102,7 @@ describe("connection recovery", () => {
 
         expect(harness.reportClientError({ clientError: true })).toBe(true);
         const overlay = dom.window.document.getElementById("client-error-overlay");
-        expect(overlay?.textContent).toBe("CLIENT ERROR");
+        expect(overlay?.textContent).toBe("Client Error");
 
         harness.succeed();
         expect(dom.window.document.getElementById("client-error-overlay")).toBe(overlay);
