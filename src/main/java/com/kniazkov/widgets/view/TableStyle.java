@@ -126,7 +126,7 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
         style.rowStyle.setBgColor(State.ACTIVE, new Color(219, 234, 254));
         style.rowStyle.setTransition(DefaultTheme.TRANSITION);
 
-        style.cellStyle.setPadding(14, 11);
+        style.cellStyle.setPadding(11);
         style.cellStyle.setBoxSizing(BoxSizing.BORDER_BOX);
         return style;
     }

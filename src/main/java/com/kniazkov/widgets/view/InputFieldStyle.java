@@ -112,7 +112,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setWidth(240);
         this.setHeight(42);
         this.setMargin(2, 1);
-        this.setPadding(14, 8);
+        this.setPadding(8);
     }
 
     /**
