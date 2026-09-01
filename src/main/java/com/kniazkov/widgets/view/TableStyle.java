@@ -8,6 +8,7 @@ import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
+import com.kniazkov.widgets.common.Overflow;
 import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
@@ -15,7 +16,8 @@ import java.util.Set;
  * Style definition for {@link Table}.
  */
 public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasMargin, HasPadding, HasCellSpacing, HasBoxShadow, HasTransition, HasBoxSizing {
+        HasMargin, HasPadding, HasCellSpacing, HasBoxShadow, HasTransition, HasBoxSizing,
+        HasOverflow {
     /**
      * Set of supported states.
      */
@@ -48,6 +50,7 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
         this.setBoxShadow(BoxShadow.NONE);
         this.setTransition(Transition.NONE);
         this.setBoxSizing(BoxSizing.CONTENT_BOX);
+        this.setOverflow(Overflow.VISIBLE);
         this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);
@@ -108,6 +111,7 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
         style.setBoxShadow(new BoxShadow(0, 2, 8, new Color(15, 23, 42, 24)));
         style.setTransition(DefaultTheme.TRANSITION);
         style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setOverflow(Overflow.HIDDEN);
         style.setBgColor(DefaultTheme.BORDER);
         style.setBorderColor(DefaultTheme.BORDER_STRONG);
         style.setBorderStyle(BorderStyle.SOLID);

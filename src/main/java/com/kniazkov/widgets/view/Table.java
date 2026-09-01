@@ -15,7 +15,7 @@ import java.util.TreeMap;
  */
 public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row>,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding, HasCellSpacing,
-        HasBoxShadow, HasTransition, HasBoxSizing {
+        HasBoxShadow, HasTransition, HasBoxSizing, HasOverflow {
     /**
      * Returns the default style instance used by tables.
      *

@@ -784,6 +784,17 @@ function setBoxSizing(data) {
     return false;
 }
 
+function setOverflow(data) {
+    const widget = widgets[data.widget];
+    const value = data.overflow;
+    if (widget && typeof value == "string") {
+        widget.style.overflow = value;
+        log("The overflow of the widget " + data.widget + ' has been set to "' + value + '".');
+        return true;
+    }
+    return false;
+}
+
 function setSource(data) {
     const widget = widgets[data.widget];
     const source = data["source"];

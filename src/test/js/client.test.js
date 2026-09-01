@@ -40,6 +40,7 @@ const handlerNames = [
     "setCursor",
     "setTransition",
     "setBoxSizing",
+    "setOverflow",
     "setSource",
     "setSelectedSource",
     "setUnselectedSource",

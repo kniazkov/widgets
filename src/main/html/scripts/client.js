@@ -343,6 +343,7 @@ const actionHandlers = {
     "set cursor": setCursor,
     "set transition": setTransition,
     "set box sizing": setBoxSizing,
+    "set overflow": setOverflow,
     "set source": setSource,
     "set sel source": setSelectedSource,
     "set unsel source": setUnselectedSource,

@@ -41,6 +41,7 @@ function createHarness() {
             setCursor,
             setTransition,
             setBoxSizing,
+            setOverflow,
             setColor,
             setBgColor,
             setOpacity,
@@ -102,9 +103,11 @@ describe("modern style properties", () => {
             true
         );
         expect(harness.setBoxSizing({ widget: id, "box sizing": "border-box" })).toBe(true);
+        expect(harness.setOverflow({ widget: id, overflow: "hidden" })).toBe(true);
 
         expect(widget.style.transition).toBe("all 150ms ease-out 0ms");
         expect(widget.style.boxSizing).toBe("border-box");
+        expect(widget.style.overflow).toBe("hidden");
     });
 
     it("applies disabled colors and opacity to a checked checkbox", () => {
@@ -157,5 +160,6 @@ describe("modern style properties", () => {
         expect(harness.setCursor({ widget: id, state: "normal", cursor: null })).toBe(false);
         expect(harness.setTransition({ widget: id, transition: null })).toBe(false);
         expect(harness.setBoxSizing({ widget: id, "box sizing": null })).toBe(false);
+        expect(harness.setOverflow({ widget: id, overflow: null })).toBe(false);
     });
 });

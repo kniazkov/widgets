@@ -10,6 +10,7 @@ import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.Outline;
+import com.kniazkov.widgets.common.Overflow;
 import com.kniazkov.widgets.common.TimingFunction;
 import com.kniazkov.widgets.common.Transition;
 import java.util.List;
@@ -40,6 +41,7 @@ public final class ModernStylePropertiesTest {
         );
         assertEquals("none", BoxShadow.NONE.getCSSCode());
         assertEquals("none", Transition.NONE.getCSSCode());
+        assertEquals("hidden", Overflow.HIDDEN.getCSSCode());
     }
 
     /**
@@ -144,12 +146,14 @@ public final class ModernStylePropertiesTest {
     public void tableOffersNeutralAndDecoratedStyles() {
         final Table plain = new Table();
         assertEquals(BorderStyle.NONE, plain.getBorderStyle());
+        assertEquals(Overflow.VISIBLE, plain.getOverflow());
         assertEquals("", plain.getWidth().getCSSCode());
         assertEquals("0px", plain.getCellSpacing().getCSSCode());
         assertEquals("0px", plain.getCell(0, 0).getLeftPadding().getCSSCode());
 
         final Table decorated = new Table(TableStyle.DECORATED);
         assertEquals(BorderStyle.SOLID, decorated.getBorderStyle());
+        assertEquals(Overflow.HIDDEN, decorated.getOverflow());
         assertEquals("100.0%", decorated.getWidth().getCSSCode());
         assertEquals("1px", decorated.getCellSpacing().getCSSCode());
         assertEquals("14px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
@@ -160,6 +164,23 @@ public final class ModernStylePropertiesTest {
             .getLeftPadding().getCSSCode());
         assertEquals("20px", new Table(custom).getCell(0, 0)
             .getLeftPadding().getCSSCode());
+    }
+
+    /**
+     * Verifies overflow changes use the typed style protocol.
+     */
+    @Test
+    public void tableProducesOverflowUpdate() {
+        final Table table = new Table();
+        final WidgetSandbox<Table> sandbox = WidgetSandbox.open(table);
+        sandbox.clearUpdates();
+
+        table.setOverflow(Overflow.HIDDEN);
+
+        final JsonObject update = singleUpdate(
+            sandbox.drainUpdates(), "set overflow", table
+        );
+        assertEquals("hidden", update.get("overflow").getStringValue());
     }
 
     /**
