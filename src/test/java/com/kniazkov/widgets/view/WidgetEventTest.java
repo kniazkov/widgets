@@ -88,6 +88,7 @@ public final class WidgetEventTest {
             new Row(),
             new Cell(),
             new ActiveText(),
+            new Link(),
             new ActiveImage("active.png"),
             new Button(),
             new FileLoader(),
@@ -126,7 +127,8 @@ public final class WidgetEventTest {
             new FileLoader(),
             new InputField(),
             new PasswordInput(),
-            new TextArea()
+            new TextArea(),
+            new Link()
         );
 
         for (final Widget<?> widget : widgets) {

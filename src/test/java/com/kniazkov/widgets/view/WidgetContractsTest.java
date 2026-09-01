@@ -32,6 +32,7 @@ public final class WidgetContractsTest {
             {new MarginDecorator(new TextWidget()), "margin decorator"},
             {new TextWidget(), "text"},
             {new ActiveText(), "active text"},
+            {new Link(), "link"},
             {new ImageWidget("image.png"), "image"},
             {new ActiveImage("active.png"), "active image"},
             {new Button(), "button"},
@@ -82,7 +83,8 @@ public final class WidgetContractsTest {
             new FileLoader(),
             new InputField(),
             new PasswordInput(),
-            new TextArea()
+            new TextArea(),
+            new Link()
         );
         final List<Widget<?>> notFocusable = Arrays.<Widget<?>>asList(
             new Panel(),

@@ -40,6 +40,7 @@ classDiagram
 
     InlineWidget <|-- TextWidget
     InlineWidget <|-- ActiveText
+    InlineWidget <|-- Link
     InlineWidget <|-- Button
     InlineWidget <|-- InputField
     InlineWidget <|-- CheckBox
@@ -86,6 +87,7 @@ dynamic collections while preserving iteration order.
 | --- | --- | --- |
 | `TextWidget` | `text` | Displays styled text backed by a string value or `Model<String>`. |
 | `ActiveText` | `active text` | Interactive styled text with normal, hovered, and active visual states plus pointer events. |
+| `Link` | `link` | Text hyperlink rendered as an HTML `a` element. Its reactive `href` model defaults to `#`; it supports pointer and focus events. |
 | `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
 | `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
 | `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. |

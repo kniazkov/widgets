@@ -77,6 +77,13 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    link: function () {
+        const widget = document.createElement("a");
+        widget.setAttribute("href", "#");
+        initPointerEvents(widget, true);
+        initFocusEvents(widget);
+        return widget;
+    },
     "input field": function () {
         return createInputField();
     },
@@ -402,6 +409,17 @@ function setText(data) {
         if (flag) {
             log('The text "' + data.text + '" has been set to the widget ' + data.widget + ".");
         }
+        return true;
+    }
+    return false;
+}
+
+function setHref(data) {
+    const widget = widgets[data.widget];
+    const href = data.href;
+    if (widget && typeof href == "string") {
+        widget.setAttribute("href", href);
+        log("The hyperlink of the widget " + data.widget + ' has been set to "' + href + '".');
         return true;
     }
     return false;

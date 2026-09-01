@@ -323,6 +323,7 @@ const actionHandlers = {
     "set disabled": setDisabledFlag,
     "set hidden": setHiddenFlag,
     "set text": setText,
+    "set href": setHref,
     "set color": setColor,
     "set bg color": setBgColor,
     "set opacity": setOpacity,
