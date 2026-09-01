@@ -24,7 +24,9 @@ public enum TextDecoration {
      */
     LINE_THROUGH("line-through");
 
-    /** CSS keyword. */
+    /**
+     * CSS keyword.
+     */
     private final String cssCode;
 
     /**
