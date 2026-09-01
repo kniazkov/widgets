@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import java.util.Set;
 
 /**
@@ -30,10 +31,8 @@ public class RowStyle extends Style implements HasBgColor, HasCursor, HasTransit
      */
     private RowStyle() {
         this.setCursor(Cursor.AUTO);
-        this.setTransition(DefaultTheme.TRANSITION);
-        this.setBgColor(State.NORMAL, Color.WHITE);
-        this.setBgColor(State.HOVERED, DefaultTheme.SURFACE_BLUE);
-        this.setBgColor(State.ACTIVE, new Color(219, 234, 254));
+        this.setTransition(Transition.NONE);
+        this.setBgColor(Color.TRANSPARENT);
     }
 
     /**

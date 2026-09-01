@@ -34,7 +34,7 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" "
             + "viewBox=\"0 0 24 24\">"
             + "<rect x=\"1.5\" y=\"1.5\" width=\"21\" height=\"21\" rx=\"6\" "
-            + "fill=\"#2563eb\" stroke=\"#1d4ed8\" stroke-width=\"1.5\"/>"
+            + "fill=\"white\" stroke=\"black\" stroke-width=\"1.5\"/>"
             + "<path d=\"M6 12.5l4 4L18 8\" fill=\"none\" stroke=\"white\" "
             + "stroke-width=\"2.4\" stroke-linecap=\"round\" "
             + "stroke-linejoin=\"round\"/>"
@@ -47,7 +47,7 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
         "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" "
             + "viewBox=\"0 0 24 24\">"
             + "<rect x=\"1.5\" y=\"1.5\" width=\"21\" height=\"21\" rx=\"6\" "
-            + "fill=\"white\" stroke=\"#64748b\" stroke-width=\"1.5\"/>"
+            + "fill=\"none\" stroke=\"black\" stroke-width=\"1.5\"/>"
             + "</svg>";
 
     /**
@@ -66,20 +66,20 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
         this.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
         this.setTransition(DefaultTheme.TRANSITION);
         this.setBoxSizing(BoxSizing.BORDER_BOX);
-        this.setColor(State.NORMAL, DefaultTheme.TEXT);
-        this.setColor(State.HOVERED, DefaultTheme.TEXT);
+        this.setColor(State.NORMAL, DefaultTheme.PRIMARY_HOVER);
+        this.setColor(State.HOVERED, DefaultTheme.PRIMARY_ACTIVE);
         this.setColor(State.ACTIVE, DefaultTheme.TEXT);
         this.setColor(State.DISABLED, DefaultTheme.MUTED);
 
-        this.setBgColor(State.NORMAL, Color.TRANSPARENT);
-        this.setBgColor(State.HOVERED, Color.TRANSPARENT);
-        this.setBgColor(State.ACTIVE, Color.TRANSPARENT);
-        this.setBgColor(State.DISABLED, Color.TRANSPARENT);
+        this.setBgColor(State.NORMAL, DefaultTheme.PRIMARY);
+        this.setBgColor(State.HOVERED, DefaultTheme.PRIMARY_HOVER);
+        this.setBgColor(State.ACTIVE, DefaultTheme.PRIMARY_ACTIVE);
+        this.setBgColor(State.DISABLED, DefaultTheme.BORDER);
 
         this.setOpacity(State.NORMAL, 1.0);
         this.setOpacity(State.HOVERED, 1.0);
         this.setOpacity(State.ACTIVE, 1.0);
-        this.setOpacity(State.DISABLED, 0.5);
+        this.setOpacity(State.DISABLED, 0.75);
 
         this.setWidth(24);
         this.setHeight(24);

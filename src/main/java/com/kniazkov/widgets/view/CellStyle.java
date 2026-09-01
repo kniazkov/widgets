@@ -9,6 +9,7 @@ import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
+import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import java.util.Set;
 
@@ -37,13 +38,13 @@ public class CellStyle extends Style implements HasBgColor, HasBorder, HasWidth,
     private CellStyle() {
         this.setBoxShadow(BoxShadow.NONE);
         this.setCursor(Cursor.AUTO);
-        this.setTransition(DefaultTheme.TRANSITION);
-        this.setBoxSizing(BoxSizing.BORDER_BOX);
+        this.setTransition(Transition.NONE);
+        this.setBoxSizing(BoxSizing.CONTENT_BOX);
         this.setBgColor(Color.TRANSPARENT);
         this.setBorderStyle(BorderStyle.NONE);
         this.setWidth(AbsoluteSize.UNDEFINED);
         this.setHeight(AbsoluteSize.UNDEFINED);
-        this.setPadding(14, 11);
+        this.setPadding(0);
         this.setVerticalAlignment(VerticalAlignment.MIDDLE);
     }
 

@@ -39,18 +39,18 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
     /**
      * The default style applied to new rows created by this table.
      */
-    private RowStyle rowStyle = Row.getDefaultStyle();
+    private RowStyle rowStyle;
 
     /**
      * The default style applied to new cells created by this table.
      */
-    private CellStyle cellStyle = Cell.getDefaultStyle();
+    private CellStyle cellStyle;
 
     /**
      * Constructs a new Table with the default style.
      */
     public Table() {
-        super(getDefaultStyle());
+        this(getDefaultStyle());
     }
 
     /**
@@ -69,6 +69,7 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
      */
     public Table(final TableStyle style) {
         super(style);
+        this.applyChildStyles(style);
     }
 
     /**
@@ -83,9 +84,26 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
          * Construction attaches the initial rows before this instance is published.
          */
         super(style);
+        this.applyChildStyles(style);
         for (final Row child : children) {
             this.appendChild(child);
         }
+    }
+
+    /**
+     * Applies the row and cell defaults associated with a table style.
+     *
+     * @param style the table style whose child styles should be used
+     */
+    private void applyChildStyles(final TableStyle style) {
+        this.rowStyle = style.getDefaultRowStyle();
+        this.cellStyle = style.getDefaultCellStyle();
+    }
+
+    @Override
+    public void setStyle(final TableStyle style) {
+        super.setStyle(style);
+        this.applyChildStyles(style);
     }
 
     @Override

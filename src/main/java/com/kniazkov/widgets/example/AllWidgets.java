@@ -11,10 +11,7 @@ import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
-import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontWeight;
-import com.kniazkov.widgets.common.TimingFunction;
-import com.kniazkov.widgets.common.Transition;
 import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.images.SvgImageSource;
 import com.kniazkov.widgets.view.ActiveImage;
@@ -39,11 +36,11 @@ import com.kniazkov.widgets.view.PasswordInput;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.RootWidgetStyle;
 import com.kniazkov.widgets.view.Row;
-import com.kniazkov.widgets.view.RowStyle;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.SectionStyle;
 import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.Table;
+import com.kniazkov.widgets.view.TableStyle;
 import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.TextWidgetStyle;
@@ -432,9 +429,9 @@ public class AllWidgets {
      */
     private static void addTables(final RootWidget root) {
         final Panel card = addCard(root, "Table",
-            "Tables compose rows and cells, with optional row hover feedback.");
-        card.add(blockVariant("Default", defaultTable()));
-        card.add(blockVariant("Interactive rows", interactiveTable()));
+            "An unstyled layout table and a ready-to-use decorated data table.");
+        card.add(blockVariant("Default — unstyled", defaultTable()));
+        card.add(blockVariant("Decorated", decoratedTable()));
     }
 
     /**
@@ -799,47 +796,38 @@ public class AllWidgets {
     }
 
     /**
-     * Creates a table whose data rows advertise clickability.
+     * Creates a data table using the ready-to-use decorated style.
      *
      * @return table widget
      */
-    private static Table interactiveTable() {
-        final Table table = new Table();
-        addTableRow(table, true, false, "Name", "Role", "Status");
-        addTableRow(table, false, true, "Alice", "Designer", "Active");
-        addTableRow(table, false, true, "Bob", "Developer", "Reviewing");
-        addTableRow(table, false, true, "Carol", "Support", "Offline");
+    private static Table decoratedTable() {
+        final Table table = new Table(TableStyle.DECORATED);
+        addDecoratedTableRow(table, 0, true, "Name", "Role", "Status");
+        addDecoratedTableRow(table, 1, false, "Alice", "Designer", "Active");
+        addDecoratedTableRow(table, 2, false, "Bob", "Developer", "Reviewing");
+        addDecoratedTableRow(table, 3, false, "Carol", "Support", "Offline");
         return table;
     }
 
     /**
-     * Adds one row to a table.
+     * Adds content to one row of a decorated table.
      *
      * @param table target table
+     * @param rowIndex zero-based row index
      * @param header whether this is a header row
-     * @param interactive whether hover styling is enabled
      * @param values cell values
      */
-    private static void addTableRow(final Table table, final boolean header,
-                                    final boolean interactive, final String... values) {
-        final RowStyle rowStyle = Row.getDefaultStyle().derive();
-        rowStyle.setBgColor(header ? new Color(241, 245, 249) : Color.WHITE);
-        if (interactive) {
-            rowStyle.setBgColor(State.HOVERED, new Color(239, 246, 255));
-            rowStyle.setCursor(Cursor.POINTER);
-            rowStyle.setTransition(new Transition(120, TimingFunction.EASE_OUT));
-        }
-        final Row row = new Row(rowStyle);
-        table.add(row);
-        for (final String value : values) {
-            final Cell cell = new Cell();
+    private static void addDecoratedTableRow(final Table table, final int rowIndex,
+                                             final boolean header, final String... values) {
+        for (int columnIndex = 0; columnIndex < values.length; columnIndex++) {
             final TextWidgetStyle text = textStyle(
                 header ? MUTED : TEXT,
                 "14px",
                 header ? FontWeight.SEMIBOLD : FontWeight.NORMAL
             );
-            cell.add(new Section(new TextWidget(text, value)));
-            row.add(cell);
+            table.getCell(rowIndex, columnIndex).add(
+                new Section(new TextWidget(text, values[columnIndex]))
+            );
         }
     }
 }

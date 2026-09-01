@@ -132,9 +132,34 @@ public final class ModernStylePropertiesTest {
         assertEquals("96px", new TextArea().getHeight().getCSSCode());
         assertEquals("10px", new ImageWidget("image.png").getBorderRadius().getCSSCode());
         assertEquals(Cursor.POINTER, new ActiveImage("image.png").getCursor());
-        assertEquals(0.5, new CheckBox().getOpacity(State.DISABLED), 0.0);
-        assertEquals("100.0%", new Table().getWidth().getCSSCode());
-        assertEquals("14px", new Cell().getLeftPadding().getCSSCode());
+        assertEquals(0.75, new CheckBox().getOpacity(State.DISABLED), 0.0);
+        assertEquals("", new Table().getWidth().getCSSCode());
+        assertEquals("0px", new Cell().getLeftPadding().getCSSCode());
+    }
+
+    /**
+     * Verifies tables offer neutral layout and decorated data-table defaults.
+     */
+    @Test
+    public void tableOffersNeutralAndDecoratedStyles() {
+        final Table plain = new Table();
+        assertEquals(BorderStyle.NONE, plain.getBorderStyle());
+        assertEquals("", plain.getWidth().getCSSCode());
+        assertEquals("0px", plain.getCellSpacing().getCSSCode());
+        assertEquals("0px", plain.getCell(0, 0).getLeftPadding().getCSSCode());
+
+        final Table decorated = new Table(TableStyle.DECORATED);
+        assertEquals(BorderStyle.SOLID, decorated.getBorderStyle());
+        assertEquals("100.0%", decorated.getWidth().getCSSCode());
+        assertEquals("1px", decorated.getCellSpacing().getCSSCode());
+        assertEquals("14px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
+
+        final TableStyle custom = TableStyle.DECORATED.derive();
+        custom.getDefaultCellStyle().setPadding(20);
+        assertEquals("14px", TableStyle.DECORATED.getDefaultCellStyle()
+            .getLeftPadding().getCSSCode());
+        assertEquals("20px", new Table(custom).getCell(0, 0)
+            .getLeftPadding().getCSSCode());
     }
 
     /**
