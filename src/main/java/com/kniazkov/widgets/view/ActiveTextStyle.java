@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.TextDecoration;
 import java.util.Set;
 
 /**
@@ -36,6 +37,7 @@ public class ActiveTextStyle extends Style implements HasStyledText, HasColor, H
         this.setFontSize("15px");
         this.setFontWeight(FontWeight.SEMIBOLD);
         this.setItalic(false);
+        this.setTextDecoration(TextDecoration.NONE);
         this.setColor(State.NORMAL, DefaultTheme.PRIMARY);
         this.setColor(State.HOVERED, DefaultTheme.PRIMARY_HOVER);
         this.setColor(State.ACTIVE, DefaultTheme.PRIMARY_ACTIVE);

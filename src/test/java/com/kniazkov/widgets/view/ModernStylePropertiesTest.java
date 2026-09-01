@@ -11,6 +11,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.Outline;
 import com.kniazkov.widgets.common.Overflow;
+import com.kniazkov.widgets.common.TextDecoration;
 import com.kniazkov.widgets.common.TimingFunction;
 import com.kniazkov.widgets.common.Transition;
 import java.util.List;
@@ -42,6 +43,7 @@ public final class ModernStylePropertiesTest {
         assertEquals("none", BoxShadow.NONE.getCSSCode());
         assertEquals("none", Transition.NONE.getCSSCode());
         assertEquals("hidden", Overflow.HIDDEN.getCSSCode());
+        assertEquals("line-through", TextDecoration.LINE_THROUGH.getCSSCode());
     }
 
     /**
@@ -89,6 +91,29 @@ public final class ModernStylePropertiesTest {
             "border-box",
             singleUpdate(updates, "set box sizing", button).get("box sizing").getStringValue()
         );
+    }
+
+    /**
+     * Verifies text decoration defaults and its state-dependent protocol update.
+     */
+    @Test
+    public void styledTextSupportsTextDecoration() {
+        final TextWidget text = new TextWidget("Text");
+        assertEquals(TextDecoration.NONE, text.getTextDecoration());
+
+        final Link link = new Link("Link");
+        assertEquals(TextDecoration.UNDERLINE, link.getTextDecoration());
+        assertEquals(TextDecoration.UNDERLINE, link.getTextDecoration(State.FOCUSED));
+
+        final WidgetSandbox<Link> sandbox = WidgetSandbox.open(link);
+        sandbox.clearUpdates();
+        link.setTextDecoration(State.HOVERED, TextDecoration.OVERLINE);
+
+        final JsonObject update = singleUpdate(
+            sandbox.drainUpdates(), "set text decoration", link
+        );
+        assertEquals("hovered", update.get("state").getStringValue());
+        assertEquals("overline", update.get("text decoration").getStringValue());
     }
 
     /**

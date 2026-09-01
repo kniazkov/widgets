@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.TextDecoration;
 import java.util.Set;
 
 /**
@@ -30,6 +31,7 @@ public class LinkStyle extends Style implements HasStyledText, HasColor, HasCurs
      */
     private LinkStyle() {
         super(ActiveTextStyle.DEFAULT);
+        this.setTextDecoration(TextDecoration.UNDERLINE);
         this.setCursorModel(State.FOCUSED, this.getCursorModel(State.NORMAL).asCascading());
         this.setFontFaceModel(State.FOCUSED, this.getFontFaceModel(State.NORMAL).asCascading());
         this.setFontSizeModel(State.FOCUSED, this.getFontSizeModel(State.NORMAL).asCascading());
@@ -38,6 +40,10 @@ public class LinkStyle extends Style implements HasStyledText, HasColor, HasCurs
             this.getFontWeightModel(State.NORMAL).asCascading()
         );
         this.setItalicModel(State.FOCUSED, this.getItalicModel(State.NORMAL).asCascading());
+        this.setTextDecorationModel(
+            State.FOCUSED,
+            this.getTextDecorationModel(State.NORMAL).asCascading()
+        );
         this.setColorModel(State.FOCUSED, this.getColorModel(State.HOVERED).asCascading());
     }
 

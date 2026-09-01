@@ -644,6 +644,27 @@ function setItalic(data) {
     return false;
 }
 
+function setTextDecoration(data) {
+    const widget = widgets[data.widget];
+    const value = data["text decoration"];
+    const state = data.state;
+    if (widget && typeof value == "string" && typeof state == "string") {
+        widget._properties[state].textDecoration = value;
+        refreshWidget(widget);
+        log(
+            'The text decoration "' +
+                value +
+                '" for state "' +
+                state +
+                '" has been set to the widget ' +
+                data.widget +
+                "."
+        );
+        return true;
+    }
+    return false;
+}
+
 function setBorderColor(data) {
     const widget = widgets[data.widget];
     const rgb = data["border color"];

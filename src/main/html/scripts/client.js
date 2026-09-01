@@ -335,6 +335,7 @@ const actionHandlers = {
     "set font size": setFontSize,
     "set font weight": setFontWeight,
     "set italic": setItalic,
+    "set text decoration": setTextDecoration,
     "set border color": setBorderColor,
     "set border style": setBorderStyle,
     "set border width": setBorderWidth,

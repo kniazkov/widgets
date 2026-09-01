@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.TextDecoration;
 import com.kniazkov.widgets.model.Model;
 
 /**
@@ -17,6 +18,7 @@ import com.kniazkov.widgets.model.Model;
  *   <li><b>Font size</b> — the size of the text ({@link FontSize})</li>
  *   <li><b>Font weight</b> — e.g. 400, 700 ({@link FontWeight})</li>
  *   <li><b>Italic</b> — whether italics are enabled ({@code boolean})</li>
+ *   <li><b>Text decoration</b> — a decorative line applied to the text</li>
  * </ul>
  */
 public interface HasStyledText extends HasText {
@@ -276,6 +278,67 @@ public interface HasStyledText extends HasText {
     default void setItalic(final boolean italic) {
         for (final State state : this.getSupportedStates()) {
             this.setItalic(state, italic);
+        }
+    }
+
+    /**
+     * Returns the model storing text decoration for the specified state.
+     *
+     * @param state the logical state whose model is requested
+     * @return the text decoration model
+     */
+    default Model<TextDecoration> getTextDecorationModel(final State state) {
+        return this.getModel(state, Property.TEXT_DECORATION);
+    }
+
+    /**
+     * Associates a text decoration model with the specified state.
+     *
+     * @param state the logical state to assign the model to
+     * @param model the text decoration model
+     */
+    default void setTextDecorationModel(final State state,
+            final Model<TextDecoration> model) {
+        this.setModel(state, Property.TEXT_DECORATION, model);
+    }
+
+    /**
+     * Returns text decoration for the specified state.
+     *
+     * @param state the logical state to query
+     * @return the current text decoration
+     */
+    default TextDecoration getTextDecoration(final State state) {
+        return this.getTextDecorationModel(state).getData();
+    }
+
+    /**
+     * Returns text decoration for the normal state.
+     *
+     * @return the normal-state text decoration
+     */
+    default TextDecoration getTextDecoration() {
+        return this.getTextDecoration(State.NORMAL);
+    }
+
+    /**
+     * Updates text decoration for the specified state.
+     *
+     * @param state the logical state to update
+     * @param decoration the new text decoration
+     */
+    default void setTextDecoration(final State state, final TextDecoration decoration) {
+        this.getTextDecorationModel(state).setData(decoration);
+    }
+
+    /**
+     * Updates text decoration for all supported states.
+     *
+     * @param decoration the new text decoration
+     */
+    default void setTextDecoration(final TextDecoration decoration) {
+        for (final State state : this.getSupportedStates()) {
+            this.setTextDecoration(state, decoration);
         }
     }
 }
