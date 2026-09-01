@@ -76,7 +76,12 @@ public final class MemoryDatabase implements Database {
         try {
             this.persistence.initialize(metadata(schemas));
             final DatabaseSnapshot snapshot = this.persistence.load();
-            this.dispatcher.run(() -> this.load(snapshot));
+            /*
+             * Construction has not published this database yet. Loading on the
+             * caller also prevents custom value converters from waiting for the
+             * class whose static initializer is currently building the database.
+             */
+            this.load(snapshot);
         } catch (final RuntimeException | Error failure) {
             LOGGER.log(Level.SEVERE, "Unable to initialize database", failure);
             try {
