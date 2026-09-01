@@ -30,6 +30,8 @@ import com.kniazkov.widgets.view.InlineBlockStyle;
 import com.kniazkov.widgets.view.InlineWidget;
 import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.InputFieldStyle;
+import com.kniazkov.widgets.view.Link;
+import com.kniazkov.widgets.view.LinkStyle;
 import com.kniazkov.widgets.view.Panel;
 import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
@@ -122,6 +124,7 @@ public class AllWidgets {
         addIntroduction(root);
         addTextWidgets(root);
         addActiveTextWidgets(root);
+        addLinks(root);
         addInputFields(root);
         addPasswordInputs(root);
         addTextAreas(root);
@@ -211,6 +214,28 @@ public class AllWidgets {
         final TextWidget dangerResult = feedback("Nothing clicked yet");
         danger.onClick(event -> dangerResult.setText("Delete action clicked"));
         row.add(variant("Destructive action", danger, dangerResult));
+    }
+
+    /**
+     * Adds native hyperlink variations.
+     *
+     * @param root page root
+     */
+    private static void addLinks(final RootWidget root) {
+        final Panel card = addCard(root, "Link",
+            "Native hyperlinks with a reactive destination model and keyboard focus.");
+        final Section row = variantRow();
+        card.add(row);
+        row.add(variant("Default", new Link("Default link")));
+        row.add(variant("Repository", new Link(
+            "Open the widgets repository", "https://github.com/kniazkov/widgets"
+        )));
+        final LinkStyle customStyle = Link.getDefaultStyle().derive();
+        customStyle.setColor(State.NORMAL, new Color(5, 150, 105));
+        customStyle.setColor(State.HOVERED, new Color(4, 120, 87));
+        customStyle.setColor(State.FOCUSED, new Color(4, 120, 87));
+        customStyle.setColor(State.ACTIVE, new Color(6, 95, 70));
+        row.add(variant("Custom", new Link(customStyle, "Custom link", "#")));
     }
 
     /**

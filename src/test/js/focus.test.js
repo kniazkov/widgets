@@ -46,6 +46,7 @@ function createHarness() {
             createWidget,
             getWidgetProperty,
             subscribeToEvent,
+            setHref,
             widgets
         };
     `);
@@ -56,7 +57,7 @@ function createHarness() {
 }
 
 describe("focused widget state", () => {
-    it.each(["input field", "password input", "text area", "button", "file loader"])(
+    it.each(["input field", "password input", "text area", "button", "file loader", "link"])(
         "tracks focus and blur for %s",
         type => {
             const harness = createHarness();
@@ -82,6 +83,20 @@ describe("focused widget state", () => {
             expect(harness.events.map(event => event.type)).toEqual(["focus", "blur"]);
         }
     );
+
+    it("creates links as anchors and updates their destinations", () => {
+        const harness = createHarness();
+        const id = "#9";
+
+        expect(harness.createWidget({ type: "link", widget: id })).toBe(true);
+        const widget = harness.widgets[id];
+        expect(widget.tagName).toBe("A");
+        expect(widget.getAttribute("href")).toBe("#");
+
+        expect(harness.setHref({ widget: id, href: "/documentation" })).toBe(true);
+        expect(widget.getAttribute("href")).toBe("/documentation");
+        expect(harness.setHref({ widget: id, href: null })).toBe(false);
+    });
 
     it.each(["section", "panel", "text", "active text", "image", "active image", "checkbox"])(
         "does not add focus behavior to %s",

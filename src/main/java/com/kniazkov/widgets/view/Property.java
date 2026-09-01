@@ -362,6 +362,16 @@ public abstract class Property<T> {
     public static final Property<String> TEXT = stringProperty("text");
 
     /**
+     * Property representing the destination of a hyperlink.
+     */
+    public static final Property<String> HREF = of(
+            "href",
+            String.class,
+            () -> new StringModel("#"),
+            JsonString::new
+    );
+
+    /**
      * Property specifying the widget’s foreground (text) color.
      */
     public static final Property<Color> COLOR = colorProperty("color", Color.BLACK);

@@ -25,6 +25,7 @@ public final class WidgetModelReactionTest {
         final List<Widget<?>> widgets = Arrays.<Widget<?>>asList(
             new TextWidget(),
             new ActiveText(),
+            new Link(),
             new InputField(),
             new PasswordInput(),
             new TextArea()
@@ -39,6 +40,22 @@ public final class WidgetModelReactionTest {
             final JsonObject update = singleUpdate(sandbox, "set text", widget);
             assertEquals("changed", update.get("text").getStringValue());
         }
+    }
+
+    /**
+     * Verifies that links expose a reactive destination model with a safe local default.
+     */
+    @Test
+    public void linksReactToTheirHrefModels() {
+        final Link link = new Link("Documentation");
+        assertEquals("#", link.getHref());
+        final WidgetSandbox<Link> sandbox = WidgetSandbox.open(link);
+        sandbox.clearUpdates();
+
+        link.getHrefModel().setData("/documentation");
+
+        final JsonObject update = singleUpdate(sandbox, "set href", link);
+        assertEquals("/documentation", update.get("href").getStringValue());
     }
 
     /**

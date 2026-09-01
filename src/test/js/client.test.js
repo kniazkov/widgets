@@ -20,6 +20,7 @@ const handlerNames = [
     "setDisabledFlag",
     "setHiddenFlag",
     "setText",
+    "setHref",
     "setColor",
     "setBgColor",
     "setOpacity",
