@@ -98,7 +98,16 @@ describe("focused widget state", () => {
         expect(harness.setHref({ widget: id, href: null })).toBe(false);
     });
 
-    it.each(["section", "panel", "text", "active text", "image", "active image", "checkbox"])(
+    it.each([
+        "section",
+        "panel",
+        "text",
+        "active text",
+        "image",
+        "active image",
+        "checkbox",
+        "radio button"
+    ])(
         "does not add focus behavior to %s",
         type => {
             const harness = createHarness();
