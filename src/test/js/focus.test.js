@@ -107,19 +107,16 @@ describe("focused widget state", () => {
         "active image",
         "checkbox",
         "radio button"
-    ])(
-        "does not add focus behavior to %s",
-        type => {
-            const harness = createHarness();
-            const id = "#8";
-            harness.createWidget({ type, widget: id });
-            harness.subscribeToEvent({ widget: id, event: "focus" });
-            const widget = harness.widgets[id];
+    ])("does not add focus behavior to %s", type => {
+        const harness = createHarness();
+        const id = "#8";
+        harness.createWidget({ type, widget: id });
+        harness.subscribeToEvent({ widget: id, event: "focus" });
+        const widget = harness.widgets[id];
 
-            widget.dispatchEvent(new dom.window.FocusEvent("focus"));
+        widget.dispatchEvent(new dom.window.FocusEvent("focus"));
 
-            expect(widget._states.focused).toBe(false);
-            expect(harness.events).toEqual([]);
-        }
-    );
+        expect(widget._states.focused).toBe(false);
+        expect(harness.events).toEqual([]);
+    });
 });

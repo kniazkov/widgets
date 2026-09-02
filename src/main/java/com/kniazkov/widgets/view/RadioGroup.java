@@ -23,7 +23,14 @@ public final class RadioGroup implements AutoCloseable {
      * Model subscription associated with one button.
      */
     private static final class Membership {
+        /**
+         * Currently observed checked-state model.
+         */
         private Model<Boolean> model;
+
+        /**
+         * Listener registered on the observed model.
+         */
         private final Listener<Boolean> listener;
 
         /**
