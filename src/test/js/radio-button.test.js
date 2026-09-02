@@ -67,9 +67,7 @@ describe("radio button", () => {
         widget.click();
 
         expect(widget._selected).toBe(true);
-        expect(harness.events).toEqual([
-            { widget: id, type: "check", data: { state: true } }
-        ]);
+        expect(harness.events).toEqual([{ widget: id, type: "check", data: { state: true } }]);
 
         widget.click();
 
