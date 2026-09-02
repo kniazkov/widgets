@@ -160,6 +160,7 @@ public final class ModernStylePropertiesTest {
         assertEquals("10px", new ImageWidget("image.png").getBorderRadius().getCSSCode());
         assertEquals(Cursor.POINTER, new ActiveImage("image.png").getCursor());
         assertEquals(0.75, new CheckBox().getOpacity(State.DISABLED), 0.0);
+        assertEquals(0.75, new RadioButton().getOpacity(State.DISABLED), 0.0);
         assertEquals("", new Table().getWidth().getCSSCode());
         assertEquals("0px", new Cell().getLeftPadding().getCSSCode());
     }
