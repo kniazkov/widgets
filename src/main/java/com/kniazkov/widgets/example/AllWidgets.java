@@ -35,6 +35,8 @@ import com.kniazkov.widgets.view.LinkStyle;
 import com.kniazkov.widgets.view.Panel;
 import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
+import com.kniazkov.widgets.view.RadioButton;
+import com.kniazkov.widgets.view.RadioGroup;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.RootWidgetStyle;
 import com.kniazkov.widgets.view.Row;
@@ -129,6 +131,7 @@ public class AllWidgets {
         addPasswordInputs(root);
         addTextAreas(root);
         addCheckBoxes(root);
+        addRadioButtons(root);
         addButtons(root);
         addFileLoaders(root);
         addImages(root);
@@ -324,6 +327,28 @@ public class AllWidgets {
         ));
         row.add(variant("Checked", checked, checkedResult));
         final CheckBox disabled = new CheckBox();
+        disabled.check();
+        disabled.disable();
+        row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds radio buttons joined into an exclusive group.
+     *
+     * @param root page root
+     */
+    private static void addRadioButtons(final RootWidget root) {
+        final Panel card = addCard(root, "RadioButton",
+            "Selecting one option clears the other; a selected option cannot be cleared by click.");
+        final Section row = variantRow();
+        card.add(row);
+        final RadioButton first = new RadioButton();
+        final RadioButton second = new RadioButton();
+        second.check();
+        new RadioGroup(first, second);
+        row.add(variant("First option", first));
+        row.add(variant("Second option — selected", second));
+        final RadioButton disabled = new RadioButton();
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
