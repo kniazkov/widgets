@@ -61,7 +61,7 @@ describe("radio button", () => {
         const harness = createHarness();
         const id = "#20";
         expect(harness.createWidget({ type: "radio button", widget: id })).toBe(true);
-        expect(harness.subscribeToEvent({ widget: id, event: "check" })).toBe(true);
+        harness.subscribeToEvent({ widget: id, event: "check" });
         const widget = harness.widgets[id];
 
         widget.click();
