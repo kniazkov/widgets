@@ -214,6 +214,33 @@ const widgetsLibrary = {
             sendEventToServer(widget, "check", { state: widget._selected });
         };
         return widget;
+    },
+    "radio button": function () {
+        const widget = document.createElement("img");
+        widget._selected = false;
+        widget._selSrc = "#";
+        widget._unselSrc = "#";
+        widget._usesSvgColors = true;
+        widget._refresh = function () {
+            const color = getWidgetProperty(widget, "color");
+            const bgColor = getWidgetProperty(widget, "backgroundColor");
+            if (widget._selected) {
+                widget.src = replaceColorsInSvg(widget._selSrc, color, bgColor);
+            } else {
+                widget.src = replaceColorsInSvg(widget._unselSrc, color, bgColor);
+            }
+            return true;
+        };
+        initPointerEvents(widget, true);
+        widget._onClick = function () {
+            if (widget._states.disabled || widget._selected) {
+                return;
+            }
+            widget._selected = true;
+            widget._refresh();
+            sendEventToServer(widget, "check", { state: true });
+        };
+        return widget;
     }
 };
 
