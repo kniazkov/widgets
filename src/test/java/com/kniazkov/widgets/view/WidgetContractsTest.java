@@ -40,7 +40,8 @@ public final class WidgetContractsTest {
             {new InputField(), "input field"},
             {new PasswordInput(), "password input"},
             {new TextArea(), "text area"},
-            {new CheckBox(), "checkbox"}
+            {new CheckBox(), "checkbox"},
+            {new RadioButton(), "radio button"}
         };
 
         for (final Object[] item : cases) {
@@ -98,7 +99,8 @@ public final class WidgetContractsTest {
             new ActiveText(),
             new ImageWidget("image.png"),
             new ActiveImage("active.png"),
-            new CheckBox()
+            new CheckBox(),
+            new RadioButton()
         );
 
         for (final Widget<?> widget : focusable) {

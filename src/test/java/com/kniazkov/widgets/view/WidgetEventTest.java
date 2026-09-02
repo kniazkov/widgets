@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -78,6 +79,28 @@ public final class WidgetEventTest {
     }
 
     /**
+     * Verifies that browser events can select but cannot clear a radio button.
+     */
+    @Test
+    public void radioButtonCanOnlyBeSelectedByBrowserEvent() {
+        final RadioButton button = new RadioButton();
+        final WidgetSandbox<RadioButton> sandbox = WidgetSandbox.open(button);
+        final JsonObject selected = new JsonObject();
+        selected.addBoolean("state", true);
+
+        sandbox.fire(Event.CHECK, selected);
+
+        assertTrue(button.isChecked());
+        final JsonObject cleared = new JsonObject();
+        cleared.addBoolean("state", false);
+        sandbox.fire(Event.CHECK, cleared);
+        assertTrue(button.isChecked());
+
+        button.getCheckedStateModel().setData(false);
+        assertFalse(button.isChecked());
+    }
+
+    /**
      * Verifies the allPointerWidgetsSubscribeAndHandleClicks behavior.
      */
     @Test
@@ -95,7 +118,8 @@ public final class WidgetEventTest {
             new CheckBox(),
             new InputField(),
             new PasswordInput(),
-            new TextArea()
+            new TextArea(),
+            new RadioButton()
         );
 
         for (final Widget<?> widget : widgets) {

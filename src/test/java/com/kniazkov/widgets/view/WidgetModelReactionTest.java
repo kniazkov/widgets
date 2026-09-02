@@ -113,6 +113,16 @@ public final class WidgetModelReactionTest {
                 .get("checked").getBooleanValue()
         );
 
+        final RadioButton radioButton = new RadioButton();
+        final WidgetSandbox<RadioButton> radioSandbox = WidgetSandbox.open(radioButton);
+        radioSandbox.clearUpdates();
+        radioButton.getCheckedStateModel().setData(true);
+        assertEquals(
+            true,
+            singleUpdate(radioSandbox, "set checked", radioButton)
+                .get("checked").getBooleanValue()
+        );
+
         final FileLoader loader = new FileLoader();
         final WidgetSandbox<FileLoader> loaderSandbox = WidgetSandbox.open(loader);
         final Model<String> acceptedFiles = loader.getAcceptedFilesModel();
