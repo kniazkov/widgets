@@ -7,6 +7,7 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasText;
+import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Collections;
 import java.util.Map;
@@ -138,7 +139,8 @@ public abstract class Event<T> {
 
         @Override
         public void updateWidget(final Widget<?> widget, final Boolean data) {
-            if (widget instanceof HasCheckedState) {
+            if (widget instanceof HasCheckedState
+                && (!(widget instanceof RadioButton) || data)) {
                 ((HasCheckedState) widget).getCheckedStateModel().setData(data);
             }
         }
