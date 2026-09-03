@@ -123,6 +123,16 @@ public final class WidgetModelReactionTest {
                 .get("checked").getBooleanValue()
         );
 
+        final DropDownList list = new DropDownList("first", "second");
+        final WidgetSandbox<DropDownList> listSandbox = WidgetSandbox.open(list);
+        listSandbox.clearUpdates();
+        list.getSelectedIndexModel().setData(1);
+        assertEquals(
+            1,
+            singleUpdate(listSandbox, "set selected index", list)
+                .get("selected index").getIntValue()
+        );
+
         final FileLoader loader = new FileLoader();
         final WidgetSandbox<FileLoader> loaderSandbox = WidgetSandbox.open(loader);
         final Model<String> acceptedFiles = loader.getAcceptedFilesModel();

@@ -101,6 +101,28 @@ public final class WidgetEventTest {
     }
 
     /**
+     * Verifies that selection updates the model before invoking the controller.
+     */
+    @Test
+    public void dropDownListAppliesSelectionBeforeController() {
+        final DropDownList list = new DropDownList("first", "second");
+        final AtomicReference<Integer> modelValueSeenByController = new AtomicReference<>();
+        list.onSelect(index -> modelValueSeenByController.set(list.getSelectedIndex()));
+        final WidgetSandbox<DropDownList> sandbox = WidgetSandbox.open(list);
+        sandbox.clearUpdates();
+        final JsonObject data = new JsonObject();
+        data.addNumber("index", 1);
+
+        sandbox.fire(Event.SELECT, data);
+
+        assertEquals(1, list.getSelectedIndex());
+        assertEquals(Integer.valueOf(1), modelValueSeenByController.get());
+        assertEquals(1, WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set selected index", list
+        ).size());
+    }
+
+    /**
      * Verifies the allPointerWidgetsSubscribeAndHandleClicks behavior.
      */
     @Test
@@ -119,6 +141,7 @@ public final class WidgetEventTest {
             new InputField(),
             new PasswordInput(),
             new TextArea(),
+            new DropDownList("option"),
             new RadioButton()
         );
 
@@ -152,7 +175,8 @@ public final class WidgetEventTest {
             new InputField(),
             new PasswordInput(),
             new TextArea(),
-            new Link()
+            new Link(),
+            new DropDownList("option")
         );
 
         for (final Widget<?> widget : widgets) {

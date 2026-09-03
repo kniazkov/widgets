@@ -39,6 +39,7 @@ import com.kniazkov.widgets.model.FontSizeModel;
 import com.kniazkov.widgets.model.FontWeightModel;
 import com.kniazkov.widgets.model.HorizontalAlignmentModel;
 import com.kniazkov.widgets.model.ImageSourceModel;
+import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.OutlineModel;
@@ -362,6 +363,16 @@ public abstract class Property<T> {
      * Property representing the widget's textual content.
      */
     public static final Property<String> TEXT = stringProperty("text");
+
+    /**
+     * Property representing the selected position in a selection control.
+     */
+    public static final Property<Integer> SELECTED_INDEX = of(
+        "selected index",
+        Integer.class,
+        () -> new IntegerModel(-1),
+        value -> new JsonNumber(value.doubleValue())
+    );
 
     /**
      * Property representing the destination of a hyperlink.

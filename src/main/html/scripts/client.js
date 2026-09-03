@@ -323,6 +323,9 @@ const actionHandlers = {
     "set disabled": setDisabledFlag,
     "set hidden": setHiddenFlag,
     "set text": setText,
+    "set options": setOptions,
+    "set option": setOption,
+    "set selected index": setSelectedIndex,
     "set href": setHref,
     "set color": setColor,
     "set bg color": setBgColor,
@@ -358,7 +361,7 @@ const actionHandlers = {
 };
 
 // These events are client-side protocol primitives and do not require an explicit subscription.
-const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "upload"];
+const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload"];
 
 function sendEventToServer(widget, type, data) {
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {

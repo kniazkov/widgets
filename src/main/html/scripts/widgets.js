@@ -108,6 +108,22 @@ const widgetsLibrary = {
         initFocusEvents(widget);
         return widget;
     },
+    "drop down list": function () {
+        const widget = document.createElement("select");
+        widget.style.appearance = "none";
+        widget.style.backgroundImage =
+            'url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27 viewBox=%270 0 12 8%27 fill=%27none%27%3E%3Cpath d=%27M1 1.5L6 6.5L11 1.5%27 stroke=%27%23475569%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E")';
+        widget.style.backgroundPosition = "95% 50%";
+        widget.style.backgroundRepeat = "no-repeat";
+        widget.style.backgroundSize = "12px 8px";
+        widget._rightPaddingOffset = 20;
+        addEvent(widget, "change", function () {
+            sendEventToServer(widget, "select", { index: widget.selectedIndex });
+        });
+        initPointerEvents(widget, true);
+        initFocusEvents(widget);
+        return widget;
+    },
     button: function () {
         const widget = document.createElement("button");
         initPointerEvents(widget, true);
@@ -441,6 +457,63 @@ function setText(data) {
     return false;
 }
 
+function setOptions(data) {
+    const widget = widgets[data.widget];
+    const options = data.options;
+    if (!widget || widget.tagName != "SELECT" || !Array.isArray(options)) {
+        return false;
+    }
+    if (options.some(item => typeof item != "string")) {
+        return false;
+    }
+    const selectedIndex = widget.selectedIndex;
+    widget.replaceChildren();
+    for (const item of options) {
+        const option = document.createElement("option");
+        option.textContent = item;
+        widget.appendChild(option);
+    }
+    widget.selectedIndex = selectedIndex;
+    log("The options of the widget " + data.widget + " have been replaced.");
+    return true;
+}
+
+function setOption(data) {
+    const widget = widgets[data.widget];
+    const index = data.index;
+    const text = data.text;
+    if (
+        widget &&
+        widget.tagName == "SELECT" &&
+        Number.isInteger(index) &&
+        index >= 0 &&
+        index < widget.options.length &&
+        typeof text == "string"
+    ) {
+        widget.options[index].textContent = text;
+        log("The option " + index + " of the widget " + data.widget + " has been changed.");
+        return true;
+    }
+    return false;
+}
+
+function setSelectedIndex(data) {
+    const widget = widgets[data.widget];
+    const index = data["selected index"];
+    if (
+        widget &&
+        widget.tagName == "SELECT" &&
+        Number.isInteger(index) &&
+        index >= -1 &&
+        index < widget.options.length
+    ) {
+        widget.selectedIndex = index;
+        log("The index " + index + " has been selected in widget " + data.widget + ".");
+        return true;
+    }
+    return false;
+}
+
 function setHref(data) {
     const widget = widgets[data.widget];
     const href = data.href;
@@ -569,7 +642,9 @@ function setPadding(data) {
     const obj = data.padding;
     if (widget && typeof obj == "object") {
         widget.style.paddingLeft = obj.left;
-        widget.style.paddingRight = obj.right;
+        widget.style.paddingRight = widget._rightPaddingOffset
+            ? `calc(${obj.right} + ${widget._rightPaddingOffset}px)`
+            : obj.right;
         widget.style.paddingTop = obj.top;
         widget.style.paddingBottom = obj.bottom;
         log(
