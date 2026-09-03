@@ -6,6 +6,7 @@ package com.kniazkov.widgets.controller;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.HasCheckedState;
+import com.kniazkov.widgets.view.HasSelectedIndex;
 import com.kniazkov.widgets.view.HasText;
 import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.Widget;
@@ -147,6 +148,28 @@ public abstract class Event<T> {
     };
 
     /**
+     * Event triggered when a selection control chooses a position.
+     */
+    public static final Event<Integer> SELECT = new Event<Integer>() {
+        @Override
+        public String getName() {
+            return "select";
+        }
+
+        @Override
+        public Integer parseData(final JsonObject object) {
+            return object.get("index").getIntValue();
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Integer data) {
+            if (widget instanceof HasSelectedIndex) {
+                ((HasSelectedIndex) widget).setSelectedIndex(data);
+            }
+        }
+    };
+
+    /**
      * Event triggered when a widget receives focus.
      */
     public static final Event<Void> FOCUS = new Event<Void>() {
@@ -281,6 +304,7 @@ public abstract class Event<T> {
             Stream.of(
                 TEXT_INPUT,
                 CHECK,
+                SELECT,
                 FOCUS,
                 BLUR,
                 CLICK,

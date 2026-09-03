@@ -14,6 +14,7 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.images.SvgImageSource;
+import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.view.ActiveImage;
 import com.kniazkov.widgets.view.ActiveImageStyle;
 import com.kniazkov.widgets.view.ActiveText;
@@ -22,6 +23,7 @@ import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.ButtonStyle;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CheckBox;
+import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.ImageWidgetStyle;
@@ -48,6 +50,7 @@ import com.kniazkov.widgets.view.TableStyle;
 import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.TextWidgetStyle;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -132,6 +135,7 @@ public class AllWidgets {
         addTextAreas(root);
         addCheckBoxes(root);
         addRadioButtons(root);
+        addDropDownLists(root);
         addButtons(root);
         addFileLoaders(root);
         addImages(root);
@@ -350,6 +354,37 @@ public class AllWidgets {
         row.add(variant("Second option — selected", second));
         final RadioButton disabled = new RadioButton();
         disabled.check();
+        disabled.disable();
+        row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds native drop-down list variations.
+     *
+     * @param root page root
+     */
+    private static void addDropDownLists(final RootWidget root) {
+        final Panel card = addCard(root, "DropDownList",
+            "Native keyboard-accessible selection with reactive option texts and stable indices.");
+        final Section row = variantRow();
+        card.add(row);
+        final DropDownList standard = new DropDownList("Small", "Medium", "Large");
+        final TextWidget result = feedback("Selected index: none");
+        standard.onSelect(index -> result.setText("Selected index: " + index));
+        row.add(variant("Default", standard, result));
+
+        final StringModel number = new StringModel("Number");
+        final StringModel booleanValue = new StringModel("Yes / no");
+        final StringModel text = new StringModel("Text");
+        final DropDownList reactive = new DropDownList(List.of(
+            number,
+            booleanValue,
+            text
+        ));
+        reactive.setSelectedIndex(1);
+        row.add(variant("Reactive option models", reactive));
+
+        final DropDownList disabled = new DropDownList("Unavailable");
         disabled.disable();
         row.add(variant("Disabled", disabled));
     }

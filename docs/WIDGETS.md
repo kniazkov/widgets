@@ -44,6 +44,8 @@ classDiagram
     InlineWidget <|-- Button
     InlineWidget <|-- InputField
     InlineWidget <|-- CheckBox
+    InlineWidget <|-- RadioButton
+    InlineWidget <|-- DropDownList
     InlineWidget <|-- BaseImageWidget
     InlineWidget <|-- InlineBlock
     InlineWidget <|-- MarginDecorator
@@ -94,6 +96,8 @@ dynamic collections while preserving iteration order.
 | `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
 | `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
 | `CheckBox` | `checkbox` | Boolean selection control rendered from configurable selected and unselected images. Supports pointer and disabled states. |
+| `RadioButton` | `radio button` | Boolean selection control that can be selected, but cannot be cleared by another user click. Application code can clear it through its checked-state model; `RadioGroup` provides mutual exclusion. |
+| `DropDownList` | `drop down list` | Native HTML selection control with a fixed number of ordered `Model<String>` option labels, a reactive selected-index model, keyboard focus, and disabled state. |
 
 ## Image widgets
 
@@ -142,3 +146,27 @@ changes are synchronized to the browser automatically.
 | `Style`, `Property`, `State` | Describe reactive appearance and state-dependent behavior. They do not create view-tree nodes. |
 | `Column` | Logical view over cells at one table column index. It is not present in the widget or browser hierarchy. |
 | `UploadingFile` | Tracks chunk assembly, metadata, completion, and progress for a file selected through `FileLoader`. |
+| `RadioGroup` | Observes the checked-state models of its `RadioButton` members and ensures that selecting one clears all others. It is `AutoCloseable`; closing it removes its model subscriptions. |
+
+## Selection controls
+
+`RadioButton` uses the same reactive checked-state model as `CheckBox`, but a browser click can
+only select it. Clearing remains available to application code through `uncheck()` or the model.
+Place related buttons in a `RadioGroup`; selecting any member then clears the other members.
+
+`DropDownList` wraps the browser's native `select` element. Each option position contains a
+`Model<String>` that controls its visible text. The number and order of positions are fixed by the
+constructor: application code may change a model's value with `setOptionText(...)`, or replace the
+model at an existing position with `setOptionModel(...)`, but cannot insert or remove positions.
+The string and string-collection constructors remain available and create independent
+`StringModel` instances automatically.
+
+`getSelectedIndexModel()` exposes the selected position. Index `-1` means that no option is
+selected; every non-negative value refers to the same position for the lifetime of the widget.
+`onSelect(...)` receives that index after the model has been updated. This deliberate fixed-size
+contract prevents a selection from silently changing meaning because options were inserted,
+removed, or reordered.
+
+The drop-down list is intentionally not a widget container. Native options are text choices and
+provide standard keyboard and accessibility behavior. A popup that hosts arbitrary inline widgets
+would require a separate composite control with its own focus and navigation rules.

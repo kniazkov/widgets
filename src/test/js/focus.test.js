@@ -57,32 +57,37 @@ function createHarness() {
 }
 
 describe("focused widget state", () => {
-    it.each(["input field", "password input", "text area", "button", "file loader", "link"])(
-        "tracks focus and blur for %s",
-        type => {
-            const harness = createHarness();
-            const id = "#7";
-            harness.createWidget({ type, widget: id });
-            harness.subscribeToEvent({ widget: id, event: "focus" });
-            harness.subscribeToEvent({ widget: id, event: "blur" });
-            const widget = harness.widgets[id];
-            widget._properties.normal.marker = "normal";
-            widget._properties.focused.marker = "focused";
-            dom.window.document.body.appendChild(widget);
+    it.each([
+        "input field",
+        "password input",
+        "text area",
+        "drop down list",
+        "button",
+        "file loader",
+        "link"
+    ])("tracks focus and blur for %s", type => {
+        const harness = createHarness();
+        const id = "#7";
+        harness.createWidget({ type, widget: id });
+        harness.subscribeToEvent({ widget: id, event: "focus" });
+        harness.subscribeToEvent({ widget: id, event: "blur" });
+        const widget = harness.widgets[id];
+        widget._properties.normal.marker = "normal";
+        widget._properties.focused.marker = "focused";
+        dom.window.document.body.appendChild(widget);
 
-            widget.focus();
+        widget.focus();
 
-            expect(widget._states.focused).toBe(true);
-            expect(harness.getWidgetProperty(widget, "marker")).toBe("focused");
-            expect(harness.events.map(event => event.type)).toEqual(["focus"]);
+        expect(widget._states.focused).toBe(true);
+        expect(harness.getWidgetProperty(widget, "marker")).toBe("focused");
+        expect(harness.events.map(event => event.type)).toEqual(["focus"]);
 
-            widget.blur();
+        widget.blur();
 
-            expect(widget._states.focused).toBe(false);
-            expect(harness.getWidgetProperty(widget, "marker")).toBe("normal");
-            expect(harness.events.map(event => event.type)).toEqual(["focus", "blur"]);
-        }
-    );
+        expect(widget._states.focused).toBe(false);
+        expect(harness.getWidgetProperty(widget, "marker")).toBe("normal");
+        expect(harness.events.map(event => event.type)).toEqual(["focus", "blur"]);
+    });
 
     it("creates links as anchors and updates their destinations", () => {
         const harness = createHarness();
