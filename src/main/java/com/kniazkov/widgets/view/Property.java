@@ -371,7 +371,7 @@ public abstract class Property<T> {
         "selected index",
         Integer.class,
         () -> new IntegerModel(-1),
-        JsonNumber::new
+        value -> new JsonNumber(value.doubleValue())
     );
 
     /**
