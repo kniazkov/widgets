@@ -381,6 +381,32 @@ function appendChildWidget(data) {
     return false;
 }
 
+function insertChildWidget(data) {
+    const widget = widgets[data.widget];
+    const container = widgets[data.container];
+    const index = data.index;
+    if (
+        widget &&
+        container &&
+        Number.isInteger(index) &&
+        index >= 0 &&
+        index <= container.children.length
+    ) {
+        container.insertBefore(widget, container.children[index] || null);
+        log(
+            "Widget " +
+                data.widget +
+                " is inserted at position " +
+                index +
+                " of widget " +
+                data.container +
+                "."
+        );
+        return true;
+    }
+    return false;
+}
+
 function removeChildWidget(data) {
     const widget = widgets[data.widget];
     const container = widgets[data.container];

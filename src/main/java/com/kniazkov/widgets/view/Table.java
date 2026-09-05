@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.protocol.AppendChild;
+import com.kniazkov.widgets.protocol.InsertChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
@@ -119,6 +120,55 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
     @Override
     public void add(final Row widget) {
         this.appendChild(widget);
+    }
+
+    /**
+     * Creates and inserts a new row at the specified position.
+     * Existing rows at and after that position are shifted down by one.
+     *
+     * @param index insertion position from {@code 0} through {@link #getChildCount()}
+     * @return newly created row
+     * @throws IndexOutOfBoundsException when the position is outside the valid range
+     */
+    public Row insertRow(final int index) {
+        final Row row = new Row(this.rowStyle);
+        this.insertRow(index, row);
+        return row;
+    }
+
+    /**
+     * Inserts an unattached row at the specified position.
+     * Existing rows at and after that position are shifted down by one.
+     *
+     * @param index insertion position from {@code 0} through {@link #getChildCount()}
+     * @param row unattached row to insert
+     * @throws IndexOutOfBoundsException when the position is outside the valid range
+     * @throws IllegalArgumentException when the row already belongs to a container
+     */
+    public void insertRow(final int index, final Row row) {
+        if (index < 0 || index > this.children.size()) {
+            throw new IndexOutOfBoundsException("Invalid row insertion index: " + index);
+        }
+        if (row.getParent().isPresent()) {
+            throw new IllegalArgumentException("The row already belongs to a container");
+        }
+        this.children.add(index, row);
+        row.setParent(this);
+        this.pushUpdate(new InsertChild(row.getId(), this.getId(), index));
+    }
+
+    /**
+     * Removes and returns the row at the specified position.
+     * Rows after it are shifted up by one.
+     *
+     * @param index row position
+     * @return detached removed row
+     * @throws IndexOutOfBoundsException when the position does not exist
+     */
+    public Row removeRow(final int index) {
+        final Row row = this.children.get(index);
+        this.remove(row);
+        return row;
     }
 
     /**
