@@ -110,7 +110,7 @@ dynamic collections while preserving iteration order.
 
 | Widget | Client type | Allowed children | Purpose |
 | --- | --- | --- | --- |
-| `Table` | `table` | `Row` | Block-level table. Missing rows and cells can be created on demand through `getRow` and `getCell`; default row and cell styles apply to newly created elements. |
+| `Table` | `table` | `Row` | Block-level table. Missing rows and cells can be created on demand through `getRow` and `getCell`; `insertRow` inserts a new or unattached row at any valid position, and `removeRow` removes a row by index. Default row and cell styles apply to newly created elements. |
 | `Row` | `row` | `Cell` | Table row with pointer-aware visual states. `getCell` grows the row on demand and uses the parent table's column-specific defaults when available. |
 | `Cell` | `cell` | `BlockWidget` | Table cell that hosts block content and supports background, border, size, padding, alignment, and pointer events. |
 

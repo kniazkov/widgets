@@ -318,6 +318,7 @@ const actionHandlers = {
     subscribe: subscribeToEvent,
     "set child": setChildWidget,
     "append child": appendChildWidget,
+    "insert child": insertChildWidget,
     "remove child": removeChildWidget,
     "set valid": setValidFlag,
     "set disabled": setDisabledFlag,

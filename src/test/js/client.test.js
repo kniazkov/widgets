@@ -15,6 +15,7 @@ const handlerNames = [
     "subscribeToEvent",
     "setChildWidget",
     "appendChildWidget",
+    "insertChildWidget",
     "removeChildWidget",
     "setValidFlag",
     "setDisabledFlag",
