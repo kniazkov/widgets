@@ -147,6 +147,21 @@ public final class WidgetModelReactionTest {
     }
 
     /**
+     * Verifies that inputFieldReactsToHorizontalAlignment behavior.
+     */
+    @Test
+    public void inputFieldReactsToHorizontalAlignment() {
+        final InputField input = new InputField();
+        final WidgetSandbox<InputField> sandbox = WidgetSandbox.open(input);
+        sandbox.clearUpdates();
+
+        input.setCenterAlignment();
+
+        final JsonObject update = singleUpdate(sandbox, "set horz alignment", input);
+        assertEquals("center", update.get("horz alignment").getStringValue());
+    }
+
+    /**
      * Verifies the containersReactToTheirModels behavior.
      */
     @Test
