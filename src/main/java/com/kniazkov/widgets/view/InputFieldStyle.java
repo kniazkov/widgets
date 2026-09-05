@@ -9,6 +9,7 @@ import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.Outline;
 import com.kniazkov.widgets.common.TextDecoration;
 import com.kniazkov.widgets.model.BooleanModel;
@@ -23,7 +24,7 @@ import java.util.Set;
  */
 public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasBgColor,
         HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding, HasBoxShadow,
-        HasOutline, HasCursor, HasTransition, HasBoxSizing {
+        HasOutline, HasCursor, HasTransition, HasBoxSizing, HasHorizontalAlignment {
     /**
      * Set of supported states.
      */
@@ -123,6 +124,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setHeight(42);
         this.setMargin(2, 1);
         this.setPadding(8);
+        this.setHorizontalAlignment(HorizontalAlignment.LEFT);
     }
 
     /**

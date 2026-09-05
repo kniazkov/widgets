@@ -106,6 +106,7 @@ const widgetsLibrary = {
         });
         initPointerEvents(widget);
         initFocusEvents(widget);
+        initTextAlignment(widget);
         return widget;
     },
     "drop down list": function () {
@@ -1134,7 +1135,24 @@ function createInputField() {
     });
     initPointerEvents(widget);
     initFocusEvents(widget, "active");
+    initTextAlignment(widget);
     return widget;
+}
+
+// Adds CSS text alignment support to text input controls.
+function initTextAlignment(widget) {
+    widget._setHorzAlignment = function (value) {
+        switch (value) {
+            case "center":
+            case "right":
+            case "justify":
+                widget.style.textAlign = value;
+                break;
+            default:
+                widget.style.textAlign = "left";
+                break;
+        }
+    };
 }
 
 function processPointerEvent(element, event) {

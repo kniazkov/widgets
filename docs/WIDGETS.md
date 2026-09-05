@@ -92,7 +92,7 @@ dynamic collections while preserving iteration order.
 | `Link` | `link` | Text hyperlink rendered as an HTML `a` element. Its reactive `href` model defaults to `#`; it supports pointer and focus events. |
 | `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
 | `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
-| `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. |
+| `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. Implements `HasHorizontalAlignment`, so its text can be aligned left, center, right, or justified. |
 | `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
 | `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
 | `CheckBox` | `checkbox` | Boolean selection control rendered from configurable selected and unselected images. Supports pointer and disabled states. |
