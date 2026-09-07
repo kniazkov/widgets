@@ -25,11 +25,9 @@ import java.io.IOException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -614,7 +612,7 @@ public final class JsonPersistence implements Persistence {
                 ".tmp"
             );
             Files.writeString(temporary, content);
-            move(temporary, target);
+            FileReplacement.replace(temporary, target);
             temporary = null;
         } catch (final IOException err) {
             throw new PersistenceException(
@@ -697,7 +695,7 @@ public final class JsonPersistence implements Persistence {
                 ".tmp"
             );
             Files.writeString(temporary, array.toText("  "));
-            move(temporary, target);
+            FileReplacement.replace(temporary, target);
             temporary = null;
         } catch (final IOException err) {
             throw new PersistenceException(
@@ -782,27 +780,6 @@ public final class JsonPersistence implements Persistence {
             );
         }
         return store;
-    }
-
-    /**
-     * Moves a completed temporary file into place.
-     *
-     * @param source source file
-     * @param target target file
-     * @throws IOException when replacement fails
-     */
-    private static void move(final Path source, final Path target)
-        throws IOException {
-        try {
-            Files.move(
-                source,
-                target,
-                StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING
-            );
-        } catch (final AtomicMoveNotSupportedException ignored) {
-            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
-        }
     }
 
     @Override
