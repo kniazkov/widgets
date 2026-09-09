@@ -34,6 +34,7 @@ import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.LinkStyle;
+import com.kniazkov.widgets.view.MessagePopup;
 import com.kniazkov.widgets.view.Panel;
 import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
@@ -137,6 +138,7 @@ public class AllWidgets {
         addRadioButtons(root);
         addDropDownLists(root);
         addButtons(root);
+        addPopups(root);
         addFileLoaders(root);
         addImages(root);
         addActiveImages(root);
@@ -425,6 +427,42 @@ public class AllWidgets {
         final Button disabled = new Button("Disabled");
         disabled.disable();
         row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Adds launchers for ready-to-use modal messages.
+     *
+     * @param root page root
+     */
+    private static void addPopups(final RootWidget root) {
+        final Panel card = addCard(root, "Popup",
+            "Modal messages stay above the page until one of their buttons closes them.");
+        final Section row = variantRow();
+        card.add(row);
+
+        final Button oneButtonLauncher = new Button("Show message");
+        oneButtonLauncher.onClick(event -> {
+            final Button close = new Button(ButtonStyle.PRIMARY, "Close");
+            final MessagePopup popup = new MessagePopup(
+                "The operation completed successfully.", close
+            );
+            close.onClick(closeEvent -> popup.remove());
+            root.add(popup);
+        });
+        row.add(variant("One button", oneButtonLauncher));
+
+        final Button twoButtonLauncher = new Button(ButtonStyle.PRIMARY, "Show confirmation");
+        twoButtonLauncher.onClick(event -> {
+            final Button cancel = new Button("Cancel");
+            final Button confirm = new Button(ButtonStyle.PRIMARY, "Confirm");
+            final MessagePopup popup = new MessagePopup(
+                "Do you want to continue?", cancel, confirm
+            );
+            cancel.onClick(closeEvent -> popup.remove());
+            confirm.onClick(closeEvent -> popup.remove());
+            root.add(popup);
+        });
+        row.add(variant("Two buttons", twoButtonLauncher));
     }
 
     /**

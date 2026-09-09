@@ -24,6 +24,9 @@ public final class WidgetContractsTest {
         final Object[][] cases = {
             {new RootWidget(), "root"},
             {new Panel(), "panel"},
+            {new Popup(), "popup"},
+            {new ModalPopup(), "modal popup"},
+            {new MessagePopup("Message", new Button("OK")), "modal popup"},
             {new Section(), "section"},
             {new InlineBlock(), "inline block"},
             {new Table(), "table"},
@@ -89,6 +92,8 @@ public final class WidgetContractsTest {
         );
         final List<Widget<?>> notFocusable = Arrays.<Widget<?>>asList(
             new Panel(),
+            new Popup(),
+            new ModalPopup(),
             new Section(),
             new InlineBlock(),
             new Table(),

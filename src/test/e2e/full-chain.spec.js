@@ -13,6 +13,24 @@ test("a browser click reaches Java and the resulting update reaches the DOM", as
     expect(pageErrors).toEqual([]);
 });
 
+test("a modal message blocks the page and closes without leaving its backdrop", async ({
+    page
+}) => {
+    const pageErrors = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+
+    await page.goto("/");
+    await page.getByRole("button", { name: "Show modal message" }).click();
+
+    await expect(page.getByText("Modal message", { exact: true })).toBeVisible();
+    await expect(page.locator(".popup-backdrop")).toBeVisible();
+    await page.getByRole("button", { name: "Close modal message" }).click();
+
+    await expect(page.getByText("Modal message", { exact: true })).toBeHidden();
+    await expect(page.locator(".popup-backdrop")).toHaveCount(0);
+    expect(pageErrors).toEqual([]);
+});
+
 test("persistent connection loss blocks the page until the server responds", async ({ page }) => {
     let blockSynchronization = false;
     await page.route("**/*", async route => {
