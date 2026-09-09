@@ -31,7 +31,7 @@ public class PopupStyle extends Style implements HasBgColor, HasBorder,
     /**
      * Creates the default popup style.
      */
-    protected PopupStyle() {
+    private PopupStyle() {
         this.setBgColor(Color.WHITE);
         this.setBorderColor(DefaultTheme.BORDER);
         this.setBorderStyle(BorderStyle.SOLID);

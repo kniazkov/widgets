@@ -18,6 +18,7 @@ public class ModalPopupStyle extends PopupStyle implements HasBackdropColor {
      * Creates the default modal popup style.
      */
     private ModalPopupStyle() {
+        super(PopupStyle.DEFAULT);
         this.setBackdropColor(new Color(255, 255, 255, 192));
     }
 
