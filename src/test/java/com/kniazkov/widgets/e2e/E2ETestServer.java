@@ -9,6 +9,7 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.MessagePopup;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.net.InetAddress;
@@ -44,9 +45,16 @@ public final class E2ETestServer {
             final TextWidget status = new TextWidget("Waiting for browser event");
             final Button button = new Button("Run full chain");
             final FileLoader loader = new FileLoader("Upload binary files");
+            final Button popupLauncher = new Button("Show modal message");
             loader.setMultipleInputFlag(true);
 
             button.onClick(event -> status.setText("Java handled the click"));
+            popupLauncher.onClick(event -> {
+                final Button close = new Button("Close modal message");
+                final MessagePopup popup = new MessagePopup("Modal message", close);
+                close.onClick(closeEvent -> popup.remove());
+                root.add(popup);
+            });
             loader.onSelect(descriptor -> {
                 final TextWidget upload = new TextWidget(
                     "Selected " + descriptor.getName() + " 0%"
@@ -64,6 +72,7 @@ public final class E2ETestServer {
             content.add(status);
             content.add(button);
             content.add(loader);
+            content.add(popupLauncher);
             root.add(content);
         };
 

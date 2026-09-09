@@ -395,6 +395,12 @@ public abstract class Property<T> {
     public static final Property<Color> BG_COLOR = colorProperty("bg color", Color.WHITE);
 
     /**
+     * Property specifying the color of a modal popup backdrop.
+     */
+    public static final Property<Color> BACKDROP_COLOR =
+            colorProperty("backdrop color", new Color(255, 255, 255, 192));
+
+    /**
      * Property specifying the widget's opacity level.
      */
     public static final Property<Double> OPACITY = of(

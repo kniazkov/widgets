@@ -36,6 +36,9 @@ classDiagram
 
     BlockWidget <|-- Section
     BlockWidget <|-- Panel
+    BlockWidget <|-- Popup
+    Popup <|-- ModalPopup
+    ModalPopup <|-- MessagePopup
     BlockWidget <|-- Table
 
     InlineWidget <|-- TextWidget
@@ -77,6 +80,9 @@ the root and table structures rather than the general block/inline distinction.
 | `Section` | `section` | `InlineWidget` | Block-level horizontal flow, similar to a paragraph or generic HTML block containing inline content. Supports alignment, margin, padding, and hidden state. |
 | `Panel` | `panel` | `BlockWidget` | General-purpose block container for composing nested page regions. Supports background, border, size, spacing, and pointer events. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
+| `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
+| `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The translucent white default backdrop color is exposed through a model. |
+| `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from text and one or two supplied buttons. |
 | `MarginDecorator` | `margin decorator` | One `InlineWidget` | Wraps a single inline widget to add margin support without changing the wrapped widget. Removing its child installs an empty `TextWidget`. |
 
 All multi-child containers provide varargs constructors for declarative tree construction. Style
@@ -121,7 +127,7 @@ legal. The supported tree shapes are:
 
 - `RootWidget` -> `BlockWidget`
 - `Section` -> `InlineWidget`
-- `Panel`, `InlineBlock`, and `Cell` -> `BlockWidget`
+- `Panel`, `InlineBlock`, `Popup`, `ModalPopup`, `MessagePopup`, and `Cell` -> `BlockWidget`
 - `Button` and `MarginDecorator` -> exactly one `InlineWidget`
 - `Table` -> `Row` -> `Cell`
 

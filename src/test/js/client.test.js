@@ -27,6 +27,7 @@ const handlerNames = [
     "setHref",
     "setColor",
     "setBgColor",
+    "setBackdropColor",
     "setOpacity",
     "setWidth",
     "setHeight",

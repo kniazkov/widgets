@@ -330,6 +330,7 @@ const actionHandlers = {
     "set href": setHref,
     "set color": setColor,
     "set bg color": setBgColor,
+    "set backdrop color": setBackdropColor,
     "set opacity": setOpacity,
     "set width": setWidth,
     "set height": setHeight,

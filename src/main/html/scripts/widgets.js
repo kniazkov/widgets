@@ -69,6 +69,12 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    popup: function () {
+        return createPopup(false);
+    },
+    "modal popup": function () {
+        return createPopup(true);
+    },
     text: function () {
         return document.createElement("span");
     },
@@ -261,6 +267,77 @@ const widgetsLibrary = {
     }
 };
 
+// Popups are fixed to the viewport. A modal popup owns an adjacent full-screen backdrop.
+function createPopup(modal) {
+    const widget = document.createElement("div");
+    widget.className = modal ? "modal-popup" : "popup";
+    widget.style.position = "fixed";
+    widget.style.zIndex = "1001";
+    widget._horzAlignment = "center";
+    widget._vertAlignment = "middle";
+    widget._refreshPosition = function () {
+        let translateX = "0";
+        let translateY = "0";
+        widget.style.left = "";
+        widget.style.right = "";
+        widget.style.top = "";
+        widget.style.bottom = "";
+
+        switch (widget._horzAlignment) {
+            case "left":
+                widget.style.left = "0px";
+                break;
+            case "right":
+                widget.style.right = "0px";
+                break;
+            default:
+                widget.style.left = "50%";
+                translateX = "-50%";
+                break;
+        }
+        switch (widget._vertAlignment) {
+            case "top":
+                widget.style.top = "0px";
+                break;
+            case "bottom":
+                widget.style.bottom = "0px";
+                break;
+            default:
+                widget.style.top = "50%";
+                translateY = "-50%";
+                break;
+        }
+        widget.style.transform = "translate(" + translateX + ", " + translateY + ")";
+    };
+    widget._setHorzAlignment = function (value) {
+        widget._horzAlignment = value;
+        widget._refreshPosition();
+    };
+    widget._setVertAlignment = function (value) {
+        widget._vertAlignment = value;
+        widget._refreshPosition();
+    };
+    widget._refreshPosition();
+
+    if (modal) {
+        const backdrop = document.createElement("div");
+        backdrop.className = "popup-backdrop";
+        backdrop.style.position = "fixed";
+        backdrop.style.inset = "0px";
+        backdrop.style.zIndex = "1000";
+        widget._backdrop = backdrop;
+        widget._onAttached = function () {
+            if (widget.parentNode) {
+                widget.parentNode.insertBefore(backdrop, widget);
+            }
+        };
+        widget._onDetached = function () {
+            backdrop.remove();
+        };
+    }
+    return widget;
+}
+
 // State precedence must stay aligned with refreshWidget so custom renderers see the same value.
 function getWidgetProperty(widget, name) {
     const states = widget._states;
@@ -365,6 +442,9 @@ function setChildWidget(data) {
     if (widget && container) {
         container.innerHTML = "";
         container.appendChild(widget);
+        if (widget._onAttached) {
+            widget._onAttached();
+        }
         log("Widget " + data.widget + " is set as a child of widget " + data.container + ".");
         return true;
     }
@@ -376,6 +456,9 @@ function appendChildWidget(data) {
     const container = widgets[data.container];
     if (widget && container) {
         container.appendChild(widget);
+        if (widget._onAttached) {
+            widget._onAttached();
+        }
         log("Widget " + data.widget + " is added as a child of widget " + data.container + ".");
         return true;
     }
@@ -394,6 +477,9 @@ function insertChildWidget(data) {
         index <= container.children.length
     ) {
         container.insertBefore(widget, container.children[index] || null);
+        if (widget._onAttached) {
+            widget._onAttached();
+        }
         log(
             "Widget " +
                 data.widget +
@@ -412,6 +498,9 @@ function removeChildWidget(data) {
     const widget = widgets[data.widget];
     const container = widgets[data.container];
     if (widget && container) {
+        if (widget._onDetached) {
+            widget._onDetached();
+        }
         container.removeChild(widget);
         log("Widget " + data.widget + " is removed from parent widget " + data.container + ".");
         return true;
@@ -591,6 +680,18 @@ function setBgColor(data) {
                 data.widget +
                 "."
         );
+        return true;
+    }
+    return false;
+}
+
+function setBackdropColor(data) {
+    const widget = widgets[data.widget];
+    const rgb = data["backdrop color"];
+    if (widget && widget._backdrop && rgb !== null && typeof rgb == "object") {
+        const color = composeColor(rgb);
+        widget._backdrop.style.backgroundColor = color;
+        log('The backdrop color "' + color + '" has been set to the widget ' + data.widget + ".");
         return true;
     }
     return false;
