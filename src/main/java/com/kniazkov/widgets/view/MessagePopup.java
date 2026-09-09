@@ -11,13 +11,18 @@ import java.util.Objects;
  */
 public final class MessagePopup extends ModalPopup {
     /**
+     * Text widget that displays the message.
+     */
+    private final TextWidget textWidget;
+
+    /**
      * Creates a message with one action button.
      *
      * @param message message text
      * @param button action button
      */
     public MessagePopup(final String message, final Button button) {
-        this(message, new Button[] {Objects.requireNonNull(button, "button")});
+        this(new TextWidget(Objects.requireNonNull(message, "message")), button);
     }
 
     /**
@@ -29,7 +34,35 @@ public final class MessagePopup extends ModalPopup {
      */
     public MessagePopup(final String message, final Button firstButton,
             final Button secondButton) {
-        this(message, new Button[] {
+        this(
+            new TextWidget(Objects.requireNonNull(message, "message")),
+            firstButton,
+            secondButton
+        );
+    }
+
+    /**
+     * Creates a message from a text widget and one action button.
+     * The same text widget remains available through {@link #getTextWidget()}.
+     *
+     * @param textWidget message text widget
+     * @param button action button
+     */
+    public MessagePopup(final TextWidget textWidget, final Button button) {
+        this(textWidget, new Button[] {Objects.requireNonNull(button, "button")});
+    }
+
+    /**
+     * Creates a message from a text widget and two action buttons.
+     * The same text widget remains available through {@link #getTextWidget()}.
+     *
+     * @param textWidget message text widget
+     * @param firstButton first action button
+     * @param secondButton second action button
+     */
+    public MessagePopup(final TextWidget textWidget, final Button firstButton,
+            final Button secondButton) {
+        this(textWidget, new Button[] {
             Objects.requireNonNull(firstButton, "firstButton"),
             Objects.requireNonNull(secondButton, "secondButton")
         });
@@ -38,14 +71,13 @@ public final class MessagePopup extends ModalPopup {
     /**
      * Creates a message from a validated button set.
      *
-     * @param message message text
+     * @param textWidget message text widget
      * @param buttons one or two action buttons
      */
-    private MessagePopup(final String message, final Button[] buttons) {
+    private MessagePopup(final TextWidget textWidget, final Button[] buttons) {
         super(messageStyle());
-        final Section messageSection = new Section(new TextWidget(
-            Objects.requireNonNull(message, "message")
-        ));
+        this.textWidget = Objects.requireNonNull(textWidget, "textWidget");
+        final Section messageSection = new Section(this.textWidget);
         messageSection.setMargin(0, 0, 0, 16);
         this.add(messageSection);
 
@@ -55,6 +87,16 @@ public final class MessagePopup extends ModalPopup {
             buttonSection.add(buttons[1]);
         }
         this.add(buttonSection);
+    }
+
+    /**
+     * Returns the text widget displayed by this message popup.
+     * Its style or text model may be changed after construction.
+     *
+     * @return message text widget
+     */
+    public TextWidget getTextWidget() {
+        return this.textWidget;
     }
 
     /**

@@ -82,7 +82,7 @@ the root and table structures rather than the general block/inline distinction.
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
 | `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The translucent white default backdrop color is exposed through a model. |
-| `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from text and one or two supplied buttons. |
+| `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from a string or caller-supplied `TextWidget` and one or two buttons. The text widget is exposed for later style and model changes. |
 | `MarginDecorator` | `margin decorator` | One `InlineWidget` | Wraps a single inline widget to add margin support without changing the wrapped widget. Removing its child installs an empty `TextWidget`. |
 
 All multi-child containers provide varargs constructors for declarative tree construction. Style
