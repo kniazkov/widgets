@@ -9,7 +9,7 @@ import java.util.Objects;
 /**
  * A ready-to-use modal message containing text and one or two action buttons.
  */
-public class MessagePopup extends ModalPopup {
+public final class MessagePopup extends ModalPopup {
     /**
      * Creates a message with one action button.
      *
