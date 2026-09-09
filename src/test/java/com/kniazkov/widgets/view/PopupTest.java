@@ -7,6 +7,7 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.VerticalAlignment;
+import com.kniazkov.widgets.model.StringModel;
 import java.util.List;
 import org.junit.Test;
 
@@ -78,9 +79,33 @@ public final class PopupTest {
         final MessagePopup twoButtons = new MessagePopup("Delete?", cancel, delete);
 
         assertEquals(2, oneButton.getChildCount());
+        assertEquals("Saved", oneButton.getTextWidget().getText());
         assertSame(ok, ((Section) oneButton.getChild(1)).getChild(0));
         assertEquals(2, ((Section) twoButtons.getChild(1)).getChildCount());
         assertSame(cancel, ((Section) twoButtons.getChild(1)).getChild(0));
         assertSame(delete, ((Section) twoButtons.getChild(1)).getChild(1));
+    }
+
+    /**
+     * Verifies that callers can supply and reconfigure the message text widget.
+     */
+    @Test
+    public void messagePopupExposesItsTextWidget() {
+        final TextWidget supplied = new TextWidget("Initial");
+        final MessagePopup popup = new MessagePopup(supplied, new Button("OK"));
+        final StringModel replacement = new StringModel("Updated");
+        final TextWidget suppliedWithTwoButtons = new TextWidget("Choose");
+        final MessagePopup twoButtons = new MessagePopup(
+            suppliedWithTwoButtons, new Button("Yes"), new Button("No")
+        );
+
+        assertSame(supplied, popup.getTextWidget());
+        assertSame(suppliedWithTwoButtons, twoButtons.getTextWidget());
+
+        popup.getTextWidget().setColor(Color.RED);
+        popup.getTextWidget().setTextModel(replacement);
+        replacement.setData("Changed through model");
+        assertEquals(Color.RED, popup.getTextWidget().getColor());
+        assertEquals("Changed through model", popup.getTextWidget().getText());
     }
 }
