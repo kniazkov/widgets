@@ -63,7 +63,7 @@ public final class PopupTest {
 
         assertEquals(1, updates.size());
         final JsonObject color = (JsonObject) updates.get(0).get("backdrop color");
-        assertEquals(1, color.get("r").getIntegerValue());
+        assertEquals(1, color.get("r").getIntValue());
     }
 
     /**
