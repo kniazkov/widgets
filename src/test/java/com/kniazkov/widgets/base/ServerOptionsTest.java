@@ -132,7 +132,9 @@ public class ServerOptionsTest {
         assertSame(options, root.getOptions());
     }
 
-    /** Font registrations are copied into immutable options snapshots. */
+    /**
+     * Font registrations are copied into immutable options snapshots.
+     */
     @Test
     public void retainsIndependentFontLists() {
         final Options.Builder builder = new Options.Builder();
