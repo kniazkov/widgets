@@ -10,9 +10,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 
-/** Tests immutable Google Fonts configuration and its reusable font face. */
+/**
+ * Tests immutable Google Fonts configuration and its reusable font face.
+ */
 public final class GoogleFontTest {
-    /** The CSS API request is deterministic and the font face remains reusable. */
+    /**
+     * The CSS API request is deterministic and the font face remains reusable.
+     */
     @Test
     public void createsStylesheetAndFontFace() {
         final GoogleFont font = new GoogleFont(
@@ -32,7 +36,9 @@ public final class GoogleFontTest {
         assertSame(font.getFontFace(), font.getFontFace());
     }
 
-    /** Invalid or underspecified requests fail before the server starts. */
+    /**
+     * Invalid or underspecified requests fail before the server starts.
+     */
     @Test
     public void rejectsInvalidConfiguration() {
         assertThrows(IllegalArgumentException.class, () -> new GoogleFont(" "));
