@@ -90,7 +90,9 @@ public final class Options {
      */
     private final boolean debug;
 
-    /** Fonts whose stylesheets are connected to every application page. */
+    /**
+     * Fonts whose stylesheets are connected to every application page.
+     */
     private final List<WebFont> webFonts;
 
     /**
@@ -250,7 +252,9 @@ public final class Options {
          */
         private boolean debug = true;
 
-        /** Fonts to connect to every application page. */
+        /**
+         * Fonts to connect to every application page.
+         */
         private final List<WebFont> webFonts = new ArrayList<>();
 
         /**
