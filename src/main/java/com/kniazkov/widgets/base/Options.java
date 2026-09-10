@@ -4,7 +4,10 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.SslOptions;
+import com.kniazkov.widgets.common.WebFont;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -87,6 +90,9 @@ public final class Options {
      */
     private final boolean debug;
 
+    /** Fonts whose stylesheets are connected to every application page. */
+    private final List<WebFont> webFonts;
+
     /**
      * Creates immutable options from a builder snapshot.
      *
@@ -102,6 +108,7 @@ public final class Options {
         this.chunkSize = builder.chunkSize;
         this.maxFileSize = builder.maxFileSize;
         this.debug = builder.debug;
+        this.webFonts = List.copyOf(builder.webFonts);
     }
 
     /**
@@ -186,6 +193,15 @@ public final class Options {
     }
 
     /**
+     * Returns fonts connected to every application page.
+     *
+     * @return immutable font list in registration order
+     */
+    public List<WebFont> getWebFonts() {
+        return this.webFonts;
+    }
+
+    /**
      * Builds immutable application options.
      */
     public static final class Builder {
@@ -233,6 +249,9 @@ public final class Options {
          * Whether browser and server debug logging is enabled.
          */
         private boolean debug = true;
+
+        /** Fonts to connect to every application page. */
+        private final List<WebFont> webFonts = new ArrayList<>();
 
         /**
          * Creates a builder initialized with framework defaults.
@@ -366,6 +385,20 @@ public final class Options {
          */
         public Builder setDebug(final boolean value) {
             this.debug = value;
+            return this;
+        }
+
+        /**
+         * Adds a browser font whose stylesheet will be connected at startup.
+         *
+         * @param value external font configuration
+         * @return this builder
+         */
+        public Builder addFont(final WebFont value) {
+            this.webFonts.add(Objects.requireNonNull(
+                value,
+                "Web font must not be null"
+            ));
             return this;
         }
 
