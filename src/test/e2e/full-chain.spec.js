@@ -1,6 +1,31 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
 
+test("mobile browsers use the device width as the layout viewport", async ({
+    browser,
+    baseURL
+}) => {
+    const context = await browser.newContext({
+        viewport: { width: 390, height: 844 },
+        screen: { width: 390, height: 844 },
+        deviceScaleFactor: 3,
+        isMobile: true,
+        hasTouch: true
+    });
+    try {
+        const page = await context.newPage();
+        await page.goto(baseURL);
+
+        await expect(page.locator('meta[name="viewport"]')).toHaveAttribute(
+            "content",
+            "width=device-width, initial-scale=1"
+        );
+        expect(await page.evaluate(() => document.documentElement.clientWidth)).toBe(390);
+    } finally {
+        await context.close();
+    }
+});
+
 test("a browser click reaches Java and the resulting update reaches the DOM", async ({ page }) => {
     const pageErrors = [];
     page.on("pageerror", error => pageErrors.push(error.message));
