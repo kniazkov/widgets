@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.SslOptions;
+import com.kniazkov.widgets.common.GoogleFont;
 import com.kniazkov.widgets.view.RootWidget;
 import java.io.File;
 import java.net.InetAddress;
@@ -15,6 +16,7 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -128,5 +130,24 @@ public class ServerOptionsTest {
         assertEquals(64 * 1024, options.getChunkSize());
         assertEquals(128 * 1024 * 1024, options.getMaxFileSize());
         assertSame(options, root.getOptions());
+    }
+
+    /** Font registrations are copied into immutable options snapshots. */
+    @Test
+    public void retainsIndependentFontLists() {
+        final Options.Builder builder = new Options.Builder();
+        final GoogleFont firstFont = new GoogleFont("Roboto");
+        final GoogleFont secondFont = new GoogleFont("Open Sans");
+        final Options first = builder.addFont(firstFont).build();
+        final Options second = builder.addFont(secondFont).build();
+
+        assertEquals(1, first.getWebFonts().size());
+        assertSame(firstFont, first.getWebFonts().get(0));
+        assertEquals(2, second.getWebFonts().size());
+        assertSame(secondFont, second.getWebFonts().get(1));
+        assertThrows(
+            UnsupportedOperationException.class,
+            () -> first.getWebFonts().clear()
+        );
     }
 }
