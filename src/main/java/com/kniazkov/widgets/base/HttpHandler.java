@@ -307,7 +307,12 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         return result.toString();
     }
 
-    /** Escapes a value before inserting it into a quoted HTML attribute. */
+    /**
+     * Escapes a value before inserting it into a quoted HTML attribute.
+     *
+     * @param value source attribute value
+     * @return escaped attribute value
+     */
     private static String escapeHtmlAttribute(final String value) {
         return value
             .replace("&", "&amp;")
