@@ -91,6 +91,29 @@ Open [http://localhost:8080](http://localhost:8080). Static application files ar
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
 
+### Web fonts
+
+External fonts can be registered once in the application options and then used through the
+ordinary `FontFace` styling API. `GoogleFont` builds a Google Fonts CSS API request and returns the
+matching reusable face:
+
+```java
+GoogleFont roboto = new GoogleFont(
+    "Roboto Slab",
+    FontWeight.NORMAL,
+    FontWeight.BOLD
+);
+Options options = new Options.Builder()
+    .addFont(roboto)
+    .build();
+
+TextWidget title = new TextWidget("Title");
+title.setFontFace(roboto.getFontFace());
+```
+
+The server adds the required stylesheet link to every generated page. Other font providers can be
+integrated by implementing `WebFont`.
+
 ### Server and HTTPS configuration
 
 `Options` exposes the listener port, bind address, worker count, immutable HTTPS settings, and

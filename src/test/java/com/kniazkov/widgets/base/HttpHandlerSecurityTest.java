@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.base;
 
+import com.kniazkov.widgets.common.GoogleFont;
+import com.kniazkov.widgets.common.WebFont;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -15,6 +17,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -113,6 +116,26 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
+     * Configured web fonts are connected to every generated application page.
+     */
+    @Test
+    public void connectsConfiguredFontStylesheets() throws Exception {
+        final GoogleFont font = new GoogleFont("Roboto Slab");
+        this.start(this.folder.newFolder("www"), font, font);
+
+        final String response = this.request("GET", "/page", null);
+
+        assertTrue(response.contains(
+            "<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/"
+                + "css2?family=Roboto+Slab:wght@400&amp;display=swap\">"
+        ));
+        assertEquals(
+            response.indexOf("fonts.googleapis.com"),
+            response.lastIndexOf("fonts.googleapis.com")
+        );
+    }
+
+    /**
      * Missing external fields must produce JSON instead of crashing a request worker.
      */
     @Test
@@ -166,14 +189,17 @@ public class HttpHandlerSecurityTest {
     /**
      * Starts the framework on an ephemeral loopback port.
      */
-    private Options start(final File root) {
-        final Options options = new Options.Builder()
+    private Options start(final File root, final WebFont... fonts) {
+        final Options.Builder builder = new Options.Builder()
             .setPort(0)
             .setBindAddress(InetAddress.getLoopbackAddress())
             .setWwwRoot(root.getAbsolutePath())
             .setChunkSize(4 * 1024)
-            .setMaxFileSize(32 * 1024 * 1024)
-            .build();
+            .setMaxFileSize(32 * 1024 * 1024);
+        for (final WebFont font : fonts) {
+            builder.addFont(font);
+        }
+        final Options options = builder.build();
         final Page page = (widget, context) -> { };
         final Application application = BaseTestSupport.application(page);
         application.addPage("page", page);

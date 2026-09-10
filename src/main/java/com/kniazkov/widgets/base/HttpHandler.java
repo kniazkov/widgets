@@ -24,8 +24,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -164,6 +166,10 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 .replace(
                                     "__MAX_UPLOAD_FILE_SIZE__",
                                     Integer.toString(this.options.getMaxFileSize())
+                                )
+                                .replace(
+                                    "__WEB_FONT_STYLESHEETS__",
+                                    webFontStylesheets(this.options)
                                 );
                         }
                         if (removeLogs) {
@@ -275,6 +281,45 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      */
     private static String escapeInlineScriptData(final String json) {
         return json.replace("<", "\\u003c");
+    }
+
+    /**
+     * Builds safe stylesheet links for the fonts registered in application options.
+     * Duplicate URIs are emitted only once.
+     *
+     * @param options application options
+     * @return HTML fragment for the document head
+     */
+    private static String webFontStylesheets(final Options options) {
+        final Set<String> stylesheets = new LinkedHashSet<>();
+        options.getWebFonts().forEach(font -> stylesheets.add(
+            font.getStylesheetUri().toASCIIString()
+        ));
+        final StringBuilder result = new StringBuilder();
+        for (final String stylesheet : stylesheets) {
+            if (!result.isEmpty()) {
+                result.append('\n').append("        ");
+            }
+            result.append("<link rel=\"stylesheet\" href=\"")
+                .append(escapeHtmlAttribute(stylesheet))
+                .append("\">");
+        }
+        return result.toString();
+    }
+
+    /**
+     * Escapes a value before inserting it into a quoted HTML attribute.
+     *
+     * @param value source attribute value
+     * @return escaped attribute value
+     */
+    private static String escapeHtmlAttribute(final String value) {
+        return value
+            .replace("&", "&amp;")
+            .replace("\"", "&quot;")
+            .replace("'", "&#39;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;");
     }
 
     /**
