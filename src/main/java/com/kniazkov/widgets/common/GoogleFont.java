@@ -9,18 +9,28 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Objects;
 
-/** A font family loaded through the Google Fonts CSS API v2. */
+/**
+ * A font family loaded through the Google Fonts CSS API v2.
+ */
 public final class GoogleFont implements WebFont {
-    /** Google Fonts CSS API v2 endpoint. */
+    /**
+     * Google Fonts CSS API v2 endpoint.
+     */
     private static final String ENDPOINT = "https://fonts.googleapis.com/css2?family=";
 
-    /** Font family name. */
+    /**
+     * Font family name.
+     */
     private final String family;
 
-    /** Requested weights in ascending order. */
+    /**
+     * Requested weights in ascending order.
+     */
     private final int[] weights;
 
-    /** Reusable CSS font face. */
+    /**
+     * Reusable CSS font face.
+     */
     private final FontFace fontFace;
 
     /**
@@ -57,7 +67,11 @@ public final class GoogleFont implements WebFont {
         this.fontFace = new FamilyFontFace(this.family);
     }
 
-    /** @return Google Fonts family name */
+    /**
+     * Returns the Google Fonts family name.
+     *
+     * @return family name
+     */
     public String getFamily() {
         return this.family;
     }
@@ -120,9 +134,13 @@ public final class GoogleFont implements WebFont {
         return family;
     }
 
-    /** CSS font family value corresponding to the loaded Google family. */
+    /**
+     * CSS font family value corresponding to the loaded Google family.
+     */
     private static final class FamilyFontFace implements FontFace {
-        /** Quoted CSS family name. */
+        /**
+         * Quoted CSS family name.
+         */
         private final String name;
 
         /**
