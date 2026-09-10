@@ -115,7 +115,9 @@ public class HttpHandlerSecurityTest {
         assertTrue(response.contains("42"));
     }
 
-    /** Configured web fonts are connected to every generated application page. */
+    /**
+     * Configured web fonts are connected to every generated application page.
+     */
     @Test
     public void connectsConfiguredFontStylesheets() throws Exception {
         final GoogleFont font = new GoogleFont("Roboto Slab");
