@@ -69,6 +69,18 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    "sticky panel": function () {
+        const widget = document.createElement("div");
+        widget.style.position = "sticky";
+        widget.style.zIndex = "1";
+        widget._setStickySide = function (side) {
+            widget.style.top = side == "top" ? "0px" : "";
+            widget.style.bottom = side == "bottom" ? "0px" : "";
+        };
+        widget._setStickySide("top");
+        initPointerEvents(widget, true);
+        return widget;
+    },
     popup: function () {
         return createPopup(false);
     },
@@ -1152,6 +1164,17 @@ function setVertAlignment(data) {
                 alignment +
                 '".'
         );
+        return true;
+    }
+    return false;
+}
+
+function setStickySide(data) {
+    const widget = widgets[data.widget];
+    const side = data["sticky side"];
+    if (widget && widget._setStickySide && (side == "top" || side == "bottom")) {
+        widget._setStickySide(side);
+        log("The sticky side of the widget " + data.widget + ' has been set to "' + side + '".');
         return true;
     }
     return false;
