@@ -53,6 +53,7 @@ const handlerNames = [
     "setUnselectedSource",
     "setHorzAlignment",
     "setVertAlignment",
+    "setStickySide",
     "setCellSpacing",
     "setCheckedFlag",
     "setMultipleInput",
