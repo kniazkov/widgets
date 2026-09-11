@@ -47,7 +47,7 @@ public final class StickyPanelTest {
 
         final List<JsonObject> updates = sandbox.drainUpdates();
         assertEquals(1, updates.size());
-        assertEquals("set sticky side", updates.get(0).get("command").getStringValue());
+        assertEquals("set sticky side", updates.get(0).get("action").getStringValue());
         assertEquals("bottom", updates.get(0).get("sticky side").getStringValue());
     }
 
