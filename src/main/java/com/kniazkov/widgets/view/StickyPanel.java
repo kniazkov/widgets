@@ -8,7 +8,7 @@ package com.kniazkov.widgets.view;
  * viewport edge. It then stays at that edge while its containing block remains visible.
  * Unlike a popup, a sticky panel keeps its original place in page layout.
  */
-public final class StickyPanel extends Panel implements HasStickySide {
+public class StickyPanel extends Panel implements HasStickySide {
     /**
      * Returns the global default sticky panel style.
      *
