@@ -100,16 +100,7 @@ const widgetsLibrary = {
     },
     "text area": function () {
         const widget = document.createElement("textarea");
-        widget.setText = function (text) {
-            if (widget.value != text) {
-                widget.value = text;
-                return true;
-            }
-            return false;
-        };
-        addEvent(widget, "input", function () {
-            sendEventToServer(widget, "text input", { text: widget.value });
-        });
+        initEditableText(widget);
         initPointerEvents(widget);
         initFocusEvents(widget);
         initTextAlignment(widget);
@@ -1224,7 +1215,39 @@ function setAcceptedFiles(data) {
 // Browser event handling and serialization.
 function createInputField() {
     const widget = document.createElement("input");
+    initEditableText(widget);
+    initPointerEvents(widget);
+    initFocusEvents(widget, "active");
+    initTextAlignment(widget);
+    return widget;
+}
+
+// Protects local editing from delayed server echoes and applies the latest value when safe.
+function initEditableText(widget) {
+    widget._deferredText = null;
+    widget._textInputPending = false;
     widget.setText = function (text) {
+        if (document.activeElement === widget || widget._textInputPending) {
+            widget._deferredText = text;
+            return false;
+        }
+        widget._deferredText = null;
+        if (widget.value != text) {
+            widget.value = text;
+            return true;
+        }
+        return false;
+    };
+    widget._applyDeferredText = function () {
+        if (
+            document.activeElement === widget ||
+            widget._textInputPending ||
+            widget._deferredText === null
+        ) {
+            return false;
+        }
+        const text = widget._deferredText;
+        widget._deferredText = null;
         if (widget.value != text) {
             widget.value = text;
             return true;
@@ -1232,12 +1255,12 @@ function createInputField() {
         return false;
     };
     addEvent(widget, "input", function () {
+        widget._textInputPending = true;
         sendEventToServer(widget, "text input", { text: widget.value });
     });
-    initPointerEvents(widget);
-    initFocusEvents(widget, "active");
-    initTextAlignment(widget);
-    return widget;
+    addEvent(widget, "blur", function () {
+        widget._applyDeferredText();
+    });
 }
 
 // Adds CSS text alignment support to text input controls.
