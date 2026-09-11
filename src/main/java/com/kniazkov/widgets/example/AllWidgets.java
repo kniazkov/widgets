@@ -12,6 +12,7 @@ import com.kniazkov.widgets.common.BoxShadow;
 import com.kniazkov.widgets.common.BoxSizing;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.FontWeight;
+import com.kniazkov.widgets.common.StickySide;
 import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.images.SvgImageSource;
 import com.kniazkov.widgets.model.StringModel;
@@ -46,6 +47,8 @@ import com.kniazkov.widgets.view.Row;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.SectionStyle;
 import com.kniazkov.widgets.view.State;
+import com.kniazkov.widgets.view.StickyPanel;
+import com.kniazkov.widgets.view.StickyPanelStyle;
 import com.kniazkov.widgets.view.Table;
 import com.kniazkov.widgets.view.TableStyle;
 import com.kniazkov.widgets.view.TextArea;
@@ -128,6 +131,7 @@ public class AllWidgets {
     private static void buildGallery(final RootWidget root) {
         configurePage(root);
         addIntroduction(root);
+        addStickyPanel(root);
         addTextWidgets(root);
         addActiveTextWidgets(root);
         addLinks(root);
@@ -172,6 +176,31 @@ public class AllWidgets {
             textStyle(MUTED, "15px", FontWeight.NORMAL),
             "A gallery of visible widgets, their states and common variations."
         )));
+    }
+
+    /**
+     * Adds a panel that demonstrates its normal and sticky positions while scrolling.
+     *
+     * @param root page root
+     */
+    private static void addStickyPanel(final RootWidget root) {
+        final StickyPanelStyle style = StickyPanel.getDefaultStyle().derive();
+        style.setStickySide(StickySide.TOP);
+        style.setBgColor(new Color(219, 234, 254));
+        style.setBorderColor(PRIMARY);
+        style.setBorderStyle(BorderStyle.SOLID);
+        style.setBorderWidth(1);
+        style.setBorderRadius(10);
+        style.setPadding(14, 10);
+        style.setBoxSizing(BoxSizing.BORDER_BOX);
+        style.setBoxShadow(new BoxShadow(0, 4, 12, new Color(15, 23, 42, 25)));
+        final StickyPanel panel = new StickyPanel(style);
+        panel.setMargin(24, 12);
+        panel.add(new Section(new TextWidget(
+            textStyle(TEXT, "15px", FontWeight.SEMIBOLD),
+            "StickyPanel — scroll the page to see this block stick to the top."
+        )));
+        root.add(panel);
     }
 
     /**
