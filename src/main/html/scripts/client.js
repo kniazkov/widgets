@@ -223,6 +223,20 @@ function removeProcessedEvents(id) {
     events.splice(0, i + 1);
 }
 
+// Reconciles delayed text updates after the server acknowledges local input events.
+function reconcileTextInputs() {
+    const pending = new Set(
+        events.filter(event => event.type === "text input").map(event => event.widget)
+    );
+    for (const id in widgets) {
+        const widget = widgets[id];
+        if (typeof widget._applyDeferredText === "function") {
+            widget._textInputPending = pending.has(widget._id);
+            widget._applyDeferredText();
+        }
+    }
+}
+
 // One synchronization request carries both pending browser events and the update checkpoint.
 function sendSynchronizeRequest(callback) {
     sendRequest(
@@ -267,6 +281,7 @@ function sendSynchronizeRequest(callback) {
             try {
                 processUpdates(json.updates);
                 removeProcessedEvents(json.lastEvent);
+                reconcileTextInputs();
             } catch (error) {
                 showClientError(error);
                 if (callback) {
