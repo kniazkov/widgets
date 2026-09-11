@@ -371,6 +371,7 @@ const actionHandlers = {
     "set unsel source": setUnselectedSource,
     "set horz alignment": setHorzAlignment,
     "set vert alignment": setVertAlignment,
+    "set sticky side": setStickySide,
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
     "set multiple input": setMultipleInput,
