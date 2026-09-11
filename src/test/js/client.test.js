@@ -71,7 +71,7 @@ function createHarness() {
         url: "http://localhost/example?item=42"
     });
     const handlers = handlerNames.map(name => `function ${name}() { return true; }`).join("\n");
-    dom.window.eval(`${handlers}\n${source}\n
+    dom.window.eval(`const widgets = {};\n${handlers}\n${source}\n
         window.__reloadCount = 0;
         reloadCurrentPage = function () {
             window.__reloadCount++;
@@ -81,7 +81,10 @@ function createHarness() {
             succeed: recordRequestSuccess,
             reportClientError: responseHasClientError,
             setServerId: function (value) { serverId = value; },
-            serverStateIsCurrent: serverStateIsCurrent
+            serverStateIsCurrent: serverStateIsCurrent,
+            reconcileTextInputs,
+            events,
+            widgets
         };
     `);
     return dom.window.__clientHarness;
@@ -135,5 +138,30 @@ describe("connection recovery", () => {
             false
         );
         expect(dom.window.__reloadCount).toBe(1);
+    });
+});
+
+describe("text input reconciliation", () => {
+    it("keeps a field pending until its last local input event is acknowledged", () => {
+        const harness = createHarness();
+        let applications = 0;
+        const widget = {
+            _id: "#7",
+            _textInputPending: true,
+            _applyDeferredText() {
+                applications++;
+            }
+        };
+        harness.widgets[widget._id] = widget;
+        harness.events.push({ id: "#1", widget: widget._id, type: "text input" });
+
+        harness.reconcileTextInputs();
+        expect(widget._textInputPending).toBe(true);
+        expect(applications).toBe(1);
+
+        harness.events.splice(0);
+        harness.reconcileTextInputs();
+        expect(widget._textInputPending).toBe(false);
+        expect(applications).toBe(2);
     });
 });
