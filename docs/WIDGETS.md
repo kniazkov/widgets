@@ -36,6 +36,7 @@ classDiagram
 
     BlockWidget <|-- Section
     BlockWidget <|-- Panel
+    Panel <|-- StickyPanel
     BlockWidget <|-- Popup
     Popup <|-- ModalPopup
     ModalPopup <|-- MessagePopup
@@ -79,6 +80,7 @@ the root and table structures rather than the general block/inline distinction.
 | `RootWidget` | `root` | `BlockWidget` | Top-level UI root created for a client. It cannot have a parent, can reset the client, and can request navigation to another page. |
 | `Section` | `section` | `InlineWidget` | Block-level horizontal flow, similar to a paragraph or generic HTML block containing inline content. Supports alignment, margin, padding, and hidden state. |
 | `Panel` | `panel` | `BlockWidget` | General-purpose block container for composing nested page regions. Supports background, border, size, spacing, and pointer events. |
+| `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
 | `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The translucent white default backdrop color is exposed through a model. |
@@ -127,7 +129,8 @@ legal. The supported tree shapes are:
 
 - `RootWidget` -> `BlockWidget`
 - `Section` -> `InlineWidget`
-- `Panel`, `InlineBlock`, `Popup`, `ModalPopup`, `MessagePopup`, and `Cell` -> `BlockWidget`
+- `Panel`, `StickyPanel`, `InlineBlock`, `Popup`, `ModalPopup`, `MessagePopup`, and `Cell`
+  -> `BlockWidget`
 - `Button` and `MarginDecorator` -> exactly one `InlineWidget`
 - `Table` -> `Row` -> `Cell`
 
