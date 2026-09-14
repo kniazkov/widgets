@@ -137,6 +137,13 @@ describe("carousel", () => {
                 hrefs: ["first-original.png", "second-original.png"]
             })
         ).toBe(true);
+        expect(
+            harness.setCarouselNewTabHref({
+                widget: carouselId,
+                index: 1,
+                href: "replacement-original.png"
+            })
+        ).toBe(true);
         harness.setSelectedIndex({ widget: carouselId, "selected index": 1 });
 
         harness.widgets[carouselId].dispatchEvent(
@@ -145,7 +152,7 @@ describe("carousel", () => {
 
         expect(harness.openedTabs).toEqual([
             ["active-original.png", "_blank", "noopener"],
-            ["second-original.png", "_blank", "noopener"]
+            ["replacement-original.png", "_blank", "noopener"]
         ]);
     });
 
