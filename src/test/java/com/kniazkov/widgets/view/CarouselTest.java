@@ -81,6 +81,51 @@ public final class CarouselTest {
     }
 
     /**
+     * Verifies bulk and single-position new-tab hyperlink updates.
+     */
+    @Test
+    public void configuresNewTabHrefsForFixedPositions() {
+        final Carousel carousel = new Carousel("first.png", "second.png");
+        final WidgetSandbox<Carousel> sandbox = WidgetSandbox.open(carousel);
+        sandbox.clearUpdates();
+
+        carousel.setNewTabHrefs(List.of("first-original.png", "second-original.png"));
+
+        assertEquals(
+            List.of("first-original.png", "second-original.png"),
+            carousel.getNewTabHrefs()
+        );
+        List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set carousel new tab hrefs", carousel
+        );
+        assertEquals(1, updates.size());
+        final JsonArray hrefs = updates.get(0).get("hrefs").toJsonArray();
+        assertEquals("first-original.png", hrefs.getElement(0).getStringValue());
+        assertEquals("second-original.png", hrefs.getElement(1).getStringValue());
+
+        carousel.setNewTabHref(1, "replacement-original.png");
+
+        assertEquals("replacement-original.png", carousel.getNewTabHref(1));
+        updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set carousel new tab href", carousel
+        );
+        assertEquals(1, updates.size());
+        assertEquals(1, updates.get(0).get("index").getIntValue());
+        assertEquals(
+            "replacement-original.png",
+            updates.get(0).get("href").getStringValue()
+        );
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> carousel.setNewTabHrefs(List.of("too-few.png"))
+        );
+        assertThrows(
+            IndexOutOfBoundsException.class,
+            () -> carousel.setNewTabHref(2, "outside.png")
+        );
+    }
+
+    /**
      * Verifies selection bounds and browser selection event ordering.
      */
     @Test
