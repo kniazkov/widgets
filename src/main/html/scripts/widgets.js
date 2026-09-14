@@ -431,6 +431,7 @@ function createWidget(data) {
     const widget = ctor();
     widget._id = id;
     widget._events = {};
+    widget._clientActions = {};
     widget._properties = {
         normal: {},
         hovered: {},
@@ -462,6 +463,23 @@ function subscribeToEvent(data) {
         log("Server subscribed to the '" + event + "' event of widget " + widget._id + ".");
         widget._events[event] = true;
     }
+}
+
+function setClientEventAction(data) {
+    const widget = widgets[data.widget];
+    const event = data.event;
+    const clientAction = data.clientAction;
+    if (
+        widget &&
+        typeof event == "string" &&
+        clientAction &&
+        typeof clientAction.action == "string"
+    ) {
+        widget._clientActions[event] = clientAction;
+        log("A client action was set for the '" + event + "' event of widget " + widget._id + ".");
+        return true;
+    }
+    return false;
 }
 
 function setChildWidget(data) {
@@ -1440,7 +1458,7 @@ function initPointerEvents(widget, activeOnPointerDown) {
     });
     addEvent(widget, "pointerenter", function (event) {
         widget._states.hovered = true;
-        if (widget._events.click) {
+        if (widget._events.click || widget._clientActions.click) {
             widget.style.cursor = "pointer";
         }
         refreshWidget(widget);
@@ -1451,7 +1469,7 @@ function initPointerEvents(widget, activeOnPointerDown) {
             widget._states.active = false;
         }
         widget._states.hovered = false;
-        if (widget._events.click) {
+        if (widget._events.click || widget._clientActions.click) {
             widget.style.cursor = "default";
         }
         refreshWidget(widget);

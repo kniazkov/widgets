@@ -15,6 +15,7 @@ const handlerNames = [
     "goToPage",
     "openPageInNewTab",
     "subscribeToEvent",
+    "setClientEventAction",
     "setChildWidget",
     "appendChildWidget",
     "insertChildWidget",
@@ -93,6 +94,7 @@ function createHarness() {
             serverStateIsCurrent: serverStateIsCurrent,
             reconcileTextInputs,
             openPageInNewTab,
+            sendEventToServer,
             openedTabs: window.__openedTabs,
             events,
             widgets
@@ -174,6 +176,30 @@ describe("text input reconciliation", () => {
         harness.reconcileTextInputs();
         expect(widget._textInputPending).toBe(false);
         expect(applications).toBe(2);
+    });
+});
+
+describe("client event actions", () => {
+    it("executes an action synchronously without subscribing to the server event", () => {
+        const harness = createHarness();
+        const widget = {
+            _id: "#7",
+            _events: {},
+            _clientActions: {
+                click: {
+                    action: "open page in new tab",
+                    href: "https://example.com/original.png"
+                }
+            }
+        };
+        harness.widgets[widget._id] = widget;
+
+        harness.sendEventToServer(widget, "click");
+
+        expect(harness.openedTabs).toEqual([
+            ["https://example.com/original.png", "_blank", "noopener"]
+        ]);
+        expect(harness.events).toEqual([]);
     });
 });
 

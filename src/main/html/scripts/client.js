@@ -341,6 +341,7 @@ const actionHandlers = {
     "go to page": goToPage,
     "open page in new tab": openPageInNewTab,
     subscribe: subscribeToEvent,
+    "set client event action": setClientEventAction,
     "set child": setChildWidget,
     "append child": appendChildWidget,
     "insert child": insertChildWidget,
@@ -394,6 +395,15 @@ const actionHandlers = {
 const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload"];
 
 function sendEventToServer(widget, type, data) {
+    const clientAction = widget._clientActions[type];
+    if (clientAction) {
+        const handler = actionHandlers[clientAction.action];
+        if (handler) {
+            handler(clientAction);
+        } else {
+            log("Unknown client action: '" + clientAction.action + "'.");
+        }
+    }
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {
         createEvent(widget, type, data);
         sendSynchronizeRequest();

@@ -3,6 +3,8 @@
  */
 package com.kniazkov.widgets.controller;
 
+import com.kniazkov.widgets.client.OnClient;
+
 /**
  * An entity capable of handling pointer-based interactions.
  * This interface enables widgets to react to pointer events such as clicks, presses, releases,
@@ -18,6 +20,17 @@ public interface HandlesPointerEvents extends HandlesEvents {
     default void onClick(Controller<PointerEvent> ctrl) {
         this.setController(Event.CLICK, ctrl);
         this.subscribeToEvent(Event.CLICK);
+    }
+
+    /**
+     * Registers an action that the browser executes immediately when this element is clicked.
+     * The click is handled locally and is not sent to the server unless a server-side
+     * {@link #onClick(Controller)} handler is also registered.
+     *
+     * @param action the action to execute in the browser
+     */
+    default void onClickOnClient(OnClient action) {
+        this.executeOnClient(Event.CLICK, action);
     }
 
     /**
