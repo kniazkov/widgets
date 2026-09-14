@@ -84,14 +84,19 @@ describe("carousel", () => {
             harness.setCarouselSources({ widget: id, sources: ["first.png", "second.png"] })
         ).toBe(true);
         const widget = harness.widgets[id];
-        expect(widget._image.getAttribute("src")).toBe("first.png");
+        expect(widget._images).toHaveLength(2);
+        expect(widget._images.map(image => image.getAttribute("src"))).toEqual([
+            "first.png",
+            "second.png"
+        ]);
+        expect(widget._images.every(image => image.loading == "eager")).toBe(true);
 
         expect(harness.setSelectedIndex({ widget: id, "selected index": 1 })).toBe(true);
-        expect(widget._image.getAttribute("src")).toBe("second.png");
+        expect(widget._track.style.transform).toBe("translateX(-100%)");
         expect(harness.setCarouselSource({ widget: id, index: 1, source: "changed.png" })).toBe(
             true
         );
-        expect(widget._image.getAttribute("src")).toBe("changed.png");
+        expect(widget._images[1].getAttribute("src")).toBe("changed.png");
         expect(harness.setSelectedIndex({ widget: id, "selected index": -1 })).toBe(false);
         expect(harness.setCarouselSources({ widget: id, sources: [] })).toBe(false);
     });
@@ -106,11 +111,22 @@ describe("carousel", () => {
 
         pointer(widget, "pointerdown", 250);
         pointer(widget, "pointermove", 100);
+        expect(widget._track.style.transform).toBe("translateX(calc(-0% + -150px))");
         pointer(widget, "pointerup", 100);
 
         expect(widget._selectedIndex).toBe(1);
-        expect(widget._image.getAttribute("src")).toBe("second.png");
-        expect(harness.events).toEqual([{ widget, type: "select", data: { index: 1 } }]);
+        expect(widget._track.style.transform).toBe("translateX(-100%)");
+
+        pointer(widget, "pointerdown", 100);
+        pointer(widget, "pointermove", 250);
+        expect(widget._track.style.transform).toBe("translateX(calc(-100% + 150px))");
+        pointer(widget, "pointerup", 250);
+
+        expect(widget._selectedIndex).toBe(0);
+        expect(harness.events).toEqual([
+            { widget, type: "select", data: { index: 1 } },
+            { widget, type: "select", data: { index: 0 } }
+        ]);
     });
 
     it("resists end swipes by at most one third and suppresses their synthetic click", () => {
@@ -124,9 +140,9 @@ describe("carousel", () => {
 
         pointer(widget, "pointerdown", 0);
         pointer(widget, "pointermove", 900);
-        expect(widget._image.style.transform).toBe("translateX(100px)");
+        expect(widget._track.style.transform).toBe("translateX(calc(-0% + 100px))");
         pointer(widget, "pointerup", 900);
-        expect(widget._image.style.transform).toBe("translateX(0px)");
+        expect(widget._track.style.transform).toBe("translateX(-0%)");
         widget.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 
         expect(widget._selectedIndex).toBe(0);

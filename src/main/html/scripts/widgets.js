@@ -189,27 +189,24 @@ const widgetsLibrary = {
     },
     carousel: function () {
         const widget = document.createElement("span");
-        const image = document.createElement("img");
+        const track = document.createElement("span");
         widget.className = "carousel";
         widget.style.display = "inline-block";
         widget.style.overflow = "hidden";
         widget.style.lineHeight = "0";
         widget.style.touchAction = "pan-y";
-        image.style.display = "block";
-        image.style.width = "100%";
-        image.style.height = "100%";
-        image.style.objectFit = "contain";
-        image.style.transform = "translateX(0px)";
-        image.draggable = false;
-        widget.appendChild(image);
-        widget._image = image;
+        track.style.display = "flex";
+        track.style.width = "100%";
+        track.style.height = "100%";
+        track.style.transform = "translateX(0%)";
+        track.style.willChange = "transform";
+        widget.appendChild(track);
+        widget._track = track;
+        widget._images = [];
         widget._sources = [];
         widget._selectedIndex = 0;
         widget._showSelectedImage = function () {
-            const source = widget._sources[widget._selectedIndex];
-            if (typeof source == "string") {
-                widget._image.src = source;
-            }
+            widget._track.style.transform = "translateX(-" + widget._selectedIndex * 100 + "%)";
         };
         initPointerEvents(widget, true);
         initCarouselGestures(widget);
@@ -649,7 +646,7 @@ function setCarouselSources(data) {
     const sources = data.sources;
     if (
         !widget ||
-        !widget._image ||
+        !widget._track ||
         !Array.isArray(sources) ||
         sources.length == 0 ||
         sources.some(source => typeof source != "string")
@@ -657,6 +654,20 @@ function setCarouselSources(data) {
         return false;
     }
     widget._sources = sources.slice();
+    widget._images = sources.map(source => {
+        const image = document.createElement("img");
+        image.src = source;
+        image.loading = "eager";
+        image.decoding = "async";
+        image.draggable = false;
+        image.style.display = "block";
+        image.style.flex = "0 0 100%";
+        image.style.width = "100%";
+        image.style.height = "100%";
+        image.style.objectFit = "contain";
+        return image;
+    });
+    widget._track.replaceChildren(...widget._images);
     if (widget._selectedIndex >= sources.length) {
         widget._selectedIndex = sources.length - 1;
     }
@@ -671,7 +682,7 @@ function setCarouselSource(data) {
     const source = data.source;
     if (
         !widget ||
-        !widget._image ||
+        !widget._track ||
         !Number.isInteger(index) ||
         index < 0 ||
         index >= widget._sources.length ||
@@ -680,9 +691,7 @@ function setCarouselSource(data) {
         return false;
     }
     widget._sources[index] = source;
-    if (index == widget._selectedIndex) {
-        widget._showSelectedImage();
-    }
+    widget._images[index].src = source;
     log("The image source " + index + " of widget " + data.widget + " has been changed.");
     return true;
 }
@@ -692,7 +701,7 @@ function setSelectedIndex(data) {
     const index = data["selected index"];
     if (
         widget &&
-        widget._image &&
+        widget._track &&
         Number.isInteger(index) &&
         index >= 0 &&
         index < widget._sources.length
@@ -1486,12 +1495,13 @@ function initCarouselGestures(widget) {
     }
 
     function moveImage(distance) {
-        widget._image.style.transform = "translateX(" + distance + "px)";
+        const offset = widget._selectedIndex * 100;
+        widget._track.style.transform = "translateX(calc(-" + offset + "% + " + distance + "px))";
     }
 
     function settleImage() {
-        widget._image.style.transition = "transform 180ms ease-out";
-        moveImage(0);
+        widget._track.style.transition = "transform 180ms ease-out";
+        widget._showSelectedImage();
     }
 
     addEvent(widget, "pointerdown", function (event) {
@@ -1503,7 +1513,7 @@ function initCarouselGestures(widget) {
         startY = event.clientY;
         lastX = startX;
         dragging = false;
-        widget._image.style.transition = "none";
+        widget._track.style.transition = "none";
         if (widget.setPointerCapture) {
             widget.setPointerCapture(pointerId);
         }
