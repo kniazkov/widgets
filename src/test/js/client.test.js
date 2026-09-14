@@ -9,6 +9,7 @@ const source = fs.readFileSync(
 );
 
 const handlerNames = [
+    "log",
     "createWidget",
     "reset",
     "goToPage",
