@@ -730,9 +730,7 @@ function setCarouselNewTabHref(data) {
         return false;
     }
     widget._newTabHrefs[index] = href;
-    log(
-        "The new-tab hyperlink " + index + " of carousel " + data.widget + " has been changed."
-    );
+    log("The new-tab hyperlink " + index + " of carousel " + data.widget + " has been changed.");
     return true;
 }
 
