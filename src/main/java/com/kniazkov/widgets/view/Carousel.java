@@ -10,6 +10,8 @@ import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.protocol.SetCarouselNewTabHref;
+import com.kniazkov.widgets.protocol.SetCarouselNewTabHrefs;
 import com.kniazkov.widgets.protocol.SetCarouselSource;
 import com.kniazkov.widgets.protocol.SetCarouselSources;
 import com.kniazkov.widgets.protocol.SetProperty;
@@ -36,6 +38,12 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
      * Fixed ordered source bindings.
      */
     private final List<SourceBinding> sources;
+
+    /**
+     * Hyperlinks opened directly by the browser for the corresponding positions.
+     * Empty values disable direct opening.
+     */
+    private final List<String> newTabHrefs;
 
     /**
      * Selected position binding. It starts at zero because an empty carousel is prohibited.
@@ -136,6 +144,10 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
             bindings.add(new SourceBinding(index, models.get(index)));
         }
         this.sources = List.copyOf(bindings);
+        this.newTabHrefs = new ArrayList<>(models.size());
+        for (int index = 0; index < models.size(); index++) {
+            this.newTabHrefs.add("");
+        }
         this.selectedIndex = new Binding<>(new IntegerModel(0), index -> {
             this.validateSelectedIndex(index);
             this.pushUpdate(new SetProperty<>(
@@ -219,6 +231,58 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
      */
     public void setSource(final int index, final String href) {
         this.setSource(index, ImageSource.fromHyperlink(Objects.requireNonNull(href, "href")));
+    }
+
+    /**
+     * Returns the hyperlink opened by a click at one carousel position.
+     *
+     * @param index carousel position
+     * @return hyperlink, or an empty string when direct opening is disabled
+     */
+    public String getNewTabHref(final int index) {
+        return this.newTabHrefs.get(index);
+    }
+
+    /**
+     * Returns an immutable snapshot of all new-tab hyperlinks.
+     *
+     * @return hyperlinks in carousel order
+     */
+    public List<String> getNewTabHrefs() {
+        return List.copyOf(this.newTabHrefs);
+    }
+
+    /**
+     * Changes the hyperlink opened by a click at one carousel position.
+     *
+     * @param index carousel position
+     * @param href hyperlink, or an empty string to disable direct opening
+     */
+    public void setNewTabHref(final int index, final String href) {
+        this.sources.get(index);
+        final String checked = Objects.requireNonNull(href, "href");
+        this.newTabHrefs.set(index, checked);
+        this.pushUpdate(new SetCarouselNewTabHref(this.getId(), index, checked));
+    }
+
+    /**
+     * Replaces all hyperlinks opened by clicks. The number of hyperlinks must match
+     * the fixed number of carousel images.
+     *
+     * @param hrefs hyperlinks in carousel order; empty values disable individual links
+     */
+    public void setNewTabHrefs(final List<String> hrefs) {
+        final List<String> checked = List.copyOf(
+            Objects.requireNonNull(hrefs, "hrefs")
+        );
+        if (checked.size() != this.sources.size()) {
+            throw new IllegalArgumentException(
+                "New-tab hyperlink count must match carousel image count"
+            );
+        }
+        this.newTabHrefs.clear();
+        this.newTabHrefs.addAll(checked);
+        this.pushUpdate(new SetCarouselNewTabHrefs(this.getId(), checked));
     }
 
     @Override
