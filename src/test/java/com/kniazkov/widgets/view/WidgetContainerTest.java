@@ -92,12 +92,18 @@ public final class WidgetContainerTest {
         sandbox.clearUpdates();
 
         root.goToPage("/next");
+        root.openPageInNewTab("https://example.com");
         root.remove();
 
         final List<JsonObject> updates = sandbox.drainUpdates();
         final List<JsonObject> navigation = WidgetSandbox.findUpdates(updates, "go to page");
         assertEquals(1, navigation.size());
         assertEquals("/next", navigation.get(0).get("href").getStringValue());
+        final List<JsonObject> newTab = WidgetSandbox.findUpdates(
+            updates, "open page in new tab"
+        );
+        assertEquals(1, newTab.size());
+        assertEquals("https://example.com", newTab.get(0).get("href").getStringValue());
         assertEquals(1, WidgetSandbox.findUpdates(updates, "reset").size());
     }
 
