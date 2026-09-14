@@ -77,7 +77,20 @@ function createHarness() {
         url: "http://localhost/example?item=42"
     });
     const handlers = handlerNames.map(name => `function ${name}() { return true; }`).join("\n");
-    dom.window.eval(`const widgets = {};\n${handlers}\n${source}\n
+    dom.window.eval(`const widgets = {};\n${handlers}\n
+        window.__requests = [];
+        window.__scheduledTasks = [];
+        function sendRequest(request, callback) {
+            window.__requests.push({ request, callback });
+        }
+        function isMobileDevice() {
+            return false;
+        }
+        window.setTimeout = function (callback) {
+            window.__scheduledTasks.push(callback);
+            return window.__scheduledTasks.length;
+        };
+        ${source}\n
         window.__reloadCount = 0;
         window.__openedTabs = [];
         window.open = function (...args) {
@@ -90,6 +103,9 @@ function createHarness() {
             fail: recordRequestFailure,
             succeed: recordRequestSuccess,
             reportClientError: responseHasClientError,
+            startClient,
+            requests: window.__requests,
+            scheduledTasks: window.__scheduledTasks,
             setServerId: function (value) { serverId = value; },
             serverStateIsCurrent: serverStateIsCurrent,
             reconcileTextInputs,
@@ -102,6 +118,25 @@ function createHarness() {
     `);
     return dom.window.__clientHarness;
 }
+
+describe("client creation", () => {
+    it("keeps only one creation request in flight and retries after failure", () => {
+        const harness = createHarness();
+
+        harness.startClient("/catalog", { group: "all" });
+        harness.startClient("/catalog", { group: "all" });
+
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.requests[0].request.action).toBe("new instance");
+        expect(harness.scheduledTasks).toHaveLength(0);
+
+        harness.requests[0].callback(null);
+
+        expect(harness.scheduledTasks).toHaveLength(1);
+        harness.scheduledTasks.shift()();
+        expect(harness.requests).toHaveLength(2);
+    });
+});
 
 describe("connection recovery", () => {
     it("blocks the page after three consecutive failures and unblocks on recovery", () => {
