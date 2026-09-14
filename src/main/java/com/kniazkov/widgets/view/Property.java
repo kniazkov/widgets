@@ -387,6 +387,11 @@ public abstract class Property<T> {
     );
 
     /**
+     * Property representing a hyperlink opened directly from the client-side click handler.
+     */
+    public static final Property<String> NEW_TAB_HREF = stringProperty("new tab href");
+
+    /**
      * Property specifying the widget’s foreground (text) color.
      */
     public static final Property<Color> COLOR = colorProperty("color", Color.BLACK);
