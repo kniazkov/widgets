@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.controller;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.client.OnClient;
 
 /**
  * Defines an entity that can store and manage {@link Controller controllers} associated
@@ -43,4 +44,15 @@ public interface HandlesEvents {
      * @param event the event type to subscribe to
      */
     void subscribeToEvent(Event<?> event);
+
+    /**
+     * Registers an action that the browser must execute synchronously when the specified event
+     * occurs on this entity. Unlike {@link #subscribeToEvent(Event)}, this method does not cause
+     * the event to be sent to the server.
+     *
+     * @param event the event that triggers the client-side action
+     * @param action the action to execute in the browser
+     */
+    void executeOnClient(Event<?> event, OnClient action);
 }
+

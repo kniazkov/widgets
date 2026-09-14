@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.base.Options;
+import com.kniazkov.widgets.client.OpenPageInNewTab;
 import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
@@ -163,6 +164,30 @@ public final class WidgetEventTest {
 
             assertEquals("click count for " + widget.getType(), 1, calls.get());
         }
+    }
+
+    /**
+     * Verifies that clicks can execute a declarative action entirely on the client.
+     */
+    @Test
+    public void clickCanExecuteClientActionWithoutServerSubscription() {
+        final ActiveImage image = new ActiveImage("image.png");
+        final WidgetSandbox<ActiveImage> sandbox = WidgetSandbox.open(image);
+        sandbox.clearUpdates();
+
+        image.onClickOnClient(new OpenPageInNewTab("/images/original.png"));
+
+        final List<JsonObject> updates = sandbox.drainUpdates();
+        final List<JsonObject> actions = WidgetSandbox.findUpdates(
+            updates, "set client event action", image
+        );
+        assertEquals(1, actions.size());
+        assertEquals("click", actions.get(0).get("event").getStringValue());
+        assertTrue(actions.get(0).toString().contains(
+            "\"clientAction\":{\"action\":\"open page in new tab\","
+                + "\"href\":\"/images/original.png\"}"
+        ));
+        assertTrue(WidgetSandbox.findUpdates(updates, "subscribe", image).isEmpty());
     }
 
     /**

@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Listener;
+import com.kniazkov.widgets.client.OnClient;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.Event;
@@ -13,6 +14,7 @@ import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
+import com.kniazkov.widgets.protocol.SetClientEventAction;
 import com.kniazkov.widgets.protocol.SetProperty;
 import com.kniazkov.widgets.protocol.Subscribe;
 import com.kniazkov.widgets.protocol.Update;
@@ -149,6 +151,11 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     @Override
     public void subscribeToEvent(final Event<?> event) {
         this.pushUpdate(new Subscribe(this.id, event.getName()));
+    }
+
+    @Override
+    public void executeOnClient(final Event<?> event, final OnClient action) {
+        this.pushUpdate(new SetClientEventAction(this.id, event.getName(), action));
     }
 
     /**
