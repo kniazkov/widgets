@@ -30,6 +30,10 @@ function createHarness() {
     dom.window.eval(`${optionsSource}\n${librarySource}\n
         configureUploadProtocol(4 * 1024, 128 * 1024 * 1024);
         window.__carouselEvents = [];
+        window.__openedTabs = [];
+        window.open = function (...args) {
+            window.__openedTabs.push(args);
+        };
         let clientId = "#1";
         function createEvent(widget, type, data) {
             window.__carouselEvents.push({ widget, type, data });
@@ -46,13 +50,17 @@ function createHarness() {
             subscribeToEvent,
             setCarouselSources,
             setCarouselSource,
+            setCarouselNewTabHrefs,
+            setCarouselNewTabHref,
+            setNewTabHref,
             setSelectedIndex,
             widgets
         };
     `);
     return {
         ...dom.window.__carouselHarness,
-        events: dom.window.__carouselEvents
+        events: dom.window.__carouselEvents,
+        openedTabs: dom.window.__openedTabs
     };
 }
 
@@ -102,6 +110,45 @@ describe("carousel", () => {
         expect(harness.setCarouselSources({ widget: id, sources: [] })).toBe(false);
     });
 
+    it("opens active-image and selected-carousel links directly from clicks", () => {
+        const harness = createHarness();
+        const activeId = "#45";
+        harness.createWidget({ type: "active image", widget: activeId });
+        expect(
+            harness.setNewTabHref({
+                widget: activeId,
+                "new tab href": "active-original.png"
+            })
+        ).toBe(true);
+
+        harness.widgets[activeId].dispatchEvent(
+            new dom.window.MouseEvent("click", { bubbles: true })
+        );
+
+        const carouselId = "#46";
+        harness.createWidget({ type: "carousel", widget: carouselId });
+        harness.setCarouselSources({
+            widget: carouselId,
+            sources: ["first.png", "second.png"]
+        });
+        expect(
+            harness.setCarouselNewTabHrefs({
+                widget: carouselId,
+                hrefs: ["first-original.png", "second-original.png"]
+            })
+        ).toBe(true);
+        harness.setSelectedIndex({ widget: carouselId, "selected index": 1 });
+
+        harness.widgets[carouselId].dispatchEvent(
+            new dom.window.MouseEvent("click", { bubbles: true })
+        );
+
+        expect(harness.openedTabs).toEqual([
+            ["active-original.png", "_blank", "noopener"],
+            ["second-original.png", "_blank", "noopener"]
+        ]);
+    });
+
     it("selects adjacent images with horizontal pointer swipes", () => {
         const harness = createHarness();
         const id = "#41";
@@ -135,6 +182,10 @@ describe("carousel", () => {
         const id = "#42";
         harness.createWidget({ type: "carousel", widget: id });
         harness.setCarouselSources({ widget: id, sources: ["first.png", "second.png"] });
+        harness.setCarouselNewTabHrefs({
+            widget: id,
+            hrefs: ["first-original.png", "second-original.png"]
+        });
         harness.subscribeToEvent({ widget: id, event: "click" });
         const widget = harness.widgets[id];
         widget.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 200 });
@@ -148,6 +199,7 @@ describe("carousel", () => {
 
         expect(widget._selectedIndex).toBe(0);
         expect(harness.events).toEqual([]);
+        expect(harness.openedTabs).toEqual([]);
     });
 
     it("prefers diagonal swipes but leaves steep vertical gestures to page scrolling", () => {
