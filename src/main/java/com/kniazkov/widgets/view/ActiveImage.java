@@ -14,7 +14,7 @@ import com.kniazkov.widgets.model.Model;
  * All states can share the same image source or have individual ones.
  */
 public class ActiveImage extends BaseImageWidget<ActiveImageStyle>
-        implements HandlesPointerEvents {
+        implements HandlesPointerEvents, HasNewTabHref {
     /**
      * Returns the default style instance used by active image widgets.
      *
