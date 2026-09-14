@@ -135,6 +135,7 @@ public final class WidgetEventTest {
             new ActiveText(),
             new Link(),
             new ActiveImage("active.png"),
+            new Carousel("first.png", "second.png"),
             new Button(),
             new FileLoader(),
             new CheckBox(),
