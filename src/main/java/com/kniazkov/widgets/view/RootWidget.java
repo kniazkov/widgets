@@ -148,6 +148,15 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
+     * Requests the client to open the specified page in a new browser tab.
+     *
+     * @param href the target page URL to open
+     */
+    public void openPageInNewTab(final String href) {
+        this.pushUpdate(new OpenPageInNewTab(href));
+    }
+
+    /**
      * Instruction sent to the client to trigger an immediate navigation to another page.
      */
     private static final class GoToPage extends Update {
@@ -175,6 +184,41 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         @Override
         protected String getAction() {
             return "go to page";
+        }
+
+        @Override
+        protected void fillJsonObject(final JsonObject obj) {
+            obj.addString("href", this.href);
+        }
+    }
+
+    /**
+     * Instruction sent to the client to open a page in a new browser tab.
+     */
+    private static final class OpenPageInNewTab extends Update {
+        /**
+         * Target page URL.
+         */
+        private final String href;
+
+        /**
+         * Creates an instruction that opens the specified URL in a new tab.
+         *
+         * @param href the target page URL to open
+         */
+        private OpenPageInNewTab(final String href) {
+            super(RMId.INVALID);
+            this.href = href;
+        }
+
+        @Override
+        public Update clone() {
+            return new OpenPageInNewTab(this.href);
+        }
+
+        @Override
+        protected String getAction() {
+            return "open page in new tab";
         }
 
         @Override

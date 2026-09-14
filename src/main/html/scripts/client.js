@@ -325,11 +325,21 @@ function goToPage(data) {
     return true;
 }
 
+function openPageInNewTab(data) {
+    const href = data.href;
+    if (typeof href == "string") {
+        log("The server opened a new tab: '" + href + "'.");
+        window.open(href, "_blank", "noopener");
+    }
+    return true;
+}
+
 // These wire names must match the update actions serialized by the Java server.
 const actionHandlers = {
     "create widget": createWidget,
     reset: reset,
     "go to page": goToPage,
+    "open page in new tab": openPageInNewTab,
     subscribe: subscribeToEvent,
     "set child": setChildWidget,
     "append child": appendChildWidget,
