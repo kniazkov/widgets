@@ -181,9 +181,7 @@ describe("new tab navigation", () => {
         const harness = createHarness();
 
         expect(harness.openPageInNewTab({ href: "https://example.com" })).toBe(true);
-        expect(harness.openedTabs).toEqual([
-            ["https://example.com", "_blank", "noopener"]
-        ]);
+        expect(harness.openedTabs).toEqual([["https://example.com", "_blank", "noopener"]]);
     });
 
     it("ignores a non-string href", () => {
