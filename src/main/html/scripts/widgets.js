@@ -204,6 +204,7 @@ const widgetsLibrary = {
         widget._track = track;
         widget._images = [];
         widget._sources = [];
+        widget._newTabHrefs = [];
         widget._selectedIndex = 0;
         widget._showSelectedImage = function () {
             widget._track.style.transform = "translateX(-" + widget._selectedIndex * 100 + "%)";
@@ -654,6 +655,7 @@ function setCarouselSources(data) {
         return false;
     }
     widget._sources = sources.slice();
+    widget._newTabHrefs = Array(sources.length).fill("");
     widget._images = sources.map(source => {
         const image = document.createElement("img");
         image.src = source;
@@ -696,6 +698,44 @@ function setCarouselSource(data) {
     return true;
 }
 
+function setCarouselNewTabHrefs(data) {
+    const widget = widgets[data.widget];
+    const hrefs = data.hrefs;
+    if (
+        !widget ||
+        !widget._track ||
+        !Array.isArray(hrefs) ||
+        hrefs.length != widget._sources.length ||
+        hrefs.some(href => typeof href != "string")
+    ) {
+        return false;
+    }
+    widget._newTabHrefs = hrefs.slice();
+    log("The new-tab hyperlinks of carousel " + data.widget + " have been replaced.");
+    return true;
+}
+
+function setCarouselNewTabHref(data) {
+    const widget = widgets[data.widget];
+    const index = data.index;
+    const href = data.href;
+    if (
+        !widget ||
+        !widget._track ||
+        !Number.isInteger(index) ||
+        index < 0 ||
+        index >= widget._sources.length ||
+        typeof href != "string"
+    ) {
+        return false;
+    }
+    widget._newTabHrefs[index] = href;
+    log(
+        "The new-tab hyperlink " + index + " of carousel " + data.widget + " has been changed."
+    );
+    return true;
+}
+
 function setSelectedIndex(data) {
     const widget = widgets[data.widget];
     const index = data["selected index"];
@@ -731,6 +771,17 @@ function setHref(data) {
     if (widget && typeof href == "string") {
         widget.setAttribute("href", href);
         log("The hyperlink of the widget " + data.widget + ' has been set to "' + href + '".');
+        return true;
+    }
+    return false;
+}
+
+function setNewTabHref(data) {
+    const widget = widgets[data.widget];
+    const href = data["new tab href"];
+    if (widget && typeof href == "string") {
+        widget._newTabHref = href;
+        log("The new-tab hyperlink of widget " + data.widget + ' has been set to "' + href + '".');
         return true;
     }
     return false;
@@ -1427,12 +1478,27 @@ function processPointerEvent(element, event) {
     return data;
 }
 
+function getNewTabHref(widget) {
+    if (Array.isArray(widget._newTabHrefs)) {
+        return widget._newTabHrefs[widget._selectedIndex];
+    }
+    return widget._newTabHref;
+}
+
+function openConfiguredNewTab(widget) {
+    const href = getNewTabHref(widget);
+    if (typeof href == "string" && href.length > 0) {
+        window.open(href, "_blank", "noopener");
+    }
+}
+
 function initPointerEvents(widget, activeOnPointerDown) {
     addEvent(widget, "click", function (event) {
         if (widget._suppressClick) {
             widget._suppressClick = false;
             return;
         }
+        openConfiguredNewTab(widget);
         sendEventToServer(widget, "click", processPointerEvent(widget, event));
         if (widget._onClick) {
             widget._onClick();
