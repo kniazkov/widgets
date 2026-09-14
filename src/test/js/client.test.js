@@ -23,6 +23,8 @@ const handlerNames = [
     "setText",
     "setOptions",
     "setOption",
+    "setCarouselSources",
+    "setCarouselSource",
     "setSelectedIndex",
     "setHref",
     "setColor",

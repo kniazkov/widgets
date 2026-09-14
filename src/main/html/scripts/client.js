@@ -341,6 +341,8 @@ const actionHandlers = {
     "set text": setText,
     "set options": setOptions,
     "set option": setOption,
+    "set carousel sources": setCarouselSources,
+    "set carousel source": setCarouselSource,
     "set selected index": setSelectedIndex,
     "set href": setHref,
     "set color": setColor,

@@ -56,6 +56,47 @@ test("a modal message blocks the page and closes without leaving its backdrop", 
     expect(pageErrors).toEqual([]);
 });
 
+test("a carousel swipe reaches Java with the selected image", async ({ page }) => {
+    const pageErrors = [];
+    page.on("pageerror", error => pageErrors.push(error.message));
+
+    await page.goto("/");
+    const carousel = page.locator(".carousel");
+    await expect(carousel).toBeVisible();
+    const box = await carousel.boundingBox();
+    expect(box).not.toBeNull();
+
+    await carousel.dispatchEvent("pointerdown", {
+        pointerId: 1,
+        isPrimary: true,
+        pointerType: "touch",
+        button: 0,
+        buttons: 1,
+        clientX: box.x + box.width * 0.8,
+        clientY: box.y + box.height / 2
+    });
+    await carousel.dispatchEvent("pointermove", {
+        pointerId: 1,
+        isPrimary: true,
+        pointerType: "touch",
+        buttons: 1,
+        clientX: box.x + box.width * 0.2,
+        clientY: box.y + box.height / 2
+    });
+    await carousel.dispatchEvent("pointerup", {
+        pointerId: 1,
+        isPrimary: true,
+        pointerType: "touch",
+        button: 0,
+        buttons: 0,
+        clientX: box.x + box.width * 0.2,
+        clientY: box.y + box.height / 2
+    });
+
+    await expect(page.getByText("Carousel selected 1", { exact: true })).toBeVisible();
+    expect(pageErrors).toEqual([]);
+});
+
 test("persistent connection loss blocks the page until the server responds", async ({ page }) => {
     let blockSynchronization = false;
     await page.route("**/*", async route => {

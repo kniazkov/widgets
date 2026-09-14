@@ -38,6 +38,7 @@ public final class WidgetContractsTest {
             {new Link(), "link"},
             {new ImageWidget("image.png"), "image"},
             {new ActiveImage("active.png"), "active image"},
+            {new Carousel("first.png", "second.png"), "carousel"},
             {new Button(), "button"},
             {new FileLoader(), "file loader"},
             {new InputField(), "input field"},
@@ -104,6 +105,7 @@ public final class WidgetContractsTest {
             new ActiveText(),
             new ImageWidget("image.png"),
             new ActiveImage("active.png"),
+            new Carousel("first.png", "second.png"),
             new CheckBox(),
             new RadioButton()
         );

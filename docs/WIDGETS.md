@@ -59,6 +59,7 @@ classDiagram
     InputField <|-- TextArea
     BaseImageWidget <|-- ImageWidget
     BaseImageWidget <|-- ActiveImage
+    BaseImageWidget <|-- Carousel
 ```
 
 `RootWidget`, `Row`, and `Cell` extend `Widget` directly because their placement is governed by
@@ -113,6 +114,13 @@ dynamic collections while preserving iteration order.
 | --- | --- | --- |
 | `ImageWidget` | `image` | Displays an `ImageSource` or hyperlink through a reactive image-source model. |
 | `ActiveImage` | `active image` | Interactive image with separate source models for normal, hovered, and active states. A shared source may be applied to all states. |
+| `Carousel` | `carousel` | Non-circular, swipeable image sequence backed by a fixed non-empty array of reactive `ImageSource` models. It reports clicks and successful selection changes. |
+
+`Carousel` starts at index zero and exposes its position through `getSelectedIndexModel()`.
+Applications may observe successful swipes with `onSelect(...)` and taps with `onClick(...)`.
+At either end, an outward swipe is resisted and returns to the same image instead of wrapping.
+The source count and order are fixed; `setSource(...)` and `setSourceModel(...)` update an existing
+position reactively.
 
 ## Table widgets
 
