@@ -12,6 +12,7 @@ const handlerNames = [
     "createWidget",
     "reset",
     "goToPage",
+    "openPageInNewTab",
     "subscribeToEvent",
     "setChildWidget",
     "appendChildWidget",
@@ -76,6 +77,10 @@ function createHarness() {
     const handlers = handlerNames.map(name => `function ${name}() { return true; }`).join("\n");
     dom.window.eval(`const widgets = {};\n${handlers}\n${source}\n
         window.__reloadCount = 0;
+        window.__openedTabs = [];
+        window.open = function (...args) {
+            window.__openedTabs.push(args);
+        };
         reloadCurrentPage = function () {
             window.__reloadCount++;
         };
@@ -86,6 +91,8 @@ function createHarness() {
             setServerId: function (value) { serverId = value; },
             serverStateIsCurrent: serverStateIsCurrent,
             reconcileTextInputs,
+            openPageInNewTab,
+            openedTabs: window.__openedTabs,
             events,
             widgets
         };
@@ -166,5 +173,23 @@ describe("text input reconciliation", () => {
         harness.reconcileTextInputs();
         expect(widget._textInputPending).toBe(false);
         expect(applications).toBe(2);
+    });
+});
+
+describe("new tab navigation", () => {
+    it("opens a server-provided link without granting opener access", () => {
+        const harness = createHarness();
+
+        expect(harness.openPageInNewTab({ href: "https://example.com" })).toBe(true);
+        expect(harness.openedTabs).toEqual([
+            ["https://example.com", "_blank", "noopener"]
+        ]);
+    });
+
+    it("ignores a non-string href", () => {
+        const harness = createHarness();
+
+        expect(harness.openPageInNewTab({ href: 42 })).toBe(true);
+        expect(harness.openedTabs).toEqual([]);
     });
 });
