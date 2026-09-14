@@ -183,10 +183,10 @@ public final class WidgetEventTest {
         );
         assertEquals(1, actions.size());
         assertEquals("click", actions.get(0).get("event").getStringValue());
-        assertTrue(actions.get(0).toString().contains(
-            "\"clientAction\":{\"action\":\"open page in new tab\","
-                + "\"href\":\"/images/original.png\"}"
-        ));
+        final JsonObject clientAction = actions.get(0).get("clientAction").toJsonObject();
+        assertEquals("open page in new tab",
+            clientAction.get("action").getStringValue());
+        assertEquals("/images/original.png", clientAction.get("href").getStringValue());
         assertTrue(WidgetSandbox.findUpdates(updates, "subscribe", image).isEmpty());
     }
 
