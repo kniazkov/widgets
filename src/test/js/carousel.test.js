@@ -73,6 +73,7 @@ function pointer(widget, type, x, y = 20) {
         pressure: { value: type == "pointerup" ? 0 : 0.5 }
     });
     widget.dispatchEvent(event);
+    return event;
 }
 
 describe("carousel", () => {
@@ -147,6 +148,29 @@ describe("carousel", () => {
 
         expect(widget._selectedIndex).toBe(0);
         expect(harness.events).toEqual([]);
+    });
+
+    it("prefers diagonal swipes but leaves steep vertical gestures to page scrolling", () => {
+        const harness = createHarness();
+        const id = "#44";
+        harness.createWidget({ type: "carousel", widget: id });
+        harness.setCarouselSources({ widget: id, sources: ["first.png", "second.png"] });
+        const widget = harness.widgets[id];
+        widget.getBoundingClientRect = () => ({ left: 0, top: 0, width: 300, height: 200 });
+
+        pointer(widget, "pointerdown", 250, 20);
+        const diagonalMove = pointer(widget, "pointermove", 160, 140);
+        expect(diagonalMove.defaultPrevented).toBe(true);
+        expect(widget._track.style.transform).toBe("translateX(calc(-0% + -90px))");
+        pointer(widget, "pointerup", 160, 140);
+        expect(widget._selectedIndex).toBe(1);
+
+        pointer(widget, "pointerdown", 200, 20);
+        const verticalMove = pointer(widget, "pointermove", 180, 140);
+        expect(verticalMove.defaultPrevented).toBe(false);
+        expect(widget._track.style.transform).toBe("translateX(-100%)");
+        pointer(widget, "pointerup", 180, 140);
+        expect(widget._selectedIndex).toBe(1);
     });
 
     it("reports an ordinary click when no swipe occurred", () => {

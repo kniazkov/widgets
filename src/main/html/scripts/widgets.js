@@ -1479,6 +1479,7 @@ function initCarouselGestures(widget) {
     let startY = 0;
     let lastX = 0;
     let dragging = false;
+    let direction = null;
 
     function width() {
         return Math.max(1, widget.getBoundingClientRect().width || widget.clientWidth || 1);
@@ -1513,6 +1514,7 @@ function initCarouselGestures(widget) {
         startY = event.clientY;
         lastX = startX;
         dragging = false;
+        direction = null;
         widget._track.style.transition = "none";
         if (widget.setPointerCapture) {
             widget.setPointerCapture(pointerId);
@@ -1526,10 +1528,14 @@ function initCarouselGestures(widget) {
         lastX = event.clientX;
         const distance = lastX - startX;
         const verticalDistance = Math.abs(event.clientY - startY);
-        if (!dragging && verticalDistance > Math.abs(distance)) {
+        const horizontalDistance = Math.abs(distance);
+        if (direction == null && Math.hypot(horizontalDistance, verticalDistance) >= 6) {
+            direction = horizontalDistance * 2 >= verticalDistance ? "horizontal" : "vertical";
+        }
+        if (direction != "horizontal") {
             return;
         }
-        if (Math.abs(distance) > 5) {
+        if (horizontalDistance > 5) {
             dragging = true;
         }
         if (dragging) {
@@ -1566,6 +1572,7 @@ function initCarouselGestures(widget) {
         }
         pointerId = null;
         dragging = false;
+        direction = null;
     }
 
     addEvent(widget, "pointerup", event => finish(event, false));
