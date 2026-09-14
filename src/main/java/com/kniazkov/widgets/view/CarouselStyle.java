@@ -17,7 +17,11 @@ public class CarouselStyle extends ImageWidgetStyle {
     /**
      * Creates the default carousel style.
      */
+    @SuppressWarnings("this-escape")
     protected CarouselStyle() {
+        /*
+         * Construction initializes inherited style models before publication.
+         */
         this.setCursor(Cursor.POINTER);
     }
 
