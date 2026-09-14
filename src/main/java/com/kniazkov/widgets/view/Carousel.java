@@ -259,7 +259,6 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
      * @param href hyperlink, or an empty string to disable direct opening
      */
     public void setNewTabHref(final int index, final String href) {
-        this.sources.get(index);
         final String checked = Objects.requireNonNull(href, "href");
         this.newTabHrefs.set(index, checked);
         this.pushUpdate(new SetCarouselNewTabHref(this.getId(), index, checked));
