@@ -847,6 +847,16 @@ function setWidth(data) {
     return false;
 }
 
+function setMaxWidth(data) {
+    const widget = widgets[data.widget];
+    const value = data["max width"];
+    if (widget && typeof value == "string") {
+        widget.style.maxWidth = value;
+        return true;
+    }
+    return false;
+}
+
 function setHeight(data) {
     const widget = widgets[data.widget];
     const value = data.height;

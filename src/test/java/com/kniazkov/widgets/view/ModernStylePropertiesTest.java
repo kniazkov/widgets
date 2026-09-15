@@ -24,6 +24,29 @@ import static org.junit.Assert.assertEquals;
  */
 public final class ModernStylePropertiesTest {
     /**
+     * Verifies reactive maximum width serialization and independent preferred width.
+     */
+    @Test
+    public void inputCanLimitItsPreferredWidth() {
+        final InputField input = new InputField();
+        input.setWidth(400);
+        final WidgetSandbox<InputField> sandbox = WidgetSandbox.open(input);
+        input.getMaxWidthModel();
+        sandbox.clearUpdates();
+        input.setMaxWidth("100%");
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set max width", input
+        );
+        assertEquals(1, updates.size());
+        assertEquals("100.0%", updates.get(0).get("max width").getStringValue());
+        assertEquals("400px", input.getWidth().getCSSCode());
+        input.setMaxWidth(240);
+        assertEquals("240px", input.getMaxWidth().getCSSCode());
+        input.setMaxWidth("");
+        assertEquals("", input.getMaxWidth().getCSSCode());
+    }
+
+    /**
      * Verifies CSS serialization of the new immutable value objects.
      */
     @Test
@@ -261,3 +284,4 @@ public final class ModernStylePropertiesTest {
         return matches.get(0);
     }
 }
+

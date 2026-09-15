@@ -10,7 +10,7 @@ import com.kniazkov.widgets.model.Model;
 /**
  * An {@link Entity} that has a width represented by a generic {@link WidgetSize}.
  */
-public interface HasWidth extends Entity {
+public interface HasWidth extends HasMaxWidth {
 
     /**
      * Returns the model that stores the width for this view.
@@ -67,3 +67,4 @@ public interface HasWidth extends Entity {
         this.getWidthModel().setData(new AbsoluteSize(px));
     }
 }
+

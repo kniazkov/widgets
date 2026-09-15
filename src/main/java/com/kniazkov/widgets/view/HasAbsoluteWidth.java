@@ -10,7 +10,7 @@ import com.kniazkov.widgets.model.Model;
  * An {@link Entity} that has an absolute width expressed in fixed units
  * such as pixels, points, or other {@link AbsoluteSize} values.
  */
-public interface HasAbsoluteWidth extends Entity {
+public interface HasAbsoluteWidth extends HasMaxWidth {
 
     /**
      * Returns the model that stores the absolute width for this view.
@@ -67,3 +67,4 @@ public interface HasAbsoluteWidth extends Entity {
         this.getWidthModel().setData(new AbsoluteSize(px));
     }
 }
+
