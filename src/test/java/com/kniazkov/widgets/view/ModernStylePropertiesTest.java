@@ -159,8 +159,15 @@ public final class ModernStylePropertiesTest {
         assertEquals("96px", new TextArea().getHeight().getCSSCode());
         assertEquals("10px", new ImageWidget("image.png").getBorderRadius().getCSSCode());
         assertEquals(Cursor.POINTER, new ActiveImage("image.png").getCursor());
-        assertEquals(0.75, new CheckBox().getOpacity(State.DISABLED), 0.0);
-        assertEquals(0.75, new RadioButton().getOpacity(State.DISABLED), 0.0);
+        final CheckBox checkBox = new CheckBox();
+        assertEquals(DefaultTheme.BUTTON_PRIMARY, checkBox.getBgColor());
+        assertEquals(DefaultTheme.BORDER_STRONG, checkBox.getColor());
+        assertEquals(0.75, checkBox.getOpacity(State.DISABLED), 0.0);
+
+        final RadioButton radioButton = new RadioButton();
+        assertEquals(DefaultTheme.BUTTON_PRIMARY, radioButton.getBgColor());
+        assertEquals(DefaultTheme.BORDER_STRONG, radioButton.getColor());
+        assertEquals(0.75, radioButton.getOpacity(State.DISABLED), 0.0);
         assertEquals("", new Table().getWidth().getCSSCode());
         assertEquals("0px", new Cell().getLeftPadding().getCSSCode());
     }
@@ -209,6 +216,8 @@ public final class ModernStylePropertiesTest {
         final Button danger = new Button(ButtonStyle.DANGER, "Delete");
         assertEquals(DefaultTheme.BUTTON_DANGER, danger.getBgColor());
         assertEquals(DefaultTheme.BUTTON_DANGER_HOVER, danger.getBgColor(State.HOVERED));
+        assertEquals(DefaultTheme.DANGER_ACTIVE, danger.getBorderColor());
+        assertEquals(DefaultTheme.DANGER, danger.getBorderColor(State.HOVERED));
         assertEquals(DefaultTheme.DANGER_ACTIVE, ((TextWidget) danger.getChild()).getColor());
 
         final ButtonStyle custom = ButtonStyle.PRIMARY.derive();

@@ -61,20 +61,22 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
     private CheckBoxStyle() {
         this.setBoxShadow(BoxShadow.NONE);
         this.setBoxShadow(State.HOVERED,
-            new BoxShadow(0, 0, 0, 3, new Color(37, 99, 235, 38)));
+            new BoxShadow(0, 4, 10, new Color(15, 23, 42, 32)));
+        this.setBoxShadow(State.ACTIVE,
+            new BoxShadow(0, 1, 3, new Color(15, 23, 42, 28)));
         this.setCursor(Cursor.POINTER);
         this.setCursor(State.DISABLED, Cursor.NOT_ALLOWED);
         this.setTransition(DefaultTheme.TRANSITION);
         this.setBoxSizing(BoxSizing.BORDER_BOX);
-        this.setColor(State.NORMAL, DefaultTheme.PRIMARY_HOVER);
-        this.setColor(State.HOVERED, DefaultTheme.PRIMARY_ACTIVE);
+        this.setColor(State.NORMAL, DefaultTheme.BORDER_STRONG);
+        this.setColor(State.HOVERED, DefaultTheme.TEXT);
         this.setColor(State.ACTIVE, DefaultTheme.TEXT);
-        this.setColor(State.DISABLED, DefaultTheme.MUTED);
+        this.setColor(State.DISABLED, DefaultTheme.BORDER);
 
-        this.setBgColor(State.NORMAL, DefaultTheme.PRIMARY);
-        this.setBgColor(State.HOVERED, DefaultTheme.PRIMARY_HOVER);
-        this.setBgColor(State.ACTIVE, DefaultTheme.PRIMARY_ACTIVE);
-        this.setBgColor(State.DISABLED, DefaultTheme.BORDER);
+        this.setBgColor(State.NORMAL, DefaultTheme.BUTTON_PRIMARY);
+        this.setBgColor(State.HOVERED, DefaultTheme.BUTTON_PRIMARY_HOVER);
+        this.setBgColor(State.ACTIVE, DefaultTheme.BUTTON_PRIMARY_ACTIVE);
+        this.setBgColor(State.DISABLED, DefaultTheme.SURFACE_MUTED);
 
         this.setOpacity(State.NORMAL, 1.0);
         this.setOpacity(State.HOVERED, 1.0);

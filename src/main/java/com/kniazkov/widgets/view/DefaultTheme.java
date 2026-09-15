@@ -121,11 +121,6 @@ final class DefaultTheme {
     static final Color BUTTON_DANGER_ACTIVE = new Color(254, 202, 202);
 
     /**
-     * Muted red border for danger buttons.
-     */
-    static final Color BUTTON_DANGER_BORDER = new Color(252, 165, 165);
-
-    /**
      * Focus outline shared by native focusable controls.
      */
     static final Outline FOCUS_OUTLINE = new Outline(

@@ -54,7 +54,7 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
         DefaultTheme.BUTTON_DANGER,
         DefaultTheme.BUTTON_DANGER_HOVER,
         DefaultTheme.BUTTON_DANGER_ACTIVE,
-        DefaultTheme.BUTTON_DANGER_BORDER,
+        DefaultTheme.DANGER_ACTIVE,
         DefaultTheme.DANGER,
         DefaultTheme.DANGER_ACTIVE
     );
