@@ -208,4 +208,3 @@ describe("modern style properties", () => {
         expect(harness.setOverflow({ widget: id, overflow: null })).toBe(false);
     });
 });
-

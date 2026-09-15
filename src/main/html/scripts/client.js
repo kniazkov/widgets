@@ -417,4 +417,3 @@ function sendEventToServer(widget, type, data) {
         sendSynchronizeRequest();
     }
 }
-

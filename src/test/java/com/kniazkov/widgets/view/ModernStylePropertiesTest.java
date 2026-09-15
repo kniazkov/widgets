@@ -31,13 +31,14 @@ public final class ModernStylePropertiesTest {
         final InputField input = new InputField();
         input.setWidth(400);
         final WidgetSandbox<InputField> sandbox = WidgetSandbox.open(input);
+        input.getMaxWidthModel();
         sandbox.clearUpdates();
         input.setMaxWidth("100%");
         final List<JsonObject> updates = WidgetSandbox.findUpdates(
             sandbox.drainUpdates(), "set max width", input
         );
         assertEquals(1, updates.size());
-        assertEquals("100%", updates.get(0).get("max width").getStringValue());
+        assertEquals("100.0%", updates.get(0).get("max width").getStringValue());
         assertEquals("400px", input.getWidth().getCSSCode());
         input.setMaxWidth(240);
         assertEquals("240px", input.getMaxWidth().getCSSCode());

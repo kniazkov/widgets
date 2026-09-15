@@ -1814,4 +1814,3 @@ function replaceColorsInSvg(svg, color, bgColor) {
         );
     return prefix + encodeURIComponent(decoded);
 }
-

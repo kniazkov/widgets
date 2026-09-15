@@ -254,4 +254,3 @@ describe("new tab navigation", () => {
         expect(harness.openedTabs).toEqual([]);
     });
 });
-
