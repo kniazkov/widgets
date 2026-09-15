@@ -14,6 +14,7 @@ const clientErrorOverlayId = "client-error-overlay";
 let consecutiveRequestFailures = 0;
 let reloadRequested = false;
 let clientFailed = false;
+let clientCreationInProgress = false;
 
 // Events stay in this queue until the server acknowledges their monotonically increasing IDs.
 const events = [];
@@ -125,18 +126,27 @@ function initClient(sessionId, address, data) {
     startClient(address, data);
 }
 
+function retryClientCreation(address, data) {
+    setTimeout(function () {
+        startClient(address, data);
+    }, 1000);
+}
+
 function startClient(address, data) {
-    if (clientFailed) {
+    if (clientFailed || clientId != null || clientCreationInProgress) {
         return;
     }
+    clientCreationInProgress = true;
     const request = { ...data };
     request.action = "new instance";
     request.address = address;
     request.browserId = browserId;
     request.mobile = isMobileDevice();
     sendRequest(request, function (data) {
+        clientCreationInProgress = false;
         if (!data) {
             recordRequestFailure();
+            retryClientCreation(address, request);
             return;
         }
         let json;
@@ -144,6 +154,7 @@ function startClient(address, data) {
             json = JSON.parse(data);
         } catch (error) {
             recordRequestFailure();
+            retryClientCreation(address, request);
             return;
         }
         if (responseHasClientError(json)) {
@@ -151,6 +162,7 @@ function startClient(address, data) {
         }
         if (typeof json.id !== "string" || typeof json.serverId !== "string") {
             recordRequestFailure();
+            retryClientCreation(address, request);
             return;
         }
         recordRequestSuccess();
@@ -160,11 +172,6 @@ function startClient(address, data) {
         mainCycleTask = setInterval(mainCycle, period);
         mainCycle();
     });
-    setTimeout(function () {
-        if (clientId == null && !clientFailed) {
-            startClient(address, data);
-        }
-    }, 1000);
 }
 
 function createEvent(widget, type, data) {
