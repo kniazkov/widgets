@@ -91,6 +91,36 @@ final class DefaultTheme {
     static final Color SURFACE_RED = new Color(254, 242, 242);
 
     /**
+     * Light neutral background for primary buttons.
+     */
+    static final Color BUTTON_PRIMARY = new Color(226, 232, 240);
+
+    /**
+     * Neutral background for hovered primary buttons.
+     */
+    static final Color BUTTON_PRIMARY_HOVER = new Color(203, 213, 225);
+
+    /**
+     * Neutral background for pressed primary buttons.
+     */
+    static final Color BUTTON_PRIMARY_ACTIVE = new Color(148, 163, 184);
+
+    /**
+     * Light red background for danger buttons.
+     */
+    static final Color BUTTON_DANGER = new Color(254, 242, 242);
+
+    /**
+     * Light red background for hovered danger buttons.
+     */
+    static final Color BUTTON_DANGER_HOVER = new Color(254, 226, 226);
+
+    /**
+     * Light red background for pressed danger buttons.
+     */
+    static final Color BUTTON_DANGER_ACTIVE = new Color(254, 202, 202);
+
+    /**
      * Focus outline shared by native focusable controls.
      */
     static final Outline FOCUS_OUTLINE = new Outline(

@@ -38,18 +38,24 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
     /**
      * Ready-to-use style for the main action on a page or form.
      */
-    public static final ButtonStyle PRIMARY = createColoredStyle(
-        DefaultTheme.PRIMARY,
-        DefaultTheme.PRIMARY_HOVER,
-        DefaultTheme.PRIMARY_ACTIVE
+    public static final ButtonStyle PRIMARY = createTintedStyle(
+        DefaultTheme.BUTTON_PRIMARY,
+        DefaultTheme.BUTTON_PRIMARY_HOVER,
+        DefaultTheme.BUTTON_PRIMARY_ACTIVE,
+        DefaultTheme.BORDER_STRONG,
+        DefaultTheme.TEXT,
+        DefaultTheme.TEXT
     );
 
     /**
      * Ready-to-use style for destructive actions.
      */
-    public static final ButtonStyle DANGER = createColoredStyle(
+    public static final ButtonStyle DANGER = createTintedStyle(
+        DefaultTheme.BUTTON_DANGER,
+        DefaultTheme.BUTTON_DANGER_HOVER,
+        DefaultTheme.BUTTON_DANGER_ACTIVE,
+        DefaultTheme.DANGER_ACTIVE,
         DefaultTheme.DANGER,
-        DefaultTheme.DANGER_HOVER,
         DefaultTheme.DANGER_ACTIVE
     );
 
@@ -126,36 +132,45 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
     }
 
     /**
-     * Creates a ready-to-use colored action style.
+     * Creates a softly tinted action style.
      *
-     * @param normal normal background and border color
-     * @param hovered hovered background and border color
-     * @param active pressed background and border color
-     * @return colored button style
+     * @param normal normal background color
+     * @param hovered hovered background color
+     * @param active pressed background color
+     * @param border normal border color
+     * @param activeBorder hovered and pressed border color
+     * @param text text color
+     * @return tinted button style
      */
-    private static ButtonStyle createColoredStyle(final Color normal, final Color hovered,
-                                                  final Color active) {
+    private static ButtonStyle createTintedStyle(
+        final Color normal,
+        final Color hovered,
+        final Color active,
+        final Color border,
+        final Color activeBorder,
+        final Color text
+    ) {
         final ButtonStyle style = DEFAULT.derive();
         style.setBgColor(State.NORMAL, normal);
         style.setBgColor(State.HOVERED, hovered);
         style.setBgColor(State.FOCUSED, normal);
         style.setBgColor(State.ACTIVE, active);
-        style.setBgColor(State.DISABLED, DefaultTheme.MUTED);
+        style.setBgColor(State.DISABLED, DefaultTheme.SURFACE_MUTED);
 
-        style.setBorderColor(State.NORMAL, normal);
-        style.setBorderColor(State.HOVERED, hovered);
-        style.setBorderColor(State.FOCUSED, normal);
-        style.setBorderColor(State.ACTIVE, active);
-        style.setBorderColor(State.DISABLED, DefaultTheme.MUTED);
+        style.setBorderColor(State.NORMAL, border);
+        style.setBorderColor(State.HOVERED, activeBorder);
+        style.setBorderColor(State.FOCUSED, DefaultTheme.PRIMARY);
+        style.setBorderColor(State.ACTIVE, activeBorder);
+        style.setBorderColor(State.DISABLED, DefaultTheme.BORDER);
 
         style.setBoxShadow(State.NORMAL,
-            new BoxShadow(0, 2, 5, new Color(15, 23, 42, 28)));
+            new BoxShadow(0, 2, 5, new Color(15, 23, 42, 20)));
         style.setBoxShadow(State.HOVERED,
-            new BoxShadow(0, 5, 12, new Color(15, 23, 42, 40)));
+            new BoxShadow(0, 4, 10, new Color(15, 23, 42, 32)));
         style.setBoxShadow(State.ACTIVE,
-            new BoxShadow(0, 1, 3, new Color(15, 23, 42, 35)));
+            new BoxShadow(0, 1, 3, new Color(15, 23, 42, 28)));
 
-        style.textStyle.setColor(Color.WHITE);
+        style.textStyle.setColor(text);
         style.textStyle.setFontSize("14px");
         style.textStyle.setFontWeight(FontWeight.SEMIBOLD);
         return style;

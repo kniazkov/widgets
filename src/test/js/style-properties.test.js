@@ -147,6 +147,7 @@ describe("modern style properties", () => {
             encodeURIComponent(
                 "<svg xmlns='http://www.w3.org/2000/svg'>" +
                     "<rect fill='white' stroke='black'/>" +
+                    "<circle fill='black'/>" +
                     "</svg>"
             );
 
@@ -174,6 +175,7 @@ describe("modern style properties", () => {
         const svg = decodeURIComponent(widget.src.substring("data:image/svg+xml,".length));
         expect(svg).toContain('fill="rgb(203,213,225)"');
         expect(svg).toContain('stroke="rgb(71,85,105)"');
+        expect(svg).toContain('<circle fill="rgb(71,85,105)"/>');
     });
 
     it("rejects malformed values", () => {
