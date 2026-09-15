@@ -35,7 +35,7 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
             + "viewBox=\"0 0 24 24\">"
             + "<rect x=\"1.5\" y=\"1.5\" width=\"21\" height=\"21\" rx=\"6\" "
             + "fill=\"white\" stroke=\"black\" stroke-width=\"1.5\"/>"
-            + "<path d=\"M6 12.5l4 4L18 8\" fill=\"none\" stroke=\"white\" "
+            + "<path d=\"M6 12.5l4 4L18 8\" fill=\"none\" stroke=\"black\" "
             + "stroke-width=\"2.4\" stroke-linecap=\"round\" "
             + "stroke-linejoin=\"round\"/>"
             + "</svg>";
@@ -71,7 +71,7 @@ public class CheckBoxStyle extends Style implements HasColor, HasBgColor, HasAbs
         this.setColor(State.NORMAL, DefaultTheme.BORDER_STRONG);
         this.setColor(State.HOVERED, DefaultTheme.TEXT);
         this.setColor(State.ACTIVE, DefaultTheme.TEXT);
-        this.setColor(State.DISABLED, DefaultTheme.BORDER);
+        this.setColor(State.DISABLED, DefaultTheme.MUTED);
 
         this.setBgColor(State.NORMAL, DefaultTheme.BUTTON_PRIMARY);
         this.setBgColor(State.HOVERED, DefaultTheme.BUTTON_PRIMARY_HOVER);

@@ -1795,6 +1795,10 @@ function replaceColorsInSvg(svg, color, bgColor) {
             'stroke="' + color + '"'
         )
         .replace(
+            /fill\s*=\s*(['"])(?:black|#000|#000000|rgb\s*\(\s*0\s*,\s*0\s*,\s*0\s*\))\1/gi,
+            'fill="' + color + '"'
+        )
+        .replace(
             /fill\s*=\s*(['"])(?:white|#fff|#ffffff|rgb\s*\(\s*255\s*,\s*255\s*,\s*255\s*\))\1/gi,
             'fill="' + bgColor + '"'
         );

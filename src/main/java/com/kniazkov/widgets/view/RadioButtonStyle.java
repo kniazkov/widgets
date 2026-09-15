@@ -72,7 +72,7 @@ public final class RadioButtonStyle extends Style implements HasColor, HasBgColo
         this.setColor(State.NORMAL, DefaultTheme.BORDER_STRONG);
         this.setColor(State.HOVERED, DefaultTheme.TEXT);
         this.setColor(State.ACTIVE, DefaultTheme.TEXT);
-        this.setColor(State.DISABLED, DefaultTheme.BORDER);
+        this.setColor(State.DISABLED, DefaultTheme.MUTED);
         this.setBgColor(State.NORMAL, DefaultTheme.BUTTON_PRIMARY);
         this.setBgColor(State.HOVERED, DefaultTheme.BUTTON_PRIMARY_HOVER);
         this.setBgColor(State.ACTIVE, DefaultTheme.BUTTON_PRIMARY_ACTIVE);
