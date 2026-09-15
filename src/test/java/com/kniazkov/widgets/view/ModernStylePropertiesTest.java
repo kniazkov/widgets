@@ -202,16 +202,18 @@ public final class ModernStylePropertiesTest {
         assertEquals(DefaultTheme.TEXT, ((TextWidget) standard.getChild()).getColor());
 
         final Button primary = new Button(ButtonStyle.PRIMARY, "Save");
-        assertEquals(DefaultTheme.PRIMARY, primary.getBgColor());
-        assertEquals(Color.WHITE, ((TextWidget) primary.getChild()).getColor());
+        assertEquals(DefaultTheme.BUTTON_PRIMARY, primary.getBgColor());
+        assertEquals(DefaultTheme.BUTTON_PRIMARY_HOVER, primary.getBgColor(State.HOVERED));
+        assertEquals(DefaultTheme.TEXT, ((TextWidget) primary.getChild()).getColor());
 
         final Button danger = new Button(ButtonStyle.DANGER, "Delete");
-        assertEquals(DefaultTheme.DANGER, danger.getBgColor());
-        assertEquals(Color.WHITE, ((TextWidget) danger.getChild()).getColor());
+        assertEquals(DefaultTheme.BUTTON_DANGER, danger.getBgColor());
+        assertEquals(DefaultTheme.BUTTON_DANGER_HOVER, danger.getBgColor(State.HOVERED));
+        assertEquals(DefaultTheme.DANGER_ACTIVE, ((TextWidget) danger.getChild()).getColor());
 
         final ButtonStyle custom = ButtonStyle.PRIMARY.derive();
         custom.getDefaultTextStyle().setColor(Color.BLACK);
-        assertEquals(Color.WHITE, ButtonStyle.PRIMARY.getDefaultTextStyle().getColor());
+        assertEquals(DefaultTheme.TEXT, ButtonStyle.PRIMARY.getDefaultTextStyle().getColor());
         assertEquals(Color.BLACK, ((TextWidget) new Button(custom, "Custom").getChild())
             .getColor());
     }
