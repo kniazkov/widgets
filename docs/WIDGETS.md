@@ -187,3 +187,11 @@ removed, or reordered.
 The drop-down list is intentionally not a widget container. Native options are text choices and
 provide standard keyboard and accessibility behavior. A popup that hosts arbitrary inline widgets
 would require a separate composite control with its own focus and navigation rules.
+
+
+### Maximum width
+
+Widgets and styles with `HasWidth` or `HasAbsoluteWidth` also expose `HasMaxWidth`.
+Use `input.setMaxWidth("100%")` to keep a preferred fixed width inside its container.
+`setMaxWidth("")` clears the limit. The limit has its own reactive model and does not
+change the preferred width. Use border-box sizing and account for external margins.

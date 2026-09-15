@@ -41,6 +41,7 @@ function createHarness() {
             setCursor,
             setTransition,
             setBoxSizing,
+            setMaxWidth,
             setOverflow,
             setTextDecoration,
             setColor,
@@ -56,6 +57,21 @@ function createHarness() {
 }
 
 describe("modern style properties", () => {
+    it("caps and clears input widths without changing their preferred width", () => {
+        const harness = createHarness();
+        const id = "#21";
+        harness.createWidget({ type: "input field", widget: id });
+        const widget = harness.widgets[id];
+        widget.style.width = "400px";
+        expect(harness.setMaxWidth({ widget: id, "max width": "100%" })).toBe(true);
+        expect(widget.style.maxWidth).toBe("100%");
+        expect(widget.style.width).toBe("400px");
+        expect(harness.setMaxWidth({ widget: id, "max width": "" })).toBe(true);
+        expect(widget.style.maxWidth).toBe("");
+        expect(harness.setMaxWidth({ widget: id, "max width": null })).toBe(false);
+        expect(harness.setMaxWidth({ widget: "missing", "max width": "100%" })).toBe(false);
+    });
+
     it("applies state-dependent visual properties", () => {
         const harness = createHarness();
         const id = "#11";
@@ -192,3 +208,4 @@ describe("modern style properties", () => {
         expect(harness.setOverflow({ widget: id, overflow: null })).toBe(false);
     });
 });
+

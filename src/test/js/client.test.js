@@ -35,6 +35,7 @@ const handlerNames = [
     "setBackdropColor",
     "setOpacity",
     "setWidth",
+    "setMaxWidth",
     "setHeight",
     "setMargin",
     "setPadding",
@@ -253,3 +254,4 @@ describe("new tab navigation", () => {
         expect(harness.openedTabs).toEqual([]);
     });
 });
+

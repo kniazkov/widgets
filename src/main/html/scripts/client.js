@@ -368,6 +368,7 @@ const actionHandlers = {
     "set backdrop color": setBackdropColor,
     "set opacity": setOpacity,
     "set width": setWidth,
+    "set max width": setMaxWidth,
     "set height": setHeight,
     "set margin": setMargin,
     "set padding": setPadding,
@@ -416,3 +417,4 @@ function sendEventToServer(widget, type, data) {
         sendSynchronizeRequest();
     }
 }
+
