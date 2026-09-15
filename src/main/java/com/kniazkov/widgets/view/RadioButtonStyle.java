@@ -80,7 +80,7 @@ public final class RadioButtonStyle extends Style implements HasColor, HasBgColo
         this.setOpacity(State.NORMAL, 1.0);
         this.setOpacity(State.HOVERED, 1.0);
         this.setOpacity(State.ACTIVE, 1.0);
-        this.setOpacity(State.DISABLED, 0.75);
+        this.setOpacity(State.DISABLED, 0.5);
         this.setWidth(24);
         this.setHeight(24);
         this.setMargin(2, 1);

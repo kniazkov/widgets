@@ -163,13 +163,13 @@ public final class ModernStylePropertiesTest {
         assertEquals(DefaultTheme.BUTTON_PRIMARY, checkBox.getBgColor());
         assertEquals(DefaultTheme.BORDER_STRONG, checkBox.getColor());
         assertEquals(DefaultTheme.MUTED, checkBox.getColor(State.DISABLED));
-        assertEquals(0.75, checkBox.getOpacity(State.DISABLED), 0.0);
+        assertEquals(0.5, checkBox.getOpacity(State.DISABLED), 0.0);
 
         final RadioButton radioButton = new RadioButton();
         assertEquals(DefaultTheme.BUTTON_PRIMARY, radioButton.getBgColor());
         assertEquals(DefaultTheme.BORDER_STRONG, radioButton.getColor());
         assertEquals(DefaultTheme.MUTED, radioButton.getColor(State.DISABLED));
-        assertEquals(0.75, radioButton.getOpacity(State.DISABLED), 0.0);
+        assertEquals(0.5, radioButton.getOpacity(State.DISABLED), 0.0);
         assertEquals("", new Table().getWidth().getCSSCode());
         assertEquals("0px", new Cell().getLeftPadding().getCSSCode());
     }
