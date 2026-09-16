@@ -59,6 +59,11 @@ public final class ContainerConstructorsTest {
             Panel.getDefaultStyle().derive(),
             new Section(new TextWidget("panel"))
         );
+        final OverlayStack stack = new OverlayStack(
+            InlineBlock.getDefaultStyle().derive(),
+            new TextWidget("bottom"),
+            new ImageWidget("top.png")
+        );
         final Cell cell = new Cell(
             Cell.getDefaultStyle().derive(),
             panel
@@ -67,6 +72,9 @@ public final class ContainerConstructorsTest {
         final Table table = new Table(Table.getDefaultStyle().derive(), row);
 
         assertSame(section, inlineBlock.getChild(0));
+        assertEquals(2, stack.getChildCount());
+        assertTrue(stack.getChild(0) instanceof TextWidget);
+        assertTrue(stack.getChild(1) instanceof ImageWidget);
         assertSame(panel, cell.getChild(0));
         assertSame(cell, row.getChild(0));
         assertSame(row, table.getChild(0));

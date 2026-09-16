@@ -99,3 +99,47 @@ describe("delayed text model updates", () => {
         }
     );
 });
+
+function createOverlayStackHarness() {
+    dom = new JSDOM("<!doctype html><body></body>", {
+        runScripts: "outside-only",
+        url: "http://localhost/"
+    });
+    dom.window.eval(`${librarySource}
+        function sendEventToServer() {}
+        ${source}
+        const stack = widgetsLibrary["overlay stack"]();
+        stack._id = "#1";
+        widgets[stack._id] = stack;
+        document.body.appendChild(stack);
+        window.__overlayStackHarness = {
+            stack,
+            append(child, id) {
+                child._id = id;
+                widgets[id] = child;
+                return appendChildWidget({
+                    widget: id,
+                    container: stack._id
+                });
+            }
+        };
+    `);
+    return dom.window.__overlayStackHarness;
+}
+
+describe("overlay stack", () => {
+    it("places appended children into one grid cell in layer order", () => {
+        const harness = createOverlayStackHarness();
+        const bottom = dom.window.document.createElement("span");
+        const top = dom.window.document.createElement("img");
+
+        expect(harness.append(bottom, "#2")).toBe(true);
+        expect(harness.append(top, "#3")).toBe(true);
+
+        expect(harness.stack.style.display).toBe("inline-grid");
+        expect(bottom.style.gridArea).toBe("1 / 1");
+        expect(top.style.gridArea).toBe("1 / 1");
+        expect(harness.stack.children[0]).toBe(bottom);
+        expect(harness.stack.children[1]).toBe(top);
+    });
+});

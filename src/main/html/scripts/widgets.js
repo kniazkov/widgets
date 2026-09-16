@@ -236,6 +236,16 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    "overlay stack": function () {
+        const widget = document.createElement("div");
+        widget.style.display = "inline-grid";
+        widget.style.verticalAlign = "middle";
+        widget._layoutChild = function (child) {
+            child.style.gridArea = "1 / 1";
+        };
+        initPointerEvents(widget, true);
+        return widget;
+    },
     "margin decorator": function () {
         return document.createElement("span");
     },
@@ -502,6 +512,9 @@ function appendChildWidget(data) {
     const container = widgets[data.container];
     if (widget && container) {
         container.appendChild(widget);
+        if (container._layoutChild) {
+            container._layoutChild(widget);
+        }
         if (widget._onAttached) {
             widget._onAttached();
         }
@@ -523,6 +536,9 @@ function insertChildWidget(data) {
         index <= container.children.length
     ) {
         container.insertBefore(widget, container.children[index] || null);
+        if (container._layoutChild) {
+            container._layoutChild(widget);
+        }
         if (widget._onAttached) {
             widget._onAttached();
         }
