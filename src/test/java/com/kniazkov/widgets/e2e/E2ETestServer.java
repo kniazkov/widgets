@@ -61,8 +61,12 @@ public final class E2ETestServer {
 
             button.onClick(event -> status.setText("Java handled the click"));
             popupLauncher.onClick(event -> {
+                final Button cancel = new Button("Cancel modal message");
                 final Button close = new Button("Close modal message");
-                final MessagePopup popup = new MessagePopup("Modal message", close);
+                final MessagePopup popup = new MessagePopup(
+                    "Modal message", cancel, close
+                );
+                cancel.onClick(cancelEvent -> popup.remove());
                 close.onClick(closeEvent -> popup.remove());
                 root.add(popup);
             });

@@ -84,6 +84,8 @@ public final class PopupTest {
         assertEquals(2, ((Section) twoButtons.getChild(1)).getChildCount());
         assertSame(cancel, ((Section) twoButtons.getChild(1)).getChild(0));
         assertSame(delete, ((Section) twoButtons.getChild(1)).getChild(1));
+        assertEquals("8px", delete.getLeftMargin().getCSSCode());
+        assertEquals("90.0%", twoButtons.getMaxWidth().getCSSCode());
     }
 
     /**

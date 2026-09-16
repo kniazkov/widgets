@@ -21,6 +21,16 @@ test("mobile browsers use the device width as the layout viewport", async ({
             "width=device-width, initial-scale=1"
         );
         expect(await page.evaluate(() => document.documentElement.clientWidth)).toBe(390);
+
+        await page.getByRole("button", { name: "Show modal message" }).click();
+        const popupBox = await page
+            .getByText("Modal message", { exact: true })
+            .evaluate(element => {
+                const box = element.parentElement.parentElement.getBoundingClientRect();
+                return { left: box.left, right: box.right };
+            });
+        expect(popupBox.left).toBeGreaterThanOrEqual(16);
+        expect(popupBox.right).toBeLessThanOrEqual(374);
     } finally {
         await context.close();
     }
@@ -49,7 +59,16 @@ test("a modal message blocks the page and closes without leaving its backdrop", 
 
     await expect(page.getByText("Modal message", { exact: true })).toBeVisible();
     await expect(page.locator(".popup-backdrop")).toBeVisible();
-    await page.getByRole("button", { name: "Close modal message" }).click();
+
+    const cancel = page.getByRole("button", { name: "Cancel modal message" });
+    const close = page.getByRole("button", { name: "Close modal message" });
+    const cancelBox = await cancel.boundingBox();
+    const closeBox = await close.boundingBox();
+    expect(cancelBox).not.toBeNull();
+    expect(closeBox).not.toBeNull();
+    expect(closeBox.x - (cancelBox.x + cancelBox.width)).toBeGreaterThanOrEqual(8);
+
+    await close.click();
 
     await expect(page.getByText("Modal message", { exact: true })).toBeHidden();
     await expect(page.locator(".popup-backdrop")).toHaveCount(0);

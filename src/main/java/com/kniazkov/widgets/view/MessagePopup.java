@@ -11,6 +11,11 @@ import java.util.Objects;
  */
 public final class MessagePopup extends ModalPopup {
     /**
+     * Minimum horizontal distance between adjacent action buttons.
+     */
+    private static final int ACTION_GAP = 8;
+
+    /**
      * Text widget that displays the message.
      */
     private final TextWidget textWidget;
@@ -84,6 +89,7 @@ public final class MessagePopup extends ModalPopup {
         final Section buttonSection = new Section(buttons[0]);
         buttonSection.setHorizontalAlignment(HorizontalAlignment.RIGHT);
         if (buttons.length == 2) {
+            buttons[1].setLeftMargin(ACTION_GAP);
             buttonSection.add(buttons[1]);
         }
         this.add(buttonSection);
@@ -107,6 +113,7 @@ public final class MessagePopup extends ModalPopup {
     private static ModalPopupStyle messageStyle() {
         final ModalPopupStyle style = ModalPopup.getDefaultStyle().derive();
         style.setWidth(400);
+        style.setMaxWidth("90%");
         return style;
     }
 }
