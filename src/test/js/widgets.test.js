@@ -100,7 +100,6 @@ describe("delayed text model updates", () => {
     );
 });
 
-
 function createOverlayStackHarness() {
     dom = new JSDOM("<!doctype html><body></body>", {
         runScripts: "outside-only",
