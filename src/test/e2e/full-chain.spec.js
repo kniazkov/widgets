@@ -60,7 +60,7 @@ test("a modal message blocks the page and closes without leaving its backdrop", 
     await expect(page.getByText("Modal message", { exact: true })).toBeVisible();
     await expect(page.locator(".popup-backdrop")).toBeVisible();
 
-    const cancel = page.getByRole("button", { name: "Cancel modal message" });
+    const cancel = page.getByRole("button", { name: "Cancel", exact: true });
     const close = page.getByRole("button", { name: "Close modal message" });
     const cancelBox = await cancel.boundingBox();
     const closeBox = await close.boundingBox();
