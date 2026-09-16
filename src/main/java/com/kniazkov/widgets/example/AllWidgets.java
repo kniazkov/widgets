@@ -36,6 +36,7 @@ import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.LinkStyle;
 import com.kniazkov.widgets.view.MessagePopup;
+import com.kniazkov.widgets.view.OverlayStack;
 import com.kniazkov.widgets.view.Panel;
 import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
@@ -146,6 +147,7 @@ public class AllWidgets {
         addFileLoaders(root);
         addImages(root);
         addActiveImages(root);
+        addOverlayStacks(root);
         addTables(root);
     }
 
@@ -573,6 +575,44 @@ public class AllWidgets {
     }
 
     /**
+     * Adds examples of widgets occupying the same visual area.
+     *
+     * @param root page root
+     */
+    private static void addOverlayStacks(final RootWidget root) {
+        final Panel card = addCard(root, "OverlayStack",
+            "Layers arbitrary widgets from bottom to top in one shared area.");
+        final Section row = variantRow();
+        card.add(row);
+
+        final ImageWidget background = new ImageWidget(
+            demoImage("#0f766e", "#2563eb", "")
+        );
+        background.setStyle(imageStyle(200, 120, 16));
+        final Section centeredLabel = new Section(new TextWidget(
+            textStyle(Color.WHITE, "22px", FontWeight.BOLD),
+            "Overlay"
+        ));
+        centeredLabel.setCenterAlignment();
+        centeredLabel.setMiddleAlignment();
+        row.add(variant(
+            "Text over image",
+            new OverlayStack(background, centeredLabel)
+        ));
+
+        final TextWidget oldPrice = new TextWidget(
+            textStyle(TEXT, "18px", FontWeight.NORMAL),
+            "500.00"
+        );
+        final ImageWidget marker = new ImageWidget(markerStroke());
+        marker.setStyle(imageStyle(72, 24, 0));
+        row.add(variant(
+            "Decoration over text",
+            new OverlayStack(oldPrice, marker)
+        ));
+    }
+
+    /**
      * Adds table variations.
      *
      * @param root page root
@@ -860,6 +900,23 @@ public class AllWidgets {
         style.setBorderRadius(radius);
         image.setStyle(style);
         return image;
+    }
+
+    /**
+     * Creates a transparent marker stroke used by the overlay example.
+     *
+     * @return marker image source
+     */
+    private static ImageSource markerStroke() {
+        return new SvgImageSource() {
+            @Override
+            protected String getSvg() {
+                return "<svg xmlns='http://www.w3.org/2000/svg' width='72' height='24' "
+                    + "viewBox='0 0 72 24'><path d='M2 15 C14 11 23 18 35 13 "
+                    + "S56 17 70 10' fill='none' stroke='#dc2626' stroke-width='4' "
+                    + "stroke-linecap='round' opacity='.9'/></svg>";
+            }
+        };
     }
 
     /**
