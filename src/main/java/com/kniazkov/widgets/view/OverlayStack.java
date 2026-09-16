@@ -20,7 +20,9 @@ public final class OverlayStack extends InlineWidget<InlineBlockStyle>
         implements TypedContainer<Widget<?>>, HasBgColor, HasBorder,
         HasWidth, HasHeight, HasMargin, HasPadding, HandlesPointerEvents,
         HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
-    /** Child widgets ordered from the bottom layer to the top layer. */
+    /**
+     * Child widgets ordered from the bottom layer to the top layer.
+     */
     private final List<Widget<?>> children = new ArrayList<>();
 
     /**
@@ -32,7 +34,9 @@ public final class OverlayStack extends InlineWidget<InlineBlockStyle>
         return InlineBlock.getDefaultStyle();
     }
 
-    /** Creates an empty overlay stack with the default style. */
+    /**
+     * Creates an empty overlay stack with the default style.
+     */
     public OverlayStack() {
         super(getDefaultStyle());
     }
