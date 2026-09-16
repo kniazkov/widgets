@@ -17,6 +17,27 @@ import static org.junit.Assert.assertThrows;
  */
 public final class TableRowMutationTest {
     /**
+     * Verifies appending a row without a manually calculated index and preserving child styles.
+     */
+    @Test
+    public void appendsCreatedRowWithTableStyles() {
+        final Table table = new Table(TableStyle.DECORATED);
+
+        final Row row = table.addRow();
+        final Cell cell = row.getCell(0);
+
+        assertEquals(1, table.getChildCount());
+        assertSame(row, table.getChild(0));
+        assertSame(table, row.getParent().get());
+        assertEquals(
+            TableStyle.DECORATED.getDefaultRowStyle().getBgColor(State.HOVERED),
+            row.getBgColor(State.HOVERED)
+        );
+        assertEquals("14px", cell.getLeftPadding().getCSSCode());
+        assertEquals("12px", cell.getTopPadding().getCSSCode());
+    }
+
+    /**
      * Verifies that a newly created row can be inserted between existing rows.
      */
     @Test
