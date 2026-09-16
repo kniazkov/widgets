@@ -33,6 +33,9 @@ public final class WidgetContainerTest {
             inlineBlock, new Section(), child -> inlineBlock.add((BlockWidget<?>) child)
         );
 
+        final OverlayStack stack = new OverlayStack();
+        assertContainerMutation(stack, new TextWidget(), stack::add);
+
         final Section section = new Section();
         assertContainerMutation(
             section, new TextWidget(), child -> section.add((InlineWidget<?>) child)
