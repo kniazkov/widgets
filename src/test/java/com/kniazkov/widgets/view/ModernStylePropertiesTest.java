@@ -204,6 +204,7 @@ public final class ModernStylePropertiesTest {
     public void tableOffersNeutralAndDecoratedStyles() {
         final Table plain = new Table();
         assertEquals(BorderStyle.NONE, plain.getBorderStyle());
+        assertEquals(Outline.NONE, plain.getOutline());
         assertEquals(Overflow.VISIBLE, plain.getOverflow());
         assertEquals("", plain.getWidth().getCSSCode());
         assertEquals("0px", plain.getCellSpacing().getCSSCode());
@@ -215,6 +216,10 @@ public final class ModernStylePropertiesTest {
         assertEquals("100.0%", decorated.getWidth().getCSSCode());
         assertEquals("1px", decorated.getCellSpacing().getCSSCode());
         assertEquals("12px", decorated.getBorderRadius().getCSSCode());
+        assertEquals(
+            new Outline(DefaultTheme.BORDER, BorderStyle.SOLID, 1, -1),
+            decorated.getOutline()
+        );
         assertEquals("0px", decorated.getLeftMargin().getCSSCode());
         assertEquals("14px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
         assertEquals("12px", decorated.getCell(0, 0).getTopPadding().getCSSCode());
