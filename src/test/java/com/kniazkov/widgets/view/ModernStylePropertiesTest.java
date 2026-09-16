@@ -214,11 +214,14 @@ public final class ModernStylePropertiesTest {
         assertEquals(Overflow.HIDDEN, decorated.getOverflow());
         assertEquals("100.0%", decorated.getWidth().getCSSCode());
         assertEquals("1px", decorated.getCellSpacing().getCSSCode());
-        assertEquals("11px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
+        assertEquals("12px", decorated.getBorderRadius().getCSSCode());
+        assertEquals("0px", decorated.getLeftMargin().getCSSCode());
+        assertEquals("14px", decorated.getCell(0, 0).getLeftPadding().getCSSCode());
+        assertEquals("12px", decorated.getCell(0, 0).getTopPadding().getCSSCode());
 
         final TableStyle custom = TableStyle.DECORATED.derive();
         custom.getDefaultCellStyle().setPadding(20);
-        assertEquals("11px", TableStyle.DECORATED.getDefaultCellStyle()
+        assertEquals("14px", TableStyle.DECORATED.getDefaultCellStyle()
             .getLeftPadding().getCSSCode());
         assertEquals("20px", new Table(custom).getCell(0, 0)
             .getLeftPadding().getCSSCode());

@@ -108,17 +108,17 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
      */
     private static TableStyle createDecoratedStyle() {
         final TableStyle style = DEFAULT.derive();
-        style.setBoxShadow(new BoxShadow(0, 2, 8, new Color(15, 23, 42, 24)));
+        style.setBoxShadow(new BoxShadow(0, 6, 18, new Color(15, 23, 42, 28)));
         style.setTransition(DefaultTheme.TRANSITION);
         style.setBoxSizing(BoxSizing.BORDER_BOX);
         style.setOverflow(Overflow.HIDDEN);
         style.setBgColor(DefaultTheme.BORDER);
-        style.setBorderColor(DefaultTheme.BORDER_STRONG);
+        style.setBorderColor(DefaultTheme.BORDER);
         style.setBorderStyle(BorderStyle.SOLID);
         style.setBorderWidth(1);
-        style.setBorderRadius(8);
+        style.setBorderRadius(12);
         style.setWidth("100%");
-        style.setMargin(2, 1);
+        style.setMargin(0);
         style.setCellSpacing(1);
 
         style.rowStyle.setBgColor(State.NORMAL, Color.WHITE);
@@ -126,7 +126,7 @@ public class TableStyle extends Style implements HasBgColor, HasBorder, HasWidth
         style.rowStyle.setBgColor(State.ACTIVE, new Color(219, 234, 254));
         style.rowStyle.setTransition(DefaultTheme.TRANSITION);
 
-        style.cellStyle.setPadding(11);
+        style.cellStyle.setPadding(14, 12);
         style.cellStyle.setBoxSizing(BoxSizing.BORDER_BOX);
         return style;
     }

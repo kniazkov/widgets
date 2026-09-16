@@ -123,6 +123,17 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
     }
 
     /**
+     * Creates and appends a new row using this table's current row style.
+     *
+     * @return newly created row
+     */
+    public Row addRow() {
+        final Row row = new Row(this.rowStyle);
+        this.add(row);
+        return row;
+    }
+
+    /**
      * Creates and inserts a new row at the specified position.
      * Existing rows at and after that position are shifted down by one.
      *
