@@ -84,6 +84,17 @@ public final class JdbcPersistence implements Persistence {
             + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
+     * Complete field metadata deletion command.
+     */
+    private static final String DELETE_FIELD_DEFINITIONS =
+        "DELETE FROM db_field_definition";
+
+    /**
+     * Complete store metadata deletion command.
+     */
+    private static final String DELETE_STORES = "DELETE FROM db_store";
+
+    /**
      * Record loading query.
      */
     private static final String SELECT_RECORDS =
@@ -195,7 +206,7 @@ public final class JdbcPersistence implements Persistence {
             this.writeMetadata(expected);
         } else if (stored.canUpgradeTo(expected)) {
             if (!stored.equals(expected)) {
-                this.appendMetadata(stored, expected);
+                this.replaceMetadata(expected);
             }
         } else {
             throw new PersistenceException(
@@ -340,15 +351,11 @@ public final class JdbcPersistence implements Persistence {
     }
 
     /**
-     * Appends compatible field definitions in one transaction.
+     * Replaces compatible store and field metadata in one transaction.
      *
-     * @param stored persisted metadata
      * @param expected configured metadata
      */
-    private void appendMetadata(
-        final DatabaseMetadata stored,
-        final DatabaseMetadata expected
-    ) {
+    private void replaceMetadata(final DatabaseMetadata expected) {
         final boolean autoCommit;
         try {
             autoCommit = this.connection.getAutoCommit();
@@ -361,22 +368,25 @@ public final class JdbcPersistence implements Persistence {
         SQLException failure = null;
         try {
             this.connection.setAutoCommit(false);
+            try (Statement statement = this.connection.createStatement()) {
+                statement.executeUpdate(DELETE_FIELD_DEFINITIONS);
+                statement.executeUpdate(DELETE_STORES);
+            }
+            try (PreparedStatement statement =
+                this.connection.prepareStatement(INSERT_STORE)) {
+                for (final StoreMetadata store : expected.stores()) {
+                    statement.setString(1, store.name());
+                    statement.setInt(2, store.position());
+                    statement.addBatch();
+                }
+                statement.executeBatch();
+            }
             try (PreparedStatement statement = this.connection.prepareStatement(
                 INSERT_FIELD_DEFINITION
             )) {
-                for (int storeIndex = 0;
-                    storeIndex < expected.stores().size();
-                    storeIndex++) {
-                    final StoreMetadata oldStore = stored.stores().get(storeIndex);
-                    final StoreMetadata newStore = expected.stores().get(storeIndex);
-                    for (int fieldIndex = oldStore.fields().size();
-                        fieldIndex < newStore.fields().size();
-                        fieldIndex++) {
-                        bindFieldDefinition(
-                            statement,
-                            newStore.name(),
-                            newStore.fields().get(fieldIndex)
-                        );
+                for (final StoreMetadata store : expected.stores()) {
+                    for (final FieldMetadata field : store.fields()) {
+                        bindFieldDefinition(statement, store.name(), field);
                         statement.addBatch();
                     }
                 }
@@ -401,7 +411,7 @@ public final class JdbcPersistence implements Persistence {
         }
         if (failure != null) {
             throw new PersistenceException(
-                "Cannot append JDBC metadata",
+                "Cannot replace JDBC metadata",
                 failure
             );
         }
