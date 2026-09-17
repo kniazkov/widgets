@@ -188,16 +188,16 @@ version `1` and contains stores and fields in declaration order. Each field defi
 
 `Database` creates this metadata from its configured schemas before loading records. A durable
 backend writes the catalog when a database is created and compares it on every later open. A
-mismatch normally raises `PersistenceException`. The only automatic metadata upgrade is appending
-fields to the end of an existing store schema. Every previously stored field definition must be
-an exact prefix of the configured field list, including its name, position, semantic type, scalar
-kind, default value, and referenced store. The set and order of stores must remain unchanged.
+mismatch normally raises `PersistenceException`. An automatic metadata upgrade may add stores and
+fields or change their declaration order. Every previously stored store and field must remain
+present by name, and every old field must retain its semantic type, scalar kind, default value, and
+referenced store. Store and field positions are not part of schema compatibility.
 
-Compatible additions update `database.metadata` atomically in JSON persistence and append the new
-`db_field_definition` rows in one JDBC transaction. Existing records do not need to be rewritten:
-the newly added fields receive their catalog defaults when loaded. Removing a field, inserting one
-in the middle, reordering fields, changing old field metadata, changing stores, or changing the
-format version fails instead of guessing a migration.
+Compatible changes replace `database.metadata` atomically in JSON persistence and rebuild
+`db_store` and `db_field_definition` in one JDBC transaction. Existing records do not need to be
+rewritten: the newly added fields receive their catalog defaults when loaded. Removing a store or
+field, changing old field metadata, or changing the format version fails instead of guessing a
+migration.
 
 Built-in semantic types are `boolean`, `string`, `not-empty-string`, `username`, `phone-number`,
 `email`, `integer`, `positive-integer`, `real`, `positive-real`, and `identifier`. A custom

@@ -362,11 +362,35 @@ public final class StoredValueTest {
             )
         );
 
+        final DatabaseMetadata reordered = new DatabaseMetadata(
+            1,
+            Arrays.asList(
+                new StoreMetadata("departments", 0, departments.fields()),
+                new StoreMetadata("employees", 1, employees.fields())
+            )
+        );
+        final DatabaseMetadata expanded = new DatabaseMetadata(
+            1,
+            Arrays.asList(
+                new StoreMetadata("departments", 0, departments.fields()),
+                new StoreMetadata("settings", 1, List.of()),
+                new StoreMetadata(
+                    "employees",
+                    2,
+                    insertedFirst.stores().get(0).fields()
+                )
+            )
+        );
+
         assertTrue(metadata.canUpgradeTo(metadata));
         assertTrue(metadata.canUpgradeTo(appended));
+        assertTrue(metadata.canUpgradeTo(insertedFirst));
+        assertTrue(metadata.canUpgradeTo(reordered));
+        assertTrue(reordered.canUpgradeTo(metadata));
+        assertTrue(metadata.canUpgradeTo(expanded));
         assertFalse(metadata.canUpgradeTo(modified));
-        assertFalse(metadata.canUpgradeTo(insertedFirst));
         assertFalse(appended.canUpgradeTo(metadata));
+        assertFalse(expanded.canUpgradeTo(metadata));
         assertFalse(metadata.canUpgradeTo(new DatabaseMetadata(
             2,
             metadata.stores()

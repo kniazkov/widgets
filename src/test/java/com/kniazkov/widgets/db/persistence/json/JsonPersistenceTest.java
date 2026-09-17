@@ -95,15 +95,15 @@ public final class JsonPersistenceTest {
     }
 
     /**
-     * Verifies fields appended to a store upgrade persisted metadata.
+     * Verifies stores and fields can be added or reordered.
      *
      * @throws Exception when temporary file access fails
      */
     @Test
-    public void upgradesMetadataWithAppendedFields() throws Exception {
+    public void upgradesMetadataWithAddedStoresAndFields() throws Exception {
         final Path directory = this.directory("metadata-upgrade");
         final JsonPersistence old = new JsonPersistence(directory);
-        old.initialize(withoutLastEmployeeField());
+        old.initialize(legacyMetadata());
         old.load();
         old.close();
 
@@ -113,10 +113,13 @@ public final class JsonPersistenceTest {
             directory.resolve("database.metadata").toFile()
         ).toJsonObject();
         final JsonArray stores = root.get("stores").toJsonArray();
+        assertEquals(4, stores.size());
+        assertEquals("employees", stores.getElement(0).toJsonObject()
+            .get("name").getStringValue());
         final JsonArray fields = stores.getElement(0).toJsonObject()
             .get("fields").toJsonArray();
         assertEquals(5, fields.size());
-        assertEquals("departmentId", fields.getElement(4).toJsonObject()
+        assertEquals("age", fields.getElement(1).toJsonObject()
             .get("name").getStringValue());
     }
 
@@ -430,6 +433,34 @@ public final class JsonPersistenceTest {
         persistence.initialize(METADATA);
         persistence.load();
         return persistence;
+    }
+
+    /**
+     * Returns older metadata with fewer stores and no middle employee field.
+     *
+     * @return older compatible metadata
+     */
+    private static DatabaseMetadata legacyMetadata() {
+        final List<FieldMetadata> fields = new ArrayList<>();
+        for (final FieldMetadata field : METADATA.stores().get(0).fields()) {
+            if (!field.name().equals("age")) {
+                fields.add(new FieldMetadata(
+                    field.name(),
+                    field.type(),
+                    field.valueKind(),
+                    field.defaultValue(),
+                    fields.size(),
+                    field.referencedStore()
+                ));
+            }
+        }
+        return new DatabaseMetadata(
+            METADATA.formatVersion(),
+            Arrays.asList(
+                new StoreMetadata("departments", 0, List.of()),
+                new StoreMetadata("employees", 1, fields)
+            )
+        );
     }
 
     /**
