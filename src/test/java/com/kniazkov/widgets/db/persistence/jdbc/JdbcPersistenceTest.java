@@ -56,7 +56,7 @@ public final class JdbcPersistenceTest {
         ) {
             assertEquals(1, scalar(statement,
                 "SELECT format_version FROM db_metadata"));
-            assertEquals(2, count(statement, "db_store"));
+            assertEquals(3, count(statement, "db_store"));
             assertEquals(5, count(statement, "db_field_definition"));
             try (ResultSet result = statement.executeQuery(
                 "SELECT type_name, value_kind, default_string, field_order, "
@@ -97,15 +97,15 @@ public final class JdbcPersistenceTest {
     }
 
     /**
-     * Verifies fields appended to a store upgrade the SQL catalog.
+     * Verifies stores and fields can be added or reordered in the SQL catalog.
      *
      * @throws Exception when direct SQL inspection fails
      */
     @Test
-    public void upgradesMetadataWithAppendedFields() throws Exception {
+    public void upgradesMetadataWithAddedStoresAndFields() throws Exception {
         final String url = url();
         final JdbcPersistence old = new JdbcPersistence(url, new H2Dialect());
-        old.initialize(withoutLastEmployeeField());
+        old.initialize(legacyMetadata());
         old.close();
 
         open(url).close();
@@ -114,12 +114,15 @@ public final class JdbcPersistenceTest {
             Connection connection = DriverManager.getConnection(url);
             Statement statement = connection.createStatement()
         ) {
+            assertEquals(3, count(statement, "db_store"));
             assertEquals(5, count(statement, "db_field_definition"));
+            assertEquals(1, scalar(statement,
+                "SELECT COUNT(*) FROM db_store "
+                    + "WHERE store_name = 'settings' AND store_order = 1"));
             assertEquals(1, scalar(statement,
                 "SELECT COUNT(*) FROM db_field_definition "
                     + "WHERE store_name = 'employees' "
-                    + "AND field_name = 'departmentId' "
-                    + "AND field_order = 4"));
+                    + "AND field_name = 'age' AND field_order = 1"));
         }
     }
 
@@ -531,6 +534,34 @@ public final class JdbcPersistenceTest {
     }
 
     /**
+     * Returns older metadata with fewer stores and no middle employee field.
+     *
+     * @return older compatible metadata
+     */
+    private static DatabaseMetadata legacyMetadata() {
+        final List<FieldMetadata> fields = new ArrayList<>();
+        for (final FieldMetadata field : METADATA.stores().get(0).fields()) {
+            if (!field.name().equals("age")) {
+                fields.add(new FieldMetadata(
+                    field.name(),
+                    field.type(),
+                    field.valueKind(),
+                    field.defaultValue(),
+                    fields.size(),
+                    field.referencedStore()
+                ));
+            }
+        }
+        return new DatabaseMetadata(
+            METADATA.formatVersion(),
+            Arrays.asList(
+                new StoreMetadata("departments", 0, List.of()),
+                new StoreMetadata("employees", 1, fields)
+            )
+        );
+    }
+
+    /**
      * Returns test metadata without the last employee field.
      *
      * @return older compatible metadata
@@ -595,7 +626,8 @@ public final class JdbcPersistenceTest {
                     )
                 )
             ),
-            new StoreMetadata("departments", 1, List.of())
+            new StoreMetadata("settings", 1, List.of()),
+            new StoreMetadata("departments", 2, List.of())
         )
     );
 }
