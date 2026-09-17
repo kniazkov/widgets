@@ -3,8 +3,10 @@
  */
 package com.kniazkov.widgets.db.persistence;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -66,38 +68,74 @@ public record DatabaseMetadata(
     }
 
     /**
-     * Checks whether this catalog can be upgraded to another by appending
-     * fields without changing existing definitions.
+     * Checks whether this catalog can be upgraded without removing or
+     * changing existing stores and fields. Declaration order is irrelevant.
      *
      * @param next configured metadata
      * @return whether the upgrade is compatible
      */
     public boolean canUpgradeTo(final DatabaseMetadata next) {
         Objects.requireNonNull(next, "next");
-        if (this.formatVersion != next.formatVersion
-            || this.stores.size() != next.stores.size()) {
+        if (this.formatVersion != next.formatVersion) {
             return false;
         }
-        for (int storeIndex = 0;
-            storeIndex < this.stores.size();
-            storeIndex++) {
-            final StoreMetadata currentStore = this.stores.get(storeIndex);
-            final StoreMetadata nextStore = next.stores.get(storeIndex);
-            if (!currentStore.name().equals(nextStore.name())
-                || currentStore.position() != nextStore.position()
-                || currentStore.fields().size() > nextStore.fields().size()) {
+        final Map<String, StoreMetadata> nextStores = new HashMap<>();
+        for (final StoreMetadata store : next.stores) {
+            nextStores.put(store.name(), store);
+        }
+        for (final StoreMetadata currentStore : this.stores) {
+            final StoreMetadata nextStore = nextStores.get(currentStore.name());
+            if (nextStore == null
+                || !fieldsRemainCompatible(currentStore, nextStore)) {
                 return false;
-            }
-            for (int fieldIndex = 0;
-                fieldIndex < currentStore.fields().size();
-                fieldIndex++) {
-                if (!currentStore.fields().get(fieldIndex).equals(
-                    nextStore.fields().get(fieldIndex)
-                )) {
-                    return false;
-                }
             }
         }
         return true;
+    }
+
+    /**
+     * Checks whether all old field definitions remain in a store.
+     *
+     * @param currentStore persisted store metadata
+     * @param nextStore configured store metadata
+     * @return whether every old field remains unchanged
+     */
+    private static boolean fieldsRemainCompatible(
+        final StoreMetadata currentStore,
+        final StoreMetadata nextStore
+    ) {
+        final Map<String, FieldMetadata> nextFields = new HashMap<>();
+        for (final FieldMetadata field : nextStore.fields()) {
+            nextFields.put(field.name(), field);
+        }
+        for (final FieldMetadata currentField : currentStore.fields()) {
+            final FieldMetadata nextField = nextFields.get(currentField.name());
+            if (nextField == null
+                || !sameDefinition(currentField, nextField)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Compares the persistent meaning of two fields without their positions.
+     *
+     * @param current persisted field
+     * @param next configured field
+     * @return whether both fields have the same persistent definition
+     */
+    private static boolean sameDefinition(
+        final FieldMetadata current,
+        final FieldMetadata next
+    ) {
+        return current.name().equals(next.name())
+            && current.type().equals(next.type())
+            && current.valueKind() == next.valueKind()
+            && current.defaultValue().equals(next.defaultValue())
+            && Objects.equals(
+                current.referencedStore(),
+                next.referencedStore()
+            );
     }
 }
