@@ -132,21 +132,23 @@ test("persistent connection loss blocks the page until the server responds", asy
     await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
 
     blockSynchronization = true;
-    await page.evaluate(() => {
-        mainCycle();
-        mainCycle();
-        mainCycle();
+    await expect(page.getByText("Connection Terminated", { exact: true })).toBeVisible({
+        timeout: 15000
     });
-    await expect(page.getByText("Connection Terminated", { exact: true })).toBeVisible();
-
     blockSynchronization = false;
-    await page.evaluate(() => mainCycle());
-    await expect(page.getByText("Connection Terminated", { exact: true })).toBeHidden();
+    await expect(page.getByText("Connection Terminated", { exact: true })).toBeHidden({
+        timeout: 5000
+    });
 });
 
-test("a dead client causes the browser to reload the same page", async ({ page }) => {
+test("a dead client rebuilds the same page without changing its URL", async ({ page }) => {
     let rejectNextSynchronization = false;
-    const currentServer = { id: null };
+    const created = [];
+    page.on("response", async response => {
+        if (new URL(response.url()).searchParams.get("action") === "new instance") {
+            created.push(await response.json());
+        }
+    });
     await page.route("**/*", async route => {
         const request = route.request();
         const body = request.postDataBuffer();
@@ -157,7 +159,7 @@ test("a dead client causes the browser to reload the same page", async ({ page }
                 body: JSON.stringify({
                     result: false,
                     clientAlive: false,
-                    serverId: currentServer.id
+                    serverId: created[0].serverId
                 })
             });
             return;
@@ -167,18 +169,11 @@ test("a dead client causes the browser to reload the same page", async ({ page }
 
     await page.goto("/?item=42");
     await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
-    currentServer.id = await page.evaluate(() => serverId);
-    const previousClientId = await page.evaluate(() => clientId);
-
+    await expect.poll(() => created.length).toBe(1);
     rejectNextSynchronization = true;
-    const navigation = page.waitForEvent("framenavigated", {
-        predicate: frame => frame === page.mainFrame()
-    });
-    await page.evaluate(() => mainCycle());
-    await navigation;
-
+    await expect.poll(() => created.length).toBe(2);
     await expect(page.getByText("Waiting for browser event", { exact: true })).toBeVisible();
-    expect(await page.evaluate(() => clientId)).not.toBe(previousClientId);
+    expect(created[1].id).not.toBe(created[0].id);
     expect(new URL(page.url()).search).toBe("?item=42");
 });
 

@@ -20,3 +20,7 @@ function configureUploadProtocol(chunkSize, maxFileSize) {
     }
     uploadProtocol = Object.freeze({ chunkSize, maxFileSize });
 }
+
+// Retain at most three inactive entries for two minutes after leaving each page.
+const PAGE_CACHE_SIZE = 3;
+const PAGE_CACHE_TTL = 2 * 60 * 1000;

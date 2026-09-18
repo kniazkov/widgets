@@ -327,3 +327,39 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
 ## License
 
 [MIT](LICENSE)
+
+### Navigation and retained pages
+
+Internal navigation (`RootWidget.goToPage`, `OnClient.goToPage`, and ordinary links to registered
+application pages) now uses browser history within the current document. Back and Forward restore
+the same DOM, Java `Client`, `RootWidget`, local input state and scroll position. Each history
+entry has its own runtime, widget registry, upload scheduler, event queue and update checkpoint;
+visiting the same URL twice creates two independent entries. Static files, external URLs, hash
+links, downloads, modifier clicks and new-tab links retain native browser navigation.
+
+The tab retains at most three inactive pages, for two minutes after leaving each page. Retained
+pages continue normal synchronization, including acknowledging reactive updates, so their server
+queues are drained. Synchronization requests for a page are serialized. Eviction disposes its
+runtime and sends `kill`; the existing server timeout also bounds abandoned clients when a tab
+cannot deliver its final request. Late responses cannot modify a different page. File uploads
+belong to their original page and stop when that entry is evicted.
+
+Before revealing a cached page, the browser verifies that its server instance still exists. A
+server restart, expired instance or evicted entry rebuilds the original URL and query parameters,
+with an attempt to restore scroll. Full reloads still create new instances. The root DOM node is
+now a `.widgets-page` container inside `body`; custom CSS targeting `body > ...` must account for
+this container.
+
+**Authentication integration is required:** after login, logout or a permission change, call
+`root.clearPageCache()` before rebuilding the current page or navigating away. Widgets does not
+know the application's authentication model and cannot infer logout from ordinary widget edits.
+This discards inactive entries in the current tab and broadcasts invalidation to other tabs,
+which discard their caches and rebuild their current pages. `root.remove()` also invalidates the
+cache before rebuilding the current URL. The application must still enforce authorization on the
+server for every sensitive operation; cache invalidation is not an authorization mechanism.
+
+```java
+// After the application changes the authenticated user:
+root.clearPageCache();
+root.goToPage("/account");
+```
