@@ -363,6 +363,3 @@ server for every sensitive operation; cache invalidation is not an authorization
 root.clearPageCache();
 root.goToPage("/account");
 ```
-
-In Foundry19 this call belongs after `DeviceInfo.setUser(...)` / `removeUser()`, including checkout
-and account-creation login paths, when updating the widgets dependency.
