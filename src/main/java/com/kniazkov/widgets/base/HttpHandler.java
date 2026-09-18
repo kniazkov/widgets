@@ -7,7 +7,6 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
-import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.webserver.ContentType;
 import com.kniazkov.webserver.Environment;
 import com.kniazkov.webserver.HttpMethod;
@@ -155,8 +154,10 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             replaceAddress = false;
         }
 
-        final String contentType = Utils.getContentTypeByExtension(address);
-        final boolean removeLogs = contentType.equals("text/javascript") && !options.isDebug();
+        final int dot = address.lastIndexOf('.');
+        final ContentType contentType = ContentType.fromExtension(
+            dot > address.lastIndexOf('/') ? address.substring(dot + 1) : "");
+        final boolean removeLogs = contentType == ContentType.TEXT_JAVASCRIPT && !options.isDebug();
 
         try {
             final URL url = isBundledWebResource(address)
@@ -231,7 +232,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
 
             return responses.custom(
                 HttpStatus.OK,
-                ContentType.fromString(contentType),
+                contentType,
                 data
             ).build();
 

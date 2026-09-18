@@ -50,7 +50,9 @@ Changing the builder after `build()` does not change an existing server's routin
 
 Bare mount points, missing files and directories do not produce directory listings.
 There are no SPA fallback rules. Query strings do not participate in resource lookup.
-Content types are inferred from the requested file extension, as for existing static files.
+Content types are inferred using `com.kniazkov.webserver.ContentType.fromExtension`.
+Unknown or missing extensions use `application/octet-stream`. The same mapping is used for
+uploaded files when the browser supplies no MIME type.
 Custom source files are served as bytes without the framework's bootstrap substitution or
 JavaScript log removal.
 

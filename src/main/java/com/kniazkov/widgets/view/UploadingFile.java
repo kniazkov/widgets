@@ -5,7 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.common.UploadedFile;
-import com.kniazkov.widgets.common.Utils;
+import com.kniazkov.webserver.ContentType;
 import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.IntegerModel;
@@ -97,8 +97,10 @@ public class UploadingFile {
         validate(event, options);
         this.widget = widget;
         this.name = event.name;
+        final int dot = event.name.lastIndexOf('.');
         this.type = event.type == null || event.type.isEmpty()
-            ? Utils.getContentTypeByExtension(event.name)
+            ? ContentType.fromExtension(dot >= 0 ? event.name.substring(dot + 1) : "")
+                .getValue()
             : event.type;
         this.size = event.size;
         this.chunkSize = options.getChunkSize();

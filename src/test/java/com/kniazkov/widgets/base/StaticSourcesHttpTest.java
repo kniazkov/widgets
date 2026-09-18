@@ -21,6 +21,33 @@ import static org.junit.Assert.assertTrue;
  */
 public class StaticSourcesHttpTest {
     /**
+     * Uses the webserver MIME catalog, including its safe unknown-extension fallback.
+     */
+    @Test
+    public void servesWebserverContentTypes() throws Exception {
+        final Path www = this.folder.newFolder().toPath();
+        Files.createDirectories(www.resolve("folder.svg"));
+        final String[][] cases = {
+            {"photo.JPG", "image/jpeg"}, {"icon.SVG", "image/svg+xml"},
+            {"photo.webp", "image/webp"}, {"font.woff2", "font/woff2"},
+            {"unknown.xyzzy", "application/octet-stream"},
+            {"svg", "application/octet-stream"},
+            {"folder.svg/plain", "application/octet-stream"}
+        };
+        for (final String[] item : cases) {
+            Files.writeString(www.resolve(item[0]), "content");
+        }
+        start(www, StaticSource.directory("/assets", www));
+        for (final String[] item : cases) {
+            for (final String prefix : new String[]{"/", "/assets/"}) {
+                final String response = request(prefix + item[0]);
+                assertTrue(response, response.startsWith("HTTP/1.1 200"));
+                assertTrue(response, response.contains("Content-Type: " + item[1]));
+            }
+        }
+    }
+
+    /**
      * Filesystem fixture.
      */
     @Rule
