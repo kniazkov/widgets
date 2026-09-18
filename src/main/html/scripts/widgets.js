@@ -13,7 +13,7 @@ let nextUploadIndex = 0;
 // Protocol widget type names map to factories that initialize the matching DOM element.
 const widgetsLibrary = {
     root: function () {
-        return document.body;
+        return typeof page === "undefined" ? document.body : page.root;
     },
     section: function () {
         const widget = document.createElement("div");
@@ -1473,6 +1473,15 @@ function processPointerEvent(element, event) {
 
 function initPointerEvents(widget, activeOnPointerDown) {
     addEvent(widget, "click", function (event) {
+        if (
+            widget.tagName === "A" &&
+            (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
+        ) {
+            return;
+        }
+        if (widget.tagName === "A" && widget._clientActions.click?.action === "go to page") {
+            event.preventDefault();
+        }
         if (widget._suppressClick) {
             widget._suppressClick = false;
             return;
@@ -1677,6 +1686,9 @@ function loadFiles(widget, descriptions) {
 
 // Waits for the reliable event stream to register descriptors before sending binary data.
 function acknowledgeSelections(selected) {
+    if (typeof clientDisposed !== "undefined" && clientDisposed) {
+        return;
+    }
     sendSynchronizeRequest(function (accepted) {
         if (!accepted) {
             setTimeout(function () {
@@ -1721,7 +1733,11 @@ function removeActiveUpload(file) {
 
 // Sends one binary slice, then gives the next active file a turn.
 function sendNextUploadChunk() {
-    if ((typeof clientFailed !== "undefined" && clientFailed) || uploadRequestInFlight) {
+    if (
+        (typeof clientDisposed !== "undefined" && clientDisposed) ||
+        (typeof clientFailed !== "undefined" && clientFailed) ||
+        uploadRequestInFlight
+    ) {
         return;
     }
     fillActiveUploads();
@@ -1746,6 +1762,9 @@ function sendNextUploadChunk() {
             lastUpdate: "#" + lastProcessedUpdateId
         },
         function (data) {
+            if (typeof clientDisposed !== "undefined" && clientDisposed) {
+                return;
+            }
             uploadRequestInFlight = false;
             if (!data) {
                 recordRequestFailure();

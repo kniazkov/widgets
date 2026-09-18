@@ -9,6 +9,7 @@ import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.ResetClient;
+import com.kniazkov.widgets.protocol.ClearPageCache;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,6 +137,15 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     @Override
     public void remove() {
         this.pushUpdate(new ResetClient());
+    }
+
+    /**
+     * Discards retained pages in this browser after a change of authentication or permissions.
+     * Call this before rebuilding the current page or navigating after login or logout.
+     * Other open tabs discard their caches and rebuild their active pages as well.
+     */
+    public void clearPageCache() {
+        this.pushUpdate(new ClearPageCache());
     }
 
     /**

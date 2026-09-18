@@ -8,6 +8,7 @@ import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.view.RootWidget;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,6 +100,15 @@ public final class Application {
      */
     public void addPage(final String address, final Page page) {
         this.pages.put("/" + address, page);
+    }
+
+    /**
+     * Lists registered paths for same-document navigation, excluding static resources.
+     *
+     * @return a snapshot of the registered page paths
+     */
+    Set<String> getPageAddresses() {
+        return Set.copyOf(this.pages.keySet());
     }
 
     /**

@@ -6,19 +6,19 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="/style.css">
         __WEB_FONT_STYLESHEETS__
-        <script src="scripts/options.js"></script>
-        <script src="scripts/lib.js"></script>
-        <script src="scripts/widgets.js"></script>
-        <script src="scripts/client.js"></script>
+        <script src="/scripts/options.js"></script>
+        <script src="/scripts/lib.js"></script>
+        <script src="/scripts/page-runtime.js"></script>
+        <script src="/scripts/navigation.js"></script>
     </head>
     <body>
         <script>
             configureUploadProtocol(__UPLOAD_CHUNK_SIZE__, __MAX_UPLOAD_FILE_SIZE__);
 
             addEvent(window, "load", function() {
-                initClient("{sessionId}", "{address}", {data});
+                initNavigation("{sessionId}", "{address}", {data}, __PAGE_ADDRESSES__);
             });
 
             addEvent(window, "pageshow", function(evt) {

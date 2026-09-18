@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.json.JsonArray;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.common.Utils;
@@ -73,6 +74,31 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         this.options = options;
     }
 
+    /**
+     * Wraps the two classic protocol scripts in one lexical scope per history entry.
+     * No dynamic evaluation or browser-global widget registry is required.
+     *
+     * @return page runtime factory source
+     * @throws IOException if a bundled script cannot be read
+     */
+    private String pageRuntime() throws IOException {
+        final StringBuilder source = new StringBuilder("function createPageRuntime(page) {\n");
+        for (final String name : List.of("widgets", "client")) {
+            try (InputStream input = getClass().getResourceAsStream("/scripts/" + name + ".js")) {
+                if (input == null) {
+                    throw new IOException("Missing page runtime script: " + name);
+                }
+                source.append(new String(input.readAllBytes(), StandardCharsets.UTF_8));
+                source.append('\n');
+            }
+        }
+        source.append("return { initClient, mainCycle, disposeClient, showClientError };\n}\n");
+        final String code = source.toString();
+        return this.options.isDebug() ? code : code.replaceAll(
+            "\\blog\\([^;]*\\)\\s*;", "/* $0 */"
+        );
+    }
+
     @Override
     public Response handle(final Request request, final Environment environment)
             throws ServerException {
@@ -140,7 +166,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 : null;
             final byte[] data;
 
-            if (url != null) {
+            if ("/scripts/page-runtime.js".equals(address)) {
+                data = this.pageRuntime().getBytes(StandardCharsets.UTF_8);
+            } else if (url != null) {
                 try (InputStream in = url.openStream();
                         ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
                     byte[] tmp = new byte[4096];
@@ -151,6 +179,10 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     if (replaceAddress || removeLogs) {
                         String code = buffer.toString(StandardCharsets.UTF_8);
                         if (replaceAddress) {
+                            final JsonArray addresses = new JsonArray();
+                            for (final String path : this.application.getPageAddresses()) {
+                                addresses.addString(path);
+                            }
                             final JsonObject obj = new JsonObject();
                             for (final Map.Entry<String, String> entry : parameters.entrySet()) {
                                 obj.addString(entry.getKey(), entry.getValue());
@@ -159,6 +191,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", requestPath)
                                 .replace("{data}", escapeInlineScriptData(obj.toString()))
+                                .replace("__PAGE_ADDRESSES__",
+                                    escapeInlineScriptData(addresses.toString()))
                                 .replace(
                                     "__UPLOAD_CHUNK_SIZE__",
                                     Integer.toString(this.options.getChunkSize())

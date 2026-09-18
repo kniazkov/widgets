@@ -10,6 +10,8 @@ import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.InputField;
+import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.MessagePopup;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
@@ -97,7 +99,34 @@ public final class E2ETestServer {
             .setPort(Integer.parseInt(args[0]))
             .setBindAddress(InetAddress.getLoopbackAddress())
             .build();
-        Server.start(new Application(page), options);
+        final Application application = new Application(page);
+        application.addPage("catalog", (root, context) -> {
+            final Section header = new Section();
+            header.add(new InputField());
+            final Link product = new Link("Open product");
+            product.setHref("/product?id=42");
+            header.add(product);
+            final Button navigate = new Button("Navigate from Java");
+            navigate.onClick(event -> root.goToPage("/product?id=43"));
+            header.add(navigate);
+            root.add(header);
+            for (int index = 0; index < 80; index++) {
+                final Section row = new Section();
+                row.setTopPadding(20);
+                row.setBottomPadding(20);
+                row.add(new TextWidget("Catalog row " + index));
+                root.add(row);
+            }
+        });
+        application.addPage("product", (root, context) -> {
+            final Section content = new Section();
+            content.add(new TextWidget("Product " + context.parameters.get("id")));
+            final Button clear = new Button("Clear cached pages");
+            clear.onClick(event -> root.clearPageCache());
+            content.add(clear);
+            root.add(content);
+        });
+        Server.start(application, options);
     }
 
     /**

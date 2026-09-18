@@ -2,7 +2,11 @@
  * Copyright (c) 2025 Ivan Kniazkov
  */
 
-// Connection state is shared by the classic scripts loaded for one browser tab.
+// Each runtime factory owns these variables, its widget registry and upload scheduler.
+const pageContext = typeof page === "undefined" ? null : page;
+let clientDisposed = false;
+let synchronizationInFlight = false;
+const synchronizationCallbacks = [];
 let clientId = null;
 let serverId = null;
 let browserId = null;
@@ -23,17 +27,28 @@ let lastProcessedUpdateId = 0;
 
 // A persistent transport failure blocks interaction without discarding the current page state.
 function showConnectionTerminated() {
-    if (clientFailed || document.getElementById(connectionOverlayId)) {
+    if (
+        clientDisposed ||
+        clientFailed ||
+        (pageContext ? pageContext.root : document).querySelector("#" + connectionOverlayId)
+    ) {
         return;
     }
     const overlay = document.createElement("div");
     overlay.id = connectionOverlayId;
     overlay.textContent = "Connection Terminated";
-    (document.body || document.documentElement).appendChild(overlay);
+    (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
+        overlay
+    );
+    if (pageContext) {
+        pageContext.failure(overlay);
+    }
 }
 
 function hideConnectionTerminated() {
-    const overlay = document.getElementById(connectionOverlayId);
+    const overlay = (pageContext ? pageContext.root : document).querySelector(
+        "#" + connectionOverlayId
+    );
     if (overlay) {
         overlay.remove();
     }
@@ -41,7 +56,7 @@ function hideConnectionTerminated() {
 
 // A client failure is fatal for the current page and must not be retried as a network failure.
 function showClientError(error) {
-    if (clientFailed) {
+    if (clientDisposed || clientFailed) {
         return;
     }
     clientFailed = true;
@@ -53,7 +68,12 @@ function showClientError(error) {
     const overlay = document.createElement("div");
     overlay.id = clientErrorOverlayId;
     overlay.textContent = "Client Error";
-    (document.body || document.documentElement).appendChild(overlay);
+    (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
+        overlay
+    );
+    if (pageContext) {
+        pageContext.failure(overlay);
+    }
 }
 
 function responseHasClientError(response) {
@@ -65,7 +85,7 @@ function responseHasClientError(response) {
 }
 
 function recordRequestFailure() {
-    if (clientFailed) {
+    if (clientDisposed || clientFailed) {
         return;
     }
     consecutiveRequestFailures++;
@@ -77,6 +97,9 @@ function recordRequestFailure() {
 function recordRequestSuccess() {
     consecutiveRequestFailures = 0;
     hideConnectionTerminated();
+    if (pageContext) {
+        pageContext.recovered();
+    }
 }
 
 // Reloading the current location preserves both the page path and its query parameters.
@@ -86,7 +109,11 @@ function reloadCurrentPage() {
     }
     reloadRequested = true;
     clearInterval(mainCycleTask);
-    window.location.reload();
+    if (pageContext) {
+        pageContext.expire();
+    } else {
+        window.location.reload();
+    }
 }
 
 function serverStateIsCurrent(response) {
@@ -115,14 +142,16 @@ function initClient(sessionId, address, data) {
         browserId = sessionId;
         localStorage.setItem("browserId", browserId);
     }
-    window.addEventListener("beforeunload", function () {
-        if (clientId != null) {
-            sendRequest({
-                action: "kill",
-                client: clientId
-            });
-        }
-    });
+    if (!pageContext) {
+        window.addEventListener("beforeunload", function () {
+            if (clientId != null) {
+                sendRequest({
+                    action: "kill",
+                    client: clientId
+                });
+            }
+        });
+    }
     startClient(address, data);
 }
 
@@ -133,7 +162,7 @@ function retryClientCreation(address, data) {
 }
 
 function startClient(address, data) {
-    if (clientFailed || clientId != null || clientCreationInProgress) {
+    if (clientDisposed || clientFailed || clientId != null || clientCreationInProgress) {
         return;
     }
     clientCreationInProgress = true;
@@ -155,6 +184,12 @@ function startClient(address, data) {
         } catch (error) {
             recordRequestFailure();
             retryClientCreation(address, request);
+            return;
+        }
+        if (clientDisposed) {
+            if (typeof json.id === "string") {
+                sendRequest({ action: "kill", client: json.id });
+            }
             return;
         }
         if (responseHasClientError(json)) {
@@ -198,7 +233,7 @@ function processUpdates(updates) {
     } else {
         log("Received " + updates.length + " updates.");
     }
-    for (let i = 0; i < updates.length; i++) {
+    for (let i = 0; i < updates.length && !clientDisposed; i++) {
         let result = false;
         const update = updates[i];
         const id = parseId(update.id);
@@ -246,6 +281,29 @@ function reconcileTextInputs() {
 
 // One synchronization request carries both pending browser events and the update checkpoint.
 function sendSynchronizeRequest(callback) {
+    if (clientDisposed || clientFailed || clientId == null) {
+        return;
+    }
+    if (callback) {
+        synchronizationCallbacks.push(callback);
+    }
+    if (synchronizationInFlight) {
+        return;
+    }
+    synchronizationInFlight = true;
+    const callbacks = synchronizationCallbacks.splice(0);
+    callback = function (accepted) {
+        synchronizationInFlight = false;
+        if (clientDisposed) {
+            return;
+        }
+        for (const done of callbacks) {
+            done(accepted);
+        }
+        if (synchronizationCallbacks.length > 0 || (accepted && events.length > 0)) {
+            sendSynchronizeRequest();
+        }
+    };
     sendRequest(
         {
             action: "synchronize",
@@ -254,6 +312,9 @@ function sendSynchronizeRequest(callback) {
             lastUpdate: "#" + lastProcessedUpdateId
         },
         function (data) {
+            if (clientDisposed) {
+                return;
+            }
             if (!data) {
                 log("Network error.");
                 recordRequestFailure();
@@ -289,6 +350,9 @@ function sendSynchronizeRequest(callback) {
                 processUpdates(json.updates);
                 removeProcessedEvents(json.lastEvent);
                 reconcileTextInputs();
+                if (pageContext) {
+                    pageContext.ready();
+                }
             } catch (error) {
                 showClientError(error);
                 if (callback) {
@@ -305,17 +369,48 @@ function sendSynchronizeRequest(callback) {
 }
 
 function mainCycle() {
+    if (pageContext) {
+        const overlay = pageContext.root.querySelector(
+            "#" + clientErrorOverlayId + ", #" + connectionOverlayId
+        );
+        if (overlay) {
+            pageContext.failure(overlay);
+        }
+    }
     if (clientFailed) {
         return;
     }
     sendSynchronizeRequest();
 }
 
-window.addEventListener("error", event => showClientError(event.error));
-window.addEventListener("unhandledrejection", event => showClientError(event.reason));
+if (!pageContext) {
+    window.addEventListener("error", event => showClientError(event.error));
+    window.addEventListener("unhandledrejection", event => showClientError(event.reason));
+}
+
+// Disposed runtimes cannot send events, retry uploads or apply late responses.
+function disposeClient() {
+    clientDisposed = true;
+    clearInterval(mainCycleTask);
+    if (clientId != null) {
+        sendRequest({ action: "kill", client: clientId });
+    }
+}
+
+function clearPageCache() {
+    if (pageContext) {
+        pageContext.clearCache();
+    }
+    return true;
+}
 
 function reset() {
     log("The server initiated the client reset.");
+    if (pageContext) {
+        pageContext.clearCache();
+        pageContext.expire();
+        return true;
+    }
     clientId = null;
     clearInterval(mainCycleTask);
     document.body.innerHTML = "";
@@ -327,7 +422,11 @@ function goToPage(data) {
     const href = data.href;
     if (typeof href == "string") {
         log("The server initiated a switch to another page: '" + href + "'.");
-        window.location.href = href;
+        if (pageContext) {
+            pageContext.navigate(href);
+        } else {
+            window.location.href = href;
+        }
     }
     return true;
 }
@@ -345,6 +444,7 @@ function openPageInNewTab(data) {
 const actionHandlers = {
     "create widget": createWidget,
     reset: reset,
+    "clear page cache": clearPageCache,
     "go to page": goToPage,
     "open page in new tab": openPageInNewTab,
     subscribe: subscribeToEvent,
@@ -403,6 +503,9 @@ const actionHandlers = {
 const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload"];
 
 function sendEventToServer(widget, type, data) {
+    if (clientDisposed) {
+        return;
+    }
     const clientAction = widget._clientActions[type];
     if (clientAction) {
         const handler = actionHandlers[clientAction.action];

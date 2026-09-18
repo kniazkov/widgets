@@ -38,6 +38,28 @@ import static org.junit.Assert.fail;
  */
 public class ClientProtocolTest {
     /**
+     * Authentication changes invalidate history without discarding the current widget tree.
+     */
+    @Test
+    public void invalidatesPageCacheWithoutResettingCurrentPage() {
+        final Client client = new Client();
+        client.getRootWidget().add(new Section(new TextWidget("Current account")));
+        client.getRootWidget().clearPageCache();
+        final JsonObject response = new JsonObject();
+        client.synchronize(Collections.emptyMap(), response);
+        final JsonArray updates = response.get("updates").toJsonArray();
+        boolean invalidated = false;
+        for (int index = 0; index < updates.size(); index++) {
+            final String action = updates.getElement(index).toJsonObject()
+                .get("action").getStringValue();
+            invalidated |= "clear page cache".equals(action);
+            assertFalse("reset".equals(action));
+        }
+        assertTrue(invalidated);
+        assertEquals(1, client.getRootWidget().getChildCount());
+    }
+
+    /**
      * Events are dispatched at most once and the last event is reported to the browser.
      */
     @Test
