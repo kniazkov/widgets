@@ -7,7 +7,6 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
-import com.kniazkov.widgets.common.Utils;
 import com.kniazkov.webserver.ContentType;
 import com.kniazkov.webserver.Environment;
 import com.kniazkov.webserver.HttpMethod;
@@ -22,8 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -157,8 +154,10 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             replaceAddress = false;
         }
 
-        final String contentType = Utils.getContentTypeByExtension(address);
-        final boolean removeLogs = contentType.equals("text/javascript") && !options.isDebug();
+        final int dot = address.lastIndexOf('.');
+        final ContentType contentType = ContentType.fromExtension(
+            dot > address.lastIndexOf('/') ? address.substring(dot + 1) : "");
+        final boolean removeLogs = contentType == ContentType.TEXT_JAVASCRIPT && !options.isDebug();
 
         try {
             final URL url = isBundledWebResource(address)
@@ -218,23 +217,27 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     }
                 }
             } else {
-                final Path root = Paths.get(this.options.getWwwRoot()).toRealPath();
-                final String relative = requestPath.startsWith("/")
-                    ? requestPath.substring(1)
-                    : requestPath;
-                final Path path = root.resolve(relative).toRealPath();
-                if (!path.startsWith(root)) {
-                    return responses.forbidden();
+                StaticSource selected = null;
+                for (final StaticSource source : this.options.getStaticSources()) {
+                    if (source.matches(requestPath) && (selected == null
+                            || source.getPrefix().length() > selected.getPrefix().length())) {
+                        selected = source;
+                    }
                 }
-                data = Files.readAllBytes(path);
+                data = selected == null
+                    ? StaticSource.readDirectory(Paths.get(this.options.getWwwRoot()),
+                        requestPath.substring(1))
+                    : selected.read(requestPath);
             }
 
             return responses.custom(
                 HttpStatus.OK,
-                ContentType.fromString(contentType),
+                contentType,
                 data
             ).build();
 
+        } catch (final SecurityException error) {
+            return responses.forbidden();
         } catch (final IOException error) {
             LOGGER.log(
                 Level.SEVERE,

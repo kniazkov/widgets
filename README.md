@@ -11,6 +11,10 @@ JavaScript.
 The project targets Java 21 and is distributed as the Maven artifact
 `com.kniazkov:widgets:0.1`.
 
+Applications can publish explicit filesystem and classpath subtrees with
+`Options.Builder.addStaticSource(...)`. See [Static resource sources](docs/STATIC_RESOURCES.md)
+for configuration examples, routing precedence and security boundaries.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,

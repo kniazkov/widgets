@@ -26,6 +26,31 @@ import static org.junit.Assert.assertTrue;
  */
 public final class UploadingFileTest {
     /**
+     * Missing browser types use the webserver catalog; explicit types remain intact.
+     */
+    @Test
+    public void infersMissingUploadTypes() {
+        final String[][] cases = {
+            {"image.JPG", "", "image/jpeg"}, {"icon.SVG", "", "image/svg+xml"},
+            {"photo.webp", "", "image/webp"},
+            {"svg", "", "application/octet-stream"},
+            {"unknown.xyzzy", "", "application/octet-stream"},
+            {"icon.svg", "custom/type", "custom/type"}
+        };
+        for (final String[] item : cases) {
+            final FileLoader loader = new FileLoader();
+            final AtomicReference<UploadingFile> selected = new AtomicReference<>();
+            loader.onSelect(selected::set);
+            final WidgetSandbox<FileLoader> sandbox = WidgetSandbox.open(loader);
+            final JsonObject data = selection(1, 1, 1);
+            data.addString("name", item[0]);
+            data.addString("type", item[1]);
+            sandbox.fire(Event.UPLOAD, data);
+            assertEquals(item[0], item[2], selected.get().getType());
+        }
+    }
+
+    /**
      * Missing and duplicate chunks must be detected without corrupting the completed file.
      */
     @Test
