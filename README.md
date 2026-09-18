@@ -11,6 +11,10 @@ JavaScript.
 The project targets Java 21 and is distributed as the Maven artifact
 `com.kniazkov:widgets:0.1`.
 
+Applications can publish explicit filesystem and classpath subtrees with
+`Options.Builder.addStaticSource(...)`. See [Static resource sources](docs/STATIC_RESOURCES.md)
+for configuration examples, routing precedence and security boundaries.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,
@@ -73,138 +77,7 @@ public final class HelloWidgets {
 
             button.onClick(event -> message.setText("Hello from Java"));
             root.add(new Panel(
-                new Section(message, button)
-            ));
-        };
-
-        Options options = new Options.Builder()
-            .setPort(8080)
-            .build();
-        Server.start(new Application(page), options);
-    }
-}
-```
-
-Open [http://localhost:8080](http://localhost:8080). Static application files are served from the
-`www` directory by default; the path can be changed with `Options.Builder.setWwwRoot(...)`.
-
-Additional runnable examples are available in
-[`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
-
-### Web fonts
-
-External fonts can be registered once in the application options and then used through the
-ordinary `FontFace` styling API. `GoogleFont` builds a Google Fonts CSS API request and returns the
-matching reusable face:
-
-```java
-GoogleFont roboto = new GoogleFont(
-    "Roboto Slab",
-    FontWeight.NORMAL,
-    FontWeight.BOLD
-);
-Options options = new Options.Builder()
-    .addFont(roboto)
-    .build();
-
-TextWidget title = new TextWidget("Title");
-title.setFontFace(roboto.getFontFace());
-```
-
-The server adds the required stylesheet link to every generated page. Other font providers can be
-integrated by implementing `WebFont`.
-
-### Server and HTTPS configuration
-
-`Options` exposes the listener port, bind address, worker count, immutable HTTPS settings, and
-file-upload limits. Request limits and timeouts remain an internal framework profile sized for
-short XMLHttpRequest exchanges. For example, a server intended to sit behind a local reverse
-proxy can bind only to loopback:
-
-```java
-Options options = new Options.Builder()
-    .setPort(8080)
-    .setBindAddress(InetAddress.getLoopbackAddress())
-    .setMaxWorkers(200)
-    .build();
-```
-
-To run the same widgets application directly over HTTPS, build the webserver's immutable TLS
-configuration and pass it through the application options builder:
-
-```java
-char[] password = loadPassword();
-SslOptions ssl = new SslOptions.Builder()
-    .setKeyStoreFile("server.p12")
-    .setPassword(password)
-    .build();
-
-Options options = new Options.Builder()
-    .setPort(8443)
-    .setSslOptions(ssl)
-    .build();
-Server.start(new Application(page), options);
-```
-
-`SslOptions` also supports JKS, a PEM certificate chain with an unencrypted PKCS #8 key, explicit
-TLS versions and cipher suites, and optional or required mutual TLS. Run separate server instances
-on different ports when both HTTP and HTTPS listeners are required. The caller remains responsible
-for clearing its original password array after the TLS options have been built.
-
-### Connection recovery
-
-Every application instance has a random server identifier that is returned when a browser client
-is created and with every synchronization response. If the server restarts, or if the watchdog has
-already removed an inactive client, the browser reloads its current URL and rebuilds the page with
-the same path and query parameters.
-
-After three consecutive request failures, the browser blocks interaction with a translucent
-`Connection terminated` overlay. Synchronization attempts continue in the background, and the
-overlay is removed when the server responds again. If recovery reveals a restarted server or a
-dead client, the normal full-page reload takes over.
-
-### Navigation and retained pages
-
-Internal navigation (`RootWidget.goToPage`, `OnClient.goToPage`, and ordinary links to registered
-application pages) uses browser history within the current document. Back and Forward restore
-the same DOM, Java `Client`, `RootWidget`, local input state and scroll position. Each history
-entry has its own runtime, widget registry, upload scheduler, event queue and update checkpoint;
-visiting the same URL twice creates two independent entries. Static files, external URLs, hash
-links, downloads, modifier clicks and new-tab links retain native browser navigation.
-
-The tab retains at most three inactive pages, for two minutes after leaving each page. Retained
-pages continue normal synchronization, including acknowledging reactive updates, so their server
-queues are drained. Synchronization requests for a page are serialized. Eviction disposes its
-runtime and sends `kill`; the existing server timeout also bounds abandoned clients when a tab
-cannot deliver its final request. Late responses cannot modify a different page. File uploads
-belong to their original page and stop when that entry is evicted.
-
-Before revealing a cached page, the browser verifies that its server instance still exists. A
-server restart, expired instance or evicted entry rebuilds the original URL and query parameters,
-with an attempt to restore scroll. Full reloads still create new instances. The root DOM node is
-now a `.widgets-page` container inside `body`; custom CSS targeting `body > ...` must account for
-this container.
-
-**Authentication integration is required:** after login, logout or a permission change, call
-`root.clearPageCache()` before rebuilding the current page or navigating away. Widgets does not
-know the application's authentication model and cannot infer logout from ordinary widget edits.
-This discards inactive entries in the current tab and broadcasts invalidation to other tabs,
-which discard their caches and rebuild their current pages. `root.remove()` also invalidates the
-cache before rebuilding the current URL. The application must still enforce authorization on the
-server for every sensitive operation; cache invalidation is not an authorization mechanism.
-
-```java
-// After the application changes the authenticated user:
-root.clearPageCache();
-root.goToPage("/account");
-```
-
-### File uploads
-
-`FileLoader` reports every selected file through `onSelect` immediately, with its loading model at
-zero percent. The browser retains the original `File` and sends 64 KiB `Blob.slice()` values as
-binary multipart parts by default; file contents are never expanded into Base16 or read into one
-browser-side buffer. The chunk and complete-file limits have one server-side source of truth and
+                new Sectio…1507 tokens truncated…er-side buffer. The chunk and complete-file limits have one server-side source of truth and
 can be changed with `Options.Builder.setChunkSize(...)` and `setMaxFileSize(...)`; the selected
 values are injected into the browser bootstrap automatically.
 

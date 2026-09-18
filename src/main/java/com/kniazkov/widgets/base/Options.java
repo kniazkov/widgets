@@ -96,6 +96,11 @@ public final class Options {
     private final List<WebFont> webFonts;
 
     /**
+     * Explicit public static resource mounts.
+     */
+    private final List<StaticSource> staticSources;
+
+    /**
      * Creates immutable options from a builder snapshot.
      *
      * @param builder source builder
@@ -111,6 +116,7 @@ public final class Options {
         this.maxFileSize = builder.maxFileSize;
         this.debug = builder.debug;
         this.webFonts = List.copyOf(builder.webFonts);
+        this.staticSources = List.copyOf(builder.staticSources);
     }
 
     /**
@@ -204,6 +210,15 @@ public final class Options {
     }
 
     /**
+     * Returns the registered static mounts.
+     *
+     * @return immutable list in registration order
+     */
+    public List<StaticSource> getStaticSources() {
+        return this.staticSources;
+    }
+
+    /**
      * Builds immutable application options.
      */
     public static final class Builder {
@@ -256,6 +271,11 @@ public final class Options {
          * Fonts to connect to every application page.
          */
         private final List<WebFont> webFonts = new ArrayList<>();
+
+        /**
+         * Public static resource mounts.
+         */
+        private final List<StaticSource> staticSources = new ArrayList<>();
 
         /**
          * Creates a builder initialized with framework defaults.
@@ -413,6 +433,24 @@ public final class Options {
          */
         public Options build() {
             return new Options(this);
+        }
+
+        /**
+         * Registers a public static subtree. Longest matching prefix wins; a missing file
+         * never falls back to another mount or wwwRoot. Framework resources and pages win.
+         *
+         * @param source explicit directory or classpath source
+         * @return this builder
+         */
+        public Builder addStaticSource(final StaticSource source) {
+            Objects.requireNonNull(source, "source");
+            for (final StaticSource existing : this.staticSources) {
+                if (existing.getPrefix().equals(source.getPrefix())) {
+                    throw new IllegalArgumentException("Duplicate static URL prefix");
+                }
+            }
+            this.staticSources.add(source);
+            return this;
         }
     }
 }
