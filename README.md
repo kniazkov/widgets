@@ -15,6 +15,9 @@ Applications can publish explicit filesystem and classpath subtrees with
 `Options.Builder.addStaticSource(...)`. See [Static resource sources](docs/STATIC_RESOURCES.md)
 for configuration examples, routing precedence and security boundaries.
 
+Color strings support HEX, RGB/RGBA and HSL/HSLA, including percentages and alpha.
+See [Color strings](docs/COLORS.md) for syntax, examples and compatibility rules.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,
