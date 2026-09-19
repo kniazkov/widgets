@@ -469,6 +469,7 @@ const actionHandlers = {
     "set opacity": setOpacity,
     "set width": setWidth,
     "set max width": setMaxWidth,
+    "set max height": setMaxHeight,
     "set height": setHeight,
     "set margin": setMargin,
     "set padding": setPadding,

@@ -112,7 +112,7 @@ dynamic collections while preserving iteration order.
 
 | Widget | Client type | Purpose |
 | --- | --- | --- |
-| `ImageWidget` | `image` | Displays an `ImageSource` or hyperlink through a reactive image-source model. |
+| `ImageWidget` | `image` | Displays an `ImageSource` or hyperlink through a reactive image-source model. Supports independent maximum width and height. |
 | `ActiveImage` | `active image` | Interactive image with separate source models for normal, hovered, and active states. A shared source may be applied to all states. |
 | `Carousel` | `carousel` | Non-circular, swipeable image sequence backed by a fixed non-empty array of reactive `ImageSource` models. It reports clicks and successful selection changes. |
 
@@ -195,3 +195,30 @@ Widgets and styles with `HasWidth` or `HasAbsoluteWidth` also expose `HasMaxWidt
 Use `input.setMaxWidth("100%")` to keep a preferred fixed width inside its container.
 `setMaxWidth("")` clears the limit. The limit has its own reactive model and does not
 change the preferred width. Use border-box sizing and account for external margins.
+
+## Bounding images without changing their proportions
+
+`HasHeight` and `HasAbsoluteHeight` inherit `HasMaxHeight`, just as width interfaces
+inherit `HasMaxWidth`. Widgets and styles expose `setMaxHeight(int)`,
+`setMaxHeight(String)`, `setMaxHeight(WidgetSize)` and a reactive maximum-height model.
+The limit is independent of the preferred height; an empty string clears it.
+No maximum is imposed by default. Protocol updates use `set max height`.
+
+For a logo, leave both preferred dimensions undefined and set upper bounds:
+
+```java
+final ImageWidget logo = new ImageWidget("logo/brand.svg");
+logo.setMaxWidth(480);
+logo.setMaxHeight(180);
+```
+
+The browser preserves the intrinsic image ratio and fits the image within 480 × 180
+CSS pixels. This works for PNG and SVG with intrinsic proportions (for SVG, supply a
+valid `viewBox`). Limits do not force a smaller raster image to grow. Setting both
+preferred width and height explicitly is a different operation and may distort an image.
+
+For a narrow parent, use a container with preferred width 480 and maximum width `100%`,
+then set the image maximum width to `100%` and maximum height to 180. This lets it shrink
+with the available space. Percentage maximum heights need a definite parent height;
+use pixels when the parent height follows its contents. Existing fixed-size images keep
+their behavior until a limit is explicitly set.

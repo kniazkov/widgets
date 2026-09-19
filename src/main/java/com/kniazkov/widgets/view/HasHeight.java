@@ -15,7 +15,7 @@ import com.kniazkov.widgets.model.Model;
  * or a relative size such as {@code 50%}, depending on the concrete
  * {@link WidgetSize} implementation stored in the associated model.
  */
-public interface HasHeight extends Entity {
+public interface HasHeight extends HasMaxHeight {
 
     /**
      * Returns the model that stores the height for this view.
