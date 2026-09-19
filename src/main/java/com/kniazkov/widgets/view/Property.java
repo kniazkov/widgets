@@ -471,6 +471,11 @@ public abstract class Property<T> {
     public static final Property<WidgetSize> MAX_WIDTH = widgetSizeProperty("max width");
 
     /**
+     * Maximum height of a widget, independent of its preferred height.
+     */
+    public static final Property<WidgetSize> MAX_HEIGHT = widgetSizeProperty("max height");
+
+    /**
      * Property defining the widget’s absolute width in CSS units.
      */
     public static final Property<AbsoluteSize> ABSOLUTE_WIDTH = absoluteSizeProperty("width");
@@ -780,4 +785,3 @@ public abstract class Property<T> {
         }
     }
 }
-

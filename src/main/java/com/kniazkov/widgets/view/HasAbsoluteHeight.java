@@ -10,7 +10,7 @@ import com.kniazkov.widgets.model.Model;
  * An {@link Entity} that has an absolute height expressed in fixed units
  * such as pixels, points, or other {@link AbsoluteSize} values.
  */
-public interface HasAbsoluteHeight extends Entity {
+public interface HasAbsoluteHeight extends HasMaxHeight {
     /**
      * Returns the model that stores the absolute height for this view.
      *

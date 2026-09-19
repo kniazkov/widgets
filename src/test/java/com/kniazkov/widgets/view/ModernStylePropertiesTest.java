@@ -24,6 +24,31 @@ import static org.junit.Assert.assertEquals;
  */
 public final class ModernStylePropertiesTest {
     /**
+     * Verifies inherited image limits, reactive updates and reset without fixed dimensions.
+     */
+    @Test
+    public void imageCanLimitHeightWithoutFixingItsDimensions() {
+        final ImageWidgetStyle style = ImageWidgetStyle.DEFAULT.derive();
+        style.setMaxHeight(180);
+        final ImageWidget image = new ImageWidget("logo.svg");
+        image.setStyle(style);
+        assertEquals("180px", image.getMaxHeight().getCSSCode());
+        assertEquals("", image.getHeight().getCSSCode());
+        assertEquals("", image.getWidth().getCSSCode());
+        final WidgetSandbox<ImageWidget> sandbox = WidgetSandbox.open(image);
+        sandbox.clearUpdates();
+        image.setMaxHeight("50%");
+        final JsonObject update = singleUpdate(sandbox.drainUpdates(), "set max height", image);
+        assertEquals("50.0%", update.get("max height").getStringValue());
+        image.setMaxHeight("");
+        assertEquals("", image.getMaxHeight().getCSSCode());
+        assertEquals("180px", style.getMaxHeight().getCSSCode());
+        final Table table = new Table();
+        table.setMaxHeight(250);
+        assertEquals("250px", table.getMaxHeight().getCSSCode());
+    }
+
+    /**
      * Verifies reactive maximum width serialization and independent preferred width.
      */
     @Test
@@ -292,4 +317,3 @@ public final class ModernStylePropertiesTest {
         return matches.get(0);
     }
 }
-

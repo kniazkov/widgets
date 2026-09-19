@@ -36,6 +36,7 @@ const handlerNames = [
     "setOpacity",
     "setWidth",
     "setMaxWidth",
+    "setMaxHeight",
     "setHeight",
     "setMargin",
     "setPadding",

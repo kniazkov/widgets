@@ -42,6 +42,7 @@ function createHarness() {
             setTransition,
             setBoxSizing,
             setMaxWidth,
+            setMaxHeight,
             setOverflow,
             setTextDecoration,
             setColor,
@@ -57,6 +58,19 @@ function createHarness() {
 }
 
 describe("modern style properties", () => {
+    it("caps and clears image heights independently of preferred height", () => {
+        const harness = createHarness();
+        harness.createWidget({ type: "image", widget: "#22" });
+        const widget = harness.widgets["#22"];
+        widget.style.height = "300px";
+        expect(harness.setMaxHeight({ widget: "#22", "max height": "180px" })).toBe(true);
+        expect(widget.style.maxHeight).toBe("180px");
+        expect(widget.style.height).toBe("300px");
+        expect(harness.setMaxHeight({ widget: "#22", "max height": "" })).toBe(true);
+        expect(widget.style.maxHeight).toBe("");
+        expect(harness.setMaxHeight({ widget: "#22", "max height": null })).toBe(false);
+        expect(harness.setMaxHeight({ widget: "missing", "max height": "100%" })).toBe(false);
+    });
     it("caps and clears input widths without changing their preferred width", () => {
         const harness = createHarness();
         const id = "#21";
