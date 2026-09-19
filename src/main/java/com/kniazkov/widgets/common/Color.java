@@ -4,6 +4,8 @@
 package com.kniazkov.widgets.common;
 
 import com.kniazkov.json.JsonObject;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Immutable RGB color representation.
@@ -273,91 +275,176 @@ public final class Color {
     }
 
     /**
-     * Parses a color from various string representations.
-     * Supported formats:
-     * <ul>
-     *   <li>RGB format: {@code "rgb(r,g,b)"} where r,g,b are integers in range [0,255]
-     *       Example: {@code "rgb(255,0,127)"}</li>
-     *   <li>RGBA format: {@code "rgba(r,g,b,a)"} where r,g,b are integers in range [0,255]
-     *       and a is a floating-point number in range [0.0,1.0] or percentage string
-     *       Examples: {@code "rgba(255,0,127,0.5)"}, {@code "rgba(255,0,127,50%)"}</li>
-     *   <li>Color name: case-insensitive name from the predefined constants
-     *       Examples: {@code "red"}, {@code "DARK_GRAY"}, {@code "LightGray"}</li>
-     * </ul>
-     * If the string cannot be parsed or is null, returns {@link Color#BLACK}.
+     * CSS decimal number, excluding Java-only NaN, Infinity and hexadecimal floats.
+     */
+    private static final Pattern NUMBER = Pattern.compile(
+        "[+-]?(?:[0-9]+(?:\\.[0-9]+)?|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?"
+    );
+
+    /**
+     * Parses HEX (#RGB, #RGBA, #RRGGBB, #RRGGBBAA), RGB/RGBA, HSL/HSLA,
+     * or a predefined color name. Functions accept comma syntax or space-separated
+     * channels with optional slash alpha. RGB channels accept numbers or percentages;
+     * HSL saturation/lightness require percentages. Hue accepts degrees (also unitless),
+     * radians, gradians or turns. Alpha accepts a number or percentage.
+     * Names/functions are case-insensitive. Components are clamped and hue wraps.
+     * HEX alpha is last, unlike {@link #pack()}. Invalid or null input returns BLACK.
+     * This is a concrete color parser, not a full CSS expression evaluator.
      *
-     * @param colorString the string to parse, may be null
-     * @return parsed Color instance, or {@link Color#BLACK} if parsing fails
+     * @param colorString string to parse, may be null
+     * @return parsed color, or BLACK on invalid input
      */
     public static Color fromString(final String colorString) {
-        if (colorString == null || colorString.trim().isEmpty()) {
-            return Color.BLACK;
+        if (colorString == null) {
+            return BLACK;
         }
-        final String trimmed = colorString.trim();
-        if (trimmed.startsWith("rgb")) {
-            try {
-                return parseRgbFormat(trimmed);
-            } catch (final Exception ignored) {
-                return Color.BLACK;
+        final String value = colorString.trim().toLowerCase(Locale.ROOT);
+        try {
+            if (value.startsWith("#")) {
+                return parseHex(value.substring(1));
             }
+            final int open = value.indexOf('(');
+            if (open >= 0 && value.endsWith(")")) {
+                final String function = value.substring(0, open);
+                if (function.equals("rgb") || function.equals("rgba")
+                    || function.equals("hsl") || function.equals("hsla")) {
+                    return parseFunction(function, value.substring(open + 1, value.length() - 1));
+                }
+            }
+            final Color named = parseColorName(value);
+            return named == null ? BLACK : named;
+        } catch (final IllegalArgumentException ignored) {
+            return BLACK;
         }
-        final Color namedColor = parseColorName(trimmed);
-        if (namedColor != null) {
-            return namedColor;
-        }
-        return Color.BLACK;
     }
 
     /**
-     * Parses RGB or RGBA format string.
-     *
-     * @param rgbString RGB/RGBA format string
-     * @return parsed Color
-     * @throws IllegalArgumentException if format is invalid
+     * Parses CSS HEX with alpha in the last component.
      */
-    private static Color parseRgbFormat(final String rgbString) {
-        final String normalized = rgbString.replace(" ", "").toLowerCase();
-        if (normalized.startsWith("rgb(") && normalized.endsWith(")")) {
-            final String content = normalized.substring(4, normalized.length() - 1);
-            final String[] parts = content.split(",");
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("Invalid RGB format");
-            }
-            final int r = Integer.parseInt(parts[0]);
-            final int g = Integer.parseInt(parts[1]);
-            final int b = Integer.parseInt(parts[2]);
-            return new Color(r, g, b);
-        } else if (normalized.startsWith("rgba(") && normalized.endsWith(")")) {
-            final String content = normalized.substring(5, normalized.length() - 1);
-            final String[] parts = content.split(",");
-            if (parts.length != 4) {
-                throw new IllegalArgumentException("Invalid RGBA format");
-            }
-            final int r = Integer.parseInt(parts[0]);
-            final int g = Integer.parseInt(parts[1]);
-            final int b = Integer.parseInt(parts[2]);
-            final double a = parseAlpha(parts[3]);
-            final int alphaInt = (int) Math.round(a * 255);
-            return new Color(r, g, b, alphaInt);
+    private static Color parseHex(final String hex) {
+        if (!hex.matches("(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})")) {
+            throw new IllegalArgumentException("Invalid HEX color");
         }
-        throw new IllegalArgumentException("Invalid RGB/RGBA format");
+        final int step = hex.length() <= 4 ? 1 : 2;
+        final int[] channels = {0, 0, 0, 255};
+        for (int index = 0; index < hex.length() / step; index++) {
+            channels[index] = Integer.parseInt(hex.substring(index * step, (index + 1) * step), 16)
+                * (step == 1 ? 17 : 1);
+        }
+        return new Color(channels[0], channels[1], channels[2], channels[3]);
     }
 
     /**
-     * Parses alpha channel value which can be a decimal number or percentage.
-     *
-     * @param alphaString alpha value as string (e.g., "0.5" or "50%")
-     * @return alpha value in range [0.0,1.0]
+     * Parses the two supported function separator styles without mixing them.
      */
-    private static double parseAlpha(final String alphaString) {
-        if (alphaString.endsWith("%")) {
-            final String percent = alphaString.substring(0, alphaString.length() - 1);
-            final double value = Double.parseDouble(percent) / 100.0;
-            return Math.max(0.0, Math.min(1.0, value));
+    private static Color parseFunction(final String function, final String body) {
+        final boolean comma = body.contains(",");
+        final String[] channels;
+        final String alpha;
+        if (comma) {
+            final String[] parts = body.split(",", -1);
+            if (body.contains("/") || (parts.length != 3 && parts.length != 4)) {
+                throw new IllegalArgumentException("Invalid comma syntax");
+            }
+            channels = new String[] {parts[0].trim(), parts[1].trim(), parts[2].trim()};
+            alpha = parts.length == 4 ? parts[3].trim() : "1";
         } else {
-            final double value = Double.parseDouble(alphaString);
-            return Math.max(0.0, Math.min(1.0, value));
+            final String[] parts = body.split("/", -1);
+            if (parts.length > 2) {
+                throw new IllegalArgumentException("Invalid slash syntax");
+            }
+            channels = parts[0].trim().split("\\s+");
+            alpha = parts.length == 2 ? parts[1].trim() : "1";
         }
+        if (channels.length != 3) {
+            throw new IllegalArgumentException("Expected three channels");
+        }
+        final int opacity = byteValue(component(alpha, 1));
+        if (function.startsWith("hsl")) {
+            return fromHsl(hue(channels[0]), percentage(channels[1]),
+                percentage(channels[2]), opacity);
+        }
+        if (comma && (channels[0].endsWith("%") != channels[1].endsWith("%")
+            || channels[0].endsWith("%") != channels[2].endsWith("%"))) {
+            throw new IllegalArgumentException("Mixed legacy RGB units");
+        }
+        return new Color(byteValue(component(channels[0], 255)),
+            byteValue(component(channels[1], 255)),
+            byteValue(component(channels[2], 255)), opacity);
+    }
+
+    /**
+     * Parses a finite CSS number.
+     */
+    private static double number(final String token) {
+        if (!NUMBER.matcher(token).matches()) {
+            throw new IllegalArgumentException("Invalid number");
+        }
+        final double value = Double.parseDouble(token);
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException("Non-finite number");
+        }
+        return value;
+    }
+
+    /**
+     * Normalizes a numeric or percentage component to [0, 1].
+     */
+    private static double component(final String token, final double scale) {
+        final double value = token.endsWith("%")
+            ? number(token.substring(0, token.length() - 1)) / 100 : number(token) / scale;
+        return Math.max(0, Math.min(1, value));
+    }
+
+    /**
+     * Parses a required percentage.
+     */
+    private static double percentage(final String token) {
+        if (!token.endsWith("%")) {
+            throw new IllegalArgumentException("Expected percentage");
+        }
+        return component(token, 1);
+    }
+
+    /**
+     * Rounds a normalized channel to an eight-bit value.
+     */
+    private static int byteValue(final double value) {
+        return (int) Math.round(value * 255);
+    }
+
+    /**
+     * Converts and wraps a hue to [0, 360), reducing before multiplying to avoid overflow.
+     */
+    private static double hue(final String token) {
+        final String[] units = {"deg", "grad", "rad", "turn"};
+        final double[] periods = {360, 400, 2 * Math.PI, 1};
+        for (int index = 0; index < units.length; index++) {
+            if (token.endsWith(units[index])) {
+                final double value = number(
+                    token.substring(0, token.length() - units[index].length())
+                );
+                return ((value % periods[index]) / periods[index] * 360 + 360) % 360;
+            }
+        }
+        return (number(token) % 360 + 360) % 360;
+    }
+
+    /**
+     * Converts HSL to sRGB using chroma and the hue sector.
+     */
+    private static Color fromHsl(final double hue, final double saturation,
+        final double lightness, final int alpha) {
+        final double chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+        final double x = chroma * (1 - Math.abs((hue / 60) % 2 - 1));
+        final double offset = lightness - chroma / 2;
+        final double[][] sectors = {
+            {chroma, x, 0}, {x, chroma, 0}, {0, chroma, x},
+            {0, x, chroma}, {x, 0, chroma}, {chroma, 0, x}
+        };
+        final double[] rgb = sectors[(int) (hue / 60)];
+        return new Color(byteValue(rgb[0] + offset), byteValue(rgb[1] + offset),
+            byteValue(rgb[2] + offset), alpha);
     }
 
     /**
@@ -368,7 +455,7 @@ public final class Color {
      * @return Color instance or null if not found
      */
     private static Color parseColorName(final String colorName) {
-        final String key = colorName.toUpperCase().replace("_", "");
+        final String key = colorName.toUpperCase(Locale.ROOT).replace("_", "");
 
         switch (key) {
             case "TRANSPARENT": return Color.TRANSPARENT;
