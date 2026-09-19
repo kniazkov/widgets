@@ -1,8 +1,17 @@
 import { expect, test } from "@playwright/test";
+import fs from "node:fs";
 
 test("SVG and PNG preserve their ratio within two limits and a narrow parent", async ({ page }) => {
-    await page.goto("/");
+    await page.setContent("<!doctype html><html><body></body></html>");
+    const source = ["options", "lib", "widgets"]
+        .map(name => fs.readFileSync(`src/main/html/scripts/${name}.js`, "utf8"))
+        .join("\n");
+    await page.addScriptTag({
+        content:
+            source + "\nwindow.imageLimits = { createWidget, widgets, setMaxWidth, setMaxHeight };"
+    });
     const sizes = await page.evaluate(async () => {
+        const { createWidget, widgets, setMaxWidth, setMaxHeight } = window.imageLimits;
         const svg =
             "data:image/svg+xml," +
             encodeURIComponent(
@@ -22,8 +31,8 @@ test("SVG and PNG preserve their ratio within two limits and a narrow parent", a
             parent.appendChild(image);
             image.src = source;
             await image.decode();
-            actionHandlers["set max width"]({ widget: id, "max width": "100%" });
-            actionHandlers["set max height"]({ widget: id, "max height": "80px" });
+            setMaxWidth({ widget: id, "max width": "100%" });
+            setMaxHeight({ widget: id, "max height": "80px" });
             const measure = () => ({
                 width: image.getBoundingClientRect().width,
                 height: image.getBoundingClientRect().height
@@ -31,8 +40,8 @@ test("SVG and PNG preserve their ratio within two limits and a narrow parent", a
             const heightLimited = measure();
             parent.style.width = "160px";
             const widthLimited = measure();
-            actionHandlers["set max height"]({ widget: id, "max height": "" });
-            actionHandlers["set max width"]({ widget: id, "max width": "" });
+            setMaxHeight({ widget: id, "max height": "" });
+            setMaxWidth({ widget: id, "max width": "" });
             results.push({ heightLimited, widthLimited, reset: measure() });
             parent.remove();
         }
