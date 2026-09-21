@@ -15,6 +15,9 @@ Applications can publish explicit filesystem and classpath subtrees with
 `Options.Builder.addStaticSource(...)`. See [Static resource sources](docs/STATIC_RESOURCES.md)
 for configuration examples, routing precedence and security boundaries.
 
+Read original raster/SVG dimensions from bytes or files with
+[`ImageDimensions`](docs/IMAGE_DIMENSIONS.md), without decoding raster pixels.
+
 Color strings support HEX, RGB/RGBA and HSL/HSLA, including percentages and alpha.
 See [Color strings](docs/COLORS.md) for syntax, examples and compatibility rules.
 

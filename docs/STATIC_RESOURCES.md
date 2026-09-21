@@ -159,8 +159,10 @@ can still cause a network request. First use still needs a download.
 `ImageWidget.setIntrinsicSize(width, height)` (also available on `ActiveImage`) sends
 positive original pixel dimensions through the normal widget update protocol and
 sets HTML `width`/`height` attributes before the bytes finish loading. Use actual
-image metadata, not maximum-size settings. Widgets does not parse SVG files to infer
-these values. `clearIntrinsicSize()` removes the attributes and restores browser
+image metadata, not maximum-size settings. Use
+[`ImageDimensions.read(...)`](IMAGE_DIMENSIONS.md) to extract it from bytes or files;
+setting an image URL alone does not load its metadata.
+`clearIntrinsicSize()` removes the attributes and restores browser
 size discovery. Update the metadata when switching to an image with different dimensions.
 
 In Java the value is `com.kniazkov.widgets.common.IntrinsicSize`, constructed from
