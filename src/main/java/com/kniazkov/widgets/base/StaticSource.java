@@ -8,10 +8,14 @@ import java.io.InputStream;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.HexFormat;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * An explicitly public directory or classpath subtree mounted at a URL prefix.
@@ -87,6 +91,39 @@ public final class StaticSource {
      */
     public String getPrefix() {
         return this.prefix;
+    }
+
+    /**
+     * Returns a root-relative URL pinned to the current file contents. Generate it again
+     * after replacing the file. The same source must be registered in server options.
+     * An overlapping, more specific source still takes precedence when serving the URL.
+     *
+     * @param relativePath decoded filename relative to this source, without query or fragment
+     * @return percent-encoded URL with a content version suitable for long-lived browser caching
+     * @throws IOException if the file cannot be read
+     * @throws SecurityException if the path escapes this source
+     */
+    public String versionedUrl(final String relativePath) throws IOException {
+        final String path = this.prefix + Objects.requireNonNull(relativePath, "relativePath");
+        final String hash = contentHash(this.read(path));
+        try {
+            return new URI(null, null, path, "widgets-version=" + hash, null).toASCIIString();
+        } catch (final URISyntaxException error) {
+            throw new IllegalArgumentException("Invalid static resource path", error);
+        }
+    }
+
+    /**
+     * Computes the shared URL version and ETag payload from the actual response bytes.
+     * @param data resource bytes
+     * @return lowercase SHA-256
+     */
+    static String contentHash(final byte[] data) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(data));
+        } catch (final NoSuchAlgorithmException error) {
+            throw new IllegalStateException("SHA-256 is required by Java", error);
+        }
     }
 
     /**

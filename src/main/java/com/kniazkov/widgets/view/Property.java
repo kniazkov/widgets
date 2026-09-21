@@ -598,6 +598,11 @@ public abstract class Property<T> {
     );
 
     /**
+     * Original image dimensions as "width height", or empty to use browser discovery.
+     */
+    public static final Property<String> INTRINSIC_SIZE = stringProperty("intrinsic size");
+
+    /**
      * Property storing the image source for the selected state of a widget
      * such as a checked checkbox or a selected radio button.
      */

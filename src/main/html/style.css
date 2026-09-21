@@ -13,6 +13,10 @@ input:focus, textarea:focus, select:focus {
     box-shadow: none !important;
 }
 
+img.intrinsic-image-size {
+    object-fit: contain;
+}
+
 img, textarea, button {
     vertical-align: top;
 }

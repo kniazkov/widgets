@@ -27,6 +27,22 @@ import static org.junit.Assert.assertTrue;
  */
 public class StaticSourceTest {
     /**
+     * Generating a cache URL uses the same confinement rules as serving the resource.
+     */
+    @Test
+    public void versionedUrlsCannotReadOutsideSource() throws Exception {
+        final Path root = this.folder.newFolder().toPath();
+        final Path secret = this.folder.newFile().toPath();
+        Files.createSymbolicLink(root.resolve("escape.svg"), secret);
+        final StaticSource source = StaticSource.directory("/images", root);
+        for (final String path : new String[]{"../secret.svg", "/secret.svg", "escape.svg",
+                "a.svg?x=1", "a.svg#fragment", "%2e%2e/secret.svg"}) {
+            assertThrows(SecurityException.class, () -> source.versionedUrl(path));
+        }
+        assertThrows(NoSuchFileException.class, () -> source.versionedUrl("missing.svg"));
+    }
+
+    /**
      * Isolated public and private trees.
      */
     @Rule

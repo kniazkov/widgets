@@ -1213,6 +1213,27 @@ function setOverflow(data) {
     return false;
 }
 
+function setIntrinsicSize(data) {
+    const widget = widgets[data.widget];
+    const value = data["intrinsic size"];
+    if (!widget || widget.tagName !== "IMG" || typeof value !== "string") return false;
+    if (value === "") {
+        widget.removeAttribute("width");
+        widget.removeAttribute("height");
+        widget.classList.remove("intrinsic-image-size");
+        return true;
+    }
+    if (!/^[1-9][0-9]* [1-9][0-9]*$/.test(value)) return false;
+    const [width, height] = value.split(" ").map(Number);
+    if (![width, height].every(size => Number.isSafeInteger(size) && size <= 2147483647)) {
+        return false;
+    }
+    widget.setAttribute("width", String(width));
+    widget.setAttribute("height", String(height));
+    widget.classList.add("intrinsic-image-size");
+    return true;
+}
+
 function setSource(data) {
     const widget = widgets[data.widget];
     const source = data["source"];

@@ -501,6 +501,7 @@ const actionHandlers = {
     "set box sizing": setBoxSizing,
     "set overflow": setOverflow,
     "set source": setSource,
+    "set intrinsic size": setIntrinsicSize,
     "set sel source": setSelectedSource,
     "set unsel source": setUnselectedSource,
     "set horz alignment": setHorzAlignment,

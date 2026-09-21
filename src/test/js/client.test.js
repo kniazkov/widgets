@@ -56,6 +56,7 @@ const handlerNames = [
     "setBoxSizing",
     "setOverflow",
     "setSource",
+    "setIntrinsicSize",
     "setSelectedSource",
     "setUnselectedSource",
     "setHorzAlignment",

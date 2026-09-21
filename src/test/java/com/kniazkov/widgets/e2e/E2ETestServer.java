@@ -7,6 +7,8 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
+import com.kniazkov.widgets.base.StaticSource;
+import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
@@ -38,7 +40,7 @@ public final class E2ETestServer {
      *
      * @param args a single HTTP port argument
      */
-    public static void main(final String[] args) {
+    public static void main(final String[] args) throws java.io.IOException {
         if (args.length != 1) {
             throw new IllegalArgumentException("Expected one HTTP port argument");
         }
@@ -95,11 +97,32 @@ public final class E2ETestServer {
             root.add(content);
         };
 
+        final StaticSource images = StaticSource.classpath("/cache-images", E2ETestServer.class,
+            "/static-test");
+        final String logoUrl = images.versionedUrl("logo.svg");
         final Options options = new Options.Builder()
             .setPort(Integer.parseInt(args[0]))
             .setBindAddress(InetAddress.getLoopbackAddress())
+            .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("image-cache", (root, context) -> {
+            final Section container = new Section();
+            final Runnable show = () -> {
+                container.removeAll();
+                final ImageWidget image = new ImageWidget(logoUrl);
+                image.setIntrinsicSize(350, 100);
+                image.setMaxWidth(200);
+                image.setMaxHeight(80);
+                container.add(image);
+            };
+            final Button recreate = new Button("Recreate logo");
+            recreate.onClick(event -> show.run());
+            root.add(new Section(recreate));
+            root.add(container);
+            root.add(new Section(new TextWidget("Below logo")));
+            show.run();
+        });
         application.addPage("catalog", (root, context) -> {
             final Section header = new Section();
             header.add(new InputField());

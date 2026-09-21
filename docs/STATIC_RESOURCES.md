@@ -116,6 +116,60 @@ Images embedded as `data:` URLs (for example, `ImageSource.fromImage`) are part 
 the interface payload rather than independently cacheable HTTP resources. Use
 stable file URLs for images that should benefit from this mechanism.
 
+### Versioned URLs without repeated validation
+
+For public images that should display immediately on repeated use, generate a URL
+from a registered source:
+
+```java
+StaticSource logos = StaticSource.directory("/logo", Paths.get("logos"));
+Options options = new Options.Builder().addStaticSource(logos).build();
+String url = logos.versionedUrl("medium.svg");
+ImageWidget logo = new ImageWidget(url);
+logo.setIntrinsicSize(350, 100);
+logo.setMaxWidth(220);
+logo.setMaxHeight(70);
+```
+
+`versionedUrl` reads and hashes the file and returns a root-relative, percent-encoded
+URL such as `/logo/medium.svg?widgets-version=<sha256>`. It also works for classpath
+sources. Pass a decoded path relative to that source, without a query or fragment.
+Traversal and escaping symlinks are rejected, just as during HTTP serving. Register
+the source in options; generating a URL does not register it or override nested mounts.
+
+The server grants `Cache-Control: private, max-age=31536000, immutable` only when the
+single `widgets-version` parameter exactly matches the SHA-256 of the response bytes.
+A browser can then reuse the image without contacting the server, including when a
+new `img` element is created through JavaScript, e.g. inside a popup. Normal URLs
+retain the previous ETag/revalidation behavior. Arbitrary `?v=...` parameters do not
+enable long-lived caching. A mismatched, empty or duplicate version parameter yields
+`404` with `no-store`, never changed bytes under an old immutable URL. Explicit
+conditional requests to a matching version still support `304`.
+
+Generate the URL again after changing the file and update the image source. Keep
+the generated URL while the file is unchanged; do not add random values or timestamps
+on each render. Widgets does not retain historical file versions. A browser that has
+cached an old version can continue displaying it until expiration, even after server
+deletion; a new network request for that old version fails. These public files must
+not require immediate revocation. Cache eviction, disabled caching or explicit reload
+can still cause a network request. First use still needs a download.
+
+### Reserving image space
+
+`ImageWidget.setIntrinsicSize(width, height)` (also available on `ActiveImage`) sends
+positive original pixel dimensions through the normal widget update protocol and
+sets HTML `width`/`height` attributes before the bytes finish loading. Use actual
+image metadata, not maximum-size settings. Widgets does not parse SVG files to infer
+these values. `clearIntrinsicSize()` removes the attributes and restores browser
+size discovery. Update the metadata when switching to an image with different dimensions.
+
+CSS dimensions and maximum-size limits remain independent. With this API the image
+uses `object-fit: contain`: when limits constrain the reserved box to a different
+ratio, the image retains its proportions and can leave empty space inside the box.
+The box remains the same size before and after decoding, so following content does
+not jump. Explicit CSS sizing (for example `height: auto`) can override the HTML size
+hints; callers should check such overrides if they need a stable placeholder.
+
 ## Verification
 
 Run `mvn verify` on Java 21. `StaticSourceTest` tests configuration, immutable options,
