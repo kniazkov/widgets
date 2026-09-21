@@ -32,14 +32,25 @@ public class StaticSourceTest {
     @Test
     public void versionedUrlsCannotReadOutsideSource() throws Exception {
         final Path root = this.folder.newFolder().toPath();
-        final Path secret = this.folder.newFile().toPath();
-        Files.createSymbolicLink(root.resolve("escape.svg"), secret);
         final StaticSource source = StaticSource.directory("/images", root);
-        for (final String path : new String[]{"../secret.svg", "/secret.svg", "escape.svg",
+        for (final String path : new String[]{"../secret.svg", "/secret.svg",
                 "a.svg?x=1", "a.svg#fragment", "%2e%2e/secret.svg"}) {
             assertThrows(SecurityException.class, () -> source.versionedUrl(path));
         }
         assertThrows(NoSuchFileException.class, () -> source.versionedUrl("missing.svg"));
+    }
+
+    /**
+     * Versioned URLs cannot follow a symlink outside the mounted root.
+     */
+    @Test
+    public void versionedUrlsRejectExternalSymlinks() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
+        final Path root = this.folder.newFolder().toPath();
+        final Path secret = this.folder.newFile().toPath();
+        Files.createSymbolicLink(root.resolve("escape.svg"), secret);
+        final StaticSource source = StaticSource.directory("/images", root);
+        assertThrows(SecurityException.class, () -> source.versionedUrl("escape.svg"));
     }
 
     /**
@@ -88,6 +99,7 @@ public class StaticSourceTest {
      */
     @Test
     public void confinesSymlinksToRealRoot() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
         final Path root = this.folder.newFolder("public").toPath();
         final Path sibling = this.folder.newFolder("public-private").toPath();
         Files.writeString(sibling.resolve("secret"), "secret");
@@ -130,16 +142,13 @@ public class StaticSourceTest {
     }
 
     /**
-     * Exploded resources also enforce real paths, not only logical classpath names.
+     * Exploded resources expose only their explicitly mounted public subtree.
      */
     @Test
-    public void explodedClasspathRejectsExternalSymlink() throws Exception {
+    public void readsExplodedClasspathWithoutExposingPrivateEntries() throws Exception {
         final Path root = this.folder.newFolder().toPath();
         final Path publicRoot = Files.createDirectory(root.resolve("public"));
         Files.writeString(publicRoot.resolve("ok.txt"), "public");
-        final Path secret = this.folder.newFile().toPath();
-        Files.writeString(secret, "secret");
-        Files.createSymbolicLink(publicRoot.resolve("escape.txt"), secret);
         final Path classFile = root.resolve("com/kniazkov/widgets/base/StaticAnchor.class");
         Files.createDirectories(classFile.getParent());
         Files.write(classFile, anchorBytes());
@@ -148,9 +157,28 @@ public class StaticSourceTest {
                 loader.loadClass(StaticAnchor.class.getName()), "/public");
             assertArrayEquals("public".getBytes(StandardCharsets.UTF_8),
                 source.read("/assets/ok.txt"));
-            assertThrows(SecurityException.class, () -> source.read("/assets/escape.txt"));
             assertThrows(NoSuchFileException.class,
                 () -> source.read("/assets/com/kniazkov/widgets/base/StaticAnchor.class"));
+        }
+    }
+
+    /**
+     * Exploded classpath roots reject symlinks to external files.
+     */
+    @Test
+    public void explodedClasspathRejectsExternalSymlink() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
+        final Path root = this.folder.newFolder().toPath();
+        final Path publicRoot = Files.createDirectory(root.resolve("public"));
+        final Path secret = this.folder.newFile().toPath();
+        Files.createSymbolicLink(publicRoot.resolve("escape.txt"), secret);
+        final Path classFile = root.resolve("com/kniazkov/widgets/base/StaticAnchor.class");
+        Files.createDirectories(classFile.getParent());
+        Files.write(classFile, anchorBytes());
+        try (URLClassLoader loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, null)) {
+            final StaticSource source = StaticSource.classpath("/assets",
+                loader.loadClass(StaticAnchor.class.getName()), "/public");
+            assertThrows(SecurityException.class, () -> source.read("/assets/escape.txt"));
         }
     }
 
