@@ -4,38 +4,30 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonElement;
-import com.kniazkov.json.JsonObject;
 import java.util.Collections;
 import java.util.Map;
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 
 /**
- * Tests the client protocol failure boundary.
+ * Action exceptions must reach the HTTP logging boundary unchanged.
  */
 public final class ActionHandlerTest {
     /**
-     * Application failures become an explicit fatal response for the browser.
+     * The original exception is not converted into a successful protocol response.
      */
     @Test
-    public void reportsClientFailure() {
-        final Application application = BaseTestSupport.application(
-            (root, context) -> { }
-        );
-        final ActionHandler handler = new ActionHandler(application) {
+    public void propagatesFailure() {
+        final IllegalStateException failure = new IllegalStateException("client failed");
+        final Application app = BaseTestSupport.application((r, c) -> { });
+        final ActionHandler handler = new ActionHandler(app) {
             @Override
             JsonElement process(final Map<String, String> data) {
-                throw new IllegalStateException("client failed");
+                throw failure;
             }
         };
-
-        final JsonObject response = handler.processSafely(
-            Collections.emptyMap()
-        ).toJsonObject();
-
-        assertFalse(response.get("result").getBooleanValue());
-        assertTrue(response.get("clientError").getBooleanValue());
+        assertSame(failure, assertThrows(IllegalStateException.class,
+            () -> handler.process(Collections.emptyMap())));
     }
 }

@@ -18,6 +18,9 @@ for configuration examples, routing precedence and security boundaries.
 Color strings support HEX, RGB/RGBA and HSL/HSLA, including percentages and alpha.
 See [Color strings](docs/COLORS.md) for syntax, examples and compatibility rules.
 
+See [Request and browser diagnostics](docs/DIAGNOSTICS.md) for exception propagation,
+JavaScript error reports and logging boundaries.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,

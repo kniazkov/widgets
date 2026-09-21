@@ -157,6 +157,34 @@ public final class Application {
     }
 
     /**
+     * Records one bounded, untrusted browser report per live client.
+     *
+     * @param data diagnostic fields, never request payloads or form values
+     */
+    void reportBrowserError(final Map<String, String> data) {
+        final Client client;
+        try {
+            client = this.clients.get(RMId.parse(data.get("client")));
+        } catch (final RuntimeException invalid) {
+            return;
+        }
+        if (client == null) {
+            return;
+        }
+        synchronized (client) {
+            if (client.errorReported) {
+                return;
+            }
+            client.errorReported = true;
+            String report = data.getOrDefault("error", "Unknown browser error");
+            report = report.substring(0, Math.min(8192, report.length()));
+            report = report.replaceAll("[\\p{Cntrl}]", " ");
+            LOGGER.severe("Browser-reported error; client=" + client.getId()
+                + "; server=" + this.serverId + "; detail=" + report);
+        }
+    }
+
+    /**
      * Terminates a client and removes it from memory.
      * Typically called when the browser tab is closed.
      *

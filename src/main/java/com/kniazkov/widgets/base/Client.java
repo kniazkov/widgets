@@ -41,6 +41,11 @@ public final class Client implements Comparable<Client> {
     long timer;
 
     /**
+     * Whether this client has already submitted its one diagnostic report.
+     */
+    boolean errorReported;
+
+    /**
      * The root widget of the client, representing the entry point to the widget hierarchy.
      */
     private final RootWidget root;

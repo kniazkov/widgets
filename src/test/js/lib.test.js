@@ -26,6 +26,32 @@ describe("escapeHtml", () => {
 });
 
 describe("sendRequest", () => {
+    it("preserves HTTP 500 as a fatal protocol result without exposing the response body", () => {
+        let request;
+        class MockXmlHttpRequest {
+            constructor() {
+                request = this;
+            }
+            open() {}
+            send() {}
+        }
+        dom = new JSDOM("<!doctype html>", {
+            runScripts: "outside-only",
+            url: "http://localhost/"
+        });
+        dom.window.XMLHttpRequest = MockXmlHttpRequest;
+        dom.window.eval(source);
+        let result;
+        dom.window.sendRequest({ action: "synchronize" }, data => {
+            result = JSON.parse(data);
+        });
+        request.readyState = 4;
+        request.status = 500;
+        request.responseText = "private server stack";
+        request.onreadystatechange();
+        expect(result).toEqual({ result: false, clientError: true, httpStatus: 500 });
+    });
+
     it("does not abort an in-flight request when another request starts", () => {
         const requests = [];
 

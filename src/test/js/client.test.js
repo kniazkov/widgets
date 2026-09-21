@@ -105,6 +105,8 @@ function createHarness() {
             fail: recordRequestFailure,
             succeed: recordRequestSuccess,
             reportClientError: responseHasClientError,
+            showClientError,
+            setClientId: value => { clientId = value; },
             startClient,
             requests: window.__requests,
             scheduledTasks: window.__scheduledTasks,
@@ -154,6 +156,17 @@ describe("connection recovery", () => {
 
         harness.succeed();
         expect(dom.window.document.getElementById("connection-terminated-overlay")).toBeNull();
+    });
+
+    it("reports a browser failure once for an initialized client", () => {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        harness.showClientError(new Error("broken widget"));
+        harness.showClientError(new Error("second error"));
+        const reports = harness.requests.filter(entry => entry.request.action === "report error");
+        expect(reports).toHaveLength(1);
+        expect(reports[0].request.client).toBe("#123");
+        expect(reports[0].request.error).toContain("broken widget");
     });
 
     it("shows a permanent client error reported by the server", () => {
