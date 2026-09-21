@@ -23,6 +23,48 @@ import static org.junit.Assert.assertTrue;
  */
 public class StaticSourcesHttpTest {
     /**
+     * Versioned URLs opt into long caching only for bytes matching their requested hash.
+     */
+    @Test
+    public void cachesOnlyMatchingContentVersions() throws Exception {
+        final Path www = this.folder.newFolder().toPath();
+        final Path file = www.resolve("фото 1.svg");
+        Files.writeString(file, "old-image");
+        final StaticSource source = StaticSource.directory("/uploads", www);
+        final StaticSource icons = StaticSource.classpath("/icons", getClass(), "/static-test");
+        start(www, source, icons);
+        final String url = source.versionedUrl("фото 1.svg");
+        assertEquals(url, source.versionedUrl("фото 1.svg"));
+        for (final String target : new String[]{url, icons.versionedUrl("icon.svg")}) {
+            final String first = request(target);
+            assertTrue(first, first.startsWith("HTTP/1.1 200"));
+            assertEquals("private, max-age=31536000, immutable", header(first, "Cache-Control"));
+            final String cached = request(target,
+                "If-None-Match: " + header(first, "ETag") + "\r\n");
+            assertTrue(cached, cached.startsWith("HTTP/1.1 304"));
+            assertEquals(header(first, "Cache-Control"), header(cached, "Cache-Control"));
+        }
+        Files.writeString(file, "new-image");
+        final String stale = request(url, "If-None-Match: *\r\n");
+        assertTrue(stale, stale.startsWith("HTTP/1.1 404"));
+        assertEquals("no-store", header(stale, "Cache-Control"));
+        assertFalse(stale.contains("new-image"));
+        final String updated = source.versionedUrl("фото 1.svg");
+        assertNotEquals(url, updated);
+        assertTrue(request(updated).endsWith("new-image"));
+        for (final String bad : new String[]{updated + "&widgets-version=bad",
+                "/icons/icon.svg?widgets-version=", "/icons/icon.svg?widgets-version=fake"}) {
+            assertTrue(request(bad).startsWith("HTTP/1.1 404"));
+        }
+        assertEquals("private, no-cache", header(request("/icons/icon.svg?v=anything"),
+            "Cache-Control"));
+        Files.delete(file);
+        assertTrue(request(updated).startsWith("HTTP/1.1 404"));
+        Files.createSymbolicLink(file, this.folder.newFile().toPath());
+        assertTrue(request(updated).startsWith("HTTP/1.1 403"));
+    }
+
+    /**
      * File roots, classpath assets and generated scripts all support browser revalidation.
      */
     @Test

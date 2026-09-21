@@ -17,6 +17,7 @@ import com.kniazkov.widgets.common.FontFace;
 import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.HorizontalAlignment;
+import com.kniazkov.widgets.common.IntrinsicSize;
 import com.kniazkov.widgets.common.Offset;
 import com.kniazkov.widgets.common.Outline;
 import com.kniazkov.widgets.common.Overflow;
@@ -41,6 +42,7 @@ import com.kniazkov.widgets.model.FontWeightModel;
 import com.kniazkov.widgets.model.HorizontalAlignmentModel;
 import com.kniazkov.widgets.model.ImageSourceModel;
 import com.kniazkov.widgets.model.IntegerModel;
+import com.kniazkov.widgets.model.IntrinsicSizeModel;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.OffsetModel;
 import com.kniazkov.widgets.model.OutlineModel;
@@ -595,6 +597,16 @@ public abstract class Property<T> {
             ImageSource.class,
             ImageSourceModel::new,
             data -> new JsonString(data.toString())
+    );
+
+    /**
+     * Typed original dimensions; only the JSON representation uses a string.
+     */
+    public static final Property<IntrinsicSize> INTRINSIC_SIZE = of(
+        "intrinsic size",
+        IntrinsicSize.class,
+        IntrinsicSizeModel::new,
+        data -> new JsonString(data.toString())
     );
 
     /**

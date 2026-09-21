@@ -22,12 +22,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.HexFormat;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -263,12 +260,22 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 return responses.custom(HttpStatus.OK, contentType, data)
                     .setHeader("Cache-Control", "no-store").build();
             }
-            final String tag = entityTag(data);
+            final String hash = StaticSource.contentHash(data);
+            final List<String> versions = request.getQuery().get("widgets-version");
+            if (versions != null && (versions.size() != 1 || !hash.equals(versions.get(0)))) {
+                /*
+                 * Never publish changed bytes under an old immutable URL.
+                 */
+                return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN, new byte[0])
+                    .setHeader("Cache-Control", "no-store").build();
+            }
+            final String tag = "\"" + hash + "\"";
             final boolean unchanged = matchesEntityTag(request, tag);
             return responses.custom(unchanged ? HttpStatus.NOT_MODIFIED : HttpStatus.OK,
                 contentType, unchanged ? new byte[0] : data)
                 .setHeader("ETag", tag)
-                .setHeader("Cache-Control", "private, no-cache")
+                .setHeader("Cache-Control", versions == null ? "private, no-cache"
+                    : "private, max-age=31536000, immutable")
                 .setHeader("Date", DateTimeFormatter.RFC_1123_DATE_TIME.format(
                     ZonedDateTime.now(ZoneOffset.UTC)))
                 .build();
@@ -287,20 +294,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
          * Resource not found
          */
         return responses.notFound();
-    }
-
-    /**
-     * Identifies the actual response bytes, including any script transformations.
-     * @param data response bytes
-     * @return strong, quoted entity tag
-     */
-    private static String entityTag(final byte[] data) {
-        try {
-            return "\"" + HexFormat.of().formatHex(
-                MessageDigest.getInstance("SHA-256").digest(data)) + "\"";
-        } catch (final NoSuchAlgorithmException error) {
-            throw new IllegalStateException("SHA-256 is required by Java", error);
-        }
     }
 
     /**

@@ -14,6 +14,37 @@ const librarySource = fs.readFileSync(
 
 let dom;
 
+describe("intrinsic image dimensions", () => {
+    it("reserves and clears metadata without changing CSS limits, and rejects invalid dimensions", () => {
+        dom = new JSDOM("<!doctype html>", { runScripts: "outside-only" });
+        dom.window.eval(`${source}
+            const image = document.createElement("img");
+            widgets.logo = image;
+            window.intrinsic = { image, setIntrinsicSize };
+        `);
+        const { image, setIntrinsicSize } = dom.window.intrinsic;
+        image.style.maxWidth = "200px";
+        image.style.maxHeight = "80px";
+        const apply = value => setIntrinsicSize({ widget: "logo", "intrinsic size": value });
+        expect(apply("350 100")).toBe(true);
+        expect(image.getAttribute("width")).toBe("350");
+        expect(image.getAttribute("height")).toBe("100");
+        expect(image.classList.contains("intrinsic-image-size")).toBe(true);
+        for (const invalid of ["0 10", "10 -1", "10.5 10", "10", "2147483648 10", null]) {
+            expect(apply(invalid)).toBe(false);
+            expect(image.getAttribute("width")).toBe("350");
+        }
+        expect(apply("700 200")).toBe(true);
+        expect(image.getAttribute("width")).toBe("700");
+        expect(apply("")).toBe(true);
+        expect(image.hasAttribute("width")).toBe(false);
+        expect(image.hasAttribute("height")).toBe(false);
+        expect(image.classList.contains("intrinsic-image-size")).toBe(false);
+        expect(image.style.maxWidth).toBe("200px");
+        expect(image.style.maxHeight).toBe("80px");
+    });
+});
+
 afterEach(() => {
     dom?.window.close();
 });
