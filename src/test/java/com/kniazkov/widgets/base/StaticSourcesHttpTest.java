@@ -14,12 +14,100 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Exercises routing and hostile request targets through the real server.
  */
 public class StaticSourcesHttpTest {
+    /**
+     * File roots, classpath assets and generated scripts all support browser revalidation.
+     */
+    @Test
+    public void revalidatesStaticBytesWithoutResponseBody() throws Exception {
+        final Path www = this.folder.newFolder().toPath();
+        Files.writeString(www.resolve("photo.png"), "image-bytes");
+        start(www, StaticSource.directory("/uploads", www),
+            StaticSource.classpath("/icons", getClass(), "/static-test"));
+        for (final String path : new String[]{"/photo.png", "/uploads/photo.png",
+                "/icons/icon.svg", "/style.css", "/scripts/page-runtime.js"}) {
+            final String first = request(path);
+            final String tag = header(first, "ETag");
+            assertTrue(first, tag.matches("\"[0-9a-f]{64}\""));
+            assertEquals("private, no-cache", header(first, "Cache-Control"));
+            for (final String condition : new String[]{tag, "W/" + tag, "*",
+                    "\"other,tag\", W/" + tag, "\"other\"\r\nIf-None-Match: " + tag}) {
+                final String cached = request(path, "iF-nOnE-mAtCh: " + condition + "\r\n");
+                assertTrue(cached, cached.startsWith("HTTP/1.1 304"));
+                assertEquals("", cached.substring(cached.indexOf("\r\n\r\n") + 4));
+                assertEquals(tag, header(cached, "ETag"));
+                assertEquals("private, no-cache", header(cached, "Cache-Control"));
+                assertFalse(header(cached, "Date").isEmpty());
+            }
+            for (final String condition : new String[]{"\"other\"", "garbage " + tag,
+                    tag + "garbage", "\"other\"" + tag, "*, " + tag}) {
+                assertTrue(request(path, "If-None-Match: " + condition + "\r\n")
+                    .startsWith("HTTP/1.1 200"));
+            }
+        }
+    }
+
+    /**
+     * Replacing, deleting or redirecting a file outside its root cannot reuse stale bytes.
+     */
+    @Test
+    public void validatesCurrentFileBeforeConditionalResponse() throws Exception {
+        final Path www = this.folder.newFolder().toPath();
+        final Path logo = www.resolve("logo.svg");
+        Files.writeString(logo, "old-image");
+        start(www);
+        final String tag = header(request("/logo.svg"), "ETag");
+        final var time = Files.getLastModifiedTime(logo);
+        Files.writeString(logo, "new-image");
+        Files.setLastModifiedTime(logo, time);
+        final String replaced = request("/logo.svg", "If-None-Match: " + tag + "\r\n");
+        assertTrue(replaced, replaced.startsWith("HTTP/1.1 200"));
+        assertTrue(replaced.endsWith("new-image"));
+        assertNotEquals(tag, header(replaced, "ETag"));
+        Files.delete(logo);
+        assertTrue(request("/logo.svg", "If-None-Match: *\r\n").startsWith("HTTP/1.1 404"));
+        final Path secret = this.folder.newFile().toPath();
+        Files.writeString(secret, "new-image");
+        Files.createSymbolicLink(logo, secret);
+        assertTrue(request("/logo.svg", "If-None-Match: *\r\n").startsWith("HTTP/1.1 403"));
+    }
+
+    /**
+     * Conditional headers must not suppress page bootstrap or action execution.
+     */
+    @Test
+    public void doesNotRevalidateDynamicPagesOrActions() throws Exception {
+        start(this.folder.newFolder().toPath());
+        final String page = request("/assets/page?value=42", "If-None-Match: *\r\n");
+        assertTrue(page, page.startsWith("HTTP/1.1 200"));
+        assertEquals("no-store", header(page, "Cache-Control"));
+        assertEquals("", header(page, "ETag"));
+        assertTrue(page.contains("configureUploadProtocol"));
+        assertTrue(request("/?action=unknown", "If-None-Match: *\r\n")
+            .startsWith("HTTP/1.1 404"));
+    }
+
+    /**
+     * Returns a header independent of the transport's header-name capitalization.
+     */
+    private static String header(final String response, final String name) {
+        final String headers = response.substring(0, response.indexOf("\r\n\r\n"));
+        for (final String line : headers.split("\r\n")) {
+            final int colon = line.indexOf(':');
+            if (colon > 0 && line.substring(0, colon).equalsIgnoreCase(name)) {
+                return line.substring(colon + 1).trim();
+            }
+        }
+        return "";
+    }
+
     /**
      * Uses the webserver MIME catalog, including its safe unknown-extension fallback.
      */
@@ -200,10 +288,17 @@ public class StaticSourcesHttpTest {
      * Sends raw targets so a client cannot normalize away attempted traversal.
      */
     private String request(final String target) throws Exception {
+        return request(target, "");
+    }
+
+    /**
+     * Sends optional conditional headers over a real HTTP connection.
+     */
+    private String request(final String target, final String headers) throws Exception {
         try (Socket socket = new Socket(InetAddress.getLoopbackAddress(), this.server.getPort())) {
             socket.setSoTimeout(5000);
             socket.getOutputStream().write(("GET " + target + " HTTP/1.1\r\n"
-                + "Host: localhost\r\nConnection: close\r\n\r\n")
+                + "Host: localhost\r\n" + headers + "Connection: close\r\n\r\n")
                 .getBytes(StandardCharsets.US_ASCII));
             socket.getOutputStream().flush();
             return new String(socket.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
