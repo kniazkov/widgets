@@ -12,9 +12,10 @@ page creation, upload callbacks, form parsing inside widgets and response constr
 upload handlers no longer turn exceptions into HTTP 200 `{clientError:true}`. The underlying server
 chooses the HTTP status (normally 500 for an unexpected exception).
 
-One SEVERE record from `com.kniazkov.widgets.base.HttpHandler` contains the original stack and cause.
-Request bodies, headers and query strings are not appended to this record. Exception messages are
-application-defined, so application code should not put passwords or customer data in exceptions.
+One SEVERE record from `com.kniazkov.widgets.base.HttpHandler` contains the original stack and cause,
+plus the bounded request metadata described below. Bodies, query strings, cookies, authorization
+headers and form values are not appended. Exception messages are application-defined, so application
+code should not put passwords or customer data in exceptions.
 Existing expected static-file failures retain their existing handling.
 
 Action routing returns HTTP 404 for missing, empty or unknown actions, without invoking an action
@@ -22,6 +23,31 @@ handler. POST actions must be fields of a URL-encoded or multipart form; an `act
 string or a JSON body does not substitute for a POST form field. A POST without that field is an
 unrecognized request, not an unexpected server exception. GET requests without an action continue
 to serve application pages and static resources normally.
+
+## Missing-action diagnostics
+
+A request with no parsed action produces one WARNING from `HttpHandler`, beginning with
+`Widgets action request rejected: missing action`. It includes:
+
+- A fresh server-generated `requestId`, also returned in the `X-Widgets-Request-Id` response header.
+  The browser transport includes this ID in its HTTP failure console message when available.
+- HTTP method and decoded path, excluding the query string.
+- Content-Type media type (without parameters), declared Content-Length and actual `bodyBytes`.
+  The body is not opened or copied for logging.
+- Counts of parsed form fields and file fields; booleans for `action` in the form/query and for
+  `client`/`browserId` in the form. No field values or arbitrary field names are logged.
+- User-Agent, to help distinguish Safari/iPhone from other clients. This header is untrusted
+  and does not prove the origin of a request.
+
+Path and selected header values are limited to 240 characters and stripped of control characters
+and line/paragraph separators. Paths and User-Agent remain client-supplied metadata; do not put
+secrets in URL paths. Unexpected failures use the same metadata, preserving the original throwable
+even when metadata collection fails. Their HTTP response is still owned by webserver, so the
+correlation header is currently provided only for missing-action rejections.
+
+These warnings distinguish an empty body from a nonempty body with no parsed action, but do not
+alone prove a multipart parser bug. Successful requests are not logged. The 404 response has
+`Cache-Control: no-store`; it does not turn a rejected protocol operation into a successful one.
 
 ## Browser failures
 
