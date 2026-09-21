@@ -58,7 +58,8 @@ bodies are not displayed or logged by the transport. Network failures retain the
 other non-200 statuses are recorded in the console.
 
 When JavaScript fails after a client has been created, `showClientError` makes one best-effort POST
-`action=report error` containing its client ID and error stack/message. The application accepts at
+`action=report error` containing its client ID, error name/message and stack. Name and message are
+included explicitly because Safari stacks may contain only call frames. The application accepts at
 most one report per live client, truncates it to 8192 characters and removes control characters before
 logging a SEVERE `Browser-reported error` record with client/server identifiers. These are untrusted
 browser reports, not proof of a server exception. No form contents, cookies or full protocol updates

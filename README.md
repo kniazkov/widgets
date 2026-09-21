@@ -185,6 +185,15 @@ entry has its own runtime, widget registry, upload scheduler, event queue and up
 visiting the same URL twice creates two independent entries. Static files, external URLs, hash
 links, downloads, modifier clicks and new-tab links retain native browser navigation.
 
+Scroll events update the cached coordinates in memory without writing browser history. Widgets
+persists them before an internal `pushState` and on `pagehide`, avoiding high-frequency
+`replaceState` calls during scrolling. If the browser rejects this optional write with
+`SecurityError` or `QuotaExceededError`, cached pages still retain their coordinates and a single
+console warning is emitted. Scroll restoration after a reload or cache eviction may then use an
+older position. Other navigation errors are not suppressed.
+Native Back/Forward switches history entries before `popstate`; the outgoing entry keeps its latest
+position in the page cache, but its history checkpoint may be older if that cache entry is evicted.
+
 The tab retains at most three inactive pages, for two minutes after leaving each page. Retained
 pages continue normal synchronization, including acknowledging reactive updates, so their server
 queues are drained. Synchronization requests for a page are serialized. Eviction disposes its
