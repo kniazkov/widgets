@@ -39,7 +39,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     /**
      * Logger.
      */
-    private static final Logger LOGGER = Logger.getLogger(Server.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(HttpHandler.class.getName());
 
     /**
      * Application.
@@ -99,6 +99,24 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     @Override
     public Response handle(final Request request, final Environment environment)
             throws ServerException {
+        try {
+            return this.route(request, environment);
+        } catch (final ServerException | RuntimeException | Error failure) {
+            LOGGER.log(Level.SEVERE, "Widgets HTTP request failed", failure);
+            throw failure;
+        }
+    }
+
+    /**
+     * Routes a request inside the shared logging boundary.
+     *
+     * @param request HTTP request
+     * @param environment response environment
+     * @return response
+     * @throws ServerException if request processing fails
+     */
+    private Response route(final Request request, final Environment environment)
+            throws ServerException {
         final ResponseFactory responses = environment.getResponseFactory();
         final HttpMethod method = request.getHeaders().getMethod();
         final String requestPath = request.getPath().getPath();
@@ -115,24 +133,18 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         if (method == HttpMethod.POST || rootAction) {
             final String action = parameters.get("action");
             if (method == HttpMethod.POST && "upload chunk".equals(action)) {
-                try {
-                    return responses.fromJson(
-                        this.handleUploadChunk(request, parameters).toString()
-                    ).build();
-                } catch (final ServerException | RuntimeException | Error failure) {
-                    LOGGER.log(Level.SEVERE, "Client upload failed", failure);
-                    if (failure instanceof VirtualMachineError fatal) {
-                        throw fatal;
-                    }
-                    return responses.fromJson(
-                        ActionHandler.clientError().toString()
-                    ).build();
-                }
+                return responses.fromJson(
+                    this.handleUploadChunk(request, parameters).toString()
+                ).build();
+            }
+            if (method == HttpMethod.POST && "report error".equals(action)) {
+                this.application.reportBrowserError(parameters);
+                return responses.fromJson("{}").build();
             }
             final ActionHandler handler = actionHandlers.get(action);
             if (handler != null) {
                 return responses.fromJson(
-                    handler.processSafely(parameters).toString()
+                    handler.process(parameters).toString()
                 ).build();
             }
             return responses.notFound();

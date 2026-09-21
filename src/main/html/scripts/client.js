@@ -64,6 +64,18 @@ function showClientError(error) {
     hideConnectionTerminated();
     if (error) {
         console.error("Client error", error);
+        if (clientId) {
+            try {
+                const detail = String(error.stack || error.message || error).slice(0, 8192);
+                sendRequest(
+                    { action: "report error", client: clientId, error: detail },
+                    null,
+                    "post"
+                );
+            } catch {
+                // Reporting must never prevent the original failure from being displayed.
+            }
+        }
     }
     const overlay = document.createElement("div");
     overlay.id = clientErrorOverlayId;
