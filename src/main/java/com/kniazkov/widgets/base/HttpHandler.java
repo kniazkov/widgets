@@ -143,6 +143,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             && parameters.containsKey("action");
         if (method == HttpMethod.POST || rootAction) {
             final String action = parameters.get("action");
+            if (action == null) {
+                return responses.notFound();
+            }
             if (method == HttpMethod.POST && "upload chunk".equals(action)) {
                 return responses.fromJson(
                     this.handleUploadChunk(request, parameters).toString()

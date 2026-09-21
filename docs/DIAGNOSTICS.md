@@ -17,6 +17,12 @@ Request bodies, headers and query strings are not appended to this record. Excep
 application-defined, so application code should not put passwords or customer data in exceptions.
 Existing expected static-file failures retain their existing handling.
 
+Action routing returns HTTP 404 for missing, empty or unknown actions, without invoking an action
+handler. POST actions must be fields of a URL-encoded or multipart form; an `action` in the query
+string or a JSON body does not substitute for a POST form field. A POST without that field is an
+unrecognized request, not an unexpected server exception. GET requests without an action continue
+to serve application pages and static resources normally.
+
 ## Browser failures
 
 HTTP 5xx responses are logged to the browser console with their status and converted by the browser

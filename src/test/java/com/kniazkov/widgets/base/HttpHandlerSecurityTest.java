@@ -136,6 +136,36 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
+     * Missing actions are rejected even when a POST has no form or only a query action.
+     */
+    @Test
+    public void rejectsPostWithoutAction() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        for (final String body : new String[]{null, "", "client=123"}) {
+            assertTrue(this.request("POST", "/", body).startsWith("HTTP/1.1 404"));
+        }
+        assertTrue(this.request("POST", "/?action=new+instance", "client=123")
+            .startsWith("HTTP/1.1 404"));
+        assertTrue(this.request("POST", "/", "application/json", "{\"action\":\"kill\"}")
+            .startsWith("HTTP/1.1 404"));
+        assertTrue(this.request("GET", "/", null).startsWith("HTTP/1.1 200"));
+    }
+
+    /**
+     * Empty and unknown actions keep their existing not-found response for both methods.
+     */
+    @Test
+    public void rejectsEmptyAndUnknownActions() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        for (final String action : new String[]{"", "unknown", "+"}) {
+            assertTrue(this.request("POST", "/", "action=" + action)
+                .startsWith("HTTP/1.1 404"));
+            assertTrue(this.request("GET", "/?action=" + action, null)
+                .startsWith("HTTP/1.1 404"));
+        }
+    }
+
+    /**
      * Missing external fields must produce JSON instead of crashing a request worker.
      */
     @Test
