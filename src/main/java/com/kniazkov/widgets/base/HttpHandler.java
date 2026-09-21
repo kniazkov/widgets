@@ -113,7 +113,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         try {
             return this.route(request, environment);
         } catch (final ServerException | RuntimeException | Error failure) {
-            LOGGER.log(Level.SEVERE, "Widgets HTTP request failed", failure);
+            LOGGER.log(Level.SEVERE, "Widgets HTTP request failed; "
+                + RequestDiagnostics.describe(request), failure);
             throw failure;
         }
     }
@@ -143,6 +144,14 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             && parameters.containsKey("action");
         if (method == HttpMethod.POST || rootAction) {
             final String action = parameters.get("action");
+            if (action == null) {
+                final String requestId = UUID.randomUUID().toString();
+                LOGGER.warning("Widgets action request rejected: missing action; requestId="
+                    + requestId + " " + RequestDiagnostics.describe(request));
+                return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN, new byte[0])
+                    .setHeader("X-Widgets-Request-Id", requestId)
+                    .setHeader("Cache-Control", "no-store").build();
+            }
             if (method == HttpMethod.POST && "upload chunk".equals(action)) {
                 return responses.fromJson(
                     this.handleUploadChunk(request, parameters).toString()

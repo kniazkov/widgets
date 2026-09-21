@@ -1,7 +1,7 @@
 import fs from "node:fs";
 
 import { JSDOM } from "jsdom";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const source = fs.readFileSync(new URL("../../main/html/scripts/lib.js", import.meta.url), "utf8");
 
@@ -34,6 +34,9 @@ describe("sendRequest", () => {
             }
             open() {}
             send() {}
+            getResponseHeader() {
+                return null;
+            }
         }
         dom = new JSDOM("<!doctype html>", {
             runScripts: "outside-only",
@@ -50,6 +53,40 @@ describe("sendRequest", () => {
         request.responseText = "private server stack";
         request.onreadystatechange();
         expect(result).toEqual({ result: false, clientError: true, httpStatus: 500 });
+    });
+
+    it("logs the rejected request ID without logging the response body", () => {
+        let request;
+        class MockXmlHttpRequest {
+            constructor() {
+                request = this;
+            }
+            open() {}
+            send() {}
+            getResponseHeader(name) {
+                expect(name).toBe("X-Widgets-Request-Id");
+                return "diagnostic-id";
+            }
+        }
+        dom = new JSDOM("<!doctype html>", {
+            runScripts: "outside-only",
+            url: "http://localhost/"
+        });
+        dom.window.XMLHttpRequest = MockXmlHttpRequest;
+        const log = vi.spyOn(dom.window.console, "error").mockImplementation(() => {});
+        dom.window.eval(source);
+        const callback = vi.fn();
+        dom.window.sendRequest({}, callback, "post");
+        request.readyState = 4;
+        request.status = 404;
+        request.responseText = "private response";
+        request.onreadystatechange();
+        expect(log).toHaveBeenCalledExactlyOnceWith(
+            "Widgets HTTP failure",
+            404,
+            "requestId=diagnostic-id"
+        );
+        expect(callback).toHaveBeenCalledExactlyOnceWith(null);
     });
 
     it("does not abort an in-flight request when another request starts", () => {

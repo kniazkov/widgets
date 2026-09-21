@@ -76,15 +76,18 @@ function sendRequest(query, callback, method, files) {
     req.timeout = typeof REQUEST_TIMEOUT == "number" ? REQUEST_TIMEOUT : 10 * 1000;
     req.onreadystatechange = function () {
         if (req.readyState == 4) {
+            if (req.status !== 200 && req.status !== 0) {
+                console.error(
+                    "Widgets HTTP failure",
+                    req.status,
+                    "requestId=" + (req.getResponseHeader("X-Widgets-Request-Id") || "unavailable")
+                );
+            }
             if (req.status >= 500 && req.status <= 599) {
-                console.error("Widgets HTTP failure", req.status);
                 complete(
                     JSON.stringify({ result: false, clientError: true, httpStatus: req.status })
                 );
             } else {
-                if (req.status !== 200 && req.status !== 0) {
-                    console.error("Widgets HTTP failure", req.status);
-                }
                 complete(req.status == 200 ? req.responseText : null);
             }
         }
