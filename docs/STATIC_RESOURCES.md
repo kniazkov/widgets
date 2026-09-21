@@ -77,11 +77,44 @@ JavaScript log removal.
 - Mounts are public, with no per-user authorization. Uploaded active content such as HTML
   or SVG is subject to the application's content policy. Files are read into memory, so
   applications should bound their size. This API does not change upload validation,
-  authentication, caching or HTTP range support.
+  authentication or HTTP range support.
 
 Do not solve a failed symlink lookup by disabling the containment check: register a dedicated
 directory source for the intended public data instead. Existing applications need no new
 sources; the framework resource allowlist and the `wwwRoot` boundary remain in effect.
+
+## Browser caching
+
+Successful static GET responses include a strong `ETag` computed with SHA-256 from
+the actual response bytes and `Cache-Control: private, no-cache`. This covers
+`wwwRoot`, directory/classpath sources and bundled CSS/JavaScript, including the
+generated page runtime. No application configuration is required.
+
+Despite its name, `no-cache` permits browser storage: it requires validation before
+reuse. On a subsequent request the browser can send `If-None-Match`. If the bytes
+have not changed, widgets responds with `304 Not Modified`, the same cache policy
+and ETag, and **no response body**. A changed file gets `200` with its new bytes and
+tag, even when its URL, size and modification time remain unchanged. Strong and
+weak request tags, tag lists, repeated headers and `*` are supported. Malformed
+tag lists are ignored. See [HTTP conditional requests](https://www.rfc-editor.org/rfc/rfc9110.html#section-13.1.2)
+and [HTTP cache directives](https://www.rfc-editor.org/rfc/rfc9111.html#section-5.2.2.4).
+
+Files are resolved, checked and read before evaluating the condition. A deleted
+file still returns `404`; a forbidden path still returns `403`. ETags do not bypass
+source precedence or filesystem confinement. Registered application pages contain
+session-specific bootstrap data: they use `no-store` and never return `304`.
+Action responses do not enter the static caching path.
+
+This saves repeated image transfer over slow connections but still requires a
+network round trip and a server-side file read/hash. It does not enable long-lived
+offline reuse, HTTP ranges, or HEAD (the current webserver supports GET and POST).
+Replacing a logo at its existing URL is therefore visible on the next validated
+load, without waiting for a cache lifetime to expire. Browser settings can disable
+caching; a forced reload may transfer the entire file.
+
+Images embedded as `data:` URLs (for example, `ImageSource.fromImage`) are part of
+the interface payload rather than independently cacheable HTTP resources. Use
+stable file URLs for images that should benefit from this mechanism.
 
 ## Verification
 
@@ -91,3 +124,6 @@ JARs without directory entries). `StaticSourcesHttpTest` exercises real HTTP req
 encoded traversal, prefix collisions, missing-file isolation, classpath exposure, page and
 framework precedence. Existing `HttpHandlerSecurityTest` continues to cover the original
 classpath and traversal regressions.
+HTTP tests also check conditional requests for directory/classpath/bundled resources,
+empty 304 bodies, replacement with unchanged size/mtime, deletion, forbidden symlinks,
+and exclusion of dynamic page/action responses.

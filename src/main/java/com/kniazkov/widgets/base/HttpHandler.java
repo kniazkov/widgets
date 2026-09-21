@@ -22,6 +22,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.ZonedDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.HexFormat;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +36,8 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * HTTP handler that routes incoming requests to appropriate action handlers
@@ -40,6 +48,12 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      * Logger.
      */
     private static final Logger LOGGER = Logger.getLogger(HttpHandler.class.getName());
+
+    /**
+     * Entity tags may contain commas; splitting a header on commas is not sufficient.
+     */
+    private static final Pattern ENTITY_TAG = Pattern.compile(
+        "(?:W/)?\"[\\x21\\x23-\\x7e\\x80-\\xff]*\"");
 
     /**
      * Application.
@@ -242,11 +256,22 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     : selected.read(requestPath);
             }
 
-            return responses.custom(
-                HttpStatus.OK,
-                contentType,
-                data
-            ).build();
+            if (replaceAddress) {
+                /*
+                 * Page bootstrap contains a new session and request-specific parameters.
+                 */
+                return responses.custom(HttpStatus.OK, contentType, data)
+                    .setHeader("Cache-Control", "no-store").build();
+            }
+            final String tag = entityTag(data);
+            final boolean unchanged = matchesEntityTag(request, tag);
+            return responses.custom(unchanged ? HttpStatus.NOT_MODIFIED : HttpStatus.OK,
+                contentType, unchanged ? new byte[0] : data)
+                .setHeader("ETag", tag)
+                .setHeader("Cache-Control", "private, no-cache")
+                .setHeader("Date", DateTimeFormatter.RFC_1123_DATE_TIME.format(
+                    ZonedDateTime.now(ZoneOffset.UTC)))
+                .build();
 
         } catch (final SecurityException error) {
             return responses.forbidden();
@@ -262,6 +287,53 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
          * Resource not found
          */
         return responses.notFound();
+    }
+
+    /**
+     * Identifies the actual response bytes, including any script transformations.
+     * @param data response bytes
+     * @return strong, quoted entity tag
+     */
+    private static String entityTag(final byte[] data) {
+        try {
+            return "\"" + HexFormat.of().formatHex(
+                MessageDigest.getInstance("SHA-256").digest(data)) + "\"";
+        } catch (final NoSuchAlgorithmException error) {
+            throw new IllegalStateException("SHA-256 is required by Java", error);
+        }
+    }
+
+    /**
+     * Performs weak If-None-Match comparison for an existing, readable GET resource.
+     * Invalid lists are ignored rather than accidentally matching a tag inside them.
+     * @param request request carrying zero or more conditional headers
+     * @param tag current strong entity tag
+     * @return whether the stored response can be reused
+     */
+    private static boolean matchesEntityTag(final Request request, final String tag) {
+        final List<String> values = new java.util.ArrayList<>();
+        request.getHeaders().getValues().forEach((name, items) -> {
+            if ("If-None-Match".equalsIgnoreCase(name)) {
+                values.addAll(items);
+            }
+        });
+        final String value = String.join(",", values).trim();
+        if ("*".equals(value)) {
+            return true;
+        }
+        final Matcher matcher = ENTITY_TAG.matcher(value);
+        int end = 0;
+        boolean matched = false;
+        while (matcher.find()) {
+            final String separator = value.substring(end, matcher.start());
+            if (!separator.matches("[ \\t,]*") || (end > 0 && !separator.contains(","))) {
+                return false;
+            }
+            final String candidate = matcher.group();
+            matched |= tag.equals(candidate.startsWith("W/") ? candidate.substring(2) : candidate);
+            end = matcher.end();
+        }
+        return matched && value.substring(end).matches("[ \\t,]*");
     }
 
     /**
