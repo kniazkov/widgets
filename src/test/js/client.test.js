@@ -162,12 +162,17 @@ describe("connection recovery", () => {
     it("reports a browser failure once for an initialized client", () => {
         const harness = createHarness();
         harness.setClientId("#123");
-        harness.showClientError(new Error("broken widget"));
+        const error = new Error("broken widget");
+        error.name = "SecurityError";
+        error.stack = "replaceState@[native code]\nsaveScroll@navigation.js:28";
+        harness.showClientError(error);
         harness.showClientError(new Error("second error"));
         const reports = harness.requests.filter(entry => entry.request.action === "report error");
         expect(reports).toHaveLength(1);
         expect(reports[0].request.client).toBe("#123");
         expect(reports[0].request.error).toContain("broken widget");
+        expect(reports[0].request.error).toContain("SecurityError: broken widget");
+        expect(reports[0].request.error).toContain("replaceState@[native code]");
     });
 
     it("shows a permanent client error reported by the server", () => {

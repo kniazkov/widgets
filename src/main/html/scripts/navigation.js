@@ -11,6 +11,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
     let active = null;
     let serial = 0;
     let accessOrder = 0;
+    let scrollPersistenceWarning = false;
     let epoch = localStorage.getItem(invalidationKey);
     window.history.scrollRestoration = "manual";
 
@@ -24,8 +25,28 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         }
         active.state.x = window.scrollX;
         active.state.y = window.scrollY;
-        if (window.history.state?.[stateKey]?.id === active.state.id) {
-            window.history.replaceState({ ...window.history.state, [stateKey]: active.state }, "");
+    }
+
+    // Scrolling only updates memory: frequent History API writes can be rejected by Safari.
+    function persistScroll() {
+        saveScroll();
+        if (!active || window.history.state?.[stateKey]?.id !== active.state.id) {
+            return;
+        }
+        try {
+            window.history.replaceState(
+                { ...window.history.state, [stateKey]: { ...active.state } },
+                ""
+            );
+        } catch (error) {
+            if (error.name !== "SecurityError" && error.name !== "QuotaExceededError") {
+                throw error;
+            }
+            // Cached entries still retain exact coordinates when optional persistence is refused.
+            if (!scrollPersistenceWarning) {
+                scrollPersistenceWarning = true;
+                console.warn("Widgets scroll history persistence unavailable", error.name);
+            }
         }
     }
 
@@ -171,9 +192,9 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             window.location.href = url.href;
             return;
         }
-        saveScroll();
+        persistScroll();
         const state = newState();
-        window.history.pushState({ [stateKey]: state }, "", url.href);
+        window.history.pushState({ [stateKey]: { ...state } }, "", url.href);
         activate(state, url.href);
     }
 
@@ -231,7 +252,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         }
     });
     window.addEventListener("pagehide", () => {
-        saveScroll();
+        persistScroll();
         for (const entry of pages.values()) {
             dispose(entry);
         }
@@ -242,6 +263,6 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
     );
     setInterval(prune, 1000);
     const state = window.history.state?.[stateKey] || newState();
-    window.history.replaceState({ ...window.history.state, [stateKey]: state }, "");
+    window.history.replaceState({ ...window.history.state, [stateKey]: { ...state } }, "");
     activate(state, window.location.href, data);
 }

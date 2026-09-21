@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { JSDOM } from "jsdom";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const read = name =>
     fs.readFileSync(new URL(`../../main/html/scripts/${name}.js`, import.meta.url), "utf8");
@@ -90,6 +90,56 @@ function harness() {
 }
 
 describe("page history cache", () => {
+    it("keeps rapid scroll events in memory and persists once before navigation", async () => {
+        const h = harness();
+        h.created("catalog");
+        const replace = vi.spyOn(h.win.history, "replaceState");
+        for (let y = 1; y <= 1000; y++) {
+            h.win.scrollTo(0, y);
+            h.win.dispatchEvent(new h.win.Event("scroll"));
+        }
+        expect(replace).not.toHaveBeenCalled();
+        h.navigate("/product");
+        expect(replace).toHaveBeenCalledTimes(1);
+        expect(replace.mock.calls[0][0].widgetsPage.y).toBe(1000);
+        h.created("product");
+        await h.back();
+        h.updates("catalog");
+        expect(h.win.scrollY).toBe(1000);
+    });
+
+    it.each(["SecurityError", "QuotaExceededError"])(
+        "keeps cached scroll and navigation usable when scroll persistence throws %s",
+        async name => {
+            const h = harness();
+            h.created("catalog");
+            const warning = vi.spyOn(h.win.console, "warn").mockImplementation(() => {});
+            vi.spyOn(h.win.history, "replaceState").mockImplementation(() => {
+                throw new h.win.DOMException("history write refused", name);
+            });
+            h.win.scrollTo(0, 850);
+            h.navigate("/product");
+            h.created("product");
+            await h.back();
+            h.updates("catalog");
+            expect(h.win.scrollY).toBe(850);
+            expect(h.win.document.body.textContent).not.toContain("Client Error");
+            expect(warning).toHaveBeenCalledTimes(1);
+            h.win.scrollTo(0, 920);
+            h.win.dispatchEvent(new h.win.Event("pagehide"));
+            expect(warning).toHaveBeenCalledTimes(1);
+            expect(h.requests.some(x => x.request.action === "kill")).toBe(true);
+        }
+    );
+
+    it("persists the final scroll position before page teardown", () => {
+        const h = harness();
+        h.created("catalog");
+        h.win.scrollTo(0, 670);
+        h.win.dispatchEvent(new h.win.Event("pagehide"));
+        expect(h.win.history.state.widgetsPage.y).toBe(670);
+    });
+
     it("returns the same DOM and server instance with its scroll position", async () => {
         const h = harness();
         h.created("catalog");
