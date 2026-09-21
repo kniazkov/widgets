@@ -126,7 +126,7 @@ StaticSource logos = StaticSource.directory("/logo", Paths.get("logos"));
 Options options = new Options.Builder().addStaticSource(logos).build();
 String url = logos.versionedUrl("medium.svg");
 ImageWidget logo = new ImageWidget(url);
-logo.setIntrinsicSize(350, 100);
+logo.setIntrinsicSize(new IntrinsicSize(350, 100));
 logo.setMaxWidth(220);
 logo.setMaxHeight(70);
 ```
@@ -162,6 +162,15 @@ sets HTML `width`/`height` attributes before the bytes finish loading. Use actua
 image metadata, not maximum-size settings. Widgets does not parse SVG files to infer
 these values. `clearIntrinsicSize()` removes the attributes and restores browser
 size discovery. Update the metadata when switching to an image with different dimensions.
+
+In Java the value is `com.kniazkov.widgets.common.IntrinsicSize`, constructed from
+two positive ints. `IntrinsicSize.NONE` is the explicit no-value implementation.
+The property is `Property<IntrinsicSize>` with a dedicated `IntrinsicSizeModel`
+(defaulting to `NONE`). Use `getIntrinsicSize()` / `setIntrinsicSize(size)` for the
+value and `getIntrinsicSizeModel()` / `setIntrinsicSizeModel(model)` for binding.
+The two-int setter is a convenience overload; `clearIntrinsicSize()` sets `NONE`.
+Only JSON represents the value as `"350 100"` (or `""` for `NONE`); Java models
+do not store or parse strings.
 
 CSS dimensions and maximum-size limits remain independent. With this API the image
 uses `object-fit: contain`: when limits constrain the reserved box to a different

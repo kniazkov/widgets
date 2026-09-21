@@ -3,6 +3,9 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.common.IntrinsicSize;
+import com.kniazkov.widgets.model.Model;
+
 /**
  * Base class for all image widgets.
  *
@@ -29,16 +32,41 @@ public abstract class BaseImageWidget<S extends Style> extends InlineWidget<S>
      * @param height original height in pixels, positive
      */
     public void setIntrinsicSize(final int width, final int height) {
-        if (width <= 0 || height <= 0) {
-            throw new IllegalArgumentException("Image dimensions must be positive");
-        }
-        this.getModel(State.ANY, Property.INTRINSIC_SIZE).setData(width + " " + height);
+        this.setIntrinsicSize(new IntrinsicSize(width, height));
+    }
+
+    /**
+     * @return the model storing original image dimensions
+     */
+    public Model<IntrinsicSize> getIntrinsicSizeModel() {
+        return this.getModel(State.ANY, Property.INTRINSIC_SIZE);
+    }
+
+    /**
+     * @param model replacement model for original dimensions
+     */
+    public void setIntrinsicSizeModel(final Model<IntrinsicSize> model) {
+        this.setModel(State.ANY, Property.INTRINSIC_SIZE, model);
+    }
+
+    /**
+     * @return original dimensions, or IntrinsicSize.NONE
+     */
+    public IntrinsicSize getIntrinsicSize() {
+        return this.getIntrinsicSizeModel().getData();
+    }
+
+    /**
+     * @param size original dimensions, or IntrinsicSize.NONE to remove the size hints
+     */
+    public void setIntrinsicSize(final IntrinsicSize size) {
+        this.getIntrinsicSizeModel().setData(size);
     }
 
     /**
      * Removes the reserved size and lets the browser discover the image dimensions again.
      */
     public void clearIntrinsicSize() {
-        this.getModel(State.ANY, Property.INTRINSIC_SIZE).setData("");
+        this.setIntrinsicSize(IntrinsicSize.NONE);
     }
 }
