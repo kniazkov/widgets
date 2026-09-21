@@ -38,6 +38,24 @@ npm run test:browser
 Checkstyle, compiler lint checks, packaging, and Javadoc generation. `npm run test:browser` runs
 ESLint, Prettier, Vitest, and the Playwright end-to-end suite.
 
+## Symbolic-link tests on Windows
+
+Some static-file security tests create symbolic links. Ordinary Windows accounts may not
+have permission to do that. Each symlink-only test first probes creation in its temporary
+directory: if Windows rejects the probe, JUnit reports that test as **skipped**, with the
+filesystem error as the reason. Other routing, traversal, caching, and classpath tests still run.
+Errors from actual fixtures or security assertions are never converted into skips.
+
+With symlink permission available, the same tests run normally on Windows. To require every
+symlink check (and fail if the probe is unavailable), use:
+
+```bash
+mvn -Dwidgets.tests.requireSymlinks=true verify
+```
+
+Linux always requires symlink support. CI verifies Java on both Linux and Windows; Linux is
+the mandatory gate for all symlink confinement checks. No production security check is disabled.
+
 ## Pull requests
 
 - Explain the user-visible behavior and important design decisions.

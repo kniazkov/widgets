@@ -60,8 +60,26 @@ public class StaticSourcesHttpTest {
             "Cache-Control"));
         Files.delete(file);
         assertTrue(request(updated).startsWith("HTTP/1.1 404"));
-        Files.createSymbolicLink(file, this.folder.newFile().toPath());
-        assertTrue(request(updated).startsWith("HTTP/1.1 403"));
+    }
+
+    /**
+     * A cached version cannot be reused after the file becomes an external symlink.
+     */
+    @Test
+    public void rejectsVersionedFileReplacedByExternalSymlink() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
+        final Path www = this.folder.newFolder().toPath();
+        final Path file = www.resolve("logo.svg");
+        Files.writeString(file, "image");
+        final StaticSource source = StaticSource.directory("/uploads", www);
+        final String url = source.versionedUrl("logo.svg");
+        start(www, source);
+        assertTrue(request(url).startsWith("HTTP/1.1 200"));
+        final Path secret = this.folder.newFile().toPath();
+        Files.writeString(secret, "image");
+        Files.delete(file);
+        Files.createSymbolicLink(file, secret);
+        assertTrue(request(url, "If-None-Match: *\r\n").startsWith("HTTP/1.1 403"));
     }
 
     /**
@@ -97,7 +115,7 @@ public class StaticSourcesHttpTest {
     }
 
     /**
-     * Replacing, deleting or redirecting a file outside its root cannot reuse stale bytes.
+     * Replacing or deleting a file cannot reuse stale bytes.
      */
     @Test
     public void validatesCurrentFileBeforeConditionalResponse() throws Exception {
@@ -115,10 +133,27 @@ public class StaticSourcesHttpTest {
         assertNotEquals(tag, header(replaced, "ETag"));
         Files.delete(logo);
         assertTrue(request("/logo.svg", "If-None-Match: *\r\n").startsWith("HTTP/1.1 404"));
+    }
+
+    /**
+     * Conditional responses cannot reuse bytes from a file replaced by an external symlink.
+     */
+    @Test
+    public void conditionalResponseRejectsExternalSymlink() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
+        final Path www = this.folder.newFolder().toPath();
+        final Path logo = www.resolve("logo.svg");
+        Files.writeString(logo, "image");
+        start(www);
+        final String tag = header(request("/logo.svg"), "ETag");
         final Path secret = this.folder.newFile().toPath();
-        Files.writeString(secret, "new-image");
+        Files.writeString(secret, "image");
+        Files.delete(logo);
         Files.createSymbolicLink(logo, secret);
-        assertTrue(request("/logo.svg", "If-None-Match: *\r\n").startsWith("HTTP/1.1 403"));
+        for (final String condition : new String[]{tag, "*"}) {
+            assertTrue(request("/logo.svg", "If-None-Match: " + condition + "\r\n")
+                .startsWith("HTTP/1.1 403"));
+        }
     }
 
     /**
@@ -264,14 +299,13 @@ public class StaticSourcesHttpTest {
     }
 
     /**
-     * Neither parser normalization nor symlinks can expose a sibling private tree.
+     * Parser normalization cannot expose a sibling private tree.
      */
     @Test
-    public void blocksTraversalAndSymlinkEscapes() throws Exception {
+    public void blocksTraversalEscapes() throws Exception {
         final Path www = this.folder.newFolder("www").toPath();
         final Path secret = this.folder.newFile("secret.txt").toPath();
         Files.writeString(secret, "private-marker");
-        Files.createSymbolicLink(www.resolve("escape.txt"), secret);
         start(www, StaticSource.directory("/assets", www),
             StaticSource.classpath("/icons", getClass(), "/static-test"));
         for (final String prefix : new String[]{"/assets/", "/icons/", "/"}) {
@@ -284,8 +318,24 @@ public class StaticSourcesHttpTest {
                 assertFalse(path, response.contains("private-marker"));
             }
         }
-        assertTrue(request("/assets/escape.txt").startsWith("HTTP/1.1 403"));
-        assertTrue(request("/escape.txt").startsWith("HTTP/1.1 403"));
+    }
+
+    /**
+     * Both the default root and an explicit mount reject external symlinks.
+     */
+    @Test
+    public void blocksSymlinkEscapes() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
+        final Path www = this.folder.newFolder().toPath();
+        final Path secret = this.folder.newFile().toPath();
+        Files.writeString(secret, "private-marker");
+        Files.createSymbolicLink(www.resolve("escape.txt"), secret);
+        start(www, StaticSource.directory("/assets", www));
+        for (final String path : new String[]{"/assets/escape.txt", "/escape.txt"}) {
+            final String response = request(path);
+            assertTrue(response.startsWith("HTTP/1.1 403"));
+            assertFalse(response.contains("private-marker"));
+        }
     }
 
     /**
@@ -308,6 +358,7 @@ public class StaticSourcesHttpTest {
      */
     @Test
     public void nestedMountCannotFallBackAfterForbiddenFile() throws Exception {
+        SymlinkTestSupport.assumeSupported(this.folder.getRoot().toPath());
         final Path www = this.folder.newFolder().toPath();
         final Path broad = this.folder.newFolder().toPath();
         final Path narrow = this.folder.newFolder().toPath();
@@ -316,13 +367,27 @@ public class StaticSourcesHttpTest {
         Files.writeString(broad.resolve("deep/escape.txt"), "fallback");
         Files.writeString(secret, "private-marker");
         Files.createSymbolicLink(narrow.resolve("escape.txt"), secret);
-        Files.writeString(narrow.resolve("script.js"), "log('keep'); {sessionId}");
         start(www, StaticSource.directory("/assets", broad),
             StaticSource.directory("/assets/deep", narrow));
         final String response = request("/assets/deep/escape.txt");
         assertTrue(response.startsWith("HTTP/1.1 403"));
         assertFalse(response.contains("fallback"));
         assertFalse(response.contains("private-marker"));
+    }
+
+    /**
+     * Nested mounts serve scripts literally without application template substitution.
+     */
+    @Test
+    public void nestedMountServesScriptsLiterally() throws Exception {
+        final Path www = this.folder.newFolder().toPath();
+        final Path broad = this.folder.newFolder().toPath();
+        final Path narrow = this.folder.newFolder().toPath();
+        Files.createDirectories(broad.resolve("deep"));
+        Files.writeString(broad.resolve("deep/script.js"), "fallback");
+        Files.writeString(narrow.resolve("script.js"), "log('keep'); {sessionId}");
+        start(www, StaticSource.directory("/assets", broad),
+            StaticSource.directory("/assets/deep", narrow));
         assertTrue(request("/assets/deep/script.js").endsWith("log('keep'); {sessionId}"));
     }
 
