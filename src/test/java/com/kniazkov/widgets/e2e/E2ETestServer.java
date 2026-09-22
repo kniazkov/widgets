@@ -96,6 +96,17 @@ public final class E2ETestServer {
             content.add(button);
             content.add(loader);
             content.add(popupLauncher);
+            final Button dismissLauncher = new Button("Show dismissible modal");
+            dismissLauncher.onClick(event -> {
+                final Button toggle = new Button("Toggle outside closing");
+                final MessagePopup popup = new MessagePopup("Dismissible modal", toggle);
+                popup.setCloseOnOutsideClick(true);
+                toggle.onClick(click -> popup.setCloseOnOutsideClick(
+                    !popup.isCloseOnOutsideClick()
+                ));
+                root.add(popup);
+            });
+            content.add(dismissLauncher);
             content.add(carousel);
             root.add(content);
         };

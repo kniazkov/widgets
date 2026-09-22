@@ -8,7 +8,8 @@ import com.kniazkov.widgets.common.Color;
 /**
  * Style definition for a modal popup and its backdrop.
  */
-public class ModalPopupStyle extends PopupStyle implements HasBackdropColor {
+public class ModalPopupStyle extends PopupStyle
+        implements HasBackdropColor, HasCloseOnOutsideClick {
     /**
      * Global default modal popup style.
      */
@@ -19,6 +20,7 @@ public class ModalPopupStyle extends PopupStyle implements HasBackdropColor {
      */
     private ModalPopupStyle() {
         super(PopupStyle.DEFAULT);
+        this.setCloseOnOutsideClick(false);
         this.setBackdropColor(new Color(255, 255, 255, 192));
     }
 
