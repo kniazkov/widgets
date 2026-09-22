@@ -385,3 +385,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
 ## License
 
 [MIT](LICENSE)
+
+## Sortable and zoomable inline content
+
+`SortableSection` reorders arbitrary inline widgets with mouse/touch dragging or Alt+Left/Right.
+`ZoomDecorator` wraps an inline widget with wheel/pinch zoom and bounded dragging of enlarged content.
+See [gesture widgets](docs/gesture-widgets.md) for API examples, interaction details, and the two
+standalone demonstrations. Both widgets also appear in `AllWidgets`.

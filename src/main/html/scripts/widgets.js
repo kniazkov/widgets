@@ -64,6 +64,8 @@ const widgetsLibrary = {
         };
         return widget;
     },
+    "sortable section": createSortableSection,
+    "zoom decorator": createZoomDecorator,
     panel: function () {
         const widget = document.createElement("div");
         initPointerEvents(widget, true);
@@ -496,8 +498,12 @@ function setChildWidget(data) {
     const widget = widgets[data.widget];
     const container = widgets[data.container];
     if (widget && container) {
-        container.innerHTML = "";
-        container.appendChild(widget);
+        if (container._setChild) {
+            container._setChild(widget);
+        } else {
+            container.innerHTML = "";
+            container.appendChild(widget);
+        }
         if (widget._onAttached) {
             widget._onAttached();
         }
@@ -563,7 +569,7 @@ function removeChildWidget(data) {
         if (widget._onDetached) {
             widget._onDetached();
         }
-        container.removeChild(widget);
+        (container._childHost || container).removeChild(widget);
         log("Widget " + data.widget + " is removed from parent widget " + data.container + ".");
         return true;
     }
@@ -1879,4 +1885,339 @@ function replaceColorsInSvg(svg, color, bgColor) {
             'fill="' + bgColor + '"'
         );
     return prefix + encodeURIComponent(decoded);
+}
+
+// Suppress only clicks produced by a gesture, including clicks on nested controls.
+function initGestureClicks(widget) {
+    let suppressed = false;
+    widget._suppressGestureClick = () => {
+        suppressed = true;
+    };
+    widget.addEventListener(
+        "pointerdown",
+        () => {
+            suppressed = false;
+        },
+        true
+    );
+    widget.addEventListener(
+        "click",
+        event => {
+            if (suppressed) {
+                suppressed = false;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+        },
+        true
+    );
+    widget.addEventListener("dragstart", event => event.preventDefault());
+}
+
+function releaseGesturePointer(widget, id) {
+    if (widget.hasPointerCapture?.(id)) widget.releasePointerCapture(id);
+}
+
+function createSortableSection() {
+    const widget = widgetsLibrary.section();
+    widget._revision = 0;
+    widget._pendingReorder = false;
+    widget.dataset.sortable = "true";
+    let gesture = null;
+    initGestureClicks(widget);
+    widget._layoutChild = child => {
+        child.style.touchAction = "none";
+        child.style.userSelect = "none";
+        if (!child.hasAttribute("tabindex")) child.tabIndex = 0;
+        child.setAttribute("aria-keyshortcuts", "Alt+ArrowLeft Alt+ArrowRight");
+    };
+    const interactive = target =>
+        target.closest(
+            "button,a,input,select,textarea,[contenteditable]:not([contenteditable=false]),[data-sortable],[data-zoom]"
+        );
+    function directChild(target) {
+        while (target && target.parentElement !== widget) target = target.parentElement;
+        return target;
+    }
+    function finish(cancelled) {
+        if (!gesture) return;
+        const current = gesture;
+        gesture = null;
+        current.child.style.opacity = current.opacity;
+        if (cancelled) {
+            for (const child of current.order) {
+                if (child.parentElement === widget) widget.appendChild(child);
+            }
+        } else if (current.moved) {
+            const order = Array.from(widget.children);
+            if (order.some((child, index) => child !== current.order[index])) {
+                widget._pendingReorder = true;
+                sendEventToServer(widget, "reorder", {
+                    revision: widget._revision++,
+                    child: current.child._id,
+                    before: current.child.nextElementSibling?._id || ""
+                });
+            }
+        }
+        if (current.moved) widget._suppressGestureClick();
+        releaseGesturePointer(widget, current.id);
+    }
+    widget._cancelGesture = () => finish(true);
+    widget._onDetached = widget._cancelGesture;
+    widget.addEventListener("pointerdown", event => {
+        if (gesture) {
+            finish(true);
+            return;
+        }
+        if (widget._pendingReorder || event.button !== 0 || event.isPrimary === false) return;
+        const control = interactive(event.target);
+        if (control && control !== widget) return;
+        const child = directChild(event.target);
+        if (!child) return;
+        gesture = {
+            id: event.pointerId,
+            child,
+            x: event.clientX,
+            y: event.clientY,
+            moved: false,
+            opacity: child.style.opacity,
+            order: Array.from(widget.children)
+        };
+        widget.setPointerCapture?.(event.pointerId);
+    });
+    widget.addEventListener("pointermove", event => {
+        if (!gesture || event.pointerId !== gesture.id) return;
+        if (!gesture.moved && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) < 6)
+            return;
+        gesture.moved = true;
+        gesture.child.style.opacity = "0.5";
+        event.preventDefault();
+        // Rectangles are read afresh, so wrapped rows and differently sized cards work too.
+        let nearest = null;
+        let distance = Infinity;
+        for (const child of widget.children) {
+            if (child === gesture.child) continue;
+            const rect = child.getBoundingClientRect();
+            const dx = Math.max(rect.left - event.clientX, 0, event.clientX - rect.right);
+            const dy = Math.max(rect.top - event.clientY, 0, event.clientY - rect.bottom);
+            const score = dx * dx + dy * dy;
+            if (score < distance) {
+                distance = score;
+                nearest = child;
+            }
+        }
+        if (nearest) {
+            const rect = nearest.getBoundingClientRect();
+            const after =
+                event.clientY > rect.bottom ||
+                (event.clientY >= rect.top && event.clientX > rect.left + rect.width / 2);
+            widget.insertBefore(gesture.child, after ? nearest.nextElementSibling : nearest);
+        }
+    });
+    widget.addEventListener("pointerup", event => {
+        if (event.pointerId === gesture?.id) finish(false);
+    });
+    for (const type of ["pointercancel", "lostpointercapture"]) {
+        widget.addEventListener(type, event => {
+            if (event.pointerId === gesture?.id) finish(true);
+        });
+    }
+    widget.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            finish(true);
+            return;
+        }
+        if (!event.altKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        const child = directChild(event.target);
+        if (!child || event.target !== child || gesture || widget._pendingReorder) return;
+        const next =
+            event.key === "ArrowLeft" ? child.previousElementSibling : child.nextElementSibling;
+        if (!next) return;
+        event.preventDefault();
+        widget.insertBefore(child, event.key === "ArrowLeft" ? next : next.nextElementSibling);
+        child.focus();
+        widget._pendingReorder = true;
+        sendEventToServer(widget, "reorder", {
+            revision: widget._revision++,
+            child: child._id,
+            before: child.nextElementSibling?._id || ""
+        });
+    });
+    return widget;
+}
+
+function setChildOrder(data) {
+    const widget = widgets[data.widget];
+    if (
+        !widget?._cancelGesture ||
+        !Array.isArray(data.children) ||
+        !Number.isInteger(data.revision) ||
+        data.revision < 0
+    )
+        return false;
+    const children = data.children.map(id => widgets[id]);
+    if (
+        children.length !== widget.children.length ||
+        new Set(children).size !== children.length ||
+        children.some(child => !child || child.parentElement !== widget)
+    )
+        return false;
+    const focused = document.activeElement;
+    widget._cancelGesture();
+    for (const child of children) widget.appendChild(child);
+    if (focused && widget.contains(focused)) focused.focus({ preventScroll: true });
+    widget._revision = data.revision;
+    widget._pendingReorder = false;
+    return true;
+}
+
+function createZoomDecorator() {
+    const widget = document.createElement("span");
+    const stage = document.createElement("span");
+    widget.dataset.zoom = "true";
+    Object.assign(widget.style, {
+        display: "inline-block",
+        overflow: "hidden",
+        touchAction: "none",
+        userSelect: "none",
+        verticalAlign: "middle"
+    });
+    Object.assign(stage.style, {
+        display: "inline-block",
+        transformOrigin: "0 0",
+        verticalAlign: "top"
+    });
+    widget.appendChild(stage);
+    widget._stage = stage;
+    widget._childHost = stage;
+    widget._maxScale = 8;
+    let scale = 1;
+    let x = 0;
+    let y = 0;
+    const pointers = new Map();
+    const captures = new Map();
+    let moved = false;
+    initGestureClicks(widget);
+    function render() {
+        x = Math.min(0, Math.max(Math.min(0, widget.clientWidth - stage.offsetWidth * scale), x));
+        y = Math.min(0, Math.max(Math.min(0, widget.clientHeight - stage.offsetHeight * scale), y));
+        if (scale === 1) {
+            x = 0;
+            y = 0;
+        }
+        stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    }
+    function clearPointers() {
+        const ids = Array.from(pointers.keys());
+        pointers.clear();
+        for (const id of ids) {
+            releaseGesturePointer(captures.get(id) || widget, id);
+        }
+        captures.clear();
+    }
+    widget._resetZoom = () => {
+        clearPointers();
+        scale = 1;
+        x = 0;
+        y = 0;
+        moved = false;
+        render();
+    };
+    widget._setChild = child => {
+        widget._resetZoom();
+        stage.replaceChildren(child);
+    };
+    function localPoint(event) {
+        const rect = widget.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left - widget.clientLeft,
+            y: event.clientY - rect.top - widget.clientTop
+        };
+    }
+    function zoomAt(next, oldCenter, newCenter = oldCenter) {
+        next = Math.max(1, Math.min(widget._maxScale, next));
+        const ratio = next / scale;
+        x = newCenter.x - (oldCenter.x - x) * ratio;
+        y = newCenter.y - (oldCenter.y - y) * ratio;
+        scale = next;
+        render();
+    }
+    widget.addEventListener(
+        "wheel",
+        event => {
+            event.preventDefault();
+            const unit =
+                event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? widget.clientHeight : 1;
+            zoomAt(
+                scale * Math.exp(Math.max(-2, Math.min(2, -event.deltaY * unit * 0.002))),
+                localPoint(event)
+            );
+        },
+        { passive: false }
+    );
+    widget.addEventListener("pointerdown", event => {
+        if (event.button !== 0 || pointers.size >= 2) return;
+        if (!pointers.size) moved = false;
+        pointers.set(event.pointerId, localPoint(event));
+        const target = event.target;
+        captures.set(event.pointerId, target);
+        target.setPointerCapture?.(event.pointerId);
+    });
+    widget.addEventListener("pointermove", event => {
+        const previous = pointers.get(event.pointerId);
+        if (!previous) return;
+        const point = localPoint(event);
+        if (pointers.size === 2) {
+            const other = Array.from(pointers.entries()).find(([id]) => id !== event.pointerId)[1];
+            const oldDistance = Math.hypot(previous.x - other.x, previous.y - other.y);
+            const newDistance = Math.hypot(point.x - other.x, point.y - other.y);
+            if (oldDistance > 0 && newDistance > 0) {
+                zoomAt(
+                    (scale * newDistance) / oldDistance,
+                    { x: (previous.x + other.x) / 2, y: (previous.y + other.y) / 2 },
+                    { x: (point.x + other.x) / 2, y: (point.y + other.y) / 2 }
+                );
+                moved = true;
+            }
+        } else if (scale > 1) {
+            x += point.x - previous.x;
+            y += point.y - previous.y;
+            if (Math.hypot(point.x - previous.x, point.y - previous.y) > 0) moved = true;
+            render();
+        }
+        pointers.set(event.pointerId, point);
+        if (moved) event.preventDefault();
+    });
+    function finish(event) {
+        if (!pointers.has(event.pointerId)) return;
+        pointers.delete(event.pointerId);
+        if (moved) widget._suppressGestureClick();
+        const target = captures.get(event.pointerId) || widget;
+        captures.delete(event.pointerId);
+        releaseGesturePointer(target, event.pointerId);
+    }
+    for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+        widget.addEventListener(type, finish);
+    }
+    widget.addEventListener("load", render, true);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(render);
+    widget._onAttached = () => {
+        observer?.observe(widget);
+        observer?.observe(stage);
+        render();
+    };
+    widget._onDetached = () => {
+        clearPointers();
+        observer?.disconnect();
+    };
+    widget._resetZoom();
+    return widget;
+}
+
+function configureZoom(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._resetZoom || !Number.isFinite(data.maxScale) || data.maxScale < 1) return false;
+    widget._maxScale = data.maxScale;
+    widget._resetZoom();
+    return true;
 }

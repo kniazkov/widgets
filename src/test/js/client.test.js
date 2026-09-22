@@ -29,6 +29,8 @@ const handlerNames = [
     "setCarouselSources",
     "setCarouselSource",
     "setSelectedIndex",
+    "setChildOrder",
+    "configureZoom",
     "setHref",
     "setColor",
     "setBgColor",

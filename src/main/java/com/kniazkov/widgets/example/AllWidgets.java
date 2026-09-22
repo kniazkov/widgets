@@ -48,6 +48,8 @@ import com.kniazkov.widgets.view.Row;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.SectionStyle;
 import com.kniazkov.widgets.view.State;
+import com.kniazkov.widgets.view.SortableSection;
+import com.kniazkov.widgets.view.ZoomDecorator;
 import com.kniazkov.widgets.view.StickyPanel;
 import com.kniazkov.widgets.view.StickyPanelStyle;
 import com.kniazkov.widgets.view.Table;
@@ -149,6 +151,40 @@ public class AllWidgets {
         addActiveImages(root);
         addOverlayStacks(root);
         addTables(root);
+        addGestureWidgets(root);
+    }
+
+    /**
+     * Adds compact sorting and zoom examples.
+     * @param root gallery root
+     */
+    private static void addGestureWidgets(final RootWidget root) {
+        final Panel sorting = addCard(root, "SortableSection",
+            "Drag inline cards with a mouse or finger; Alt+Left/Right also changes order.");
+        final SortableSection items = new SortableSection();
+        for (int index = 1; index <= 3; index++) {
+            final InlineBlock tile = new InlineBlock(new Section(new TextWidget("Card " + index)));
+            tile.setPadding(18);
+            tile.setMargin(6);
+            tile.setBgColor(new Color(226, 232, 240));
+            items.add(tile);
+        }
+        final TextWidget status = new TextWidget("Reorder the cards.");
+        items.onReorder(order -> status.setText("First widget ID: " + order.get(0).getId()));
+        sorting.add(items);
+        sorting.add(new Section(status));
+        final Panel zooming = addCard(root, "ZoomDecorator",
+            "Pinch or use the wheel to zoom; drag to pan enlarged content.");
+        final ImageWidget image = new ImageWidget("/house.png");
+        image.setWidth(280);
+        final ZoomDecorator zoom = new ZoomDecorator(image);
+        zoom.setWidth(280);
+        zoom.setHeight(210);
+        zoom.setMaxWidth("100%");
+        final Button reset = new Button("Reset zoom");
+        reset.onClick(event -> zoom.resetZoom());
+        zooming.add(new Section(zoom));
+        zooming.add(new Section(reset));
     }
 
     /**
