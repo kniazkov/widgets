@@ -31,6 +31,7 @@ const handlerNames = [
     "setSelectedIndex",
     "setChildOrder",
     "configureZoom",
+    "configureSorting",
     "setHref",
     "setColor",
     "setBgColor",

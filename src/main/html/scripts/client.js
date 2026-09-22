@@ -482,6 +482,7 @@ const actionHandlers = {
     "set selected index": setSelectedIndex,
     "set child order": setChildOrder,
     "configure zoom": configureZoom,
+    "configure sorting": configureSorting,
     "set href": setHref,
     "set color": setColor,
     "set bg color": setBgColor,

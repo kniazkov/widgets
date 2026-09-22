@@ -19,6 +19,7 @@ photos.onReorder(order -> {
     // Map these stable widget identities to your product photo records, then persist their order.
     // The server-side children have already been reordered here.
 });
+photos.setAnimationDuration(250); // Milliseconds; 0 disables settling animations.
 photos.move(0, 1); // Move to the final index; does not call onReorder.
 ```
 
@@ -30,7 +31,15 @@ photos.move(0, 1); // Move to the final index; does not call onReorder.
 - `onReorder` runs once for an accepted, changed browser order. It receives an immutable snapshot.
   Sorting synchronizes even without a callback. Programmatic operations do not call the callback.
 - Drag with the primary mouse button or one finger; a six-pixel threshold distinguishes a drag
-  from a tap. Cards can wrap and have different dimensions.
+  from a tap. The actual child follows the pointer above its siblings while its layout slot stays
+  intact. Siblings stay still until release, then move smoothly into their new positions along
+  with the dropped card. Cards can wrap and have different dimensions.
+- `getAnimationDuration()` / `setAnimationDuration(int milliseconds)` controls drop, cancellation,
+  keyboard and programmatic reorder animations. The default is **250 ms**; **0** disables them.
+  Negative durations are rejected. Pointer tracking is immediate at every setting. The browser's
+  `prefers-reduced-motion` setting disables settling animations too.
+- Server acknowledgements leave a running drop animation uninterrupted. A different authoritative
+  order animates from the currently visible positions. Detachment clears active animations.
 - Nested buttons, links, inputs, editable content and gesture widgets retain their own interactions;
   start dragging on the surrounding card. A button used as the entire child is intentionally not a
   drag handle; wrap it in an `InlineBlock` with a visible non-interactive area.
@@ -41,7 +50,8 @@ photos.move(0, 1); // Move to the final index; does not call onReorder.
   outside the sortable children. Native image dragging and selection are disabled in the drag area.
 
 The browser sends only the moved child ID, its next sibling ID, and the observed container revision
-when a drag ends. Another move can start after the server acknowledges that request. The server validates membership and revision before applying the move. Stale,
+when a drag ends. Another move can start after the server acknowledges that request. The server
+validates membership and revision before applying the move. Stale,
 unknown-child, or no-op requests do not invoke the callback; the authoritative order is resent.
 Reordering preserves DOM nodes, Java widget identities, models, and event handlers.
 
@@ -98,7 +108,8 @@ Build and run either example with the root script (one at a time):
 The script builds the project and resolves `www/house.png` from the repository directory.
 
 - `com.kniazkov.widgets.example.SortableSectionExample`: a photo-order editor with six cards,
-  removal buttons, adding photos, server-side reversal, saved-order feedback, and mixed inline content.
+  removal buttons, adding photos, server-side reversal, animation speed controls (0/150/250/600 ms),
+  saved-order feedback, and mixed inline content.
 - `com.kniazkov.widgets.example.ZoomDecoratorExample`: a house image viewer, reset and limit controls,
   content replacement, and a second zoomable composite card with a working button.
 

@@ -88,7 +88,18 @@ public final class SortableSectionExample {
                 }
                 showOrder.run();
             });
+            final TextWidget animation = new TextWidget("Animation: 250 ms");
+            final Section animationControls = new Section(animation);
+            for (final int duration : new int[] {0, 150, 250, 600}) {
+                final Button speed = new Button(duration == 0 ? "No animation" : duration + " ms");
+                speed.onClick(event -> {
+                    photos.setAnimationDuration(duration);
+                    animation.setText("Animation: " + duration + " ms");
+                });
+                animationControls.add(speed);
+            }
             root.add(new Section(add, reverse));
+            root.add(animationControls);
             root.add(photos);
             root.add(new Section(status));
             root.add(new Section(new TextWidget("Arbitrary inline content")));

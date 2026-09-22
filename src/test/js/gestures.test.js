@@ -15,7 +15,7 @@ function harness() {
         window.events = [];
         function sendEventToServer(widget, type, data) { window.events.push({ type, data }); }
         ${read("widgets.js")}
-        window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, configureZoom, widgets };
+        window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, configureZoom, configureSorting, widgets };
     `);
     const h = dom.window.h;
     h.make = (type, id) => {
@@ -47,11 +47,14 @@ function sortable() {
         h.appendChildWidget({ widget: id, container: "sort" });
         child.getBoundingClientRect = () => {
             const index = Array.from(box.children).indexOf(child);
+            const translate = child.style.transform.match(/translate\(([-\d.]+)px, ([-\d.]+)px\)/);
+            const dx = translate ? Number(translate[1]) : 0;
+            const dy = translate ? Number(translate[2]) : 0;
             return {
-                left: index * 100,
-                right: (index + 1) * 100,
-                top: 0,
-                bottom: 60,
+                left: index * 100 + dx,
+                right: (index + 1) * 100 + dx,
+                top: dy,
+                bottom: 60 + dy,
                 width: 100,
                 height: 60
             };
@@ -94,13 +97,17 @@ describe("sortable inline widgets", () => {
             const { h, box, items, order } = sortable();
             pointer(items[0], "pointerdown", 20, 20, 1, type);
             pointer(box, "pointermove", 280, 20, 1, type);
-            expect(order()).toEqual(["b", "c", "a"]);
+            expect(order()).toEqual(["a", "b", "c"]);
+            expect(items[0].getBoundingClientRect().left).toBe(260);
+            expect(items[0].style.zIndex).toBe("1000");
+            expect(items[1].getBoundingClientRect().left).toBe(100);
             expect(h.events).toHaveLength(0);
             pointer(box, "pointerup", 280, 20, 1, type);
             expect(h.events).toEqual([
                 { type: "reorder", data: { child: "a", before: "", revision: 3 } }
             ]);
             expect(box.lastElementChild).toBe(items[0]);
+            expect(items[0].style.transform).toBe("");
         }
     );
     it.each(["pointercancel", "lostpointercapture"])("rolls back on %s", type => {
@@ -156,6 +163,92 @@ describe("sortable inline widgets", () => {
             h.setChildOrder({ widget: "sort", children: ["a", "missing", "c"], revision: 5 })
         ).toBe(false);
         expect(order()).toEqual(["c", "b", "a"]);
+    });
+    it("animates the drop and siblings with the configured duration without restarting on ack", () => {
+        const { h, box, items } = sortable();
+        const animations = [];
+        for (const child of items)
+            child.animate = (frames, options) => {
+                const animation = {
+                    child,
+                    frames,
+                    options,
+                    cancelled: false,
+                    cancel() {
+                        this.cancelled = true;
+                    }
+                };
+                animations.push(animation);
+                return animation;
+            };
+        expect(h.configureSorting({ widget: "sort", animationDuration: 600 })).toBe(true);
+        pointer(items[0], "pointerdown", 20);
+        pointer(box, "pointermove", 280);
+        expect(animations).toHaveLength(0);
+        pointer(box, "pointerup", 280);
+        expect(animations).toHaveLength(3);
+        expect(animations.every(animation => animation.options.duration === 600)).toBe(true);
+        expect(
+            animations.find(animation => animation.child === items[1]).frames[0].transform
+        ).toContain("translate(100px, 0px)");
+        expect(items[0].style.zIndex).toBe("1000");
+        h.setChildOrder({ widget: "sort", children: ["b", "c", "a"], revision: 4 });
+        expect(animations).toHaveLength(3);
+        expect(animations.every(animation => !animation.cancelled)).toBe(true);
+        for (const animation of animations) animation.onfinish();
+        expect(items[0].style.zIndex).toBe("");
+        expect(items[0].style.transform).toBe("");
+    });
+    it.each([0, 250])("honors zero duration and reduced motion (%i)", duration => {
+        const { h, box, items, order } = sortable();
+        h.configureSorting({ widget: "sort", animationDuration: duration });
+        dom.window.matchMedia = () => ({ matches: duration !== 0 });
+        for (const child of items)
+            child.animate = () => {
+                throw new Error("Must not animate");
+            };
+        pointer(items[0], "pointerdown", 20);
+        pointer(box, "pointermove", 280);
+        expect(items[0].getBoundingClientRect().left).toBe(260);
+        pointer(box, "pointerup", 280);
+        expect(order()).toEqual(["b", "c", "a"]);
+        expect(items[0].style.transform).toBe("");
+    });
+    it("validates duration and clears running animations when disabled or detached", () => {
+        const { h, box, items } = sortable();
+        expect(box._animationDuration).toBe(250);
+        for (const invalid of [-1, 0.5, NaN, Infinity, "200"]) {
+            expect(h.configureSorting({ widget: "sort", animationDuration: invalid })).toBe(false);
+        }
+        let cancelled = 0;
+        for (const child of items)
+            child.animate = () => ({
+                cancel() {
+                    cancelled++;
+                }
+            });
+        pointer(items[0], "pointerdown", 20);
+        pointer(box, "pointermove", 280);
+        pointer(box, "pointerup", 280);
+        h.configureSorting({ widget: "sort", animationDuration: 0 });
+        expect(cancelled).toBe(3);
+        expect(items[0].style.zIndex).toBe("");
+        box._onDetached();
+        expect(cancelled).toBe(3);
+    });
+    it("restores custom child transforms, transitions and stacking after cancellation", () => {
+        const { box, items, order } = sortable();
+        items[0].style.transform = "scale(1.2)";
+        items[0].style.transition = "transform 1s";
+        items[0].style.zIndex = "4";
+        pointer(items[0], "pointerdown", 20);
+        pointer(box, "pointermove", 280);
+        expect(items[0].style.transform).toContain("scale(1.2)");
+        pointer(box, "pointercancel", 280);
+        expect(order()).toEqual(["a", "b", "c"]);
+        expect(items[0].style.transform).toBe("scale(1.2)");
+        expect(items[0].style.transition).toBe("transform 1s");
+        expect(items[0].style.zIndex).toBe("4");
     });
     it("supports keyboard reordering", () => {
         const { h, items, order } = sortable();

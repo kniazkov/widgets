@@ -103,6 +103,29 @@ public final class SortableSectionTest {
     }
 
     /**
+     * Validates animation settings and serializes changes for an existing browser widget.
+     */
+    @Test
+    public void configuresAnimationDuration() {
+        final SortableSection section = new SortableSection();
+        final WidgetSandbox<SortableSection> sandbox = WidgetSandbox.open(section);
+        sandbox.clearUpdates();
+        assertEquals(250, section.getAnimationDuration());
+        assertThrows(IllegalArgumentException.class, () -> section.setAnimationDuration(-1));
+        assertTrue(sandbox.drainUpdates().isEmpty());
+        section.setAnimationDuration(600);
+        assertEquals(600, section.getAnimationDuration());
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "configure sorting", section
+        );
+        assertEquals(1, updates.size());
+        assertEquals(600, updates.get(0).get("animationDuration").getIntValue());
+        section.setAnimationDuration(0);
+        assertEquals(0, section.getAnimationDuration());
+        assertEquals(0, sandbox.drainUpdates().get(0).get("animationDuration").getIntValue());
+    }
+
+    /**
      * Builds a browser move request.
      * @param revision observed revision
      * @param child moved child

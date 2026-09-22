@@ -167,6 +167,11 @@ public final class E2ETestServer {
             sortable.onReorder(order -> orderStatus.setText("First: "
                 + ((TextWidget) ((Section) ((InlineBlock) order.get(0)).getChild(0))
                     .getChild(0)).getText()));
+            final Button slowSorting = new Button("Slow sorting");
+            slowSorting.onClick(event -> sortable.setAnimationDuration(600));
+            final Button instantSorting = new Button("Instant sorting");
+            instantSorting.onClick(event -> sortable.setAnimationDuration(0));
+            root.add(new Section(slowSorting, instantSorting));
             root.add(sortable);
             root.add(new Section(orderStatus));
             final TextWidget clicks = new TextWidget("Zoom clicks: 0");
