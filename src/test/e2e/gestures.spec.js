@@ -112,6 +112,13 @@ test("wheel zoom and mouse pan retain nested button clicks and server reset", as
     await expect(stage).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
     await page.getByRole("button", { name: "Zoom child button" }).click();
     await expect(page.getByText("Zoom clicks: 2", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Limit zoom to 2x" }).click();
+    await expect.poll(() => zoom.evaluate(element => element._maxScale)).toBe(2);
+    await zoom.hover({ position: { x: 150, y: 100 } });
+    await page.mouse.wheel(0, -1000);
+    await expect
+        .poll(() => stage.evaluate(element => new DOMMatrix(getComputedStyle(element).transform).a))
+        .toBe(2);
 });
 
 test("touch reorder and pinch use real browser pointer capture", async ({ browser, baseURL }) => {

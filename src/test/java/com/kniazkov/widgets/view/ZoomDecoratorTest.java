@@ -62,8 +62,9 @@ public final class ZoomDecoratorTest {
         zoom.resetZoom();
         final List<JsonObject> updates = sandbox.drainUpdates();
         assertEquals(2, updates.size());
-        assertEquals("configure zoom", updates.get(0).get("action").getStringValue());
-        assertEquals(3, updates.get(1).get("maxScale").getIntValue());
+        assertEquals("set max scale", updates.get(0).get("action").getStringValue());
+        assertEquals(3, updates.get(0).get("max scale").getIntValue());
+        assertEquals("reset zoom", updates.get(1).get("action").getStringValue());
         assertEquals(3, zoom.getMaxScale(), 0);
         zoom.setMaxScale(1);
         assertEquals(1, zoom.getMaxScale(), 0);

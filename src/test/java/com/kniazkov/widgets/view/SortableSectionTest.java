@@ -116,13 +116,13 @@ public final class SortableSectionTest {
         section.setAnimationDuration(600);
         assertEquals(600, section.getAnimationDuration());
         final List<JsonObject> updates = WidgetSandbox.findUpdates(
-            sandbox.drainUpdates(), "configure sorting", section
+            sandbox.drainUpdates(), "set animation duration", section
         );
         assertEquals(1, updates.size());
-        assertEquals(600, updates.get(0).get("animationDuration").getIntValue());
+        assertEquals(600, updates.get(0).get("animation duration").getIntValue());
         section.setAnimationDuration(0);
         assertEquals(0, section.getAnimationDuration());
-        assertEquals(0, sandbox.drainUpdates().get(0).get("animationDuration").getIntValue());
+        assertEquals(0, sandbox.drainUpdates().get(0).get("animation duration").getIntValue());
     }
 
     /**

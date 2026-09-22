@@ -16,6 +16,7 @@ import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.InlineWidget;
 import com.kniazkov.widgets.view.SortableSection;
+import com.kniazkov.widgets.view.SortableSectionStyle;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,7 +44,8 @@ public final class SortableSectionExample {
                 "Drag a card with a finger or mouse. Cards wrap on narrow screens. "
                     + "Keyboard: focus a card and press Alt+Left/Right."
             )));
-            final SortableSection photos = new SortableSection();
+            final SortableSectionStyle photoStyle = SortableSectionStyle.DEFAULT.derive();
+            final SortableSection photos = new SortableSection(photoStyle);
             photos.setPadding(12);
             final Map<InlineWidget<?>, String> names = new IdentityHashMap<>();
             final AtomicInteger number = new AtomicInteger();
@@ -93,7 +95,7 @@ public final class SortableSectionExample {
             for (final int duration : new int[] {0, 150, 250, 600}) {
                 final Button speed = new Button(duration == 0 ? "No animation" : duration + " ms");
                 speed.onClick(event -> {
-                    photos.setAnimationDuration(duration);
+                    photoStyle.getAnimationDurationModel().setData(duration);
                     animation.setText("Animation: " + duration + " ms");
                 });
                 animationControls.add(speed);

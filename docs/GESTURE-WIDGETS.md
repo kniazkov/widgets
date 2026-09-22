@@ -5,7 +5,7 @@ Both widgets accept arbitrary `InlineWidget<?>` content, including `ImageWidget`
 
 ## SortableSection
 
-`SortableSection` is a block-level, wrapping container with the same `SectionStyle` and alignment,
+`SortableSection` is a block-level, wrapping container with its own `SortableSectionStyle`, derived from `SectionStyle`, and alignment,
 margin, padding, and visibility properties as `Section`.
 
 ```java
@@ -23,7 +23,7 @@ photos.setAnimationDuration(250); // Milliseconds; 0 disables settling animation
 photos.move(0, 1); // Move to the final index; does not call onReorder.
 ```
 
-- Constructors accept inline children, optionally preceded by a `SectionStyle`.
+- Constructors accept inline children, optionally preceded by a `SortableSectionStyle`.
 - `add`, `remove`, `removeAll`, `getChild`, and `getChildCount` follow the container API.
   Adding an already-owned child is a no-op; adding a child from another container transfers it.
 - `getChildren()` returns an immutable snapshot in display order.
@@ -58,7 +58,7 @@ Reordering preserves DOM nodes, Java widget identities, models, and event handle
 ## ZoomDecorator
 
 `ZoomDecorator` is an inline viewport implementing `Decorator<InlineWidget<?>>`. It reuses
-`InlineBlockStyle` and exposes width, height, maximum dimensions, margin, padding, background,
+`ZoomDecoratorStyle` (derived from `InlineBlockStyle`) and exposes width, height, maximum dimensions, margin, padding, background,
 border and box sizing.
 
 ```java
@@ -95,6 +95,39 @@ root.add(new Section(reset));
 
 A private DOM wrapper receives the transform, preserving the child's own styling and transform.
 The same mechanism works for a text label or an `InlineBlock` containing multiple sections.
+
+## Reactive settings and styles
+
+| Property | Model | Default style value |
+| --- | --- | --- |
+| `Property.ANIMATION_DURATION` | `Model<Integer>` | `SortableSectionStyle.DEFAULT`: 250 ms |
+| `Property.MAX_SCALE` | `Model<Double>` | `ZoomDecoratorStyle.DEFAULT`: 8.0 |
+
+Both properties use `State.ANY`. Their `HasAnimationDuration` and `HasMaxScale` interfaces expose
+value getters/setters plus `getAnimationDurationModel` / `setAnimationDurationModel` and
+`getMaxScaleModel` / `setMaxScaleModel` on both widgets and styles.
+
+```java
+final SortableSectionStyle sortingStyle = SortableSectionStyle.DEFAULT.derive();
+final SortableSection photos = new SortableSection(sortingStyle);
+sortingStyle.getAnimationDurationModel().setData(600); // Updates existing inheriting widgets.
+photos.setAnimationDuration(150); // Local override; does not change the shared style.
+
+final ZoomDecoratorStyle zoomStyle = ZoomDecoratorStyle.DEFAULT.derive();
+final ZoomDecorator viewer = new ZoomDecorator(zoomStyle, new ImageWidget("/house.png"));
+final RealNumberModel limit = new RealNumberModel(4.0);
+viewer.setMaxScaleModel(limit);
+limit.setData(6.0); // Automatically sends the property change to the browser.
+```
+
+Styles support the framework's usual `derive()` cascade and widgets support `setStyle(...)`.
+Replacing a model detaches its old source. Model values must remain valid: nonnegative integer
+milliseconds and a finite scale of at least one. Default property models expose these constraints
+through `isValid()`, as with other validated models in the framework.
+
+The standard `SetProperty` protocol sends `set animation duration` and `set max scale`. Updating
+the scale limit resets the viewport. `resetZoom()` uses a separate `reset zoom` command and keeps
+the scale model unchanged.
 
 ## Runnable demonstrations
 

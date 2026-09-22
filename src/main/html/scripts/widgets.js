@@ -1922,7 +1922,7 @@ function createSortableSection() {
     const widget = widgetsLibrary.section();
     widget._revision = 0;
     widget._pendingReorder = false;
-    widget._animationDuration = 250;
+    widget._animationDuration = 0;
     widget.dataset.sortable = "true";
     let gesture = null;
     const animations = new Map();
@@ -2164,16 +2164,16 @@ function createSortableSection() {
     return widget;
 }
 
-function configureSorting(data) {
+function setAnimationDuration(data) {
     const widget = widgets[data.widget];
     if (
         !widget?._applySortOrder ||
-        !Number.isInteger(data.animationDuration) ||
-        data.animationDuration < 0
+        !Number.isInteger(data["animation duration"]) ||
+        data["animation duration"] < 0
     )
         return false;
-    widget._animationDuration = data.animationDuration;
-    if (!data.animationDuration) widget._stopSortAnimations();
+    widget._animationDuration = data["animation duration"];
+    if (!data["animation duration"]) widget._stopSortAnimations();
     return true;
 }
 
@@ -2218,7 +2218,7 @@ function createZoomDecorator() {
     widget.appendChild(stage);
     widget._stage = stage;
     widget._childHost = stage;
-    widget._maxScale = 8;
+    widget._maxScale = 1;
     let scale = 1;
     let x = 0;
     let y = 0;
@@ -2342,10 +2342,18 @@ function createZoomDecorator() {
     return widget;
 }
 
-function configureZoom(data) {
+function setMaxScale(data) {
     const widget = widgets[data.widget];
-    if (!widget?._resetZoom || !Number.isFinite(data.maxScale) || data.maxScale < 1) return false;
-    widget._maxScale = data.maxScale;
+    if (!widget?._resetZoom || !Number.isFinite(data["max scale"]) || data["max scale"] < 1)
+        return false;
+    widget._maxScale = data["max scale"];
+    widget._resetZoom();
+    return true;
+}
+
+function resetZoom(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._resetZoom) return false;
     widget._resetZoom();
     return true;
 }

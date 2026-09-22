@@ -168,9 +168,9 @@ public final class E2ETestServer {
                 + ((TextWidget) ((Section) ((InlineBlock) order.get(0)).getChild(0))
                     .getChild(0)).getText()));
             final Button slowSorting = new Button("Slow sorting");
-            slowSorting.onClick(event -> sortable.setAnimationDuration(600));
+            slowSorting.onClick(event -> sortable.getAnimationDurationModel().setData(600));
             final Button instantSorting = new Button("Instant sorting");
-            instantSorting.onClick(event -> sortable.setAnimationDuration(0));
+            instantSorting.onClick(event -> sortable.getAnimationDurationModel().setData(0));
             root.add(new Section(slowSorting, instantSorting));
             root.add(sortable);
             root.add(new Section(orderStatus));
@@ -188,7 +188,9 @@ public final class E2ETestServer {
             final Button reset = new Button("Reset viewport");
             reset.onClick(event -> zoom.resetZoom());
             root.add(new Section(zoom));
-            root.add(new Section(reset, clicks));
+            final Button limit = new Button("Limit zoom to 2x");
+            limit.onClick(event -> zoom.getMaxScaleModel().setData(2.0));
+            root.add(new Section(reset, limit, clicks));
         });
         Server.start(application, options);
     }

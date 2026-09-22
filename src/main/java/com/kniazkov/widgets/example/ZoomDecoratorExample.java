@@ -15,6 +15,7 @@ import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.ZoomDecorator;
+import com.kniazkov.widgets.view.ZoomDecoratorStyle;
 
 /**
  * Demonstrates image inspection and zooming a composite inline widget.
@@ -40,7 +41,8 @@ public final class ZoomDecoratorExample {
             )));
             final ImageWidget image = new ImageWidget("/house.png");
             image.setWidth(320);
-            final ZoomDecorator photo = new ZoomDecorator(image);
+            final ZoomDecoratorStyle photoStyle = ZoomDecoratorStyle.DEFAULT.derive();
+            final ZoomDecorator photo = new ZoomDecorator(photoStyle, image);
             photo.setBgColor(Color.DARK_SLATE_GRAY);
             photo.setWidth(320);
             photo.setHeight(240);
@@ -51,9 +53,9 @@ public final class ZoomDecoratorExample {
             final Button reset = new Button("Reset image");
             reset.onClick(event -> photo.resetZoom());
             final Button limit = new Button("Limit to 3x");
-            limit.onClick(event -> photo.setMaxScale(3));
+            limit.onClick(event -> photoStyle.getMaxScaleModel().setData(3.0));
             final Button full = new Button("Allow 8x");
-            full.onClick(event -> photo.setMaxScale(8));
+            full.onClick(event -> photoStyle.getMaxScaleModel().setData(8.0));
             final Button replace = new Button("Replace content with text");
             replace.onClick(event -> {
                 final TextWidget text = new TextWidget("Any inline widget can be zoomed");

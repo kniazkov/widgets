@@ -7,7 +7,6 @@ import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.controller.ReorderEvent;
 import com.kniazkov.widgets.protocol.AppendChild;
-import com.kniazkov.widgets.protocol.ConfigureSorting;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.SetChildOrder;
 import java.util.ArrayList;
@@ -28,9 +27,9 @@ import java.util.Objects;
  * On release, children animate into their new positions; {@link #setAnimationDuration(int)}
  * controls the settling duration (250 milliseconds by default).</p>
  */
-public final class SortableSection extends BlockWidget<SectionStyle>
+public final class SortableSection extends BlockWidget<SortableSectionStyle>
         implements TypedContainer<InlineWidget<?>>, HasHorizontalAlignment,
-        HasVerticalAlignment, HasMargin, HasPadding, HasHiddenState {
+        HasVerticalAlignment, HasMargin, HasPadding, HasHiddenState, HasAnimationDuration {
     /**
      * Ordered children.
      */
@@ -42,16 +41,11 @@ public final class SortableSection extends BlockWidget<SectionStyle>
     private int revision;
 
     /**
-     * Duration of drop and reorder animations in milliseconds.
-     */
-    private int animationDuration = 250;
-
-    /**
      * Returns the default section style.
      * @return default style
      */
-    public static SectionStyle getDefaultStyle() {
-        return Section.getDefaultStyle();
+    public static SortableSectionStyle getDefaultStyle() {
+        return SortableSectionStyle.DEFAULT;
     }
 
     /**
@@ -67,7 +61,7 @@ public final class SortableSection extends BlockWidget<SectionStyle>
      * @param style section style
      * @param children initial inline widgets
      */
-    public SortableSection(final SectionStyle style, final InlineWidget<?>... children) {
+    public SortableSection(final SortableSectionStyle style, final InlineWidget<?>... children) {
         super(Objects.requireNonNull(style, "style"));
         for (final InlineWidget<?> child : children) {
             this.add(child);
@@ -138,28 +132,6 @@ public final class SortableSection extends BlockWidget<SectionStyle>
             this.revision++;
             this.publishOrder();
         }
-    }
-
-    /**
-     * Returns the duration of drop and reorder animations.
-     * @return duration in milliseconds; defaults to 250
-     */
-    public int getAnimationDuration() {
-        return this.animationDuration;
-    }
-
-    /**
-     * Sets the duration of drop, cancellation and reorder animations.
-     * The dragged widget always follows the pointer immediately. Zero disables settling
-     * animations; browsers requesting reduced motion also settle immediately.
-     * @param milliseconds nonnegative animation duration
-     */
-    public void setAnimationDuration(final int milliseconds) {
-        if (milliseconds < 0) {
-            throw new IllegalArgumentException("Animation duration must be nonnegative");
-        }
-        this.animationDuration = milliseconds;
-        this.pushUpdate(new ConfigureSorting(this.getId(), milliseconds));
     }
 
     /**

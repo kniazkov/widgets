@@ -3,7 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.protocol.ConfigureZoom;
+import com.kniazkov.widgets.protocol.ResetZoom;
 import com.kniazkov.widgets.protocol.SetChild;
 import java.util.Objects;
 
@@ -18,25 +18,20 @@ import java.util.Objects;
  * <p>Gestures consume touch movement inside the viewport. Interactive descendants still accept
  * ordinary clicks; clicks synthesized after a pan or pinch are suppressed.</p>
  */
-public final class ZoomDecorator extends InlineWidget<InlineBlockStyle>
+public final class ZoomDecorator extends InlineWidget<ZoomDecoratorStyle>
         implements Decorator<InlineWidget<?>>, HasWidth, HasHeight, HasMargin,
-        HasPadding, HasBgColor, HasBorder, HasBoxSizing {
+        HasPadding, HasBgColor, HasBorder, HasBoxSizing, HasMaxScale {
     /**
      * Decorated content.
      */
     private InlineWidget<?> child;
 
     /**
-     * Maximum permitted magnification.
-     */
-    private double maxScale = 8;
-
-    /**
      * Returns the default viewport style.
      * @return default style
      */
-    public static InlineBlockStyle getDefaultStyle() {
-        return InlineBlock.getDefaultStyle();
+    public static ZoomDecoratorStyle getDefaultStyle() {
+        return ZoomDecoratorStyle.DEFAULT;
     }
 
     /**
@@ -59,7 +54,7 @@ public final class ZoomDecorator extends InlineWidget<InlineBlockStyle>
      * @param style viewport style
      * @param child content
      */
-    public ZoomDecorator(final InlineBlockStyle style, final InlineWidget<?> child) {
+    public ZoomDecorator(final ZoomDecoratorStyle style, final InlineWidget<?> child) {
         super(Objects.requireNonNull(style, "style"));
         this.put(child);
     }
@@ -103,29 +98,9 @@ public final class ZoomDecorator extends InlineWidget<InlineBlockStyle>
     }
 
     /**
-     * Returns the scale limit.
-     * @return maximum scale
-     */
-    public double getMaxScale() {
-        return this.maxScale;
-    }
-
-    /**
-     * Changes the scale limit and resets the viewport.
-     * @param scale finite maximum scale, at least 1
-     */
-    public void setMaxScale(final double scale) {
-        if (!Double.isFinite(scale) || scale < 1) {
-            throw new IllegalArgumentException("Maximum scale must be finite and at least 1");
-        }
-        this.maxScale = scale;
-        this.resetZoom();
-    }
-
-    /**
      * Restores scale 1 and the initial content position in the browser.
      */
     public void resetZoom() {
-        this.pushUpdate(new ConfigureZoom(this.getId(), this.maxScale));
+        this.pushUpdate(new ResetZoom(this.getId()));
     }
 }

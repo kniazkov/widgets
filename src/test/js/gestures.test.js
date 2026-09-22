@@ -15,7 +15,7 @@ function harness() {
         window.events = [];
         function sendEventToServer(widget, type, data) { window.events.push({ type, data }); }
         ${read("widgets.js")}
-        window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, configureZoom, configureSorting, widgets };
+        window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, setMaxScale, setAnimationDuration, resetZoom, widgets };
     `);
     const h = dom.window.h;
     h.make = (type, id) => {
@@ -41,6 +41,7 @@ function pointer(target, type, x, y = 20, id = 1, pointerType = "touch") {
 function sortable() {
     const h = harness();
     const box = h.make("sortable section", "sort");
+    h.setAnimationDuration({ widget: "sort", "animation duration": 250 });
     dom.window.document.body.append(box);
     const items = ["a", "b", "c"].map(id => {
         const child = h.make("text", id);
@@ -67,6 +68,7 @@ function sortable() {
 function zoom() {
     const h = harness();
     const box = h.make("zoom decorator", "zoom");
+    h.setMaxScale({ widget: "zoom", "max scale": 8 });
     const child = h.make("text", "content");
     dom.window.document.body.append(box);
     h.setChildWidget({ widget: "content", container: "zoom" });
@@ -181,7 +183,7 @@ describe("sortable inline widgets", () => {
                 animations.push(animation);
                 return animation;
             };
-        expect(h.configureSorting({ widget: "sort", animationDuration: 600 })).toBe(true);
+        expect(h.setAnimationDuration({ widget: "sort", "animation duration": 600 })).toBe(true);
         pointer(items[0], "pointerdown", 20);
         pointer(box, "pointermove", 280);
         expect(animations).toHaveLength(0);
@@ -201,7 +203,7 @@ describe("sortable inline widgets", () => {
     });
     it.each([0, 250])("honors zero duration and reduced motion (%i)", duration => {
         const { h, box, items, order } = sortable();
-        h.configureSorting({ widget: "sort", animationDuration: duration });
+        h.setAnimationDuration({ widget: "sort", "animation duration": duration });
         dom.window.matchMedia = () => ({ matches: duration !== 0 });
         for (const child of items)
             child.animate = () => {
@@ -218,7 +220,9 @@ describe("sortable inline widgets", () => {
         const { h, box, items } = sortable();
         expect(box._animationDuration).toBe(250);
         for (const invalid of [-1, 0.5, NaN, Infinity, "200"]) {
-            expect(h.configureSorting({ widget: "sort", animationDuration: invalid })).toBe(false);
+            expect(h.setAnimationDuration({ widget: "sort", "animation duration": invalid })).toBe(
+                false
+            );
         }
         let cancelled = 0;
         for (const child of items)
@@ -230,7 +234,7 @@ describe("sortable inline widgets", () => {
         pointer(items[0], "pointerdown", 20);
         pointer(box, "pointermove", 280);
         pointer(box, "pointerup", 280);
-        h.configureSorting({ widget: "sort", animationDuration: 0 });
+        h.setAnimationDuration({ widget: "sort", "animation duration": 0 });
         expect(cancelled).toBe(3);
         expect(items[0].style.zIndex).toBe("");
         box._onDetached();
@@ -314,13 +318,22 @@ describe("generic zoom decorator", () => {
         wheel(-10000);
         wheel(-10000);
         expect(transform()).toContain("scale(8)");
-        expect(h.configureZoom({ widget: "zoom", maxScale: 3 })).toBe(true);
+        expect(h.setMaxScale({ widget: "zoom", "max scale": 3 })).toBe(true);
         expect(transform()).toBe("translate(0px, 0px) scale(1)");
         wheel(-10000);
         expect(transform()).toContain("scale(3)");
-        expect(h.configureZoom({ widget: "zoom", maxScale: Infinity })).toBe(false);
+        expect(h.setMaxScale({ widget: "zoom", "max scale": Infinity })).toBe(false);
         expect(box._maxScale).toBe(3);
         expect(h.events).toHaveLength(0);
+    });
+    it("resets the viewport without overwriting the scale property", () => {
+        const { h, box, wheel, transform } = zoom();
+        h.setMaxScale({ widget: "zoom", "max scale": 3 });
+        wheel(-10000);
+        expect(transform()).toContain("scale(3)");
+        expect(h.resetZoom({ widget: "zoom" })).toBe(true);
+        expect(box._maxScale).toBe(3);
+        expect(transform()).toContain("scale(1)");
     });
     it("normalizes line and page wheel units and never shrinks below one", () => {
         const { wheel, transform } = zoom();

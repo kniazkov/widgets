@@ -173,6 +173,12 @@ position reactively.
 250 ms; 0 disables them. Pointer tracking has no animation delay. Keyboard and programmatic moves
 use the same duration. Browsers requesting reduced motion settle immediately.
 
+`SortableSectionStyle.DEFAULT` stores `Property.ANIMATION_DURATION` (250 ms), and
+`ZoomDecoratorStyle.DEFAULT` stores `Property.MAX_SCALE` (8.0). Both are reactive models at
+`State.ANY`, accessible through value and model getters/setters on the widget and its style.
+Derived styles inherit changes until locally overridden; replacing models or calling `setStyle`
+uses the standard framework bindings.
+
 See [gesture widgets](GESTURE-WIDGETS.md) for API examples, interaction details, and the two
 standalone demonstrations. Both widgets also appear in `AllWidgets`.
 
