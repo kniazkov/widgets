@@ -2243,6 +2243,7 @@ function createZoomDecorator() {
     widget._stage = stage;
     widget._childHost = stage;
     widget._maxScale = 1;
+    widget._fitContent = false;
     let scale = 1;
     let x = 0;
     let y = 0;
@@ -2251,13 +2252,28 @@ function createZoomDecorator() {
     let moved = false;
     initGestureClicks(widget);
     function render() {
-        x = Math.min(0, Math.max(Math.min(0, widget.clientWidth - stage.offsetWidth * scale), x));
-        y = Math.min(0, Math.max(Math.min(0, widget.clientHeight - stage.offsetHeight * scale), y));
-        if (scale === 1) {
+        const width = stage.offsetWidth;
+        const height = stage.offsetHeight;
+        const fit =
+            widget._fitContent &&
+            width > 0 &&
+            height > 0 &&
+            widget.clientWidth > 0 &&
+            widget.clientHeight > 0
+                ? Math.min(widget.clientWidth / width, widget.clientHeight / height)
+                : 1;
+        const actualScale = fit * scale;
+        function clamp(offset, viewport, content) {
+            if (widget._fitContent && content <= viewport) return (viewport - content) / 2;
+            return Math.min(0, Math.max(Math.min(0, viewport - content), offset));
+        }
+        x = clamp(x, widget.clientWidth, width * actualScale);
+        y = clamp(y, widget.clientHeight, height * actualScale);
+        if (scale === 1 && !widget._fitContent) {
             x = 0;
             y = 0;
         }
-        stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+        stage.style.transform = `translate(${x}px, ${y}px) scale(${actualScale})`;
     }
     function clearPointers() {
         const ids = Array.from(pointers.keys());
@@ -2387,5 +2403,16 @@ function setCloseOnOutsideClick(data) {
     const enabled = data["close on outside click"];
     if (!widget?._backdrop || typeof enabled !== "boolean") return false;
     widget._closeOnOutsideClick = enabled;
+    return true;
+}
+
+function setFitContent(data) {
+    const widget = widgets[data.widget],
+        enabled = data["fit content"];
+    if (!widget?._resetZoom || typeof enabled !== "boolean") return false;
+    widget._fitContent = enabled;
+    widget._stage.style.display = enabled ? "inline-flex" : "inline-block";
+    widget._stage.style.width = enabled ? "max-content" : "";
+    widget._resetZoom();
     return true;
 }

@@ -163,6 +163,28 @@ public final class E2ETestServer {
             content.add(clear);
             root.add(content);
         });
+        application.addPage("fitted-zoom", (root, context) -> {
+            final int width = Integer.parseInt(context.parameters.getOrDefault("width", "2400"));
+            final int height = Integer.parseInt(context.parameters.getOrDefault("height", "1200"));
+            final com.kniazkov.widgets.view.ImageWidget image =
+                new com.kniazkov.widgets.view.ImageWidget(
+                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='"
+                        + width + "' height='" + height + "'%3E%3Crect width='100%25' "
+                        + "height='100%25' fill='navy'/%3E%3C/svg%3E"
+                );
+            final ZoomDecorator zoom = new ZoomDecorator(image);
+            zoom.setWidth(() -> "min(100vw, 100dvh)");
+            zoom.setHeight(() -> "min(100vw, 100dvh)");
+            zoom.setFitContent(true);
+            final com.kniazkov.widgets.view.ModalPopup popup =
+                new com.kniazkov.widgets.view.ModalPopup(new Section(zoom));
+            popup.setWidth(() -> "min(100vw, 100dvh)");
+            popup.setHeight(() -> "min(100vw, 100dvh)");
+            popup.setPadding(0);
+            popup.setBorderWidth(0);
+            popup.setCloseOnOutsideClick(true);
+            root.add(popup);
+        });
         application.addPage("gestures", (root, context) -> {
             final SortableSection sortable = new SortableSection();
             final TextWidget orderStatus = new TextWidget("No reorder yet");

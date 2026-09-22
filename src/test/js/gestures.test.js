@@ -15,7 +15,7 @@ function harness() {
         window.events = [];
         function sendEventToServer(widget, type, data) { window.events.push({ type, data }); }
         ${read("widgets.js")}
-        window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, setMaxScale, setAnimationDuration, resetZoom, widgets };
+        window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, setMaxScale, setFitContent, setAnimationDuration, resetZoom, widgets };
     `);
     const h = dom.window.h;
     h.make = (type, id) => {
@@ -386,5 +386,44 @@ describe("generic zoom decorator", () => {
         expect(box.firstElementChild).toBe(box._stage);
         expect(box._stage.firstElementChild).toBe(next);
         expect(transform()).toBe("translate(0px, 0px) scale(1)");
+    });
+});
+
+describe("fitted zoom content", () => {
+    it.each([
+        [2400, 1200, 0.25, 0, 150],
+        [120, 240, 2.5, 150, 0],
+        [1000, 1000, 0.6, 0, 0]
+    ])("fits and centers %s x %s content", (width, height, scale, x, y) => {
+        const h = harness();
+        const box = h.make("zoom decorator", "zoom");
+        h.setMaxScale({ widget: "zoom", "max scale": 8 });
+        let side = 600;
+        Object.defineProperties(box, {
+            clientWidth: { get: () => side },
+            clientHeight: { get: () => side }
+        });
+        Object.defineProperties(box._stage, {
+            offsetWidth: { value: width },
+            offsetHeight: { value: height }
+        });
+        h.setFitContent({ widget: "zoom", "fit content": true });
+        expect(box._stage.style.transform).toBe(`translate(${x}px, ${y}px) scale(${scale})`);
+        box.dispatchEvent(
+            new dom.window.WheelEvent("wheel", {
+                deltaY: -Math.log(2) / 0.002,
+                clientX: 300,
+                clientY: 300,
+                cancelable: true
+            })
+        );
+        expect(box._stage.style.transform).toContain(`scale(${scale * 2})`);
+        h.resetZoom({ widget: "zoom" });
+        expect(box._stage.style.transform).toBe(`translate(${x}px, ${y}px) scale(${scale})`);
+        side = 300;
+        box.dispatchEvent(new dom.window.Event("load"));
+        expect(box._stage.style.transform).toContain(`scale(${scale / 2})`);
+        h.setFitContent({ widget: "zoom", "fit content": false });
+        expect(box._stage.style.transform).toBe("translate(0px, 0px) scale(1)");
     });
 });

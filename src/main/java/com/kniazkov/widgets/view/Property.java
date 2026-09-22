@@ -371,6 +371,12 @@ public abstract class Property<T> {
         boolProperty("close on outside click");
 
     /**
+     * Fits and centers the initial zoom view; disabled by default.
+     */
+    public static final Property<Boolean> FIT_CONTENT = boolProperty("fit content");
+
+
+    /**
      * Property representing the widget's textual content.
      */
     public static final Property<String> TEXT = stringProperty("text");

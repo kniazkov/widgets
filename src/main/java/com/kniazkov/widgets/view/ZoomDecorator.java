@@ -13,6 +13,9 @@ import java.util.Objects;
  * <p>Drag enlarged content to pan. Scale starts at 1 and is limited to 8 by default.
  * Zoom and pan are local presentation state and do not generate server traffic.
  * Replacing the child, changing the limit or calling {@link #resetZoom()} resets the view.
+ * Enable {@link #setFitContent(boolean)} to fit and center the entire content initially.
+ * In that mode scale 1 means the fitted view, and maxScale is relative to it.
+ * The fit adapts to viewport and content size changes, including image loading.
  * Use explicit viewport dimensions when the content is larger than the available page area.</p>
  *
  * <p>Gestures consume touch movement inside the viewport. Interactive descendants still accept
@@ -20,7 +23,7 @@ import java.util.Objects;
  */
 public final class ZoomDecorator extends InlineWidget<ZoomDecoratorStyle>
         implements Decorator<InlineWidget<?>>, HasWidth, HasHeight, HasMargin,
-        HasPadding, HasBgColor, HasBorder, HasBoxSizing, HasMaxScale {
+        HasPadding, HasBgColor, HasBorder, HasBoxSizing, HasMaxScale, HasFitContent {
     /**
      * Decorated content.
      */
@@ -98,7 +101,7 @@ public final class ZoomDecorator extends InlineWidget<ZoomDecoratorStyle>
     }
 
     /**
-     * Restores scale 1 and the initial content position in the browser.
+     * Restores the initial view (fitted and centered when fitContent is enabled).
      */
     public void resetZoom() {
         this.pushUpdate(new ResetZoom(this.getId()));

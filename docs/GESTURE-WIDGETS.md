@@ -156,3 +156,13 @@ identity, decorator replacement, scale validation and protocol updates. JavaScri
 and touch sorting, wrapped rows, keyboard moves, cancellation, click suppression, wheel anchoring,
 scale/pan bounds, pinch-to-pan transitions and content replacement. Playwright tests exercise actual
 browser pointer capture, Java round trips, wheel/pinch gestures and nested button clicks.
+
+### Fitting content to a zoom viewport
+
+`zoom.setFitContent(true)` fits the entire child inside the viewport without cropping or changing
+its aspect ratio, centering it on any shorter axis. Large content is reduced and small content
+is enlarged. Set explicit viewport dimensions. Fitting follows content loading and viewport
+resizing automatically, including device rotation. Reset returns to this fitted view.
+`maxScale` remains a zoom multiplier (8 by default), relative to the fitted view in this mode.
+The setting has `getFitContentModel()` / `setFitContentModel(Model<Boolean>)`, a dedicated
+`Property.FIT_CONTENT`, and defaults to false in `ZoomDecoratorStyle.DEFAULT`.
