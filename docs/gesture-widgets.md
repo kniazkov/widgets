@@ -88,7 +88,14 @@ The same mechanism works for a text label or an `InlineBlock` containing multipl
 
 ## Runnable demonstrations
 
-Run these main classes from the repository root (so `www/house.png` can be served):
+Build and run either example with the root script (one at a time):
+
+```bash
+./run.sh com.kniazkov.widgets.example.SortableSectionExample
+./run.sh com.kniazkov.widgets.example.ZoomDecoratorExample
+```
+
+The script builds the project and resolves `www/house.png` from the repository directory.
 
 - `com.kniazkov.widgets.example.SortableSectionExample`: a photo-order editor with six cards,
   removal buttons, adding photos, server-side reversal, saved-order feedback, and mixed inline content.
