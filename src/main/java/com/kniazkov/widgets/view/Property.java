@@ -54,6 +54,7 @@ import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.model.TextDecorationModel;
 import com.kniazkov.widgets.model.TransitionModel;
 import com.kniazkov.widgets.model.ValidatedRealNumberModel;
+import com.kniazkov.widgets.model.ValidatedIntegerModel;
 import com.kniazkov.widgets.model.VerticalAlignmentModel;
 import com.kniazkov.widgets.model.WidgetSizeModel;
 
@@ -375,6 +376,26 @@ public abstract class Property<T> {
         "selected index",
         Integer.class,
         () -> new IntegerModel(-1),
+        value -> new JsonNumber(value.doubleValue())
+    );
+
+    /**
+     * Maximum zoom scale, finite and at least one.
+     */
+    public static final Property<Double> MAX_SCALE = of(
+        "max scale",
+        Double.class,
+        () -> new ValidatedRealNumberModel(8.0, value -> Double.isFinite(value) && value >= 1),
+        JsonNumber::new
+    );
+
+    /**
+     * Duration of sortable position animations in milliseconds; zero disables animation.
+     */
+    public static final Property<Integer> ANIMATION_DURATION = of(
+        "animation duration",
+        Integer.class,
+        () -> new ValidatedIntegerModel(250, ValidatedIntegerModel.NOT_NEGATIVE),
         value -> new JsonNumber(value.doubleValue())
     );
 

@@ -9,6 +9,7 @@ import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
 import com.kniazkov.widgets.view.HasText;
 import com.kniazkov.widgets.view.RadioButton;
+import com.kniazkov.widgets.view.SortableSection;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Collections;
 import java.util.Map;
@@ -170,6 +171,29 @@ public abstract class Event<T> {
     };
 
     /**
+     * Versioned child move. Invalid requests must not invoke application controllers.
+     */
+    public static final Event<ReorderEvent> REORDER = new Event<ReorderEvent>() {
+        @Override
+        public String getName() {
+            return "reorder";
+        }
+
+        @Override
+        public ReorderEvent parseData(final JsonObject object) {
+            return object.toJavaObject(ReorderEvent.class);
+        }
+
+        @Override
+        public void process(final Widget<?> widget, final JsonObject object) {
+            final ReorderEvent data = this.parseData(object);
+            if (widget instanceof SortableSection section && section.acceptReorder(data)) {
+                widget.getController(this).handleEvent(data);
+            }
+        }
+    };
+
+    /**
      * Event triggered when a widget receives focus.
      */
     public static final Event<Void> FOCUS = new Event<Void>() {
@@ -305,6 +329,7 @@ public abstract class Event<T> {
                 TEXT_INPUT,
                 CHECK,
                 SELECT,
+                REORDER,
                 FOCUS,
                 BLUR,
                 CLICK,

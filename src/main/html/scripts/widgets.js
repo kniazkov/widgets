@@ -64,6 +64,8 @@ const widgetsLibrary = {
         };
         return widget;
     },
+    "sortable section": createSortableSection,
+    "zoom decorator": createZoomDecorator,
     panel: function () {
         const widget = document.createElement("div");
         initPointerEvents(widget, true);
@@ -496,8 +498,12 @@ function setChildWidget(data) {
     const widget = widgets[data.widget];
     const container = widgets[data.container];
     if (widget && container) {
-        container.innerHTML = "";
-        container.appendChild(widget);
+        if (container._setChild) {
+            container._setChild(widget);
+        } else {
+            container.innerHTML = "";
+            container.appendChild(widget);
+        }
         if (widget._onAttached) {
             widget._onAttached();
         }
@@ -563,7 +569,7 @@ function removeChildWidget(data) {
         if (widget._onDetached) {
             widget._onDetached();
         }
-        container.removeChild(widget);
+        (container._childHost || container).removeChild(widget);
         log("Widget " + data.widget + " is removed from parent widget " + data.container + ".");
         return true;
     }
@@ -1879,4 +1885,475 @@ function replaceColorsInSvg(svg, color, bgColor) {
             'fill="' + bgColor + '"'
         );
     return prefix + encodeURIComponent(decoded);
+}
+
+// Suppress only clicks produced by a gesture, including clicks on nested controls.
+function initGestureClicks(widget) {
+    let suppressed = false;
+    widget._suppressGestureClick = () => {
+        suppressed = true;
+    };
+    widget.addEventListener(
+        "pointerdown",
+        () => {
+            suppressed = false;
+        },
+        true
+    );
+    widget.addEventListener(
+        "click",
+        event => {
+            if (suppressed) {
+                suppressed = false;
+                event.preventDefault();
+                event.stopImmediatePropagation();
+            }
+        },
+        true
+    );
+    widget.addEventListener("dragstart", event => event.preventDefault());
+}
+
+function releaseGesturePointer(widget, id) {
+    if (widget.hasPointerCapture?.(id)) widget.releasePointerCapture(id);
+}
+
+function createSortableSection() {
+    const widget = widgetsLibrary.section();
+    widget._revision = 0;
+    widget._pendingReorder = false;
+    widget._animationDuration = 0;
+    widget.dataset.sortable = "true";
+    let gesture = null;
+    const animations = new Map();
+    initGestureClicks(widget);
+    widget._layoutChild = child => {
+        child.style.touchAction = "none";
+        child.style.userSelect = "none";
+        if (!child.hasAttribute("tabindex")) child.tabIndex = 0;
+        child.setAttribute("aria-keyshortcuts", "Alt+ArrowLeft Alt+ArrowRight");
+    };
+    const interactive = target =>
+        target.closest(
+            "button,a,input,select,textarea,[contenteditable]:not([contenteditable=false]),[data-sortable],[data-zoom]"
+        );
+    function directChild(target) {
+        while (target && target.parentElement !== widget) target = target.parentElement;
+        return target;
+    }
+    function positions() {
+        return new Map(
+            Array.from(widget.children, child => [child, child.getBoundingClientRect()])
+        );
+    }
+    function stopAnimations() {
+        for (const entry of animations.values()) {
+            entry.animation.cancel();
+            entry.restore();
+        }
+        animations.clear();
+    }
+    widget._stopSortAnimations = stopAnimations;
+    // FLIP: sample visual positions, change layout once, then animate back from the old positions.
+    function reflow(change, raisedChild = null) {
+        const before = positions();
+        stopAnimations();
+        change();
+        const duration = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+            ? 0
+            : widget._animationDuration;
+        if (!duration) return;
+        for (const child of widget.children) {
+            const old = before.get(child);
+            if (!old || !child.animate) continue;
+            const rect = child.getBoundingClientRect();
+            const dx = old.left - rect.left;
+            const dy = old.top - rect.top;
+            if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) continue;
+            const transform = getComputedStyle(child).transform;
+            const saved = { position: child.style.position, zIndex: child.style.zIndex };
+            if (child === raisedChild) {
+                child.style.position = "relative";
+                child.style.zIndex = "1000";
+            }
+            const restore = () => {
+                if (child === raisedChild) Object.assign(child.style, saved);
+            };
+            const animation = child.animate(
+                [
+                    {
+                        transform: `translate(${dx}px, ${dy}px) ${transform === "none" ? "" : transform}`
+                    },
+                    { transform }
+                ],
+                { duration, easing: "cubic-bezier(0.2, 0, 0, 1)" }
+            );
+            animations.set(child, { animation, restore });
+            animation.onfinish = () => {
+                if (animations.get(child)?.animation === animation) {
+                    animations.delete(child);
+                    restore();
+                }
+            };
+        }
+    }
+    function clearGesture() {
+        if (!gesture) return null;
+        const current = gesture;
+        gesture = null;
+        Object.assign(current.child.style, current.style, { transition: "none" });
+        current.child.getBoundingClientRect();
+        current.child.style.transition = current.style.transition;
+        if (current.moved) widget._suppressGestureClick();
+        releaseGesturePointer(widget, current.id);
+        return current;
+    }
+    function reportMove(child) {
+        widget._pendingReorder = true;
+        sendEventToServer(widget, "reorder", {
+            revision: widget._revision++,
+            child: child._id,
+            before: child.nextElementSibling?._id || ""
+        });
+    }
+    function finish(cancelled) {
+        if (!gesture) return;
+        const current = gesture;
+        reflow(() => {
+            clearGesture();
+            if (!cancelled && current.moved && current.before !== current.child) {
+                widget.insertBefore(current.child, current.before);
+            }
+        }, current.child);
+        if (
+            !cancelled &&
+            current.moved &&
+            Array.from(widget.children).some((child, index) => child !== current.order[index])
+        ) {
+            reportMove(current.child);
+        }
+    }
+    widget._cancelGesture = () => finish(true);
+    widget._applySortOrder = children => {
+        // An acknowledgement must not interrupt the drop animation already running locally.
+        if (!gesture && children.every((child, index) => child === widget.children[index])) return;
+        const focused = document.activeElement;
+        reflow(() => {
+            clearGesture();
+            for (const child of children) widget.appendChild(child);
+            if (focused && widget.contains(focused)) focused.focus({ preventScroll: true });
+        });
+    };
+    widget._onDetached = () => {
+        clearGesture();
+        stopAnimations();
+    };
+    widget.addEventListener("pointerdown", event => {
+        if (gesture) {
+            finish(true);
+            return;
+        }
+        if (widget._pendingReorder || event.button !== 0 || event.isPrimary === false) return;
+        const control = interactive(event.target);
+        if (control && control !== widget) return;
+        const child = directChild(event.target);
+        if (!child) return;
+        stopAnimations();
+        const rect = child.getBoundingClientRect();
+        gesture = {
+            id: event.pointerId,
+            child,
+            x: event.clientX,
+            y: event.clientY,
+            offsetX: event.clientX - rect.left,
+            offsetY: event.clientY - rect.top,
+            dx: 0,
+            dy: 0,
+            moved: false,
+            before: child,
+            order: Array.from(widget.children),
+            transform: getComputedStyle(child).transform,
+            style: {
+                transform: child.style.transform,
+                position: child.style.position,
+                zIndex: child.style.zIndex,
+                transition: child.style.transition
+            }
+        };
+        widget.setPointerCapture?.(event.pointerId);
+    });
+    function move(event) {
+        if (!gesture || event.pointerId !== gesture.id) return;
+        if (!gesture.moved && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) < 6)
+            return;
+        const current = gesture;
+        const child = current.child;
+        const rect = child.getBoundingClientRect();
+        const base = {
+            left: rect.left - current.dx,
+            top: rect.top - current.dy,
+            right: rect.right - current.dx,
+            bottom: rect.bottom - current.dy,
+            width: rect.width
+        };
+        current.moved = true;
+        current.dx = event.clientX - current.offsetX - base.left;
+        current.dy = event.clientY - current.offsetY - base.top;
+        Object.assign(child.style, {
+            position: "relative",
+            zIndex: "1000",
+            transition: "none",
+            transform: `translate(${current.dx}px, ${current.dy}px) ${current.transform === "none" ? "" : current.transform}`
+        });
+        event.preventDefault();
+        // Keep every layout slot intact until release, including the dragged card's own slot.
+        let nearest = child;
+        let targetRect = base;
+        let distance = Infinity;
+        for (const candidate of widget.children) {
+            const box = candidate === child ? base : candidate.getBoundingClientRect();
+            const dx = Math.max(box.left - event.clientX, 0, event.clientX - box.right);
+            const dy = Math.max(box.top - event.clientY, 0, event.clientY - box.bottom);
+            const score = dx * dx + dy * dy;
+            if (score < distance) {
+                distance = score;
+                nearest = candidate;
+                targetRect = box;
+            }
+        }
+        if (nearest === child) {
+            current.before = child;
+            return;
+        }
+        const after =
+            event.clientY > targetRect.bottom ||
+            (event.clientY >= targetRect.top &&
+                event.clientX > targetRect.left + targetRect.width / 2);
+        current.before = after ? nearest.nextElementSibling : nearest;
+    }
+    widget.addEventListener("pointermove", move);
+    widget.addEventListener("pointerup", event => {
+        if (event.pointerId === gesture?.id) {
+            move(event);
+            finish(false);
+        }
+    });
+    for (const type of ["pointercancel", "lostpointercapture"]) {
+        widget.addEventListener(type, event => {
+            if (event.pointerId === gesture?.id) finish(true);
+        });
+    }
+    widget.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            finish(true);
+            return;
+        }
+        if (!event.altKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        const child = directChild(event.target);
+        if (!child || event.target !== child || gesture || widget._pendingReorder) return;
+        const next =
+            event.key === "ArrowLeft" ? child.previousElementSibling : child.nextElementSibling;
+        if (!next) return;
+        event.preventDefault();
+        reflow(() => {
+            widget.insertBefore(child, event.key === "ArrowLeft" ? next : next.nextElementSibling);
+            child.focus({ preventScroll: true });
+        });
+        reportMove(child);
+    });
+    return widget;
+}
+
+function setAnimationDuration(data) {
+    const widget = widgets[data.widget];
+    if (
+        !widget?._applySortOrder ||
+        !Number.isInteger(data["animation duration"]) ||
+        data["animation duration"] < 0
+    )
+        return false;
+    widget._animationDuration = data["animation duration"];
+    if (!data["animation duration"]) widget._stopSortAnimations();
+    return true;
+}
+
+function setChildOrder(data) {
+    const widget = widgets[data.widget];
+    if (
+        !widget?._cancelGesture ||
+        !Array.isArray(data.children) ||
+        !Number.isInteger(data.revision) ||
+        data.revision < 0
+    )
+        return false;
+    const children = data.children.map(id => widgets[id]);
+    if (
+        children.length !== widget.children.length ||
+        new Set(children).size !== children.length ||
+        children.some(child => !child || child.parentElement !== widget)
+    )
+        return false;
+    widget._applySortOrder(children);
+    widget._revision = data.revision;
+    widget._pendingReorder = false;
+    return true;
+}
+
+function createZoomDecorator() {
+    const widget = document.createElement("span");
+    const stage = document.createElement("span");
+    widget.dataset.zoom = "true";
+    Object.assign(widget.style, {
+        display: "inline-block",
+        overflow: "hidden",
+        touchAction: "none",
+        userSelect: "none",
+        verticalAlign: "middle"
+    });
+    Object.assign(stage.style, {
+        display: "inline-block",
+        transformOrigin: "0 0",
+        verticalAlign: "top"
+    });
+    widget.appendChild(stage);
+    widget._stage = stage;
+    widget._childHost = stage;
+    widget._maxScale = 1;
+    let scale = 1;
+    let x = 0;
+    let y = 0;
+    const pointers = new Map();
+    const captures = new Map();
+    let moved = false;
+    initGestureClicks(widget);
+    function render() {
+        x = Math.min(0, Math.max(Math.min(0, widget.clientWidth - stage.offsetWidth * scale), x));
+        y = Math.min(0, Math.max(Math.min(0, widget.clientHeight - stage.offsetHeight * scale), y));
+        if (scale === 1) {
+            x = 0;
+            y = 0;
+        }
+        stage.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    }
+    function clearPointers() {
+        const ids = Array.from(pointers.keys());
+        pointers.clear();
+        for (const id of ids) {
+            releaseGesturePointer(captures.get(id) || widget, id);
+        }
+        captures.clear();
+    }
+    widget._resetZoom = () => {
+        clearPointers();
+        scale = 1;
+        x = 0;
+        y = 0;
+        moved = false;
+        render();
+    };
+    widget._setChild = child => {
+        widget._resetZoom();
+        stage.replaceChildren(child);
+    };
+    function localPoint(event) {
+        const rect = widget.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left - widget.clientLeft,
+            y: event.clientY - rect.top - widget.clientTop
+        };
+    }
+    function zoomAt(next, oldCenter, newCenter = oldCenter) {
+        next = Math.max(1, Math.min(widget._maxScale, next));
+        const ratio = next / scale;
+        x = newCenter.x - (oldCenter.x - x) * ratio;
+        y = newCenter.y - (oldCenter.y - y) * ratio;
+        scale = next;
+        render();
+    }
+    widget.addEventListener(
+        "wheel",
+        event => {
+            event.preventDefault();
+            const unit =
+                event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? widget.clientHeight : 1;
+            zoomAt(
+                scale * Math.exp(Math.max(-2, Math.min(2, -event.deltaY * unit * 0.002))),
+                localPoint(event)
+            );
+        },
+        { passive: false }
+    );
+    widget.addEventListener("pointerdown", event => {
+        if (event.button !== 0 || pointers.size >= 2) return;
+        if (!pointers.size) moved = false;
+        pointers.set(event.pointerId, localPoint(event));
+        const target = event.target;
+        captures.set(event.pointerId, target);
+        target.setPointerCapture?.(event.pointerId);
+    });
+    widget.addEventListener("pointermove", event => {
+        const previous = pointers.get(event.pointerId);
+        if (!previous) return;
+        const point = localPoint(event);
+        if (pointers.size === 2) {
+            const other = Array.from(pointers.entries()).find(([id]) => id !== event.pointerId)[1];
+            const oldDistance = Math.hypot(previous.x - other.x, previous.y - other.y);
+            const newDistance = Math.hypot(point.x - other.x, point.y - other.y);
+            if (oldDistance > 0 && newDistance > 0) {
+                zoomAt(
+                    (scale * newDistance) / oldDistance,
+                    { x: (previous.x + other.x) / 2, y: (previous.y + other.y) / 2 },
+                    { x: (point.x + other.x) / 2, y: (point.y + other.y) / 2 }
+                );
+                moved = true;
+            }
+        } else if (scale > 1) {
+            x += point.x - previous.x;
+            y += point.y - previous.y;
+            if (Math.hypot(point.x - previous.x, point.y - previous.y) > 0) moved = true;
+            render();
+        }
+        pointers.set(event.pointerId, point);
+        if (moved) event.preventDefault();
+    });
+    function finish(event) {
+        if (!pointers.has(event.pointerId)) return;
+        pointers.delete(event.pointerId);
+        if (moved) widget._suppressGestureClick();
+        const target = captures.get(event.pointerId) || widget;
+        captures.delete(event.pointerId);
+        releaseGesturePointer(target, event.pointerId);
+    }
+    for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
+        widget.addEventListener(type, finish);
+    }
+    widget.addEventListener("load", render, true);
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(render);
+    widget._onAttached = () => {
+        observer?.observe(widget);
+        observer?.observe(stage);
+        render();
+    };
+    widget._onDetached = () => {
+        clearPointers();
+        observer?.disconnect();
+    };
+    widget._resetZoom();
+    return widget;
+}
+
+function setMaxScale(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._resetZoom || !Number.isFinite(data["max scale"]) || data["max scale"] < 1)
+        return false;
+    widget._maxScale = data["max scale"];
+    widget._resetZoom();
+    return true;
+}
+
+function resetZoom(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._resetZoom) return false;
+    widget._resetZoom();
+    return true;
 }

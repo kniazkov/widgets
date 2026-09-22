@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-cp pom.xml pom.xml.backup
-sed -i 's/-->//g; s/<!--//g' pom.xml
-mvn clean package
-mv pom.xml.backup pom.xml
+project_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd -- "$project_dir"
+
+exec mvn clean package "$@"

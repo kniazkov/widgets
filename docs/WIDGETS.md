@@ -14,7 +14,6 @@ The arrows below represent Java inheritance, not parent-child containment in a r
 ```mermaid
 classDiagram
     direction TB
-
     class Widget {
         <<abstract>>
     }
@@ -24,39 +23,72 @@ classDiagram
     class InlineWidget {
         <<abstract>>
     }
-    class BaseImageWidget {
-        <<abstract>>
-    }
-
     Widget <|-- RootWidget
     Widget <|-- BlockWidget
     Widget <|-- InlineWidget
     Widget <|-- Row
     Widget <|-- Cell
+```
 
+Block widgets:
+
+```mermaid
+classDiagram
+    direction TB
     BlockWidget <|-- Section
+    BlockWidget <|-- SortableSection
     BlockWidget <|-- Panel
     Panel <|-- StickyPanel
     BlockWidget <|-- Popup
     Popup <|-- ModalPopup
     ModalPopup <|-- MessagePopup
     BlockWidget <|-- Table
+```
 
+Inline text and action widgets:
+
+```mermaid
+classDiagram
+    direction TB
     InlineWidget <|-- TextWidget
     InlineWidget <|-- ActiveText
     InlineWidget <|-- Link
     InlineWidget <|-- Button
+    Button <|-- FileLoader
+```
+
+Inline input widgets:
+
+```mermaid
+classDiagram
+    direction TB
     InlineWidget <|-- InputField
     InlineWidget <|-- CheckBox
     InlineWidget <|-- RadioButton
     InlineWidget <|-- DropDownList
-    InlineWidget <|-- BaseImageWidget
-    InlineWidget <|-- InlineBlock
-    InlineWidget <|-- MarginDecorator
-
-    Button <|-- FileLoader
     InputField <|-- PasswordInput
     InputField <|-- TextArea
+```
+
+Inline containers and decorators:
+
+```mermaid
+classDiagram
+    direction TB
+    InlineWidget <|-- InlineBlock
+    InlineWidget <|-- MarginDecorator
+    InlineWidget <|-- ZoomDecorator
+```
+
+Inline image widgets:
+
+```mermaid
+classDiagram
+    direction TB
+    class BaseImageWidget {
+        <<abstract>>
+    }
+    InlineWidget <|-- BaseImageWidget
     BaseImageWidget <|-- ImageWidget
     BaseImageWidget <|-- ActiveImage
     BaseImageWidget <|-- Carousel
@@ -130,16 +162,36 @@ position reactively.
 | `Row` | `row` | `Cell` | Table row with pointer-aware visual states. `getCell` grows the row on demand and uses the parent table's column-specific defaults when available. |
 | `Cell` | `cell` | `BlockWidget` | Table cell that hosts block content and supports background, border, size, padding, alignment, and pointer events. |
 
+## Sortable and zoomable inline content
+
+| Widget | Client type | Allowed children | Purpose |
+| --- | --- | --- | --- |
+| `SortableSection` | `sortable section` | `InlineWidget` | Wrapping block container with mouse/touch dragging, Alt+Left/Right reordering, versioned server synchronization and `onReorder` callbacks. The dragged child follows the pointer above its siblings; on release, children animate to their new positions. |
+| `ZoomDecorator` | `zoom decorator` | One `InlineWidget` | Clips arbitrary inline content and provides wheel/pinch zoom, bounded panning, a configurable scale limit and reset. Removing the child installs an empty `TextWidget`. |
+
+`SortableSection.setAnimationDuration(milliseconds)` controls settling animations: the default is
+250 ms; 0 disables them. Pointer tracking has no animation delay. Keyboard and programmatic moves
+use the same duration. Browsers requesting reduced motion settle immediately.
+
+`SortableSectionStyle.DEFAULT` stores `Property.ANIMATION_DURATION` (250 ms), and
+`ZoomDecoratorStyle.DEFAULT` stores `Property.MAX_SCALE` (8.0). Both are reactive models at
+`State.ANY`, accessible through value and model getters/setters on the widget and its style.
+Derived styles inherit changes until locally overridden; replacing models or calling `setStyle`
+uses the standard framework bindings.
+
+See [gesture widgets](GESTURE-WIDGETS.md) for API examples, interaction details, and the two
+standalone demonstrations. Both widgets also appear in `AllWidgets`.
+
 ## Containment rules
 
 Inheritance determines layout category, while container interfaces determine which children are
 legal. The supported tree shapes are:
 
 - `RootWidget` -> `BlockWidget`
-- `Section` -> `InlineWidget`
+- `Section` and `SortableSection` -> `InlineWidget`
 - `Panel`, `StickyPanel`, `InlineBlock`, `Popup`, `ModalPopup`, `MessagePopup`, and `Cell`
   -> `BlockWidget`
-- `Button` and `MarginDecorator` -> exactly one `InlineWidget`
+- `Button`, `MarginDecorator`, and `ZoomDecorator` -> exactly one `InlineWidget`
 - `Table` -> `Row` -> `Cell`
 
 Adding a widget to a new container updates its parent and queues the corresponding protocol

@@ -9,6 +9,9 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.base.StaticSource;
 import com.kniazkov.widgets.view.ImageWidget;
+import com.kniazkov.widgets.view.InlineBlock;
+import com.kniazkov.widgets.view.SortableSection;
+import com.kniazkov.widgets.view.ZoomDecorator;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
@@ -148,6 +151,46 @@ public final class E2ETestServer {
             clear.onClick(event -> root.clearPageCache());
             content.add(clear);
             root.add(content);
+        });
+        application.addPage("gestures", (root, context) -> {
+            final SortableSection sortable = new SortableSection();
+            final TextWidget orderStatus = new TextWidget("No reorder yet");
+            for (int index = 1; index <= 3; index++) {
+                final InlineBlock card = new InlineBlock(
+                    new Section(new TextWidget("Sort card " + index))
+                );
+                card.setWidth(100);
+                card.setHeight(80);
+                card.setMargin(4);
+                sortable.add(card);
+            }
+            sortable.onReorder(order -> orderStatus.setText("First: "
+                + ((TextWidget) ((Section) ((InlineBlock) order.get(0)).getChild(0))
+                    .getChild(0)).getText()));
+            final Button slowSorting = new Button("Slow sorting");
+            slowSorting.onClick(event -> sortable.getAnimationDurationModel().setData(600));
+            final Button instantSorting = new Button("Instant sorting");
+            instantSorting.onClick(event -> sortable.getAnimationDurationModel().setData(0));
+            root.add(new Section(slowSorting, instantSorting));
+            root.add(sortable);
+            root.add(new Section(orderStatus));
+            final TextWidget clicks = new TextWidget("Zoom clicks: 0");
+            final java.util.concurrent.atomic.AtomicInteger count =
+                new java.util.concurrent.atomic.AtomicInteger();
+            final Button nested = new Button("Zoom child button");
+            nested.onClick(event -> clicks.setText("Zoom clicks: " + count.incrementAndGet()));
+            final InlineBlock content = new InlineBlock(new Section(nested));
+            content.setWidth(300);
+            content.setHeight(200);
+            final ZoomDecorator zoom = new ZoomDecorator(content);
+            zoom.setWidth(300);
+            zoom.setHeight(200);
+            final Button reset = new Button("Reset viewport");
+            reset.onClick(event -> zoom.resetZoom());
+            root.add(new Section(zoom));
+            final Button limit = new Button("Limit zoom to 2x");
+            limit.onClick(event -> zoom.getMaxScaleModel().setData(2.0));
+            root.add(new Section(reset, limit, clicks));
         });
         Server.start(application, options);
     }

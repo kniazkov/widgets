@@ -20,6 +20,39 @@ npm run install:e2e-browser
 On Linux, add `-- --with-deps` to the browser installation command when the Playwright system
 packages are not installed yet.
 
+## Building and running examples on Linux
+
+Build the project without starting an application:
+
+```bash
+./build.sh
+```
+
+This runs `mvn clean package`, including Java tests, and writes the ordinary library JAR and
+`target/runtime-classpath.txt`. The classpath contains runtime dependencies, excluding test-only
+libraries. The build never edits `pom.xml` and does not select a main class or create a fat JAR.
+Additional arguments to `build.sh` are forwarded to Maven.
+
+Build and run any class with a `public static void main(String[] args)` entry point:
+
+```bash
+./run.sh com.kniazkov.widgets.example.SortableSectionExample
+./run.sh com.kniazkov.widgets.example.ZoomDecoratorExample
+```
+
+Run one example at a time because both use port 8080. On a phone, open
+`http://<server-address>:8080`; the phone must be able to reach the server's port 8080.
+The image is served from `/house.png`.
+
+The first argument is the full class name; subsequent arguments are passed unchanged to its
+`main` method. A missing class name prints usage without building anything. If the build fails,
+the application is not started. `JAVA_HOME`, when set, selects the JDK for Maven and Java;
+otherwise both commands are resolved through `PATH`. JDK 21 is required.
+
+Both scripts switch to the repository directory, so they also work when invoked by absolute path
+from another directory and `www` resolves correctly. `run.sh` replaces itself with the Java process,
+so Ctrl+C and service-manager stop signals reach the application directly.
+
 ## Development workflow
 
 1. Create a branch from the current `master`.

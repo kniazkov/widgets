@@ -480,6 +480,10 @@ const actionHandlers = {
     "set carousel sources": setCarouselSources,
     "set carousel source": setCarouselSource,
     "set selected index": setSelectedIndex,
+    "set child order": setChildOrder,
+    "set max scale": setMaxScale,
+    "set animation duration": setAnimationDuration,
+    "reset zoom": resetZoom,
     "set href": setHref,
     "set color": setColor,
     "set bg color": setBgColor,
@@ -520,7 +524,7 @@ const actionHandlers = {
 };
 
 // These events are client-side protocol primitives and do not require an explicit subscription.
-const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload"];
+const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload", "reorder"];
 
 function sendEventToServer(widget, type, data) {
     if (clientDisposed) {
