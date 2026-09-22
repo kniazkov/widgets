@@ -29,13 +29,16 @@ function createHarness() {
     });
     dom.window.eval(`${optionsSource}\n${librarySource}\n
         configureUploadProtocol(4 * 1024, 128 * 1024 * 1024);
-        function sendEventToServer() {}
+        const events = [];
+        function sendEventToServer(widget, type, data) { events.push({widget, type, data}); }
         ${widgetsSource}
         window.__popupHarness = {
             createWidget,
             appendChildWidget,
             removeChildWidget,
             setBackdropColor,
+            setCloseOnOutsideClick,
+            events,
             setHorzAlignment,
             setVertAlignment,
             widgets
@@ -86,5 +89,63 @@ describe("popup widgets", () => {
 
         harness.removeChildWidget({ widget: "#11", container: "#1" });
         expect(dom.window.document.body.children).toHaveLength(0);
+    });
+});
+
+function backdropPress(target, button = 0) {
+    target.dispatchEvent(new dom.window.MouseEvent("pointerdown", { bubbles: true, button }));
+}
+function backdropClick(target, button = 0) {
+    target.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button, detail: 1 }));
+}
+
+describe("outside dismissal", () => {
+    it("reacts to model changes and waits for server removal", () => {
+        const h = createHarness();
+        h.createWidget({ type: "root", widget: "#1" });
+        h.createWidget({ type: "modal popup", widget: "#2" });
+        h.appendChildWidget({ widget: "#2", container: "#1" });
+        const popup = h.widgets["#2"],
+            backdrop = popup._backdrop;
+        backdropPress(backdrop);
+        backdropClick(backdrop);
+        expect(h.events).toHaveLength(0);
+        expect(h.setCloseOnOutsideClick({ widget: "#2", "close on outside click": true })).toBe(
+            true
+        );
+        backdropPress(popup);
+        backdropClick(popup);
+        expect(h.events).toHaveLength(0);
+        backdropPress(backdrop);
+        backdropClick(backdrop);
+        expect(h.events).toHaveLength(1);
+        expect(h.events[0].type).toBe("dismiss");
+        expect(h.events[0].widget).toBe(popup);
+        expect(popup.isConnected).toBe(true);
+        h.setCloseOnOutsideClick({ widget: "#2", "close on outside click": false });
+        backdropPress(backdrop);
+        backdropClick(backdrop);
+        expect(h.events).toHaveLength(1);
+        h.removeChildWidget({ widget: "#2", container: "#1" });
+        expect(backdrop.isConnected).toBe(false);
+        expect(popup.isConnected).toBe(false);
+    });
+    it("ignores right clicks, cancelled gestures and drags starting inside", () => {
+        const h = createHarness();
+        h.createWidget({ type: "modal popup", widget: "#2" });
+        h.setCloseOnOutsideClick({ widget: "#2", "close on outside click": true });
+        const popup = h.widgets["#2"],
+            backdrop = popup._backdrop;
+        backdropPress(backdrop, 2);
+        backdropClick(backdrop, 2);
+        backdropPress(backdrop);
+        backdrop.dispatchEvent(new dom.window.Event("pointercancel"));
+        backdropClick(backdrop);
+        backdropPress(popup);
+        backdropClick(backdrop);
+        expect(h.events).toHaveLength(0);
+        expect(
+            h.setCloseOnOutsideClick({ widget: "#missing", "close on outside click": true })
+        ).toBe(false);
     });
 });

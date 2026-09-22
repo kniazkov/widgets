@@ -365,6 +365,12 @@ public abstract class Property<T> {
     public static final Property<Boolean> HIDDEN = boolProperty("hidden");
 
     /**
+     * Whether a modal popup is removed when its backdrop is clicked or tapped.
+     */
+    public static final Property<Boolean> CLOSE_ON_OUTSIDE_CLICK =
+        boolProperty("close on outside click");
+
+    /**
      * Property representing the widget's textual content.
      */
     public static final Property<String> TEXT = stringProperty("text");

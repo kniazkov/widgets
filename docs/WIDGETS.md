@@ -116,7 +116,7 @@ the root and table structures rather than the general block/inline distinction.
 | `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
-| `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The translucent white default backdrop color is exposed through a model. |
+| `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The backdrop color and optional outside-click dismissal are exposed through models. Outside dismissal is disabled by default and supports mouse clicks and touch taps. |
 | `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from a string or caller-supplied `TextWidget` and one or two buttons. The text widget is exposed for later style and model changes. |
 | `MarginDecorator` | `margin decorator` | One `InlineWidget` | Wraps a single inline widget to add margin support without changing the wrapped widget. Removing its child installs an empty `TextWidget`. |
 
@@ -274,3 +274,23 @@ then set the image maximum width to `100%` and maximum height to 180. This lets 
 with the available space. Percentage maximum heights need a definite parent height;
 use pixels when the parent height follows its contents. Existing fixed-size images keep
 their behavior until a limit is explicitly set.
+
+### Closing a modal by clicking or tapping outside
+
+`ModalPopup` and `MessagePopup` can remove themselves from the widget tree when their backdrop
+is clicked or tapped. Clicks inside the popup leave it open. The setting defaults to `false`
+in `ModalPopupStyle.DEFAULT`, preserving explicit button-based closing.
+
+```java
+final Button ok = new Button("OK");
+final MessagePopup popup = new MessagePopup("Click or tap outside to close", ok);
+ok.onClick(event -> popup.remove());
+popup.setCloseOnOutsideClick(true);
+root.add(popup);
+```
+
+Use `getCloseOnOutsideClickModel()` or `setCloseOnOutsideClickModel(Model<Boolean>)` to bind the
+setting to application state; changes take effect while the popup is open. The dedicated
+`Property.CLOSE_ON_OUTSIDE_CLICK` also supports configuration through `ModalPopupStyle`.
+The server checks the current setting before removing the popup and its backdrop.
+`AllWidgets` demonstrates a dismissible message with a checkbox bound to this model.

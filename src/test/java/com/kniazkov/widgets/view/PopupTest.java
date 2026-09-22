@@ -8,10 +8,13 @@ import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.HorizontalAlignment;
 import com.kniazkov.widgets.common.VerticalAlignment;
 import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.BooleanModel;
+import com.kniazkov.widgets.controller.Event;
 import java.util.List;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -110,4 +113,65 @@ public final class PopupTest {
         assertEquals(Color.RED, popup.getTextWidget().getColor());
         assertEquals("Changed through model", popup.getTextWidget().getText());
     }
+    /**
+     * Tests cascading defaults, replacement models and property updates.
+     */
+    @Test
+    public void outsideDismissalIsReactive() {
+        assertFalse(ModalPopupStyle.DEFAULT.isCloseOnOutsideClick());
+        final ModalPopupStyle style = ModalPopupStyle.DEFAULT.derive();
+        final ModalPopup popup = new ModalPopup(style);
+        final WidgetSandbox<ModalPopup> sandbox = WidgetSandbox.open(popup);
+        assertFalse(popup.isCloseOnOutsideClick());
+        sandbox.clearUpdates();
+        style.setCloseOnOutsideClick(true);
+        assertTrue(popup.isCloseOnOutsideClick());
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set close on outside click", popup
+        );
+        assertEquals(1, updates.size());
+        assertTrue(updates.get(0).get("close on outside click").getBooleanValue());
+        final BooleanModel first = new BooleanModel(false);
+        popup.setCloseOnOutsideClickModel(first);
+        assertFalse(popup.isCloseOnOutsideClick());
+        first.setData(true);
+        assertTrue(popup.isCloseOnOutsideClick());
+        final BooleanModel second = new BooleanModel(false);
+        popup.setCloseOnOutsideClickModel(second);
+        first.setData(false);
+        first.setData(true);
+        assertFalse(popup.isCloseOnOutsideClick());
+        second.setData(true);
+        assertTrue(popup.isCloseOnOutsideClick());
+    }
+
+    /**
+     * Dismissal removes the server widget and rejects disabled or stale requests.
+     */
+    @Test
+    public void outsideDismissalRemovesOnlyEnabledModals() {
+        final MessagePopup popup = new MessagePopup("Message", new Button("Close"));
+        final WidgetSandbox<MessagePopup> sandbox = WidgetSandbox.open(popup);
+        assertSame(Event.DISMISS, Event.getByName("dismiss"));
+        sandbox.fire(Event.DISMISS, new JsonObject());
+        assertTrue(popup.getParent().isPresent());
+        popup.setCloseOnOutsideClick(true);
+        popup.setCloseOnOutsideClick(false);
+        sandbox.fire(Event.DISMISS, new JsonObject());
+        assertTrue(popup.getParent().isPresent());
+        popup.setCloseOnOutsideClick(true);
+        sandbox.clearUpdates();
+        sandbox.fire(Event.DISMISS, new JsonObject());
+        assertTrue(popup.getParent().isEmpty());
+        assertEquals(1, WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "remove child", popup
+        ).size());
+        sandbox.fire(Event.DISMISS, new JsonObject());
+        final Popup ordinary = new Popup();
+        final WidgetSandbox<Popup> other = WidgetSandbox.open(ordinary);
+        ordinary.getModel(State.ANY, Property.CLOSE_ON_OUTSIDE_CLICK).setData(true);
+        other.fire(Event.DISMISS, new JsonObject());
+        assertTrue(ordinary.getParent().isPresent());
+    }
+
 }

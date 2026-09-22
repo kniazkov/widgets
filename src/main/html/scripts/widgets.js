@@ -366,6 +366,30 @@ function createPopup(modal) {
         backdrop.style.inset = "0px";
         backdrop.style.zIndex = "1000";
         widget._backdrop = backdrop;
+        widget._closeOnOutsideClick = false;
+        let pressedOutside = false;
+        backdrop.addEventListener("pointerdown", event => {
+            pressedOutside =
+                event.target === backdrop && event.button === 0 && event.isPrimary !== false;
+            event.stopPropagation();
+        });
+        backdrop.addEventListener("pointercancel", () => {
+            pressedOutside = false;
+        });
+        backdrop.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            const activate = pressedOutside || event.detail === 0;
+            pressedOutside = false;
+            if (
+                widget._closeOnOutsideClick &&
+                event.target === backdrop &&
+                event.button === 0 &&
+                activate
+            ) {
+                sendEventToServer(widget, "dismiss", {});
+            }
+        });
         widget._onAttached = function () {
             if (widget.parentNode) {
                 widget.parentNode.insertBefore(backdrop, widget);
@@ -2355,5 +2379,13 @@ function resetZoom(data) {
     const widget = widgets[data.widget];
     if (!widget?._resetZoom) return false;
     widget._resetZoom();
+    return true;
+}
+
+function setCloseOnOutsideClick(data) {
+    const widget = widgets[data.widget];
+    const enabled = data["close on outside click"];
+    if (!widget?._backdrop || typeof enabled !== "boolean") return false;
+    widget._closeOnOutsideClick = enabled;
     return true;
 }

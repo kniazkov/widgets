@@ -504,7 +504,7 @@ public class AllWidgets {
      */
     private static void addPopups(final RootWidget root) {
         final Panel card = addCard(root, "Popup",
-            "Modal messages stay above the page until one of their buttons closes them.");
+            "Modal messages can require a button or allow closing by clicking or tapping outside.");
         final Section row = variantRow();
         card.add(row);
 
@@ -531,6 +531,21 @@ public class AllWidgets {
             root.add(popup);
         });
         row.add(variant("Two buttons", twoButtonLauncher));
+
+        final Button outsideLauncher = new Button("Show dismissible message");
+        outsideLauncher.onClick(event -> {
+            final Button close = new Button("Close");
+            final MessagePopup popup = new MessagePopup(
+                "Click or tap outside this window to close it. Inside clicks keep it open.", close
+            );
+            popup.setCloseOnOutsideClick(true);
+            final CheckBox enabled = new CheckBox();
+            enabled.setCheckedStateModel(popup.getCloseOnOutsideClickModel());
+            popup.add(new Section(enabled, new TextWidget("Allow closing by tapping outside")));
+            close.onClick(closeEvent -> popup.remove());
+            root.add(popup);
+        });
+        row.add(variant("Click or tap outside", outsideLauncher));
     }
 
     /**

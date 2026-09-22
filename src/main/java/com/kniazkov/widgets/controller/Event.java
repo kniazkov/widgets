@@ -5,6 +5,7 @@ package com.kniazkov.widgets.controller;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.ModalPopup;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
 import com.kniazkov.widgets.view.HasText;
@@ -194,6 +195,29 @@ public abstract class Event<T> {
     };
 
     /**
+     * A backdrop activation requesting dismissal of an enabled modal popup.
+     * The server rechecks the current policy, including changes made while the event was in flight.
+     */
+    public static final Event<Void> DISMISS = new Event<Void>() {
+        @Override
+        public String getName() {
+            return "dismiss";
+        }
+
+        @Override
+        public Void parseData(final JsonObject object) {
+            return null;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Void data) {
+            if (widget instanceof ModalPopup popup && popup.isCloseOnOutsideClick()) {
+                popup.remove();
+            }
+        }
+    };
+
+    /**
      * Event triggered when a widget receives focus.
      */
     public static final Event<Void> FOCUS = new Event<Void>() {
@@ -330,6 +354,7 @@ public abstract class Event<T> {
                 CHECK,
                 SELECT,
                 REORDER,
+                DISMISS,
                 FOCUS,
                 BLUR,
                 CLICK,

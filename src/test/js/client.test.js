@@ -37,6 +37,7 @@ const handlerNames = [
     "setColor",
     "setBgColor",
     "setBackdropColor",
+    "setCloseOnOutsideClick",
     "setOpacity",
     "setWidth",
     "setMaxWidth",

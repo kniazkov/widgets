@@ -488,6 +488,7 @@ const actionHandlers = {
     "set color": setColor,
     "set bg color": setBgColor,
     "set backdrop color": setBackdropColor,
+    "set close on outside click": setCloseOnOutsideClick,
     "set opacity": setOpacity,
     "set width": setWidth,
     "set max width": setMaxWidth,
@@ -524,7 +525,7 @@ const actionHandlers = {
 };
 
 // These events are client-side protocol primitives and do not require an explicit subscription.
-const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload", "reorder"];
+const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload", "reorder", "dismiss"];
 
 function sendEventToServer(widget, type, data) {
     if (clientDisposed) {
