@@ -40,8 +40,8 @@ public final class ZoomDecoratorExample {
                     + "Drag enlarged content to pan; use Reset to return to the original view."
             )));
             final ImageWidget image = new ImageWidget("/house.png");
-            image.setWidth(320);
             final ZoomDecoratorStyle photoStyle = ZoomDecoratorStyle.DEFAULT.derive();
+            photoStyle.setFitContent(true);
             final ZoomDecorator photo = new ZoomDecorator(photoStyle, image);
             photo.setBgColor(Color.DARK_SLATE_GRAY);
             photo.setWidth(320);

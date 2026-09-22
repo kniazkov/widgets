@@ -482,6 +482,7 @@ const actionHandlers = {
     "set selected index": setSelectedIndex,
     "set child order": setChildOrder,
     "set max scale": setMaxScale,
+    "set fit content": setFitContent,
     "set animation duration": setAnimationDuration,
     "reset zoom": resetZoom,
     "set href": setHref,

@@ -5,9 +5,11 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import java.util.List;
+import com.kniazkov.widgets.model.BooleanModel;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -83,4 +85,26 @@ public final class ZoomDecoratorTest {
         assertThrows(IllegalArgumentException.class, () -> zoom.put(ancestor));
         assertSame(original, zoom.getChild());
     }
+    /**
+     * Fitting is opt-in, inherits from styles and follows replacement models.
+     */
+    @Test
+    public void fittingUsesReactiveProperty() {
+        assertFalse(ZoomDecoratorStyle.DEFAULT.isFitContent());
+        final ZoomDecoratorStyle style = ZoomDecoratorStyle.DEFAULT.derive();
+        final ZoomDecorator zoom = new ZoomDecorator(style, new TextWidget("Content"));
+        final WidgetSandbox<ZoomDecorator> sandbox = WidgetSandbox.open(zoom);
+        sandbox.clearUpdates();
+        style.setFitContent(true);
+        assertTrue(zoom.isFitContent());
+        assertEquals(1, WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set fit content", zoom
+        ).size());
+        final BooleanModel model = new BooleanModel(false);
+        zoom.setFitContentModel(model);
+        assertFalse(zoom.isFitContent());
+        model.setData(true);
+        assertTrue(zoom.isFitContent());
+    }
+
 }

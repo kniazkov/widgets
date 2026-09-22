@@ -6,7 +6,7 @@ package com.kniazkov.widgets.view;
 /**
  * Style definition for {@link ZoomDecorator}, including its reactive gesture settings.
  */
-public class ZoomDecoratorStyle extends InlineBlockStyle implements HasMaxScale {
+public class ZoomDecoratorStyle extends InlineBlockStyle implements HasMaxScale, HasFitContent {
     /**
      * Global default style with maxScale set to 8.
      */
@@ -18,6 +18,7 @@ public class ZoomDecoratorStyle extends InlineBlockStyle implements HasMaxScale 
     private ZoomDecoratorStyle() {
         super(InlineBlock.getDefaultStyle());
         this.setMaxScale(8);
+        this.setFitContent(false);
     }
 
     /**

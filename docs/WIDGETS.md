@@ -179,6 +179,10 @@ use the same duration. Browsers requesting reduced motion settle immediately.
 Derived styles inherit changes until locally overridden; replacing models or calling `setStyle`
 uses the standard framework bindings.
 
+`ZoomDecorator.setFitContent(true)` optionally fits and centers the whole child in its viewport,
+including after image loading or viewport resizing. Zoom limits then apply relative to the fitted
+view. The setting is model-backed and defaults to false; see [gesture widgets](GESTURE-WIDGETS.md).
+
 See [gesture widgets](GESTURE-WIDGETS.md) for API examples, interaction details, and the two
 standalone demonstrations. Both widgets also appear in `AllWidgets`.
 
