@@ -222,3 +222,10 @@ then set the image maximum width to `100%` and maximum height to 180. This lets 
 with the available space. Percentage maximum heights need a definite parent height;
 use pixels when the parent height follows its contents. Existing fixed-size images keep
 their behavior until a limit is explicitly set.
+
+## Sortable and zoomable inline content
+
+`SortableSection` reorders arbitrary inline widgets with mouse/touch dragging or Alt+Left/Right.
+`ZoomDecorator` wraps an inline widget with wheel/pinch zoom and bounded dragging of enlarged content.
+See [gesture widgets](gesture-widgets.md) for API examples, interaction details, and the two
+standalone demonstrations. Both widgets also appear in `AllWidgets`.

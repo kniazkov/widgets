@@ -55,9 +55,12 @@ public final class SortableSectionExample {
                 final ImageWidget image = new ImageWidget("/house.png");
                 image.setWidth(160);
                 final Button remove = new Button("Remove");
+                final TextWidget caption = new TextWidget(name);
+                caption.setColor(Color.WHITE);
                 final InlineBlock card = new InlineBlock(
-                    new Section(image), new Section(new TextWidget(name)), new Section(remove)
+                    new Section(image), new Section(caption), new Section(remove)
                 );
+                card.setBgColor(Color.DARK_SLATE_GRAY);
                 card.setPadding(12);
                 card.setMargin(6);
                 card.setBorderStyle(BorderStyle.SOLID);

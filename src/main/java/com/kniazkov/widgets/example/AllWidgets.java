@@ -178,6 +178,7 @@ public class AllWidgets {
         final ImageWidget image = new ImageWidget("/house.png");
         image.setWidth(280);
         final ZoomDecorator zoom = new ZoomDecorator(image);
+        zoom.setBgColor(Color.DARK_SLATE_GRAY);
         zoom.setWidth(280);
         zoom.setHeight(210);
         zoom.setMaxWidth("100%");

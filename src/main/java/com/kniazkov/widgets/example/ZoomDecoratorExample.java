@@ -41,6 +41,7 @@ public final class ZoomDecoratorExample {
             final ImageWidget image = new ImageWidget("/house.png");
             image.setWidth(320);
             final ZoomDecorator photo = new ZoomDecorator(image);
+            photo.setBgColor(Color.DARK_SLATE_GRAY);
             photo.setWidth(320);
             photo.setHeight(240);
             photo.setMaxWidth("100%");
@@ -54,7 +55,11 @@ public final class ZoomDecoratorExample {
             final Button full = new Button("Allow 8x");
             full.onClick(event -> photo.setMaxScale(8));
             final Button replace = new Button("Replace content with text");
-            replace.onClick(event -> photo.put(new TextWidget("Any inline widget can be zoomed")));
+            replace.onClick(event -> {
+                final TextWidget text = new TextWidget("Any inline widget can be zoomed");
+                text.setColor(Color.WHITE);
+                photo.put(text);
+            });
             final Button restore = new Button("Restore image");
             restore.onClick(event -> photo.put(image));
             root.add(new Section(photo));
@@ -64,16 +69,21 @@ public final class ZoomDecoratorExample {
             final ImageWidget thumbnail = new ImageWidget("/house.png");
             thumbnail.setWidth(220);
             final TextWidget count = new TextWidget("Button clicks: 0");
+            count.setColor(Color.WHITE);
+            final TextWidget caption = new TextWidget("House — detail card");
+            caption.setColor(Color.WHITE);
             final java.util.concurrent.atomic.AtomicInteger clicks =
                 new java.util.concurrent.atomic.AtomicInteger();
             final Button click = new Button("Try a normal click");
             click.onClick(event -> count.setText("Button clicks: " + clicks.incrementAndGet()));
             final InlineBlock card = new InlineBlock(
-                new Section(new TextWidget("House — detail card")),
+                new Section(caption),
                 new Section(thumbnail), new Section(click), new Section(count)
             );
+            card.setBgColor(Color.DARK_SLATE_GRAY);
             card.setPadding(12);
             final ZoomDecorator composite = new ZoomDecorator(card);
+            composite.setBgColor(Color.DARK_SLATE_GRAY);
             composite.setWidth(300);
             composite.setHeight(300);
             composite.setMaxWidth("100%");
