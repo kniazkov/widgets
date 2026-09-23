@@ -439,9 +439,9 @@ public class AllWidgets {
     private static void addSuggestionFields(final RootWidget root) {
         final Panel card = addCard(root, "SuggestionField",
             "Choose a previous value or type your own. Save to offer it in both fields.");
-        final StringModel fittings = new StringModel("Латунь с родиевым покрытием");
+        final StringModel fittings = new StringModel("Rhodium-plated brass");
         final List<Model<String>> suggestions = new ArrayList<>(List.of(
-            fittings, new StringModel("Серебро"), new StringModel("Позолоченная латунь")
+            fittings, new StringModel("Silver"), new StringModel("Gold-plated brass")
         ));
         final SuggestionField first = new SuggestionField(suggestions);
         final SuggestionField second = new SuggestionField(suggestions);
@@ -462,7 +462,7 @@ public class AllWidgets {
         final SuggestionField disabled = new SuggestionField(List.of("Unavailable"));
         disabled.disable();
         final Section row = variantRow();
-        row.add(variant("Fittings — type род to filter", first, value));
+        row.add(variant("Fittings — type rhodium to filter", first, value));
         row.add(save);
         row.add(variant("Next product — shared suggestions", second));
         row.add(variant("Edit the first source model", source));
