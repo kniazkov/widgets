@@ -358,3 +358,7 @@ This prevents double-tap zoom on those controls while allowing scrolling and pin
 The viewport does not disable user scaling, and custom carousel/zoom gesture rules remain
 unchanged. Mobile browser automation checks the rendered defaults and tapping; actual
 Safari keyboard/focus zoom should also be checked on an iPhone.
+
+Default body text and active text use 16 CSS pixels, matching form controls. Standard
+button labels use 15 CSS pixels, preserving their slightly more compact typography.
+Links inherit the active-text size. Applications can still override these styles.

@@ -171,7 +171,7 @@ public class ButtonStyle extends Style implements HasBgColor, HasBorder, HasAbso
             new BoxShadow(0, 1, 3, new Color(15, 23, 42, 28)));
 
         style.textStyle.setColor(text);
-        style.textStyle.setFontSize("14px");
+        style.textStyle.setFontSize("15px");
         style.textStyle.setFontWeight(FontWeight.SEMIBOLD);
         return style;
     }

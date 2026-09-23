@@ -26,7 +26,7 @@ public class TextWidgetStyle extends Style implements HasStyledText, HasColor {
      */
     private TextWidgetStyle() {
         this.setFontFace(DefaultTheme.FONT);
-        this.setFontSize("15px");
+        this.setFontSize("16px");
         this.setFontWeight(FontWeight.NORMAL);
         this.setItalic(false);
         this.setTextDecoration(TextDecoration.NONE);
