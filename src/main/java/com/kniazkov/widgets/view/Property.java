@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonBoolean;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonNumber;
@@ -49,6 +50,8 @@ import com.kniazkov.widgets.model.OutlineModel;
 import com.kniazkov.widgets.model.OverflowModel;
 import com.kniazkov.widgets.model.StickySideModel;
 import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.StringListModel;
+import java.util.List;
 import com.kniazkov.widgets.model.SvgImageSourceModel;
 import com.kniazkov.widgets.model.SynchronizedModel;
 import com.kniazkov.widgets.model.TextDecorationModel;
@@ -380,6 +383,28 @@ public abstract class Property<T> {
      * Property representing the widget's textual content.
      */
     public static final Property<String> TEXT = stringProperty("text");
+
+    /**
+     * Ordered suggestions for an editable text field.
+     */
+    public static final Property<List<String>> SUGGESTIONS = stringListProperty("suggestions");
+
+    /**
+     * Creates a string-list property with immutable model snapshots.
+     * @param name protocol property name
+     * @return typed list property
+     */
+    private static Property<List<String>> stringListProperty(final String name) {
+        @SuppressWarnings("unchecked")
+        final Class<List<String>> type = (Class<List<String>>) (Class<?>) List.class;
+        return of(name, type, StringListModel::new, values -> {
+            final JsonArray array = new JsonArray();
+            for (final String value : values) {
+                array.add(new JsonString(value));
+            }
+            return array;
+        });
+    }
 
     /**
      * Property representing the selected position in a selection control.

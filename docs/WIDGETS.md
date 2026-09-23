@@ -66,6 +66,7 @@ classDiagram
     InlineWidget <|-- CheckBox
     InlineWidget <|-- RadioButton
     InlineWidget <|-- DropDownList
+    InputField <|-- SuggestionField
     InputField <|-- PasswordInput
     InputField <|-- TextArea
 ```
@@ -134,6 +135,7 @@ dynamic collections while preserving iteration order.
 | `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
 | `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
 | `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. Implements `HasHorizontalAlignment`, so its text can be aligned left, center, right, or justified. |
+| `SuggestionField` | `suggestion field` | Editable text with a reactive list of optional suggestions, substring filtering, touch selection and keyboard navigation. Arbitrary new values are allowed. |
 | `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
 | `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
 | `CheckBox` | `checkbox` | Boolean selection control rendered from configurable selected and unselected images. Supports pointer and disabled states. |
@@ -298,3 +300,37 @@ setting to application state; changes take effect while the popup is open. The d
 `Property.CLOSE_ON_OUTSIDE_CLICK` also supports configuration through `ModalPopupStyle`.
 The server checks the current setting before removing the popup and its backdrop.
 `AllWidgets` demonstrates a dismissible message with a checkbox bound to this model.
+
+## Editable suggestions
+
+`SuggestionField` extends `InputField`. It preserves text binding, validation, disabled state,
+focus and text-input events. `SuggestionFieldStyle` inherits standard input styling; the list
+uses the field's font, colors and border. Its default suggestion list is empty.
+
+```java
+final StringListModel history = new StringListModel(List.of(
+    "Латунь с родиевым покрытием", "Серебро"
+));
+final SuggestionField field = new SuggestionField();
+field.setSuggestionsModel(history);
+field.setTextModel(productValue);
+```
+
+`Property.TEXT` holds the editable text. `Property.SUGGESTIONS` holds a `Model<List<String>>`;
+`getSuggestionsModel`, `setSuggestionsModel`, `getSuggestions` and `setSuggestions` expose it.
+`StringListModel` takes defensive copies and exposes immutable snapshots. Replace its list
+with `setData` to add, remove or reorder suggestions and notify all bound fields. Invalid
+null lists or null elements are rejected. An application-supplied model must likewise emit
+non-null lists of non-null strings.
+
+Focus or click opens matching suggestions. An empty field shows all values; typing filters
+by case-insensitive substring. Blank entries and exact duplicates are omitted from the
+visible list without modifying the model. Arrow keys move the highlight; Enter chooses it;
+Escape dismisses the list and Tab leaves the field without choosing. Mouse clicks and
+finger taps select an entry; the selected text remains editable. No match leaves a normal
+text input. Matching is local, while text and list changes use the normal model protocol.
+
+The widget never remembers unsaved input automatically. After successfully saving a product,
+the application may append its value to the shared model (or query distinct saved values
+from its database). Keep separate suggestion models for separate product properties.
+The `AllWidgets` example demonstrates two fields sharing a history and an explicit save button.

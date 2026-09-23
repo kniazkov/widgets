@@ -107,6 +107,7 @@ const widgetsLibrary = {
     "input field": function () {
         return createInputField();
     },
+    "suggestion field": createSuggestionField,
     "password input": function () {
         const widget = createInputField();
         widget.type = "password";
@@ -632,6 +633,7 @@ function setDisabledFlag(data) {
         );
         refreshWidget(widget);
         widget.disabled = flag;
+        if (flag) widget._closeSuggestions?.();
         return true;
     }
     return false;
@@ -641,6 +643,7 @@ function setHiddenFlag(data) {
     const widget = widgets[data.widget];
     const flag = data.hidden;
     if (widget && typeof flag == "boolean") {
+        if (flag) widget._closeSuggestions?.();
         widget.style.display = flag ? "none" : widget._display;
         log("The widget " + data.widget + " is" + (flag ? "" : " not") + " hidden.");
         return true;
@@ -1440,6 +1443,193 @@ function createInputField() {
     initFocusEvents(widget, "active");
     initTextAlignment(widget);
     return widget;
+}
+
+// Suggestions are view state; the text and source list remain server-backed properties.
+function createSuggestionField() {
+    const widget = createInputField();
+    widget.setAttribute("role", "combobox");
+    widget.setAttribute("aria-autocomplete", "list");
+    widget.setAttribute("aria-expanded", "false");
+    widget.autocomplete = "off";
+    widget._suggestions = [];
+    let list = null;
+    let active = -1;
+    let observer = null;
+    let composing = false;
+
+    function close() {
+        if (!list) return;
+        list.remove();
+        list = null;
+        active = -1;
+        widget.setAttribute("aria-expanded", "false");
+        widget.removeAttribute("aria-controls");
+        widget.removeAttribute("aria-activedescendant");
+        document.removeEventListener("pointerdown", outside, true);
+        window.removeEventListener("resize", position);
+        document.removeEventListener("scroll", position, true);
+        window.visualViewport?.removeEventListener("resize", position);
+        window.visualViewport?.removeEventListener("scroll", position);
+        observer?.disconnect();
+        observer = null;
+    }
+
+    function outside(event) {
+        if (event.target !== widget && !list?.contains(event.target)) close();
+    }
+
+    function position() {
+        if (!list) return;
+        const rect = widget.getBoundingClientRect();
+        const viewport = window.visualViewport;
+        const top = viewport?.offsetTop || 0;
+        const left = viewport?.offsetLeft || 0;
+        const height = viewport?.height || window.innerHeight;
+        const width = viewport?.width || window.innerWidth;
+        const below = Math.max(0, top + height - rect.bottom - 4);
+        const above = Math.max(0, rect.top - top - 4);
+        const upward = below < 160 && above > below;
+        list.style.width = Math.min(rect.width, width - 8) + "px";
+        list.style.left =
+            Math.max(left + 4, Math.min(rect.left, left + width - rect.width - 4)) + "px";
+        list.style.maxHeight = Math.min(240, upward ? above : below) + "px";
+        list.style.top = (upward ? rect.top - 4 : rect.bottom + 4) + "px";
+        list.style.transform = upward ? "translateY(-100%)" : "";
+    }
+
+    function highlight(index) {
+        if (!list) return;
+        active = index;
+        Array.from(list.children).forEach((option, i) => {
+            option.setAttribute("aria-selected", String(i === active));
+        });
+        const option = list.children[active];
+        if (option) {
+            widget.setAttribute("aria-activedescendant", option.id);
+            option.scrollIntoView?.({ block: "nearest" });
+        } else {
+            widget.removeAttribute("aria-activedescendant");
+        }
+    }
+
+    function select(value) {
+        if (widget.disabled) return;
+        widget.value = value;
+        close();
+        // Use the ordinary text-input pipeline, including delayed-echo protection.
+        widget.dispatchEvent(new Event("input", { bubbles: true }));
+        close();
+    }
+
+    function render() {
+        close();
+        if (widget.disabled || document.activeElement !== widget || composing) return;
+        const query = widget.value.toLowerCase();
+        const values = [...new Set(widget._suggestions)].filter(
+            value => value.trim() && value.toLowerCase().includes(query)
+        );
+        if (!values.length) return;
+        list = document.createElement("div");
+        list.className = "suggestion-list";
+        list.id = "suggestions-" + widget._id;
+        list.setAttribute("role", "listbox");
+        const style = getComputedStyle(widget);
+        list.style.font = style.font;
+        list.style.color = style.color;
+        list.style.backgroundColor = style.backgroundColor;
+        list.style.borderColor = style.borderColor;
+        list.style.borderRadius = style.borderRadius;
+        values.forEach((value, index) => {
+            const option = document.createElement("div");
+            option.id = list.id + "-" + index;
+            option.setAttribute("role", "option");
+            option.setAttribute("aria-selected", "false");
+            option.textContent = value;
+            // Keep focus and the on-screen keyboard on the editable field.
+            option.addEventListener("pointerdown", event => event.preventDefault());
+            option.addEventListener("click", () => select(value));
+            list.appendChild(option);
+        });
+        document.body.appendChild(list);
+        // The top layer also works when the field is inside a modal popup.
+        if (typeof list.showPopover === "function") {
+            list.setAttribute("popover", "manual");
+            list.showPopover();
+        }
+        widget.setAttribute("aria-controls", list.id);
+        widget.setAttribute("aria-expanded", "true");
+        position();
+        document.addEventListener("pointerdown", outside, true);
+        window.addEventListener("resize", position);
+        document.addEventListener("scroll", position, true);
+        window.visualViewport?.addEventListener("resize", position);
+        window.visualViewport?.addEventListener("scroll", position);
+        // Parent removal does not invoke each descendant's detach hook.
+        observer = new MutationObserver(() => {
+            if (!widget.isConnected) close();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    widget._setSuggestions = values => {
+        widget._suggestions = values.slice();
+        render();
+    };
+    widget._closeSuggestions = close;
+    widget._onDetached = close;
+    widget.addEventListener("focus", render);
+    widget.addEventListener("click", render);
+    widget.addEventListener("input", render);
+    widget.addEventListener("blur", close);
+    widget.addEventListener("compositionstart", () => {
+        composing = true;
+        close();
+    });
+    widget.addEventListener("compositionend", () => {
+        composing = false;
+        render();
+    });
+    widget.addEventListener("keydown", event => {
+        if (event.isComposing || composing) return;
+        if (event.key === "Escape" || event.key === "Tab") {
+            if (list && event.key === "Escape") {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            close();
+        } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            if (!list) render();
+            if (list) {
+                const count = list.children.length;
+                highlight(
+                    event.key === "ArrowDown"
+                        ? (active + 1) % count
+                        : active < 0
+                          ? count - 1
+                          : (active + count - 1) % count
+                );
+            }
+        } else if (event.key === "Enter" && list && active >= 0) {
+            event.preventDefault();
+            select(list.children[active].textContent);
+        }
+    });
+    return widget;
+}
+
+function setSuggestions(data) {
+    const widget = widgets[data.widget];
+    if (
+        widget?._setSuggestions &&
+        Array.isArray(data.suggestions) &&
+        data.suggestions.every(value => typeof value === "string")
+    ) {
+        widget._setSuggestions(data.suggestions);
+        return true;
+    }
+    return false;
 }
 
 // Protects local editing from delayed server echoes and applies the latest value when safe.

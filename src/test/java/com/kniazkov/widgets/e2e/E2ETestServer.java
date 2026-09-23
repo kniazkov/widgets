@@ -16,6 +16,10 @@ import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.InputField;
+import com.kniazkov.widgets.view.SuggestionField;
+import com.kniazkov.widgets.model.StringListModel;
+import java.util.List;
+import java.util.ArrayList;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.MessagePopup;
 import com.kniazkov.widgets.view.Section;
@@ -120,6 +124,26 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("suggestions", (root, context) -> {
+            final StringListModel history = new StringListModel(List.of(
+                "Латунь с родиевым покрытием", "Серебро", "Золото"
+            ));
+            final SuggestionField first = new SuggestionField();
+            first.setSuggestionsModel(history);
+            final SuggestionField next = new SuggestionField();
+            next.setSuggestionsModel(history);
+            final TextWidget current = new TextWidget();
+            first.onTextInput(text -> current.setText("Value: " + text));
+            final Button save = new Button("Save value");
+            save.onClick(event -> {
+                final List<String> updated = new ArrayList<>(history.getData());
+                updated.add(first.getText());
+                history.setData(updated);
+            });
+            root.add(new Section(first));
+            root.add(new Section(save, current));
+            root.add(new Section(next));
+        });
         application.addPage("image-cache", (root, context) -> {
             final Section container = new Section();
             final Runnable show = () -> {

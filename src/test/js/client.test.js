@@ -24,6 +24,7 @@ const handlerNames = [
     "setDisabledFlag",
     "setHiddenFlag",
     "setText",
+    "setSuggestions",
     "setOptions",
     "setOption",
     "setCarouselSources",
