@@ -344,3 +344,17 @@ the application can query the corresponding record models again and pass them to
 `setSuggestionModels`. Keep separate suggestion lists for separate product properties.
 The `AllWidgets` example demonstrates two fields sharing existing string models, a separate
 input editing one source model, and an explicit save button adding another model.
+
+## Mobile form control sizing
+
+Default `InputField` and `DropDownList` styles use a 16 CSS pixel font in every state.
+`PasswordInput`, `TextArea` and `SuggestionField` inherit that input size. This avoids
+Safari's focus enlargement for the standard controls on iPhone. Custom styles remain
+configurable; keep editable controls at least 16 CSS pixels to avoid reintroducing it.
+The default size applies on desktop too.
+
+Form controls and buttons (including `FileLoader`) use `touch-action: manipulation`.
+This prevents double-tap zoom on those controls while allowing scrolling and pinch zoom.
+The viewport does not disable user scaling, and custom carousel/zoom gesture rules remain
+unchanged. Mobile browser automation checks the rendered defaults and tapping; actual
+Safari keyboard/focus zoom should also be checked on an iPhone.

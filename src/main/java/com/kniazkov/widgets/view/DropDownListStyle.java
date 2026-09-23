@@ -50,7 +50,7 @@ public final class DropDownListStyle extends Style implements HasStyledText, Has
         this.setBoxSizing(BoxSizing.BORDER_BOX);
 
         final FontFaceModel face = new FontFaceModel(DefaultTheme.FONT);
-        final FontSizeModel size = new FontSizeModel("15px");
+        final FontSizeModel size = new FontSizeModel("16px");
         final FontWeightModel weight = new FontWeightModel(FontWeight.NORMAL);
         final BooleanModel italic = new BooleanModel(false);
         final TextDecorationModel decoration = new TextDecorationModel(TextDecoration.NONE);

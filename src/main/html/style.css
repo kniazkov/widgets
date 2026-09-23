@@ -8,6 +8,11 @@ input, textarea, select, button {
     box-shadow: none !important;
 }
 
+/* Keep scrolling and pinch zoom, but avoid double-tap zoom on form controls. */
+input, textarea, select, button {
+    touch-action: manipulation;
+}
+
 input:focus, textarea:focus, select:focus {
     outline: none !important;
     box-shadow: none !important;
