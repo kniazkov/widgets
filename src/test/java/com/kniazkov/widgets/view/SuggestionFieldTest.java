@@ -22,6 +22,35 @@ import static org.junit.Assert.assertThrows;
  */
 public final class SuggestionFieldTest {
     /**
+     * Tests separator defaults, inherited styles and live model rebinding.
+     */
+    @Test
+    public void bindsReactiveSeparatorWithoutChangingTextOrSuggestions() {
+        assertEquals("", new SuggestionField().getSuggestionSeparator());
+        final SuggestionFieldStyle style = SuggestionField.getDefaultStyle().derive();
+        style.setSuggestionSeparator(",");
+        final SuggestionField field = new SuggestionField(style, List.of("Black", "White"));
+        assertEquals(",", field.getSuggestionSeparator());
+        final StringModel separator = new StringModel(";");
+        field.setSuggestionSeparatorModel(separator);
+        field.setText("Black, Wh");
+        final WidgetSandbox<SuggestionField> sandbox = WidgetSandbox.open(field);
+        sandbox.clearUpdates();
+        separator.setData("|");
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set suggestion separator", field);
+        assertEquals(1, updates.size());
+        assertEquals("|", updates.get(0).get("suggestion separator").getStringValue());
+        assertSame(separator, field.getSuggestionSeparatorModel());
+        field.setSuggestionSeparatorModel(new StringModel(""));
+        sandbox.clearUpdates();
+        separator.setData(",");
+        assertEquals(0, sandbox.drainUpdates().size());
+        assertEquals("Black, Wh", field.getText());
+        assertEquals("Black", field.getSuggestionModel(0).getData());
+    }
+
+    /**
      * The constructor retains existing models rather than copying their string values.
      */
     @Test

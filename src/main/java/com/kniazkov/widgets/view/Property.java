@@ -382,6 +382,12 @@ public abstract class Property<T> {
     public static final Property<String> TEXT = stringProperty("text");
 
     /**
+     * Literal separator for suggestion tokens; empty means whole-field suggestions.
+     */
+    public static final Property<String> SUGGESTION_SEPARATOR =
+        stringProperty("suggestion separator");
+
+    /**
      * Property representing the selected position in a selection control.
      */
     public static final Property<Integer> SELECTED_INDEX = of(

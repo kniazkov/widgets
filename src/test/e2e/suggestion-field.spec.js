@@ -70,3 +70,31 @@ test.describe("mobile suggestions", () => {
         );
     });
 });
+
+for (const touch of [false, true]) {
+    test.describe(touch ? "touch token suggestions" : "keyboard token suggestions", () => {
+        test.use({ viewport: { width: 390, height: 700 }, hasTouch: touch, isMobile: touch });
+        test("replaces only the current color and updates its Java text model", async ({
+            page
+        }) => {
+            await page.goto("/suggestions");
+            const colors = page.getByRole("combobox").nth(2);
+            await colors.fill("Black, Wh, Blue");
+            await colors.evaluate(input => {
+                input.setSelectionRange(9, 9);
+                input.click();
+            });
+            await expect(page.getByRole("option")).toHaveText(["White"]);
+            if (touch) await page.getByRole("option", { name: "White", exact: true }).tap();
+            else {
+                await colors.press("ArrowDown");
+                await colors.press("Enter");
+            }
+            await expect(colors).toHaveValue("Black, White, Blue");
+            await expect(
+                page.getByText("Colors: Black, White, Blue", { exact: true })
+            ).toBeVisible();
+            await expect(page.getByRole("listbox")).toHaveCount(0);
+        });
+    });
+}

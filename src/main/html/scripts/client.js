@@ -476,6 +476,7 @@ const actionHandlers = {
     "set hidden": setHiddenFlag,
     "set text": setText,
     "set suggestions": setSuggestions,
+    "set suggestion separator": setSuggestionSeparator,
     "set options": setOptions,
     "set option": setOption,
     "set carousel sources": setCarouselSources,

@@ -43,6 +43,7 @@ function createHarness() {
         window.__dropDownHarness = {
             createWidget,
             setSuggestions,
+            setSuggestionSeparator,
             setText,
             removeChildWidget,
             setDisabledFlag,
@@ -171,5 +172,83 @@ describe("suggestion field", () => {
         expect(options(document)).toEqual(["Silver"]);
         harness.setText({ widget: "#30", text: "stale" });
         expect(input.value).toBe("sil");
+    });
+});
+
+describe("separated suggestions", () => {
+    function separated(separator = ",") {
+        const state = field();
+        state.harness.setSuggestionSeparator({ widget: "#30", "suggestion separator": separator });
+        state.input.focus();
+        return state;
+    }
+
+    it("replaces the last token and sends the entire text to the server", () => {
+        const { input, harness, document } = separated();
+        type(input, "Silver, go");
+        expect(options(document)).toEqual(["Gold"]);
+        key(input, "ArrowDown");
+        key(input, "Enter");
+        expect(input.value).toBe("Silver, Gold");
+        expect(input.selectionStart).toBe(12);
+        expect(harness.events.at(-1).data.text).toBe("Silver, Gold");
+        expect(options(document)).toEqual([]);
+    });
+
+    it("edits the middle token preserving whitespace and both neighbours", () => {
+        const { input, document } = separated();
+        type(input, "Silver,  go  , Custom");
+        input.setSelectionRange(10, 10);
+        input.click();
+        expect(options(document)).toEqual(["Gold"]);
+        document.querySelector('[role="option"]').click();
+        expect(input.value).toBe("Silver,  Gold  , Custom");
+        expect(input.selectionStart).toBe(13);
+        input.setSelectionRange(2, 2);
+        input.dispatchEvent(new dom.window.KeyboardEvent("keyup", { key: "Home" }));
+        expect(options(document)).toEqual(["Silver"]);
+    });
+
+    it("handles empty trailing tokens and literal multi-character separators", () => {
+        const { input, document } = separated("||");
+        type(input, "Silver||  ");
+        expect(options(document)).toEqual(["Silver", "Rhodium brass", "Gold"]);
+        document.querySelectorAll('[role="option"]')[2].click();
+        expect(input.value).toBe("Silver||  Gold");
+        input.setSelectionRange(7, 7);
+        input.click();
+        expect(options(document)).toEqual([]);
+    });
+
+    it("does not offer replacement across a separator or during composition", () => {
+        const { input, document } = separated();
+        type(input, "Silver, Gold");
+        input.setSelectionRange(2, 10);
+        input.click();
+        expect(options(document)).toEqual([]);
+        input.dispatchEvent(new dom.window.Event("compositionstart"));
+        type(input, "Silver, go");
+        key(input, "ArrowDown");
+        key(input, "Enter");
+        expect(input.value).toBe("Silver, go");
+        expect(options(document)).toEqual([]);
+        input.dispatchEvent(new dom.window.Event("compositionend"));
+        expect(options(document)).toEqual(["Gold"]);
+    });
+
+    it("reacts to separator and source updates without changing the text", () => {
+        const { input, harness, document } = separated();
+        type(input, "Silver; go");
+        expect(options(document)).toEqual([]);
+        harness.setSuggestionSeparator({ widget: "#30", "suggestion separator": ";" });
+        expect(options(document)).toEqual(["Gold"]);
+        harness.setSuggestions({ widget: "#30", suggestions: ["Gold alloy", "Gold; Silver"] });
+        expect(options(document)).toEqual(["Gold alloy"]);
+        harness.setSuggestionSeparator({ widget: "#30", "suggestion separator": "" });
+        expect(options(document)).toEqual([]);
+        expect(input.value).toBe("Silver; go");
+        expect(
+            harness.setSuggestionSeparator({ widget: "#30", "suggestion separator": null })
+        ).toBe(false);
     });
 });

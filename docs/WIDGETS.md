@@ -339,6 +339,34 @@ Escape dismisses the list and Tab leaves the field without choosing. Mouse click
 finger taps select an entry; the selected text remains editable. No match leaves a normal
 text input. Matching is local, while text and list changes use the normal model protocol.
 
+### Multiple values
+
+Set `Property.SUGGESTION_SEPARATOR` through `setSuggestionSeparator(",")` or bind an
+application-owned `Model<String>` with `setSuggestionSeparatorModel(model)`. The property
+is also available on `SuggestionFieldStyle`. Its default is `""` (whole-field suggestions).
+A nonempty separator is a **literal string**, not a regular expression; `";"` and `"||"`
+are supported too. Changes to the model update filtering without modifying the entered text.
+
+```java
+final SuggestionField colors = new SuggestionField(List.of(blackModel, whiteModel, blueModel));
+colors.setTextModel(productColorsModel);
+colors.setSuggestionSeparatorModel(new StringModel(","));
+```
+
+For `Black, Wh, Blue`, placing the caret in `Wh` and selecting `White` yields
+`Black, White, Blue`. Filtering uses the entire current token, trimmed and case-insensitive.
+Choosing replaces that token only, preserves surrounding whitespace and other tokens, and
+places the caret after the inserted value. An empty token offers all suggestions. Clicking
+or moving the caret with Left/Right/Home/End refreshes the list. A selection spanning a
+separator (or a caret inside a multi-character separator) offers no replacement.
+Suggestions containing the separator are omitted in this mode. Quoting and escaping are
+not supported; choose a separator that cannot occur within an individual value.
+
+The text model still holds the **complete string**. Splitting it for persistence, validating
+values, removing duplicates, normalizing spelling and remembering saved values are application
+responsibilities. The widget does not append separators or save tokens automatically.
+`AllWidgets` includes a comma-separated color example alongside the ordinary fields.
+
 The widget never remembers unsaved input automatically. After successfully saving a product,
 the application can query the corresponding record models again and pass them to
 `setSuggestionModels`. Keep separate suggestion lists for separate product properties.

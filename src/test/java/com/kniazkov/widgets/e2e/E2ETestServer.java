@@ -161,6 +161,11 @@ public final class E2ETestServer {
             root.add(new Section(first));
             root.add(new Section(save, rename, current));
             root.add(new Section(next));
+            final SuggestionField colors = new SuggestionField("Black", "White", "Blue");
+            colors.setSuggestionSeparatorModel(new StringModel(","));
+            final TextWidget colorValue = new TextWidget();
+            colors.onTextInput(text -> colorValue.setText("Colors: " + text));
+            root.add(new Section(colors, colorValue));
         });
         application.addPage("image-cache", (root, context) -> {
             final Section container = new Section();

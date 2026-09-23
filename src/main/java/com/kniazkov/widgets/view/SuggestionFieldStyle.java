@@ -6,7 +6,7 @@ package com.kniazkov.widgets.view;
 /**
  * Style definition for an editable suggestion field.
  */
-public class SuggestionFieldStyle extends InputFieldStyle {
+public class SuggestionFieldStyle extends InputFieldStyle implements HasSuggestionSeparator {
     /**
      * Default suggestion field style.
      */
@@ -17,6 +17,7 @@ public class SuggestionFieldStyle extends InputFieldStyle {
      */
     private SuggestionFieldStyle() {
         super(InputFieldStyle.DEFAULT);
+        this.setSuggestionSeparator("");
     }
 
     /**
