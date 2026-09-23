@@ -66,6 +66,7 @@ classDiagram
     InlineWidget <|-- CheckBox
     InlineWidget <|-- RadioButton
     InlineWidget <|-- DropDownList
+    InputField <|-- SuggestionField
     InputField <|-- PasswordInput
     InputField <|-- TextArea
 ```
@@ -134,6 +135,7 @@ dynamic collections while preserving iteration order.
 | `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
 | `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
 | `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. Implements `HasHorizontalAlignment`, so its text can be aligned left, center, right, or justified. |
+| `SuggestionField` | `suggestion field` | Editable text with a reactive list of optional suggestions, substring filtering, touch selection and keyboard navigation. Arbitrary new values are allowed. |
 | `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
 | `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
 | `CheckBox` | `checkbox` | Boolean selection control rendered from configurable selected and unselected images. Supports pointer and disabled states. |
@@ -298,3 +300,47 @@ setting to application state; changes take effect while the popup is open. The d
 `Property.CLOSE_ON_OUTSIDE_CLICK` also supports configuration through `ModalPopupStyle`.
 The server checks the current setting before removing the popup and its backdrop.
 `AllWidgets` demonstrates a dismissible message with a checkbox bound to this model.
+
+## Editable suggestions
+
+`SuggestionField` extends `InputField`. It preserves text binding, validation, disabled state,
+focus and text-input events. `SuggestionFieldStyle` inherits standard input styling; the list
+uses the field's font, colors and border.
+
+Like `DropDownList`, it accepts **existing `Model<String>` instances**, including models
+provided by database records. Each suggestion retains its original model reference and
+subscribes to changes; no intermediate list-value model or text copies are needed in the API.
+
+```java
+final SuggestionField field = new SuggestionField(List.of(
+    firstProperty.getTextModel(), secondProperty.getTextModel()
+));
+field.setTextModel(productValue);
+```
+
+The constructor accepts `Iterable<Model<String>>`, optionally after a `SuggestionFieldStyle`.
+Convenience constructors accepting strings create `StringModel` instances, like `DropDownList`.
+`getSuggestionModels()` returns an immutable snapshot of the model references;
+`getSuggestionModel(index)` and `setSuggestionModel(index, model)` expose individual bindings.
+`setSuggestionModels(models)` replaces the list, for example after querying newly saved records.
+It copies only the collection structure and detaches listeners from old models. Later structural
+changes to the supplied collection require another call; changes to the models update the UI
+automatically. Empty lists are allowed; null models are rejected.
+
+The editable `Property.TEXT` model is independent of the source suggestion models. Choosing a
+suggestion copies its current text into that model; it does not rebind the field or write back
+to a source record. Read-only suggestion models are supported. Updating, reordering or removing
+suggestions never changes already entered text.
+
+Focus or click opens matching suggestions. An empty field shows all values; typing filters
+by case-insensitive substring. Blank entries and exact duplicates are omitted from the
+visible list without modifying the model. Arrow keys move the highlight; Enter chooses it;
+Escape dismisses the list and Tab leaves the field without choosing. Mouse clicks and
+finger taps select an entry; the selected text remains editable. No match leaves a normal
+text input. Matching is local, while text and list changes use the normal model protocol.
+
+The widget never remembers unsaved input automatically. After successfully saving a product,
+the application can query the corresponding record models again and pass them to
+`setSuggestionModels`. Keep separate suggestion lists for separate product properties.
+The `AllWidgets` example demonstrates two fields sharing existing string models, a separate
+input editing one source model, and an explicit save button adding another model.

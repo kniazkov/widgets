@@ -45,3 +45,30 @@ img, textarea, button {
     text-shadow: 0 0 12px rgba(208, 0, 0, 0.45),
         0 0 32px rgba(208, 0, 0, 0.35);
 }
+
+/* An editable combobox keeps its suggestion list outside clipping containers. */
+.suggestion-list {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: 0;
+    z-index: 2147483646;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
+}
+
+.suggestion-list [role="option"] {
+    padding: 10px 12px;
+    min-height: 44px;
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.suggestion-list [role="option"]:hover,
+.suggestion-list [aria-selected="true"] {
+    background: rgba(128, 128, 128, 0.18);
+}

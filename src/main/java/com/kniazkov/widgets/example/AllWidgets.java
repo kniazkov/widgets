@@ -32,6 +32,9 @@ import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.InlineBlockStyle;
 import com.kniazkov.widgets.view.InlineWidget;
 import com.kniazkov.widgets.view.InputField;
+import com.kniazkov.widgets.view.SuggestionField;
+import com.kniazkov.widgets.model.Model;
+import java.util.ArrayList;
 import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.LinkStyle;
@@ -139,6 +142,7 @@ public class AllWidgets {
         addActiveTextWidgets(root);
         addLinks(root);
         addInputFields(root);
+        addSuggestionFields(root);
         addPasswordInputs(root);
         addTextAreas(root);
         addCheckBoxes(root);
@@ -426,6 +430,44 @@ public class AllWidgets {
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Demonstrates shared suggestions and application-controlled history.
+     * @param root page root
+     */
+    private static void addSuggestionFields(final RootWidget root) {
+        final Panel card = addCard(root, "SuggestionField",
+            "Choose a previous value or type your own. Save to offer it in both fields.");
+        final StringModel fittings = new StringModel("Rhodium-plated brass");
+        final List<Model<String>> suggestions = new ArrayList<>(List.of(
+            fittings, new StringModel("Silver"), new StringModel("Gold-plated brass")
+        ));
+        final SuggestionField first = new SuggestionField(suggestions);
+        final SuggestionField second = new SuggestionField(suggestions);
+        final InputField source = new InputField();
+        source.setTextModel(fittings);
+        final TextWidget value = feedback("");
+        value.setTextModel(first.getTextModel());
+        final Button save = new Button("Save suggestion");
+        save.onClick(event -> {
+            final String text = first.getText().trim();
+            if (!text.isEmpty()
+                    && suggestions.stream().noneMatch(model -> text.equals(model.getData()))) {
+                suggestions.add(new StringModel(text));
+                first.setSuggestionModels(suggestions);
+                second.setSuggestionModels(suggestions);
+            }
+        });
+        final SuggestionField disabled = new SuggestionField(List.of("Unavailable"));
+        disabled.disable();
+        final Section row = variantRow();
+        row.add(variant("Fittings — type rhodium to filter", first, value));
+        row.add(save);
+        row.add(variant("Next product — shared suggestions", second));
+        row.add(variant("Edit the first source model", source));
+        row.add(variant("Disabled", disabled));
+        card.add(row);
     }
 
     /**
