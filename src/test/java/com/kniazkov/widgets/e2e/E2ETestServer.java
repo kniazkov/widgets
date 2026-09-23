@@ -16,6 +16,9 @@ import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.InputField;
+import com.kniazkov.widgets.view.PasswordInput;
+import com.kniazkov.widgets.view.TextArea;
+import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.SuggestionField;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.StringModel;
@@ -125,6 +128,19 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("form-controls", (root, context) -> {
+            root.add(new Section(new InputField(), new PasswordInput(), new TextArea(),
+                new SuggestionField("Suggestion"), new DropDownList("Option")));
+            final InputField large = new InputField();
+            large.setFontSize("20px");
+            root.add(new Section(large));
+            final TextWidget status = new TextWidget("Clicks: 0");
+            final java.util.concurrent.atomic.AtomicInteger clicks =
+                new java.util.concurrent.atomic.AtomicInteger();
+            final Button button = new Button("Tap twice");
+            button.onClick(event -> status.setText("Clicks: " + clicks.incrementAndGet()));
+            root.add(new Section(button, status, new FileLoader("Choose file")));
+        });
         application.addPage("suggestions", (root, context) -> {
             final StringModel fittings = new StringModel("Латунь с родиевым покрытием");
             final List<Model<String>> history = new ArrayList<>(List.of(

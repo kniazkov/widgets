@@ -62,7 +62,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setFontFaceModel(State.INVALID, face.asCascading());
         this.setFontFaceModel(State.DISABLED, face.asCascading());
 
-        final FontSizeModel size = new FontSizeModel("15px");
+        final FontSizeModel size = new FontSizeModel("16px");
         this.setFontSizeModel(State.NORMAL, size);
         this.setFontSizeModel(State.HOVERED, size.asCascading());
         this.setFontSizeModel(State.FOCUSED, size.asCascading());
