@@ -34,7 +34,7 @@ public class ActiveTextStyle extends Style implements HasStyledText, HasColor, H
         this.setCursor(Cursor.POINTER);
         this.setTransition(DefaultTheme.TRANSITION);
         this.setFontFace(DefaultTheme.FONT);
-        this.setFontSize("15px");
+        this.setFontSize("16px");
         this.setFontWeight(FontWeight.SEMIBOLD);
         this.setItalic(false);
         this.setTextDecoration(TextDecoration.NONE);
