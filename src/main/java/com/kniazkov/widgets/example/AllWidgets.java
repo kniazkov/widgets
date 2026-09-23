@@ -467,6 +467,14 @@ public class AllWidgets {
         row.add(variant("Next product — shared suggestions", second));
         row.add(variant("Edit the first source model", source));
         row.add(variant("Disabled", disabled));
+        final SuggestionField colors = new SuggestionField(List.of(
+            new StringModel("Black"), new StringModel("White"), new StringModel("Blue")
+        ));
+        colors.setSuggestionSeparatorModel(new StringModel(","));
+        colors.setText("Black, Wh");
+        final TextWidget colorValue = feedback("");
+        colorValue.setTextModel(colors.getTextModel());
+        row.add(variant("Colors — use commas; edit any value", colors, colorValue));
         card.add(row);
     }
 

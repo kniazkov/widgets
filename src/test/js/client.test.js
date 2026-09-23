@@ -25,6 +25,7 @@ const handlerNames = [
     "setHiddenFlag",
     "setText",
     "setSuggestions",
+    "setSuggestionSeparator",
     "setOptions",
     "setOption",
     "setCarouselSources",

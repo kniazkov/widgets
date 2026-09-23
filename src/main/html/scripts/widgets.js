@@ -1453,6 +1453,7 @@ function createSuggestionField() {
     widget.setAttribute("aria-expanded", "false");
     widget.autocomplete = "off";
     widget._suggestions = [];
+    widget._suggestionSeparator = "";
     let list = null;
     let active = -1;
     let observer = null;
@@ -1513,9 +1514,74 @@ function createSuggestionField() {
         }
     }
 
+    // A selection spanning separators is deliberately not replaced by a suggestion.
+    function token() {
+        const text = widget.value;
+        const separator = widget._suggestionSeparator;
+        if (!separator) return { start: 0, end: text.length, query: text };
+        const from = widget.selectionStart ?? text.length;
+        const to = widget.selectionEnd ?? from;
+        let start = 0;
+        let index = 0;
+        while (true) {
+            const boundary = text.indexOf(separator, start);
+            const end = boundary < 0 ? text.length : boundary;
+            if (from <= end) {
+                if (to > end) return null;
+                const raw = text.slice(start, end);
+                const leading = raw.match(/^\s*/)[0].length;
+                const trailing = raw.trim() ? raw.match(/\s*$/)[0].length : 0;
+                return { start: start + leading, end: end - trailing, query: raw.trim(), index };
+            }
+            if (boundary < 0 || from < end + separator.length) return null;
+            start = end + separator.length;
+            index++;
+        }
+    }
+
+    function keyOf(value) {
+        return value.trim().toLowerCase();
+    }
+
+    function otherValues(current) {
+        return new Set(
+            widget._suggestionSeparator
+                ? widget.value
+                      .split(widget._suggestionSeparator)
+                      .filter((value, index) => index !== current.index)
+                      .map(keyOf)
+                : []
+        );
+    }
+
+    function removeDuplicates() {
+        if (!widget._suggestionSeparator || widget.disabled || composing) return;
+        const seen = new Set();
+        const value = widget.value
+            .split(widget._suggestionSeparator)
+            .filter(token => {
+                const key = keyOf(token);
+                // Empty tokens remain editable; this is not required-value validation.
+                if (!key) return true;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .join(widget._suggestionSeparator);
+        if (value !== widget.value) {
+            widget.value = value;
+            widget.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+    }
+
     function select(value) {
         if (widget.disabled) return;
-        widget.value = value;
+        const current = token();
+        if (!current || composing || otherValues(current).has(keyOf(value))) return;
+        widget.value =
+            widget.value.slice(0, current.start) + value + widget.value.slice(current.end);
+        const caret = current.start + value.length;
+        widget.setSelectionRange(caret, caret);
         close();
         // Use the ordinary text-input pipeline, including delayed-echo protection.
         widget.dispatchEvent(new Event("input", { bubbles: true }));
@@ -1525,9 +1591,16 @@ function createSuggestionField() {
     function render() {
         close();
         if (widget.disabled || document.activeElement !== widget || composing) return;
-        const query = widget.value.toLowerCase();
+        const current = token();
+        if (!current) return;
+        const query = current.query.toLowerCase();
+        const used = otherValues(current);
         const values = [...new Set(widget._suggestions)].filter(
-            value => value.trim() && value.toLowerCase().includes(query)
+            value =>
+                value.trim() &&
+                !used.has(keyOf(value)) &&
+                value.toLowerCase().includes(query) &&
+                (!widget._suggestionSeparator || !value.includes(widget._suggestionSeparator))
         );
         if (!values.length) return;
         list = document.createElement("div");
@@ -1576,18 +1649,29 @@ function createSuggestionField() {
         widget._suggestions = values.slice();
         render();
     };
+    widget._setSuggestionSeparator = value => {
+        widget._suggestionSeparator = value;
+        render();
+    };
+    widget.addEventListener("keyup", event => {
+        if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) render();
+    });
     widget._closeSuggestions = close;
     widget._onDetached = close;
     widget.addEventListener("focus", render);
     widget.addEventListener("click", render);
     widget.addEventListener("input", render);
-    widget.addEventListener("blur", close);
+    widget.addEventListener("blur", () => {
+        close();
+        removeDuplicates();
+    });
     widget.addEventListener("compositionstart", () => {
         composing = true;
         close();
     });
     widget.addEventListener("compositionend", () => {
         composing = false;
+        if (document.activeElement !== widget) removeDuplicates();
         render();
     });
     widget.addEventListener("keydown", event => {
@@ -1617,6 +1701,14 @@ function createSuggestionField() {
         }
     });
     return widget;
+}
+
+function setSuggestionSeparator(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._setSuggestionSeparator || typeof data["suggestion separator"] !== "string")
+        return false;
+    widget._setSuggestionSeparator(data["suggestion separator"]);
+    return true;
 }
 
 function setSuggestions(data) {

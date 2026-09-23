@@ -21,7 +21,7 @@ import java.util.Set;
  * copies its current text into the field's text model, without modifying the source model.
  * Arbitrary text is allowed; the application owns the suggestion history.
  */
-public class SuggestionField extends InputField {
+public class SuggestionField extends InputField implements HasSuggestionSeparator {
     /**
      * Ordered references to the application's suggestion models.
      */
