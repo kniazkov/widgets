@@ -33,7 +33,7 @@ import com.kniazkov.widgets.view.InlineBlockStyle;
 import com.kniazkov.widgets.view.InlineWidget;
 import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.SuggestionField;
-import com.kniazkov.widgets.model.StringListModel;
+import com.kniazkov.widgets.model.Model;
 import java.util.ArrayList;
 import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Link;
@@ -439,22 +439,24 @@ public class AllWidgets {
     private static void addSuggestionFields(final RootWidget root) {
         final Panel card = addCard(root, "SuggestionField",
             "Choose a previous value or type your own. Save to offer it in both fields.");
-        final StringListModel suggestions = new StringListModel(List.of(
-            "Латунь с родиевым покрытием", "Серебро", "Позолоченная латунь"
+        final StringModel fittings = new StringModel("Латунь с родиевым покрытием");
+        final List<Model<String>> suggestions = new ArrayList<>(List.of(
+            fittings, new StringModel("Серебро"), new StringModel("Позолоченная латунь")
         ));
-        final SuggestionField first = new SuggestionField();
-        first.setSuggestionsModel(suggestions);
-        final SuggestionField second = new SuggestionField();
-        second.setSuggestionsModel(suggestions);
+        final SuggestionField first = new SuggestionField(suggestions);
+        final SuggestionField second = new SuggestionField(suggestions);
+        final InputField source = new InputField();
+        source.setTextModel(fittings);
         final TextWidget value = feedback("");
         value.setTextModel(first.getTextModel());
         final Button save = new Button("Save suggestion");
         save.onClick(event -> {
             final String text = first.getText().trim();
-            if (!text.isEmpty() && !suggestions.getData().contains(text)) {
-                final List<String> updated = new ArrayList<>(suggestions.getData());
-                updated.add(text);
-                suggestions.setData(updated);
+            if (!text.isEmpty()
+                    && suggestions.stream().noneMatch(model -> text.equals(model.getData()))) {
+                suggestions.add(new StringModel(text));
+                first.setSuggestionModels(suggestions);
+                second.setSuggestionModels(suggestions);
             }
         });
         final SuggestionField disabled = new SuggestionField(List.of("Unavailable"));
@@ -463,6 +465,7 @@ public class AllWidgets {
         row.add(variant("Fittings — type род to filter", first, value));
         row.add(save);
         row.add(variant("Next product — shared suggestions", second));
+        row.add(variant("Edit the first source model", source));
         row.add(variant("Disabled", disabled));
         card.add(row);
     }

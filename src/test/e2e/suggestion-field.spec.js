@@ -26,6 +26,28 @@ test("keyboard selection and saved values travel through Java models", async ({ 
     await expect(page.getByRole("listbox")).toHaveCount(0);
 });
 
+test("source model changes update both fields without overwriting entered text", async ({
+    page
+}) => {
+    await page.goto("/suggestions");
+    const first = page.getByRole("combobox").nth(0);
+    const next = page.getByRole("combobox").nth(1);
+    await first.fill("Draft");
+    await page.getByRole("button", { name: "Rename source value" }).click();
+    await expect(first).toHaveValue("Draft");
+    await next.focus();
+    await expect(
+        page.getByRole("option", { name: "Родированная латунь", exact: true })
+    ).toBeVisible();
+    await expect(
+        page.getByRole("option", { name: "Латунь с родиевым покрытием", exact: true })
+    ).toHaveCount(0);
+    await first.fill("");
+    await expect(
+        page.getByRole("option", { name: "Родированная латунь", exact: true })
+    ).toBeVisible();
+});
+
 test.describe("mobile suggestions", () => {
     test.use({ viewport: { width: 390, height: 700 }, hasTouch: true, isMobile: true });
 

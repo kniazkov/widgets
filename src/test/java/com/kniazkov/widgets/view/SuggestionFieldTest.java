@@ -5,7 +5,8 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.controller.Event;
-import com.kniazkov.widgets.model.StringListModel;
+import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.ReadOnlyModel;
 import com.kniazkov.widgets.model.StringModel;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,94 +14,154 @@ import java.util.List;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 
 /**
- * Tests suggestion snapshots, bindings, protocol updates and unrestricted text input.
+ * Tests direct source-model bindings and independent editable text.
  */
 public final class SuggestionFieldTest {
     /**
-     * Mutable caller lists cannot silently modify a model or queued protocol update.
+     * The constructor retains existing models rather than copying their string values.
      */
     @Test
-    public void snapshotsProtectModelData() {
-        final List<String> source = new ArrayList<>(List.of("Silver"));
-        final StringListModel model = new StringListModel(source);
-        source.add("Gold");
-        assertEquals(List.of("Silver"), model.getData());
-        assertThrows(UnsupportedOperationException.class, () -> model.getData().add("Gold"));
-        model.setData(source);
-        source.clear();
-        assertEquals(List.of("Silver", "Gold"), model.getData());
-        assertFalse(model.setData(null));
-        assertFalse(model.setData(Arrays.asList("Silver", null)));
-        assertFalse(model.setData(List.of("Silver", "Gold")));
-        assertEquals(List.of("Other"), model.deriveWithData(List.of("Other")).getData());
+    public void retainsModelsAndReactsToSourceChanges() {
+        final StringModel source = new StringModel("Silver");
+        final List<Model<String>> models = new ArrayList<>(List.of(source));
+        final SuggestionField first = new SuggestionField(models);
+        final SuggestionField second = new SuggestionField(models);
+        assertSame(source, first.getSuggestionModel(0));
+        assertSame(source, second.getSuggestionModels().get(0));
+        models.clear();
+        assertEquals(1, first.getSuggestionModels().size());
+        assertThrows(UnsupportedOperationException.class,
+            () -> first.getSuggestionModels().clear());
+        final WidgetSandbox<SuggestionField> one = WidgetSandbox.open(first);
+        final WidgetSandbox<SuggestionField> two = WidgetSandbox.open(second);
+        one.clearUpdates();
+        two.clearUpdates();
+        source.setData("Gold");
+        assertSuggestions(one, first, List.of("Gold"));
+        assertSuggestions(two, second, List.of("Gold"));
     }
 
     /**
-     * A shared list updates each field and can be rebound independently.
+     * Rebinding detaches obsolete listeners and preserves the entered text.
      */
     @Test
-    public void suggestionsReactAndRebind() {
-        final StringListModel history = new StringListModel(List.of("Silver", "Gold"));
-        final SuggestionField first = new SuggestionField();
-        final SuggestionField second = new SuggestionField();
-        first.setSuggestionsModel(history);
-        second.setSuggestionsModel(history);
-        final WidgetSandbox<SuggestionField> sandbox = WidgetSandbox.open(first);
-        final List<JsonObject> initial = WidgetSandbox.findUpdates(
-            sandbox.drainUpdates(), "set suggestions", first
-        );
-        assertEquals("Gold", initial.get(initial.size() - 1).get("suggestions").toJsonArray()
-            .getElement(1).getStringValue());
-        history.setData(List.of("New"));
-        assertEquals(List.of("New"), second.getSuggestions());
-        assertEquals(1, WidgetSandbox.findUpdates(
-            sandbox.drainUpdates(), "set suggestions", first).size());
-        final StringListModel replacement = new StringListModel();
-        first.setSuggestionsModel(replacement);
-        assertSame(replacement, first.getSuggestionsModel());
+    public void replacesIndividualModelsAndEntireList() {
+        final StringModel original = new StringModel("Old");
+        final StringModel replacement = new StringModel("Replacement");
+        final SuggestionField field = new SuggestionField(List.of(original));
+        field.setText("Draft");
+        final WidgetSandbox<SuggestionField> sandbox = WidgetSandbox.open(field);
         sandbox.clearUpdates();
-        history.setData(List.of("Detached"));
+        field.setSuggestionModel(0, replacement);
+        assertSame(replacement, field.getSuggestionModel(0));
+        assertSuggestions(sandbox, field, List.of("Replacement"));
+        original.setData("Detached");
         assertEquals(0, sandbox.drainUpdates().size());
-        replacement.setData(List.of("Replacement"));
-        assertEquals(1, WidgetSandbox.findUpdates(
-            sandbox.drainUpdates(), "set suggestions", first).size());
+        replacement.setData("Changed");
+        assertSuggestions(sandbox, field, List.of("Changed"));
+        field.setSuggestionModels(List.of(original, replacement));
+        assertSuggestions(sandbox, field, List.of("Detached", "Changed"));
+        field.setSuggestionModels(List.of());
+        assertSuggestions(sandbox, field, List.of());
+        replacement.setData("Detached too");
+        assertEquals(0, sandbox.drainUpdates().size());
+        assertEquals("Draft", field.getText());
     }
 
     /**
-     * Free text uses the existing text model and never silently modifies suggestions.
+     * Choosing a suggestion copies text, never writes to or rebinds a source model.
      */
     @Test
-    public void acceptsNewTextWithoutGrowingHistory() {
-        final SuggestionField field = new SuggestionField(List.of("Silver"));
+    public void supportsReadOnlySourcesAndIndependentText() {
+        final Model<String> source = ReadOnlyModel.create("Silver");
+        final SuggestionField field = new SuggestionField(List.of(source));
         final StringModel text = new StringModel();
         field.setTextModel(text);
         final WidgetSandbox<SuggestionField> sandbox = WidgetSandbox.open(field);
-        final JsonObject event = new JsonObject();
-        event.addString("text", "Something new");
-        sandbox.fire(Event.TEXT_INPUT, event);
+        final JsonObject selection = new JsonObject();
+        selection.addString("text", "Silver");
+        sandbox.fire(Event.TEXT_INPUT, selection);
+        assertEquals("Silver", text.getData());
+        assertSame(text, field.getTextModel());
+        final JsonObject edit = new JsonObject();
+        edit.addString("text", "Something new");
+        sandbox.fire(Event.TEXT_INPUT, edit);
         assertEquals("Something new", text.getData());
-        assertEquals(List.of("Silver"), field.getSuggestions());
-        field.setSuggestions(List.of());
-        assertEquals("Something new", text.getData());
+        assertEquals("Silver", source.getData());
+        assertEquals(1, field.getSuggestionModels().size());
     }
 
     /**
-     * Style inheritance and per-widget overrides use the standard property mechanism.
+     * Repeated references subscribe once and remain live until their last position is removed.
      */
     @Test
-    public void stylesSupplySuggestionDefaults() {
+    public void handlesRepeatedModelsAndRejectsNullsBeforeRebinding() {
+        final StringModel source = new StringModel("Silver");
+        final SuggestionField field = new SuggestionField(List.of(source, source));
+        final WidgetSandbox<SuggestionField> sandbox = WidgetSandbox.open(field);
+        sandbox.clearUpdates();
+        source.setData("Gold");
+        assertSuggestions(sandbox, field, List.of("Gold", "Gold"));
+        assertThrows(NullPointerException.class,
+            () -> field.setSuggestionModels(Arrays.asList(source, null)));
+        assertThrows(NullPointerException.class, () -> field.setSuggestionModels(null));
+        field.setSuggestionModel(0, new StringModel("Other"));
+        assertSuggestions(sandbox, field, List.of("Other", "Gold"));
+        source.setData("Still bound");
+        assertSuggestions(sandbox, field, List.of("Other", "Still bound"));
+        assertThrows(IndexOutOfBoundsException.class, () -> field.setSuggestionModel(2, source));
+    }
+
+    /**
+     * Queued and cloned initial updates keep their original values until a new update arrives.
+     */
+    @Test
+    public void serializesImmutableSnapshots() {
+        final StringModel source = new StringModel("Original");
+        final SuggestionField field = new SuggestionField(List.of(source));
+        source.setData("Changed");
+        final WidgetSandbox<SuggestionField> sandbox = WidgetSandbox.open(field);
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set suggestions", field);
+        assertEquals(2, updates.size());
+        assertEquals("Original", updates.get(0).get("suggestions").toJsonArray()
+            .getElement(0).getStringValue());
+        assertEquals("Changed", updates.get(1).get("suggestions").toJsonArray()
+            .getElement(0).getStringValue());
+    }
+
+    /**
+     * Convenience constructors still use independent models and standard input styles.
+     */
+    @Test
+    public void convenienceConstructorsCreateStringModels() {
         final SuggestionFieldStyle style = SuggestionField.getDefaultStyle().derive();
-        style.setSuggestions(List.of("Styled"));
-        final SuggestionField field = new SuggestionField(style, "Initial");
-        assertEquals(List.of("Styled"), field.getSuggestions());
-        field.setSuggestions(List.of("Local"));
-        assertEquals(List.of("Styled"), style.getSuggestions());
-        assertEquals(List.of(), new SuggestionField().getSuggestions());
+        final SuggestionField field = new SuggestionField(style, List.of("First", "Second"));
+        assertEquals("First", field.getSuggestionModel(0).getData());
+        assertEquals(2, new SuggestionField("A", "B").getSuggestionModels().size());
+        assertEquals(List.of(), new SuggestionField().getSuggestionModels());
         assertEquals("suggestion field", field.getType());
+    }
+
+    /**
+     * Asserts exactly one full suggestion update with the expected ordered strings.
+     * @param sandbox update source
+     * @param field target widget
+     * @param expected ordered strings
+     */
+    private static void assertSuggestions(final WidgetSandbox<SuggestionField> sandbox,
+            final SuggestionField field, final List<String> expected) {
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set suggestions", field);
+        assertEquals(1, updates.size());
+        assertEquals(expected.size(), updates.get(0).get("suggestions").toJsonArray().size());
+        for (int index = 0; index < expected.size(); index++) {
+            assertEquals(expected.get(index), updates.get(0).get("suggestions").toJsonArray()
+                .getElement(index).getStringValue());
+        }
     }
 }

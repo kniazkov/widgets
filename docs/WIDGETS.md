@@ -305,23 +305,32 @@ The server checks the current setting before removing the popup and its backdrop
 
 `SuggestionField` extends `InputField`. It preserves text binding, validation, disabled state,
 focus and text-input events. `SuggestionFieldStyle` inherits standard input styling; the list
-uses the field's font, colors and border. Its default suggestion list is empty.
+uses the field's font, colors and border.
+
+Like `DropDownList`, it accepts **existing `Model<String>` instances**, including models
+provided by database records. Each suggestion retains its original model reference and
+subscribes to changes; no intermediate list-value model or text copies are needed in the API.
 
 ```java
-final StringListModel history = new StringListModel(List.of(
-    "Латунь с родиевым покрытием", "Серебро"
+final SuggestionField field = new SuggestionField(List.of(
+    firstProperty.getTextModel(), secondProperty.getTextModel()
 ));
-final SuggestionField field = new SuggestionField();
-field.setSuggestionsModel(history);
 field.setTextModel(productValue);
 ```
 
-`Property.TEXT` holds the editable text. `Property.SUGGESTIONS` holds a `Model<List<String>>`;
-`getSuggestionsModel`, `setSuggestionsModel`, `getSuggestions` and `setSuggestions` expose it.
-`StringListModel` takes defensive copies and exposes immutable snapshots. Replace its list
-with `setData` to add, remove or reorder suggestions and notify all bound fields. Invalid
-null lists or null elements are rejected. An application-supplied model must likewise emit
-non-null lists of non-null strings.
+The constructor accepts `Iterable<Model<String>>`, optionally after a `SuggestionFieldStyle`.
+Convenience constructors accepting strings create `StringModel` instances, like `DropDownList`.
+`getSuggestionModels()` returns an immutable snapshot of the model references;
+`getSuggestionModel(index)` and `setSuggestionModel(index, model)` expose individual bindings.
+`setSuggestionModels(models)` replaces the list, for example after querying newly saved records.
+It copies only the collection structure and detaches listeners from old models. Later structural
+changes to the supplied collection require another call; changes to the models update the UI
+automatically. Empty lists are allowed; null models are rejected.
+
+The editable `Property.TEXT` model is independent of the source suggestion models. Choosing a
+suggestion copies its current text into that model; it does not rebind the field or write back
+to a source record. Read-only suggestion models are supported. Updating, reordering or removing
+suggestions never changes already entered text.
 
 Focus or click opens matching suggestions. An empty field shows all values; typing filters
 by case-insensitive substring. Blank entries and exact duplicates are omitted from the
@@ -331,6 +340,7 @@ finger taps select an entry; the selected text remains editable. No match leaves
 text input. Matching is local, while text and list changes use the normal model protocol.
 
 The widget never remembers unsaved input automatically. After successfully saving a product,
-the application may append its value to the shared model (or query distinct saved values
-from its database). Keep separate suggestion models for separate product properties.
-The `AllWidgets` example demonstrates two fields sharing a history and an explicit save button.
+the application can query the corresponding record models again and pass them to
+`setSuggestionModels`. Keep separate suggestion lists for separate product properties.
+The `AllWidgets` example demonstrates two fields sharing existing string models, a separate
+input editing one source model, and an explicit save button adding another model.

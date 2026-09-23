@@ -3,23 +3,20 @@
  */
 package com.kniazkov.widgets.view;
 
-import java.util.List;
-
 /**
- * Input field styling with an initially empty suggestion model.
+ * Style definition for an editable suggestion field.
  */
-public class SuggestionFieldStyle extends InputFieldStyle implements HasSuggestions {
+public class SuggestionFieldStyle extends InputFieldStyle {
     /**
      * Default suggestion field style.
      */
     public static final SuggestionFieldStyle DEFAULT = new SuggestionFieldStyle();
 
     /**
-     * Initializes standard input styling and an empty suggestion list.
+     * Initializes standard input styling.
      */
     private SuggestionFieldStyle() {
         super(InputFieldStyle.DEFAULT);
-        this.setSuggestions(List.of());
     }
 
     /**

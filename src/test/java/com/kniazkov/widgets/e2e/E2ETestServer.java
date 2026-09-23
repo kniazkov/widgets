@@ -17,7 +17,8 @@ import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.SuggestionField;
-import com.kniazkov.widgets.model.StringListModel;
+import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.StringModel;
 import java.util.List;
 import java.util.ArrayList;
 import com.kniazkov.widgets.view.Link;
@@ -125,23 +126,24 @@ public final class E2ETestServer {
             .build();
         final Application application = new Application(page);
         application.addPage("suggestions", (root, context) -> {
-            final StringListModel history = new StringListModel(List.of(
-                "Латунь с родиевым покрытием", "Серебро", "Золото"
+            final StringModel fittings = new StringModel("Латунь с родиевым покрытием");
+            final List<Model<String>> history = new ArrayList<>(List.of(
+                fittings, new StringModel("Серебро"), new StringModel("Золото")
             ));
-            final SuggestionField first = new SuggestionField();
-            first.setSuggestionsModel(history);
-            final SuggestionField next = new SuggestionField();
-            next.setSuggestionsModel(history);
+            final SuggestionField first = new SuggestionField(history);
+            final SuggestionField next = new SuggestionField(history);
+            final Button rename = new Button("Rename source value");
+            rename.onClick(event -> fittings.setData("Родированная латунь"));
             final TextWidget current = new TextWidget();
             first.onTextInput(text -> current.setText("Value: " + text));
             final Button save = new Button("Save value");
             save.onClick(event -> {
-                final List<String> updated = new ArrayList<>(history.getData());
-                updated.add(first.getText());
-                history.setData(updated);
+                history.add(new StringModel(first.getText()));
+                first.setSuggestionModels(history);
+                next.setSuggestionModels(history);
             });
             root.add(new Section(first));
-            root.add(new Section(save, current));
+            root.add(new Section(save, rename, current));
             root.add(new Section(next));
         });
         application.addPage("image-cache", (root, context) -> {
