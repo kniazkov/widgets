@@ -95,6 +95,12 @@ for (const touch of [false, true]) {
                 page.getByText("Colors: Black, White, Blue", { exact: true })
             ).toBeVisible();
             await expect(page.getByRole("listbox")).toHaveCount(0);
+            await colors.fill("White, White, Black");
+            await colors.press("Tab");
+            await expect(colors).toHaveValue("White, Black");
+            await expect(page.getByText("Colors: White, Black", { exact: true })).toBeVisible();
+            await colors.fill("White, ");
+            await expect(page.getByRole("option", { name: "White", exact: true })).toHaveCount(0);
         });
     });
 }

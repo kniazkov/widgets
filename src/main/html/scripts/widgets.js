@@ -1522,6 +1522,7 @@ function createSuggestionField() {
         const from = widget.selectionStart ?? text.length;
         const to = widget.selectionEnd ?? from;
         let start = 0;
+        let index = 0;
         while (true) {
             const boundary = text.indexOf(separator, start);
             const end = boundary < 0 ? text.length : boundary;
@@ -1530,17 +1531,53 @@ function createSuggestionField() {
                 const raw = text.slice(start, end);
                 const leading = raw.match(/^\s*/)[0].length;
                 const trailing = raw.trim() ? raw.match(/\s*$/)[0].length : 0;
-                return { start: start + leading, end: end - trailing, query: raw.trim() };
+                return { start: start + leading, end: end - trailing, query: raw.trim(), index };
             }
             if (boundary < 0 || from < end + separator.length) return null;
             start = end + separator.length;
+            index++;
+        }
+    }
+
+    function keyOf(value) {
+        return value.trim().toLowerCase();
+    }
+
+    function otherValues(current) {
+        return new Set(
+            widget._suggestionSeparator
+                ? widget.value
+                      .split(widget._suggestionSeparator)
+                      .filter((value, index) => index !== current.index)
+                      .map(keyOf)
+                : []
+        );
+    }
+
+    function removeDuplicates() {
+        if (!widget._suggestionSeparator || widget.disabled || composing) return;
+        const seen = new Set();
+        const value = widget.value
+            .split(widget._suggestionSeparator)
+            .filter(token => {
+                const key = keyOf(token);
+                // Empty tokens remain editable; this is not required-value validation.
+                if (!key) return true;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .join(widget._suggestionSeparator);
+        if (value !== widget.value) {
+            widget.value = value;
+            widget.dispatchEvent(new Event("input", { bubbles: true }));
         }
     }
 
     function select(value) {
         if (widget.disabled) return;
         const current = token();
-        if (!current || composing) return;
+        if (!current || composing || otherValues(current).has(keyOf(value))) return;
         widget.value =
             widget.value.slice(0, current.start) + value + widget.value.slice(current.end);
         const caret = current.start + value.length;
@@ -1557,9 +1594,11 @@ function createSuggestionField() {
         const current = token();
         if (!current) return;
         const query = current.query.toLowerCase();
+        const used = otherValues(current);
         const values = [...new Set(widget._suggestions)].filter(
             value =>
                 value.trim() &&
+                !used.has(keyOf(value)) &&
                 value.toLowerCase().includes(query) &&
                 (!widget._suggestionSeparator || !value.includes(widget._suggestionSeparator))
         );
@@ -1622,13 +1661,17 @@ function createSuggestionField() {
     widget.addEventListener("focus", render);
     widget.addEventListener("click", render);
     widget.addEventListener("input", render);
-    widget.addEventListener("blur", close);
+    widget.addEventListener("blur", () => {
+        close();
+        removeDuplicates();
+    });
     widget.addEventListener("compositionstart", () => {
         composing = true;
         close();
     });
     widget.addEventListener("compositionend", () => {
         composing = false;
+        if (document.activeElement !== widget) removeDuplicates();
         render();
     });
     widget.addEventListener("keydown", event => {

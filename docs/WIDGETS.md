@@ -356,15 +356,19 @@ colors.setSuggestionSeparatorModel(new StringModel(","));
 For `Black, Wh, Blue`, placing the caret in `Wh` and selecting `White` yields
 `Black, White, Blue`. Filtering uses the entire current token, trimmed and case-insensitive.
 Choosing replaces that token only, preserves surrounding whitespace and other tokens, and
-places the caret after the inserted value. An empty token offers all suggestions. Clicking
+places the caret after the inserted value. An empty token offers all unused suggestions. Clicking
 or moving the caret with Left/Right/Home/End refreshes the list. A selection spanning a
 separator (or a caret inside a multi-character separator) offers no replacement.
 Suggestions containing the separator are omitted in this mode. Quoting and escaping are
 not supported; choose a separator that cannot occur within an individual value.
 
 The text model still holds the **complete string**. Splitting it for persistence, validating
-values, removing duplicates, normalizing spelling and remembering saved values are application
-responsibilities. The widget does not append separators or save tokens automatically.
+values, normalizing spelling and remembering saved values are application responsibilities.
+In separated mode, suggestions already used in another token are hidden (trimmed,
+case-insensitive comparison). Manually typed or pasted duplicates are removed on blur,
+keeping the first spelling and order and sending the complete result to the text model.
+Typing and IME composition are not interrupted. Empty tokens are left for application validation.
+Applications should still enforce uniqueness when persisting data from any source. The widget does not append separators or save tokens automatically.
 `AllWidgets` includes a comma-separated color example alongside the ordinary fields.
 
 The widget never remembers unsaved input automatically. After successfully saving a product,
