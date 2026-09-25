@@ -426,3 +426,12 @@ Safari keyboard/focus zoom should also be checked on an iPhone.
 Default body text and active text use 16 CSS pixels, matching form controls. Standard
 button labels use 15 CSS pixels, preserving their slightly more compact typography.
 Links inherit the active-text size. Applications can still override these styles.
+
+### Text flow
+
+`TextFlow` is a `Section` with normal inline text layout. Text widgets and links
+continue on the same line and wrap naturally, including long unbroken words.
+Add spaces explicitly between children. It defaults to left and baseline
+alignment and supports the same models and child operations as `Section`.
+Unlike a flex section, a long text child can start after the preceding label
+and continue on subsequent lines.
