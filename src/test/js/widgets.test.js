@@ -174,3 +174,21 @@ describe("overlay stack", () => {
         expect(harness.stack.children[1]).toBe(top);
     });
 });
+
+describe("text flow", () => {
+    it("uses inline wrapping with reactive alignment", () => {
+        dom = new JSDOM("<!doctype html>", { runScripts: "outside-only" });
+        dom.window.eval(`${source}
+            function log() {}
+            const flow = widgetsLibrary["text flow"]();
+            widgets.flow = flow;
+            window.flow = flow;
+            setHorzAlignment({widget: "flow", "horz alignment": "left"});
+            setVertAlignment({widget: "flow", "vert alignment": "baseline"});
+        `);
+        expect(dom.window.flow.style.display).not.toBe("flex");
+        expect(dom.window.flow.style.overflowWrap).toBe("anywhere");
+        expect(dom.window.flow.style.textAlign).toBe("left");
+        expect(dom.window.flow.style.getPropertyValue("--flow-alignment")).toBe("baseline");
+    });
+});

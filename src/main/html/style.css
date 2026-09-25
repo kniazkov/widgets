@@ -77,3 +77,8 @@ img, textarea, button {
 .suggestion-list [aria-selected="true"] {
     background: rgba(128, 128, 128, 0.18);
 }
+
+/* Inline children share text wrapping and alignment within a TextFlow. */
+.widgets-text-flow > * {
+    vertical-align: var(--flow-alignment, baseline);
+}

@@ -15,6 +15,18 @@ const widgetsLibrary = {
     root: function () {
         return typeof page === "undefined" ? document.body : page.root;
     },
+    "text flow": function () {
+        const widget = document.createElement("div");
+        widget.className = "widgets-text-flow";
+        widget.style.overflowWrap = "anywhere";
+        widget._setHorzAlignment = value => {
+            widget.style.textAlign = value;
+        };
+        widget._setVertAlignment = value => {
+            widget.style.setProperty("--flow-alignment", value);
+        };
+        return widget;
+    },
     section: function () {
         const widget = document.createElement("div");
         widget.style.display = "flex";
