@@ -34,6 +34,7 @@ function createHarness() {
         ${widgetsSource}
         window.__tableHarness = {
             createWidget,
+            setVertAlignment,
             appendChildWidget,
             insertChildWidget,
             removeChildWidget,
@@ -48,6 +49,17 @@ function childIds(widget) {
 }
 
 describe("table row mutations", () => {
+    it("preserves baseline alignment on table cells", () => {
+        const harness = createHarness();
+        harness.createWidget({ type: "cell", widget: "#10" });
+        for (const alignment of ["baseline", "top", "middle", "bottom"]) {
+            expect(harness.setVertAlignment({ widget: "#10", "vert alignment": alignment })).toBe(
+                true
+            );
+            expect(harness.widgets["#10"].style.verticalAlign).toBe(alignment);
+        }
+    });
+
     it("inserts rows at the beginning, middle and end", () => {
         const harness = createHarness();
         harness.createWidget({ type: "table", widget: "#10" });

@@ -219,7 +219,7 @@ const widgetsLibrary = {
         const widget = document.createElement("td");
         initPointerEvents(widget, true);
         widget._setVertAlignment = function (value) {
-            widget.style.verticalAlign = value == "baseline" ? "middle" : value;
+            widget.style.verticalAlign = value;
         };
         return widget;
     },
