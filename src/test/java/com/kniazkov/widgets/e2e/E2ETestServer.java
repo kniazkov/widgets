@@ -13,6 +13,8 @@ import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.SortableSection;
 import com.kniazkov.widgets.view.ZoomDecorator;
 import com.kniazkov.widgets.view.Button;
+import com.kniazkov.widgets.view.CheckBoxWithText;
+import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.InputField;
@@ -128,6 +130,25 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("labeled-choices", (root, context) -> {
+            final CheckBoxWithText box = new CheckBoxWithText("Receive news");
+            final RadioButtonWithText first = new RadioButtonWithText("Delivery");
+            final RadioButtonWithText second = new RadioButtonWithText("Pickup");
+            first.check();
+            new com.kniazkov.widgets.view.RadioGroup(
+                first.getRadioButton(), second.getRadioButton());
+            final com.kniazkov.widgets.model.BooleanModel disabled =
+                new com.kniazkov.widgets.model.BooleanModel(false);
+            box.setDisabledStateModel(disabled);
+            first.setDisabledStateModel(disabled);
+            second.setDisabledStateModel(disabled);
+            root.add(new Section(box));
+            root.add(new Section(first));
+            root.add(new Section(second));
+            final Button toggle = new Button("Toggle disabled");
+            toggle.onClick(event -> disabled.setData(!disabled.getData()));
+            root.add(new Section(toggle));
+        });
         application.addPage("form-controls", (root, context) -> {
             root.add(new Section(new InputField(), new PasswordInput(), new TextArea(),
                 new SuggestionField("Suggestion"), new DropDownList("Option")));

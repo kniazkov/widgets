@@ -16,6 +16,7 @@ import com.kniazkov.widgets.common.StickySide;
 import com.kniazkov.widgets.images.ImageSource;
 import com.kniazkov.widgets.images.SvgImageSource;
 import com.kniazkov.widgets.model.StringModel;
+import com.kniazkov.widgets.model.BooleanModel;
 import com.kniazkov.widgets.view.ActiveImage;
 import com.kniazkov.widgets.view.ActiveImageStyle;
 import com.kniazkov.widgets.view.ActiveText;
@@ -24,6 +25,8 @@ import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.ButtonStyle;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CheckBox;
+import com.kniazkov.widgets.view.CheckBoxWithText;
+import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ImageWidget;
@@ -147,6 +150,7 @@ public class AllWidgets {
         addTextAreas(root);
         addCheckBoxes(root);
         addRadioButtons(root);
+        addLabeledChoices(root);
         addDropDownLists(root);
         addButtons(root);
         addPopups(root);
@@ -430,6 +434,36 @@ public class AllWidgets {
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
+    }
+
+    /**
+     * Demonstrates labeled choices, shared models and reactive disabled captions.
+     * @param root page root
+     */
+    private static void addLabeledChoices(final RootWidget root) {
+        final Panel card = addCard(root, "CheckBoxWithText / RadioButtonWithText",
+            "Click an icon or its caption. Disable choices to see their captions turn gray.");
+        final BooleanModel disabled = new BooleanModel(false);
+        final BooleanModel subscribed = new BooleanModel(true);
+        final StringModel caption = new StringModel("Receive product news");
+        final CheckBoxWithText first = new CheckBoxWithText(caption, subscribed);
+        final CheckBoxWithText mirror = new CheckBoxWithText(caption, subscribed);
+        first.setDisabledStateModel(disabled);
+        mirror.setDisabledStateModel(disabled);
+        card.add(new Section(first));
+        card.add(new Section(mirror));
+        final RadioButtonWithText delivery = new RadioButtonWithText("Delivery");
+        final RadioButtonWithText pickup = new RadioButtonWithText("Store pickup");
+        delivery.check();
+        new RadioGroup(delivery.getRadioButton(), pickup.getRadioButton());
+        delivery.setDisabledStateModel(disabled);
+        pickup.setDisabledStateModel(disabled);
+        card.add(new Section(delivery));
+        card.add(new Section(pickup));
+        card.add(new Section(new CheckBoxWithText(new StringModel("Disable choices"), disabled)));
+        final InputField text = new InputField();
+        text.setTextModel(caption);
+        card.add(new Section(new TextWidget("Edit the shared caption: "), text));
     }
 
     /**
