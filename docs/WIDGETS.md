@@ -63,6 +63,9 @@ Inline input widgets:
 classDiagram
     direction TB
     InlineWidget <|-- InputField
+    InlineBlock <|-- LabeledChoice
+    LabeledChoice <|-- CheckBoxWithText
+    LabeledChoice <|-- RadioButtonWithText
     InlineWidget <|-- CheckBox
     InlineWidget <|-- RadioButton
     InlineWidget <|-- DropDownList
@@ -140,6 +143,8 @@ dynamic collections while preserving iteration order.
 | `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
 | `CheckBox` | `checkbox` | Boolean selection control rendered from configurable selected and unselected images. Supports pointer and disabled states. |
 | `RadioButton` | `radio button` | Boolean selection control that can be selected, but cannot be cleared by another user click. Application code can clear it through its checked-state model; `RadioGroup` provides mutual exclusion. |
+| `CheckBoxWithText` | `inline block` | Checkbox with an interactive right-hand caption and shared disabled-state model. |
+| `RadioButtonWithText` | `inline block` | Radio button with an interactive caption; exposes its button for `RadioGroup` membership. |
 | `DropDownList` | `drop down list` | Native HTML selection control with a fixed number of ordered `Model<String>` option labels, a reactive selected-index model, keyboard focus, and disabled state. |
 
 ## Image widgets
@@ -224,6 +229,33 @@ changes are synchronized to the browser automatically.
 | `RadioGroup` | Observes the checked-state models of its `RadioButton` members and ensures that selecting one clears all others. It is `AutoCloseable`; closing it removes its model subscriptions. |
 
 ## Selection controls
+
+`CheckBoxWithText` and `RadioButtonWithText` are inline composites with an icon on the left
+and a clickable caption on the right. They implement `HasText`, `HasCheckedState` and
+`HasDisabledState`, forwarding model access to their children. No values are copied when
+existing models are supplied:
+
+```java
+final CheckBoxWithText news = new CheckBoxWithText(captionModel, subscribedModel);
+news.setDisabledStateModel(disabledModel);
+final RadioButtonWithText delivery = new RadioButtonWithText("Delivery");
+final RadioButtonWithText pickup = new RadioButtonWithText("Pickup");
+new RadioGroup(delivery.getRadioButton(), pickup.getRadioButton());
+```
+
+Caption clicks toggle checkboxes and select radio buttons. Disabled captions turn gray and
+ignore clicks; re-enabling restores their normal style. The disabled color is a separate
+`State.DISABLED` style value, so custom normal colors are retained. Caption typography follows
+`TextWidget` defaults. `getCheckBox()` / `getRadioButton()`, `getTextWidget()` and `getSection()`
+expose the inner controls, caption and layout for customization. Use the composite's setters
+when replacing disabled models so both children remain bound to the same model. Direct changes
+to model data remain reactive in either direction. `RadioGroup` membership uses the inner radio
+buttons and remains correct when the composite's checked model is replaced.
+
+Both composites use the existing `inline block`, `section`, image-control and `active text`
+protocol primitives; no new browser widget type is required. See their shared `AllWidgets` card
+for editable captions, shared checkbox values and model-driven disabling.
+
 
 `RadioButton` uses the same reactive checked-state model as `CheckBox`, but a browser click can
 only select it. Clearing remains available to application code through `uncheck()` or the model.
