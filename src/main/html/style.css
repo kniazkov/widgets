@@ -82,3 +82,14 @@ img, textarea, button {
 .widgets-text-flow > * {
     vertical-align: var(--flow-alignment, baseline);
 }
+
+/* Keep selection controls beside wrapping captions, even in narrow columns. */
+.widgets-labeled-choice-row > :first-child {
+    flex: 0 0 auto;
+}
+
+.widgets-labeled-choice-row > :nth-child(2) {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}

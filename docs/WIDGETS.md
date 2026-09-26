@@ -435,3 +435,8 @@ Add spaces explicitly between children. It defaults to left and baseline
 alignment and supports the same models and child operations as `Section`.
 Unlike a flex section, a long text child can start after the preceding label
 and continue on subsequent lines.
+
+Labeled checkboxes and radio buttons keep the selection control and caption on
+one row. Long captions wrap inside the remaining width (including unbroken
+words), without moving below or shrinking the selection control. The composite
+is capped at its parent width; `getSection()` still controls row alignment.
