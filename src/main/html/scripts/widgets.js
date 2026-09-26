@@ -1599,11 +1599,17 @@ function createSuggestionField() {
         widget.value =
             widget.value.slice(0, current.start) + value + widget.value.slice(current.end);
         const caret = current.start + value.length;
+        // Focus synchronously within the user gesture so mobile keyboards stay available.
+        widget.focus({ preventScroll: true });
         widget.setSelectionRange(caret, caret);
         close();
         // Use the ordinary text-input pipeline, including delayed-echo protection.
         widget.dispatchEvent(new Event("input", { bubbles: true }));
         close();
+        widget.setSelectionRange(caret, caret);
+        // Selection alone does not reliably reveal a long value on mobile Safari.
+        // Leave middle-token scrolling to the browser's caret positioning.
+        if (caret === widget.value.length) widget.scrollLeft = widget.scrollWidth;
     }
 
     function render() {
@@ -1638,8 +1644,34 @@ function createSuggestionField() {
             option.setAttribute("aria-selected", "false");
             option.textContent = value;
             // Keep focus and the on-screen keyboard on the editable field.
-            option.addEventListener("pointerdown", event => event.preventDefault());
-            option.addEventListener("click", () => select(value));
+            let touch = null;
+            let suppressClick = false;
+            option.addEventListener("pointerdown", event => {
+                event.preventDefault();
+                suppressClick = event.pointerType === "touch";
+                if (suppressClick) {
+                    touch = { id: event.pointerId, x: event.clientX, y: event.clientY };
+                }
+            });
+            option.addEventListener("pointermove", event => {
+                if (touch && Math.hypot(event.clientX - touch.x, event.clientY - touch.y) > 8) {
+                    touch = null;
+                }
+            });
+            option.addEventListener("pointercancel", () => {
+                touch = null;
+            });
+            option.addEventListener("pointerup", event => {
+                if (touch && touch.id === event.pointerId) {
+                    event.preventDefault();
+                    select(value);
+                }
+                touch = null;
+            });
+            option.addEventListener("click", event => {
+                event.preventDefault();
+                if (!suppressClick) select(value);
+            });
             list.appendChild(option);
         });
         document.body.appendChild(list);
