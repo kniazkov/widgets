@@ -19,6 +19,21 @@ import static org.junit.Assert.assertTrue;
  */
 public final class LabeledChoiceTest {
     /**
+     * Both composites use a width-limited row that keeps the control beside text.
+     */
+    @Test
+    public void usesNonWrappingChoiceRow() {
+        for (final LabeledChoice<?> choice : new LabeledChoice<?>[] {
+            new CheckBoxWithText("Long caption"), new RadioButtonWithText("Long caption")
+        }) {
+            assertEquals("100.0%", choice.getMaxWidth().getCSSCode());
+            assertEquals("labeled choice row", choice.getSection().getType());
+            assertSame(choice.control(), choice.getSection().getChild(0));
+            assertEquals(2, choice.getSection().getChildCount());
+        }
+    }
+
+    /**
      * Model identity, replacement and bidirectional updates survive composition.
      */
     @Test

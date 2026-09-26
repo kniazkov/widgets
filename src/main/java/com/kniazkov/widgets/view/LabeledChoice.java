@@ -31,7 +31,12 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
     /**
      * Row controlling spacing and alignment.
      */
-    private final Section section = new Section();
+    private final Section section = new Section() {
+        @Override
+        public String getType() {
+            return "labeled choice row";
+        }
+    };
 
     /**
      * Builds the composition without copying the supplied models.
@@ -44,6 +49,7 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
     protected LabeledChoice(final C control, final Model<String> text,
             final Model<Boolean> checked, final boolean radio) {
         this.control = Objects.requireNonNull(control, "control");
+        this.setMaxWidth("100%");
         this.setTextModel(text);
         this.setCheckedStateModel(checked);
         this.caption.setDisabledStateModel(control.getDisabledStateModel());

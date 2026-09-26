@@ -192,3 +192,20 @@ describe("text flow", () => {
         expect(dom.window.flow.style.getPropertyValue("--flow-alignment")).toBe("baseline");
     });
 });
+
+describe("labeled choice row", () => {
+    it("keeps wrapping inside the caption and retains section alignment", () => {
+        dom = new JSDOM("<!doctype html>", { runScripts: "outside-only" });
+        dom.window.eval(`${source}
+            window.row = widgetsLibrary["labeled choice row"]();
+        `);
+        const row = dom.window.row;
+        expect(row.className).toBe("widgets-labeled-choice-row");
+        expect(row.style.display).toBe("flex");
+        expect(row.style.flexWrap).toBe("nowrap");
+        row._setVertAlignment("middle");
+        expect(row.style.alignItems).toBe("center");
+        row._setVertAlignment("top");
+        expect(row.style.alignItems).toBe("flex-start");
+    });
+});

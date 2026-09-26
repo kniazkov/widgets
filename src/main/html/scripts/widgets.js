@@ -15,6 +15,12 @@ const widgetsLibrary = {
     root: function () {
         return typeof page === "undefined" ? document.body : page.root;
     },
+    "labeled choice row": function () {
+        const widget = widgetsLibrary.section();
+        widget.className = "widgets-labeled-choice-row";
+        widget.style.flexWrap = "nowrap";
+        return widget;
+    },
     "text flow": function () {
         const widget = document.createElement("div");
         widget.className = "widgets-text-flow";
