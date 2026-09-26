@@ -81,7 +81,7 @@ function options(document) {
 }
 
 describe("suggestion field", () => {
-    it("restores focus and reveals the end of a long suggestion on touch, only once", () => {
+    it("restores focus and reveals the end after a completed touch click", () => {
         const { harness, input, document } = field();
         const value = "Латунь с родиевым покрытием";
         harness.setSuggestions({ widget: "#30", suggestions: [value] });
@@ -96,6 +96,7 @@ describe("suggestion field", () => {
         pointer("pointerdown");
         input.blur();
         pointer("pointerup");
+        expect(input.value).toBe("");
         option.click();
         expect(document.activeElement).toBe(input);
         expect(input.value).toBe(value);
@@ -125,7 +126,6 @@ describe("suggestion field", () => {
                 });
                 option.dispatchEvent(event);
             }
-            option.click();
             expect(input.value).toBe("");
         }
     );

@@ -1644,33 +1644,12 @@ function createSuggestionField() {
             option.setAttribute("aria-selected", "false");
             option.textContent = value;
             // Keep focus and the on-screen keyboard on the editable field.
-            let touch = null;
-            let suppressClick = false;
-            option.addEventListener("pointerdown", event => {
-                event.preventDefault();
-                suppressClick = event.pointerType === "touch";
-                if (suppressClick) {
-                    touch = { id: event.pointerId, x: event.clientX, y: event.clientY };
-                }
-            });
-            option.addEventListener("pointermove", event => {
-                if (touch && Math.hypot(event.clientX - touch.x, event.clientY - touch.y) > 8) {
-                    touch = null;
-                }
-            });
-            option.addEventListener("pointercancel", () => {
-                touch = null;
-            });
-            option.addEventListener("pointerup", event => {
-                if (touch && touch.id === event.pointerId) {
-                    event.preventDefault();
-                    select(value);
-                }
-                touch = null;
-            });
+            option.addEventListener("pointerdown", event => event.preventDefault());
+            // Complete selection on click, after the touch gesture has finished. Removing
+            // the popup on pointerup can retarget the compatibility click to the input.
             option.addEventListener("click", event => {
                 event.preventDefault();
-                if (!suppressClick) select(value);
+                select(value);
             });
             list.appendChild(option);
         });
