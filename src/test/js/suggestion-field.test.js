@@ -19,6 +19,7 @@ const widgetsSource = fs.readFileSync(
 let dom;
 
 afterEach(() => {
+    dom?.window.document.activeElement?.blur();
     dom?.window.close();
 });
 
@@ -80,6 +81,55 @@ function options(document) {
 }
 
 describe("suggestion field", () => {
+    it("restores focus and reveals the end after a completed touch click", () => {
+        const { harness, input, document } = field();
+        const value = "Латунь с родиевым покрытием";
+        harness.setSuggestions({ widget: "#30", suggestions: [value] });
+        Object.defineProperty(input, "scrollWidth", { value: 600 });
+        input.focus();
+        const option = document.querySelector('[role="option"]');
+        const pointer = type => {
+            const event = new dom.window.Event(type, { bubbles: true, cancelable: true });
+            Object.assign(event, { pointerType: "touch", pointerId: 1, clientX: 10, clientY: 10 });
+            option.dispatchEvent(event);
+        };
+        pointer("pointerdown");
+        input.blur();
+        pointer("pointerup");
+        expect(input.value).toBe("");
+        option.click();
+        expect(document.activeElement).toBe(input);
+        expect(input.value).toBe(value);
+        expect(input.selectionStart).toBe(value.length);
+        expect(input.selectionEnd).toBe(value.length);
+        expect(input.scrollLeft).toBe(600);
+        expect(options(document)).toEqual([]);
+        expect(harness.events.filter(event => event.type === "text input")).toHaveLength(1);
+        harness.setText({ widget: "#30", text: "stale" });
+        expect(input.selectionStart).toBe(value.length);
+        expect(input.value).toBe(value);
+    });
+
+    it.each(["pointercancel", "pointermove"])(
+        "does not select during touch scrolling (%s)",
+        cancellation => {
+            const { input, document } = field();
+            input.focus();
+            const option = document.querySelector('[role="option"]');
+            for (const type of ["pointerdown", cancellation, "pointerup"]) {
+                const event = new dom.window.Event(type, { bubbles: true, cancelable: true });
+                Object.assign(event, {
+                    pointerType: "touch",
+                    pointerId: 1,
+                    clientX: 10,
+                    clientY: type === "pointermove" ? 50 : 10
+                });
+                option.dispatchEvent(event);
+            }
+            expect(input.value).toBe("");
+        }
+    );
+
     it("shows all suggestions on empty focus and filters case-insensitive substrings", () => {
         const { input, document } = field();
         input.focus();

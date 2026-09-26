@@ -359,6 +359,11 @@ It copies only the collection structure and detaches listeners from old models. 
 changes to the supplied collection require another call; changes to the models update the UI
 automatically. Empty lists are allowed; null models are rejected.
 
+After selecting a suggestion by touch, mouse or keyboard, the field keeps focus and places
+its caret immediately after the inserted value. Long values are scrolled to the end when
+appended; editing a middle token preserves the following values. Touch scrolling the
+suggestion list does not select a value.
+
 The editable `Property.TEXT` model is independent of the source suggestion models. Choosing a
 suggestion copies its current text into that model; it does not rebind the field or write back
 to a source record. Read-only suggestion models are supported. Updating, reordering or removing

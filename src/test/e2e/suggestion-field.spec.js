@@ -104,3 +104,31 @@ for (const touch of [false, true]) {
         });
     });
 }
+
+for (const touch of [false, true]) {
+    test.describe(touch ? "touch caret" : "mouse caret", () => {
+        test.use({ viewport: { width: 390, height: 700 }, hasTouch: touch, isMobile: touch });
+        test("continues typing after a long selected suggestion", async ({ page }) => {
+            await page.goto("/suggestions");
+            const field = page.getByRole("combobox").first();
+            await field.evaluate(input => {
+                input.style.width = "160px";
+            });
+            if (touch) await field.tap();
+            else await field.click();
+            const value = "Латунь с родиевым покрытием";
+            const option = page.getByRole("option", { name: value, exact: true });
+            if (touch) await option.tap();
+            else await option.click();
+            await expect(field).toBeFocused();
+            await expect(field).toHaveValue(value);
+            await expect(page.getByRole("listbox")).toHaveCount(0);
+            await expect
+                .poll(() => field.evaluate(input => input.selectionStart))
+                .toBe(value.length);
+            await expect.poll(() => field.evaluate(input => input.scrollLeft)).toBeGreaterThan(0);
+            await page.keyboard.type(", Silver");
+            await expect(field).toHaveValue(value + ", Silver");
+        });
+    });
+}
