@@ -232,6 +232,9 @@ public final class JsonPersistence implements Persistence {
         final String name,
         final JsonElement element
     ) {
+        if (element.toJsonObject() != null) {
+            return parseRange(element);
+        }
         if (element.isString()) {
             return new StringValue(element.getStringValue());
         }
@@ -247,6 +250,24 @@ public final class JsonPersistence implements Persistence {
         throw new PersistenceException(
             "Field '" + name + "' must be a scalar value"
         );
+    }
+
+    /**
+     * @param element interval JSON object
+     * @return typed stored interval
+     */
+    private static StoredValue parseRange(final JsonElement element) {
+        if (element.toJsonObject() == null) {
+            throw new IllegalArgumentException("Expected range object");
+        }
+        final JsonObject object = element.toJsonObject();
+        final JsonElement lower = requiredElement(object, "lower");
+        final JsonElement upper = requiredElement(object, "upper");
+        if (!lower.isNumber() || !upper.isNumber()) {
+            throw new IllegalArgumentException("Range endpoints must be numbers");
+        }
+        return new StoredValue.RangeValue(new com.kniazkov.widgets.common.NumericRange(
+            lower.getDoubleValue(), upper.getDoubleValue()));
     }
 
     /**
@@ -487,6 +508,7 @@ public final class JsonPersistence implements Persistence {
                 }
                 yield new IntegerValue(element.getIntValue());
             }
+            case RANGE -> parseRange(element);
             case REAL -> {
                 if (!element.isNumber()) {
                     throw invalidDefault(kind);
@@ -730,6 +752,11 @@ public final class JsonPersistence implements Persistence {
         switch (value.getKind()) {
             case STRING -> object.addString(name, value.getString());
             case INTEGER -> object.addNumber(name, value.getInteger());
+            case RANGE -> {
+                final JsonObject range = object.createObject(name);
+                range.addNumber("lower", value.getRange().lower());
+                range.addNumber("upper", value.getRange().upper());
+            }
             case REAL -> object.addNumber(name, value.getReal());
             case BOOLEAN -> object.addBoolean(name, value.getBoolean());
         }

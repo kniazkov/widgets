@@ -425,3 +425,36 @@ The runnable examples are located in the common `com.kniazkov.widgets.example` p
   several fields through an isolated `Draft` and commits them atomically.
 - [`DatabaseRelations.java`](../src/main/java/com/kniazkov/widgets/example/DatabaseRelations.java)
   stores a related record UUID and binds widgets to the resolved record from another store.
+
+## Numeric intervals
+
+`ValueType.NUMERIC_RANGE` stores an immutable `NumericRange(lower, upper)` backed
+by `NumericRangeModel`. Bounds are finite doubles with `lower <= upper`; both ends
+are included. `[16, 16]` is a valid point interval. Signed zero is normalized.
+Reversed bounds, NaN and infinities are rejected. The default is `[0, 0]`, not an
+unspecified/empty value. Existing REAL fields are not converted automatically.
+
+```java
+Field<NumericRange> wrist = new Field<>(ValueType.NUMERIC_RANGE, "wrist");
+// Include wrist in the store's Schema before using it.
+draft.model(wrist).setData(new NumericRange(15, 16));
+LiveRecordSet fits = store.query(Query.where(Conditions.contains(wrist, 15.5)));
+LiveRecordSet overlaps = store.query(Query.where(
+    Conditions.intersects(wrist, new NumericRange(16, 17))));
+```
+
+`contains` tests a point; `intersects` tests any shared point, so `[15,16]` and
+`[16,17]` intersect. Conditions compose with `and`, `or`, and `not`, expose their
+field dependency, and update live selections after committed changes. `field.is`
+compares both endpoints exactly. There is no implicit ordering of intervals:
+`greaterThan`, `lessThan` and range-field ordering are unsupported. Comparisons
+use double values without a hidden tolerance.
+
+As with other Widgets queries, filtering runs against canonical in-memory records,
+not SQL predicates. This feature does not add a SQL range index. JSON stores a
+structured `{ "lower": 15, "upper": 16 }` value. JDBC stores bounds in nullable
+`range_lower` / `range_upper` numeric columns, also used for metadata defaults.
+These columns are added when opening older SQLite/H2 layouts, preserving existing
+records. Once range values are stored, use a Widgets version that supports RANGE;
+older releases cannot decode the new kind. No application field-type migration
+from a scalar to a range is performed.

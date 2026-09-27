@@ -34,6 +34,15 @@ import java.util.function.Supplier;
  */
 public final class ValueType<T> {
     /**
+     * Closed numeric intervals, without an implicit ordering.
+     */
+    public static final ValueType<com.kniazkov.widgets.common.NumericRange> NUMERIC_RANGE = of(
+        "numeric-range", com.kniazkov.widgets.common.NumericRange.class,
+        com.kniazkov.widgets.model.NumericRangeModel::new, Kind.RANGE,
+        StoredValue.RangeValue::new, StoredValue::getRange, null
+    );
+
+    /**
      * Boolean values.
      */
     public static final ValueType<Boolean> BOOLEAN = of(
