@@ -136,6 +136,63 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
+     * Metadata is present in the initial response on both root and nested pages.
+     */
+    @Test
+    public void servesDocumentMetadataAndFavicon() throws Exception {
+        final File root = this.folder.newFolder("www");
+        java.nio.file.Files.writeString(root.toPath().resolve("icon.svg"),
+            "<svg xmlns=\"http://www.w3.org/2000/svg\"/>");
+        this.start(new Options.Builder().setWwwRoot(root.getAbsolutePath())
+            .setTitle("Магазин ПВХ").setDescription("Jewelry & accessories")
+            .setRobots("noindex, nofollow").setLanguage("ru-RU")
+            .setFaviconUrl("/icon.svg?v=1&size=32"));
+        for (final String path : new String[]{"/", "/page?item=42"}) {
+            final String response = this.request("GET", path, null);
+            assertTrue(response.startsWith("HTTP/1.1 200"));
+            final String head = response.substring(0, response.indexOf("</head>"));
+            assertTrue(head.contains("<html lang=\"ru-RU\">"));
+            assertTrue(head.contains("<title>Магазин ПВХ</title>"));
+            assertTrue(head.contains("<meta name=\"description\""
+                + " content=\"Jewelry &amp; accessories\">"));
+            assertTrue(head.contains("<meta name=\"robots\" content=\"noindex, nofollow\">"));
+            assertTrue(head.contains("<link rel=\"icon\" href=\"/icon.svg?v=1&amp;size=32\">"));
+        }
+        assertTrue(this.request("GET", "/icon.svg", null).startsWith("HTTP/1.1 200"));
+    }
+
+    /**
+     * Metadata cannot introduce markup or be interpreted as template or debug code.
+     */
+    @Test
+    public void escapesMetadataWithoutReplacingItsContents() throws Exception {
+        final String payload = "</title><script>alert('x')</script>\"&";
+        final String literal = "__DOCUMENT_HEAD__ __DOCUMENT_LANGUAGE__ {data} log(1); $1";
+        this.start(new Options.Builder().setDebug(false).setTitle(payload)
+            .setDescription(literal).setRobots("\"/><script>bad()</script>"));
+        final String response = this.request("GET", "/page", null);
+        assertFalse(response.contains(payload));
+        assertFalse(response.contains("<script>bad()"));
+        assertTrue(response.contains("&lt;/title&gt;&lt;script&gt;alert(&#39;x&#39;)"));
+        assertTrue(response.contains("content=\"" + literal + "\""));
+    }
+
+    /**
+     * Existing applications retain their default language and no unsolicited meta directives.
+     */
+    @Test
+    public void omitsUnconfiguredDocumentMetadata() throws Exception {
+        this.start(this.folder.newFolder("www"));
+        final String response = this.request("GET", "/", null);
+        assertTrue(response.contains("<html lang=\"en\">"));
+        assertFalse(response.contains("<title>"));
+        assertFalse(response.contains("rel=\"icon\""));
+        assertFalse(response.contains("name=\"description\""));
+        assertFalse(response.contains("name=\"robots\""));
+        assertFalse(response.contains("__DOCUMENT_"));
+    }
+
+    /**
      * Missing actions are rejected even when a POST has no form or only a query action.
      */
     @Test
@@ -229,7 +286,15 @@ public class HttpHandlerSecurityTest {
         for (final WebFont font : fonts) {
             builder.addFont(font);
         }
-        final Options options = builder.build();
+        return this.start(builder);
+    }
+
+    /**
+     * Starts an application with custom document options.
+     */
+    private Options start(final Options.Builder builder) {
+        final Options options = builder.setPort(0)
+            .setBindAddress(InetAddress.getLoopbackAddress()).build();
         final Page page = (widget, context) -> { };
         final Application application = BaseTestSupport.application(page);
         application.addPage("page", page);

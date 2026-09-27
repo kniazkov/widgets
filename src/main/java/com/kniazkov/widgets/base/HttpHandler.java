@@ -243,6 +243,12 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 "/* $0 */"
                             );
                         }
+                        if (replaceAddress) {
+                            code = code.replaceFirst("__DOCUMENT_LANGUAGE__",
+                                Matcher.quoteReplacement(this.options.getLanguage()))
+                                .replaceFirst("__DOCUMENT_HEAD__",
+                                    Matcher.quoteReplacement(documentHead(this.options)));
+                        }
                         data = code.getBytes(StandardCharsets.UTF_8);
                     } else {
                         data = buffer.toByteArray();
@@ -404,6 +410,43 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      */
     private static String escapeInlineScriptData(final String json) {
         return json.replace("<", "\\u003c");
+    }
+
+    /**
+     * Builds escaped site metadata for the initial HTML response, before JavaScript runs.
+     * Inserted last so template tokens and log-like text in metadata remain literal.
+     *
+     * @param options application options
+     * @return document head elements
+     */
+    private static String documentHead(final Options options) {
+        final StringBuilder result = new StringBuilder();
+        if (!options.getTitle().isEmpty()) {
+            result.append("<title>").append(escapeHtmlAttribute(options.getTitle()))
+                .append("</title>\n");
+        }
+        if (!options.getFaviconUrl().isEmpty()) {
+            result.append("<link rel=\"icon\" href=\"")
+                .append(escapeHtmlAttribute(options.getFaviconUrl())).append("\">\n");
+        }
+        appendMeta(result, "description", options.getDescription());
+        appendMeta(result, "robots", options.getRobots());
+        return result.toString();
+    }
+
+    /**
+     * Appends a named meta element when its content is configured.
+     *
+     * @param result destination
+     * @param name framework-controlled meta name
+     * @param content plain text value
+     */
+    private static void appendMeta(final StringBuilder result, final String name,
+            final String content) {
+        if (!content.isEmpty()) {
+            result.append("<meta name=\"").append(name).append("\" content=\"")
+                .append(escapeHtmlAttribute(content)).append("\">\n");
+        }
     }
 
     /**
