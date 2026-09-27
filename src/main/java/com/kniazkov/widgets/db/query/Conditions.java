@@ -64,6 +64,29 @@ public final class Conditions {
     }
 
     /**
+     * @param field interval field
+     * @param value finite point
+     * @return inclusive point-membership condition
+     */
+    public static Condition contains(
+        final Field<com.kniazkov.widgets.common.NumericRange> field, final double value
+    ) {
+        return intersects(field, new com.kniazkov.widgets.common.NumericRange(value, value));
+    }
+
+    /**
+     * @param field interval field
+     * @param value query interval
+     * @return inclusive overlap condition
+     */
+    public static Condition intersects(
+        final Field<com.kniazkov.widgets.common.NumericRange> field,
+        final com.kniazkov.widgets.common.NumericRange value
+    ) {
+        return new RangeIntersection(field, value);
+    }
+
+    /**
      * Returns a condition that always matches.
      *
      * @return condition

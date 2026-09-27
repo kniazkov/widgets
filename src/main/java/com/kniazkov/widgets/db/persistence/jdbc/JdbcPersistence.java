@@ -56,7 +56,7 @@ public final class JdbcPersistence implements Persistence {
         "SELECT fd.store_name, fd.field_name, fd.field_order, "
             + "fd.type_name, fd.value_kind, fd.default_string, "
             + "fd.default_integer, fd.default_real, fd.default_boolean, "
-            + "fd.referenced_store "
+            + "fd.referenced_store, fd.range_lower, fd.range_upper "
             + "FROM db_field_definition fd JOIN db_store st "
             + "ON fd.store_name = st.store_name "
             + "ORDER BY st.store_order, fd.field_order";
@@ -80,8 +80,8 @@ public final class JdbcPersistence implements Persistence {
         "INSERT INTO db_field_definition "
             + "(store_name, field_name, field_order, type_name, value_kind, "
             + "default_string, default_integer, default_real, "
-            + "default_boolean, referenced_store) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "default_boolean, referenced_store, range_lower, range_upper) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * Complete field metadata deletion command.
@@ -105,7 +105,7 @@ public final class JdbcPersistence implements Persistence {
      */
     private static final String SELECT_FIELDS =
         "SELECT store_name, record_id, field_name, value_type, string_value, "
-            + "integer_value, real_value, boolean_value FROM db_field";
+            + "integer_value, real_value, boolean_value, range_lower, range_upper FROM db_field";
 
     /**
      * Record deletion command.
@@ -132,8 +132,8 @@ public final class JdbcPersistence implements Persistence {
     private static final String INSERT_FIELD =
         "INSERT INTO db_field "
             + "(store_name, record_id, field_name, value_type, string_value, "
-            + "integer_value, real_value, boolean_value) "
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            + "integer_value, real_value, boolean_value, range_lower, range_upper) "
+            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     /**
      * JDBC connection.
@@ -190,8 +190,34 @@ public final class JdbcPersistence implements Persistence {
             for (final String sql : dialect.initializationSql()) {
                 statement.execute(sql);
             }
+            this.ensureRangeColumns("db_field");
+            this.ensureRangeColumns("db_field_definition");
         } catch (final SQLException err) {
             throw new PersistenceException("Cannot initialize JDBC schema", err);
+        }
+    }
+
+    /**
+     * Adds nullable interval columns to old and new SQL layouts without changing records.
+     * @param table internal table name
+     * @throws SQLException when schema inspection or alteration fails
+     */
+    private void ensureRangeColumns(final String table) throws SQLException {
+        final java.util.Set<String> columns = new java.util.HashSet<>();
+        try (Statement query = this.connection.createStatement();
+            ResultSet result = query.executeQuery("SELECT * FROM " + table + " WHERE 1 = 0")) {
+            final var metadata = result.getMetaData();
+            for (int index = 1; index <= metadata.getColumnCount(); index++) {
+                columns.add(metadata.getColumnName(index).toLowerCase(java.util.Locale.ROOT));
+            }
+        }
+        try (Statement update = this.connection.createStatement()) {
+            for (final String column : java.util.List.of("range_lower", "range_upper")) {
+                if (!columns.contains(column)) {
+                    update.execute("ALTER TABLE " + table + " ADD COLUMN "
+                        + column + " DOUBLE PRECISION");
+                }
+            }
         }
     }
 
@@ -590,9 +616,15 @@ public final class JdbcPersistence implements Persistence {
         statement.setNull(6, Types.INTEGER);
         statement.setNull(7, Types.DOUBLE);
         statement.setNull(8, Types.BOOLEAN);
+        statement.setNull(9, Types.DOUBLE);
+        statement.setNull(10, Types.DOUBLE);
         switch (value.getKind()) {
             case STRING -> statement.setString(5, value.getString());
             case INTEGER -> statement.setInt(6, value.getInteger());
+            case RANGE -> {
+                statement.setDouble(9, value.getRange().lower());
+                statement.setDouble(10, value.getRange().upper());
+            }
             case REAL -> statement.setDouble(7, value.getReal());
             case BOOLEAN -> statement.setBoolean(8, value.getBoolean());
         }
@@ -613,9 +645,15 @@ public final class JdbcPersistence implements Persistence {
         statement.setNull(7, Types.INTEGER);
         statement.setNull(8, Types.DOUBLE);
         statement.setNull(9, Types.BOOLEAN);
+        statement.setNull(11, Types.DOUBLE);
+        statement.setNull(12, Types.DOUBLE);
         switch (value.getKind()) {
             case STRING -> statement.setString(6, value.getString());
             case INTEGER -> statement.setInt(7, value.getInteger());
+            case RANGE -> {
+                statement.setDouble(11, value.getRange().lower());
+                statement.setDouble(12, value.getRange().upper());
+            }
             case REAL -> statement.setDouble(8, value.getReal());
             case BOOLEAN -> statement.setBoolean(9, value.getBoolean());
         }
@@ -651,6 +689,10 @@ public final class JdbcPersistence implements Persistence {
                 result,
                 valueIndex + 1
             ));
+            case RANGE -> new StoredValue.RangeValue(
+                new com.kniazkov.widgets.common.NumericRange(
+                    requiredReal(result, result.findColumn("range_lower")),
+                    requiredReal(result, result.findColumn("range_upper"))));
             case REAL -> new RealValue(requiredReal(result, valueIndex + 2));
             case BOOLEAN -> new BooleanValue(requiredBoolean(
                 result,

@@ -184,3 +184,11 @@ input remains visible without changing the number. Explicitly typed `0`, `0.`, o
 `12.50` is preserved while editing; the adapter does not strip characters while the
 user is typing. This option is independent of the widget and does not alter stored
 numeric values merely by displaying them.
+
+### NumericRangeModel
+
+`NumericRangeModel` holds an immutable closed `NumericRange`. Its default is the
+point `[0,0]`; use `new NumericRangeModel(new NumericRange(15,16))` for explicit
+bounds. Changing either bound means setting a new interval, notifying listeners
+atomically. Invalid/reversed/nonfinite intervals cannot be constructed. UI text
+validation and editing of incomplete bounds remain the editor's responsibility.

@@ -6,12 +6,13 @@ package com.kniazkov.widgets.db.persistence;
 import java.util.Objects;
 
 /**
- * A persistence-neutral scalar value that retains its native type.
+ * A persistence-neutral value that retains its native type.
  */
 public sealed interface StoredValue permits StoredValue.StringValue,
-    StoredValue.IntegerValue, StoredValue.RealValue, StoredValue.BooleanValue {
+    StoredValue.RangeValue, StoredValue.IntegerValue, StoredValue.RealValue,
+    StoredValue.BooleanValue {
     /**
-     * Supported scalar kinds.
+     * Supported value kinds.
      */
     enum Kind {
         /**
@@ -32,7 +33,38 @@ public sealed interface StoredValue permits StoredValue.StringValue,
         /**
          * Boolean value.
          */
-        BOOLEAN
+        BOOLEAN,
+
+        /**
+         * Closed numeric interval.
+         */
+        RANGE
+    }
+
+    /**
+     * @return typed numeric interval
+     */
+    default com.kniazkov.widgets.common.NumericRange getRange() {
+        if (this instanceof RangeValue stored) {
+            return stored.value();
+        }
+        throw this.typeMismatch(Kind.RANGE);
+    }
+
+    /**
+     * Typed interval storage value.
+     * @param value immutable interval
+     */
+    record RangeValue(com.kniazkov.widgets.common.NumericRange value) implements StoredValue {
+        /**
+         * Validates the value.
+         */
+        public RangeValue {
+            Objects.requireNonNull(value, "value");
+        }
+        @Override public Kind getKind() {
+            return Kind.RANGE;
+        }
     }
 
     /**
