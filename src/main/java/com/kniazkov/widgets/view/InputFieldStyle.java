@@ -22,7 +22,8 @@ import java.util.Set;
 /**
  * Style definition for {@link InputField}.
  */
-public class InputFieldStyle extends Style implements HasStyledText, HasColor, HasBgColor,
+public class InputFieldStyle extends Style implements HasStyledText, HasPlaceholder,
+        HasInputMode, HasColor, HasBgColor,
         HasBorder, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin, HasPadding, HasBoxShadow,
         HasOutline, HasCursor, HasTransition, HasBoxSizing, HasHorizontalAlignment {
     /**
@@ -120,6 +121,8 @@ public class InputFieldStyle extends Style implements HasStyledText, HasColor, H
         this.setBorderWidth(1);
         this.setBorderRadius(8);
 
+        this.setPlaceholder("");
+        this.setInputMode(com.kniazkov.widgets.common.InputMode.TEXT);
         this.setWidth(240);
         this.setHeight(42);
         this.setMargin(2, 1);

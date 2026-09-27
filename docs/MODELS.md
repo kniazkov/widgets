@@ -170,3 +170,17 @@ Model<String> editableCounter = new IntegerToStringModel(counter);
 Wrappers subscribe to their bases and re-emit derived state, so retaining the same model instance
 is important for stable bindings. Use `Binding.setModel(...)` when a consumer intentionally needs
 to switch from one model object to another.
+
+### Optional empty-zero numeric editing
+
+`new IntegerToStringModel(base, true)` and `new RealToStringModel(base, true)`
+render an initial or externally updated zero as an empty string. Empty input writes
+zero back to the numeric model. Combine this with a field placeholder of `0` or
+`0.00` so users can start typing without deleting zeros.
+
+The existing one-argument constructors retain their behavior: zero is visible and
+empty text is invalid. In both modes, base-model validation still applies. Invalid
+input remains visible without changing the number. Explicitly typed `0`, `0.`, or
+`12.50` is preserved while editing; the adapter does not strip characters while the
+user is typing. This option is independent of the widget and does not alter stored
+numeric values merely by displaying them.

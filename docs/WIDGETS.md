@@ -445,3 +445,25 @@ Labeled checkboxes and radio buttons keep the selection control and caption on
 one row. Long captions wrap inside the remaining width (including unbroken
 words), without moving below or shrinking the selection control. The composite
 is capped at its parent width; `getSection()` still controls row alignment.
+
+## Editable input hints
+
+`InputField` (including `SuggestionField`) and `InputFieldStyle` implement
+`HasPlaceholder` and `HasInputMode`. Both properties accept reactive models:
+
+```java
+final InputField field = new InputField();
+field.setPlaceholderModel(new StringModel("0.00"));
+field.setInputModeModel(new InputModeModel(InputMode.DECIMAL));
+field.setTextModel(new RealToStringModel(new RealNumberModel(0.0), true));
+```
+
+`Property.PLACEHOLDER` defaults to an empty string. The browser displays the hint
+in an empty field; it is never part of the entered value and does not replace a label.
+`Property.INPUT_MODE` defaults to `InputMode.TEXT`. Available hints are `TEXT`,
+`NUMERIC`, `DECIMAL`, `TEL`, `EMAIL`, `URL`, `SEARCH`, and `NONE`. This requests a
+keyboard layout, not validation or an HTML input type. Actual keyboard keys depend
+on the device and locale; the existing numeric adapters parse a decimal point.
+
+The AllWidgets **Numeric input hints** section demonstrates integer and decimal
+fields with empty-zero adapters and a separate view of the underlying number.

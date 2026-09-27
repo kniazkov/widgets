@@ -382,6 +382,20 @@ public abstract class Property<T> {
     public static final Property<String> TEXT = stringProperty("text");
 
     /**
+     * Hint shown inside an empty editable field.
+     */
+    public static final Property<String> PLACEHOLDER = stringProperty("placeholder");
+
+    /**
+     * Keyboard hint; validation remains the text model's responsibility.
+     */
+    public static final Property<com.kniazkov.widgets.common.InputMode> INPUT_MODE = of(
+        "input mode", com.kniazkov.widgets.common.InputMode.class,
+        com.kniazkov.widgets.model.InputModeModel::new,
+        data -> new JsonString(data.getCode())
+    );
+
+    /**
      * Literal separator for suggestion tokens; empty means whole-field suggestions.
      */
     public static final Property<String> SUGGESTION_SEPARATOR =
