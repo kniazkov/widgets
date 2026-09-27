@@ -467,3 +467,14 @@ on the device and locale; the existing numeric adapters parse a decimal point.
 
 The AllWidgets **Numeric input hints** section demonstrates integer and decimal
 fields with empty-zero adapters and a separate view of the underlying number.
+
+`HasPlaceholder` also provides `getPlaceholderColorModel`, `setPlaceholderColorModel`,
+`getPlaceholderColor`, and `setPlaceholderColor`, backed by `Property.PLACEHOLDER_COLOR`.
+The default input style uses the theme's muted gray (`#475569`). Styles inherit the
+color model, and rebinding or updating it changes the hint without changing entered
+text. The renderer applies the color through `::placeholder` with `opacity: 1` so
+browser defaults do not add extra transparency. AllWidgets includes a custom color:
+
+```java
+field.setPlaceholderColorModel(new ColorModel(new Color(100, 116, 139)));
+```

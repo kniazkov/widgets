@@ -387,6 +387,12 @@ public abstract class Property<T> {
     public static final Property<String> PLACEHOLDER = stringProperty("placeholder");
 
     /**
+     * Color of the hint shown inside an empty input field.
+     */
+    public static final Property<Color> PLACEHOLDER_COLOR =
+        colorProperty("placeholder color", DefaultTheme.MUTED);
+
+    /**
      * Keyboard hint; validation remains the text model's responsibility.
      */
     public static final Property<com.kniazkov.widgets.common.InputMode> INPUT_MODE = of(

@@ -476,6 +476,7 @@ const actionHandlers = {
     "set hidden": setHiddenFlag,
     "set text": setText,
     "set suggestions": setSuggestions,
+    "set placeholder color": setPlaceholderColor,
     "set placeholder": setPlaceholder,
     "set input mode": setInputMode,
     "set suggestion separator": setSuggestionSeparator,

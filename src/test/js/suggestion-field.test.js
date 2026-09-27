@@ -45,6 +45,7 @@ function createHarness() {
             createWidget,
             setSuggestions,
             setPlaceholder,
+            setPlaceholderColor,
             setInputMode,
             setSuggestionSeparator,
             setText,
@@ -90,6 +91,16 @@ describe("suggestion field", () => {
         input.setSelectionRange(2, 2);
         expect(harness.setPlaceholder({ widget: "#30", placeholder: "0.00" })).toBe(true);
         expect(harness.setInputMode({ widget: "#30", "input mode": "decimal" })).toBe(true);
+        expect(
+            harness.setPlaceholderColor({
+                widget: "#30",
+                "placeholder color": { r: 80, g: 90, b: 100 }
+            })
+        ).toBe(true);
+        expect(input.style.getPropertyValue("--widgets-placeholder-color")).toBe("rgb(80,90,100)");
+        expect(harness.setPlaceholderColor({ widget: "#30", "placeholder color": null })).toBe(
+            false
+        );
         expect(input.placeholder).toBe("0.00");
         expect(input.inputMode).toBe("decimal");
         expect(input.value).toBe("12.50");

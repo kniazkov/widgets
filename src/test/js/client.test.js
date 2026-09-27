@@ -25,6 +25,7 @@ const handlerNames = [
     "setHiddenFlag",
     "setText",
     "setPlaceholder",
+    "setPlaceholderColor",
     "setInputMode",
     "setSuggestions",
     "setSuggestionSeparator",

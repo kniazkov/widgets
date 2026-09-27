@@ -122,6 +122,7 @@ public class InputFieldStyle extends Style implements HasStyledText, HasPlacehol
         this.setBorderRadius(8);
 
         this.setPlaceholder("");
+        this.setPlaceholderColor(DefaultTheme.MUTED);
         this.setInputMode(com.kniazkov.widgets.common.InputMode.TEXT);
         this.setWidth(240);
         this.setHeight(42);

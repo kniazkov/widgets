@@ -2747,3 +2747,11 @@ function setInputMode(data) {
     widget.inputMode = mode;
     return true;
 }
+
+function setPlaceholderColor(data) {
+    const widget = widgets[data.widget];
+    const color = data["placeholder color"];
+    if (!widget || !("placeholder" in widget) || !color || typeof color !== "object") return false;
+    widget.style.setProperty("--widgets-placeholder-color", composeColor(color));
+    return true;
+}

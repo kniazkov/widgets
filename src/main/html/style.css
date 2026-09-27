@@ -93,3 +93,8 @@ img, textarea, button {
     min-width: 0;
     overflow-wrap: anywhere;
 }
+
+input::placeholder {
+    color: var(--widgets-placeholder-color, #475569);
+    opacity: 1;
+}

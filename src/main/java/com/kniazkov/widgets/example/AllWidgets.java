@@ -344,6 +344,7 @@ public class AllWidgets {
         final InputField decimal = new InputField();
         decimal.setTextModel(new com.kniazkov.widgets.model.RealToStringModel(amount, true));
         decimal.setPlaceholder("0.00");
+        decimal.setPlaceholderColor(new Color(100, 116, 139));
         decimal.setInputMode(com.kniazkov.widgets.common.InputMode.DECIMAL);
         row.add(variant("Amount", decimal));
         final TextWidget value = new TextWidget();
