@@ -44,6 +44,9 @@ function createHarness() {
         window.__dropDownHarness = {
             createWidget,
             setSuggestions,
+            setPlaceholder,
+            setPlaceholderColor,
+            setInputMode,
             setSuggestionSeparator,
             setText,
             removeChildWidget,
@@ -81,6 +84,33 @@ function options(document) {
 }
 
 describe("suggestion field", () => {
+    it("updates input hints without touching value, caret or validity", () => {
+        const { harness, input } = field();
+        input.focus();
+        type(input, "12.50");
+        input.setSelectionRange(2, 2);
+        expect(harness.setPlaceholder({ widget: "#30", placeholder: "0.00" })).toBe(true);
+        expect(harness.setInputMode({ widget: "#30", "input mode": "decimal" })).toBe(true);
+        expect(
+            harness.setPlaceholderColor({
+                widget: "#30",
+                "placeholder color": { r: 80, g: 90, b: 100 }
+            })
+        ).toBe(true);
+        expect(input.style.getPropertyValue("--widgets-placeholder-color")).toBe("rgb(80,90,100)");
+        expect(harness.setPlaceholderColor({ widget: "#30", "placeholder color": null })).toBe(
+            false
+        );
+        expect(input.placeholder).toBe("0.00");
+        expect(input.inputMode).toBe("decimal");
+        expect(input.value).toBe("12.50");
+        expect(input.selectionStart).toBe(2);
+        expect(harness.setInputMode({ widget: "#30", "input mode": "invalid" })).toBe(false);
+        expect(harness.setPlaceholder({ widget: "#30", placeholder: null })).toBe(false);
+        harness.setPlaceholder({ widget: "#30", placeholder: "" });
+        expect(input.placeholder).toBe("");
+    });
+
     it("restores focus and reveals the end after a completed touch click", () => {
         const { harness, input, document } = field();
         const value = "Латунь с родиевым покрытием";

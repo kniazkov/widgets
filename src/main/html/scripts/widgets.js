@@ -2727,3 +2727,31 @@ function setFitContent(data) {
     widget._resetZoom();
     return true;
 }
+
+// Presentation hints never change the field value or validation.
+function setPlaceholder(data) {
+    const widget = widgets[data.widget];
+    if (!widget || !("placeholder" in widget) || typeof data.placeholder !== "string") return false;
+    widget.placeholder = data.placeholder;
+    return true;
+}
+
+function setInputMode(data) {
+    const widget = widgets[data.widget];
+    const mode = data["input mode"];
+    if (
+        !widget ||
+        !["text", "numeric", "decimal", "tel", "email", "url", "search", "none"].includes(mode)
+    )
+        return false;
+    widget.inputMode = mode;
+    return true;
+}
+
+function setPlaceholderColor(data) {
+    const widget = widgets[data.widget];
+    const color = data["placeholder color"];
+    if (!widget || !("placeholder" in widget) || !color || typeof color !== "object") return false;
+    widget.style.setProperty("--widgets-placeholder-color", composeColor(color));
+    return true;
+}

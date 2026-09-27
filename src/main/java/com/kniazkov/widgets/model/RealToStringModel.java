@@ -25,6 +25,10 @@ public final class RealToStringModel extends SingleThreadModel<String>
      * The underlying double-based model.
      */
     private final Model<Double> base;
+    /**
+     * Whether empty input represents zero.
+     */
+    private final boolean emptyAsZero;
 
     /**
      * The current string representation of the double value.
@@ -53,8 +57,19 @@ public final class RealToStringModel extends SingleThreadModel<String>
      * @param base the base {@code Double}-backed model
      */
     public RealToStringModel(final Model<Double> base) {
+        this(base, false);
+    }
+
+    /**
+     * Creates an adapter with optional empty-zero presentation.
+     * @param base numeric source model
+     * @param emptyAsZero show source zero as empty and interpret empty input as zero;
+     *     explicitly typed text is preserved while editing
+     */
+    public RealToStringModel(final Model<Double> base, final boolean emptyAsZero) {
         this.base = base;
-        this.string = base.getData().toString();
+        this.emptyAsZero = emptyAsZero;
+        this.string = this.format(base.getData());
         this.valid = true;
         this.baseValid = base.isValid();
         this.base.addListener(this);
@@ -78,7 +93,7 @@ public final class RealToStringModel extends SingleThreadModel<String>
         this.string = data;
 
         try {
-            final double value = Double.parseDouble(data);
+            final double value = this.emptyAsZero && data.isEmpty() ? 0 : Double.parseDouble(data);
             this.valid = true;
             this.updatingBase = true;
             try {
@@ -106,7 +121,7 @@ public final class RealToStringModel extends SingleThreadModel<String>
             return;
         }
         final boolean oldValidity = this.isValid();
-        final String value = data.toString();
+        final String value = this.format(data);
         final boolean changed = !this.string.equals(value);
         this.string = value;
         this.valid = true;
@@ -115,4 +130,13 @@ public final class RealToStringModel extends SingleThreadModel<String>
             this.notifyListeners(value);
         }
     }
+    /**
+     * Formats an external numeric value.
+     * @param value numeric value
+     * @return editable representation
+     */
+    private String format(final Double value) {
+        return this.emptyAsZero && value == 0 ? "" : value.toString();
+    }
+
 }

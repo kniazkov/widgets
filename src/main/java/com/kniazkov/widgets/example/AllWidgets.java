@@ -145,6 +145,7 @@ public class AllWidgets {
         addActiveTextWidgets(root);
         addLinks(root);
         addInputFields(root);
+        addNumericHints(root);
         addSuggestionFields(root);
         addPasswordInputs(root);
         addTextAreas(root);
@@ -327,6 +328,33 @@ public class AllWidgets {
      * Adds single-line input field variations.
      *
      * @param root page root
+     */
+    private static void addNumericHints(final RootWidget root) {
+        final Panel card = addCard(root, "Numeric input hints",
+            "Zero stays in the model; type directly over the gray hint. Clear to reset to zero.");
+        final Section row = new Section();
+        card.add(row);
+        final var count = new com.kniazkov.widgets.model.IntegerModel(0);
+        final InputField integer = new InputField();
+        integer.setTextModel(new com.kniazkov.widgets.model.IntegerToStringModel(count, true));
+        integer.setPlaceholder("0");
+        integer.setInputMode(com.kniazkov.widgets.common.InputMode.NUMERIC);
+        row.add(variant("Quantity", integer));
+        final var amount = new com.kniazkov.widgets.model.RealNumberModel(0.0);
+        final InputField decimal = new InputField();
+        decimal.setTextModel(new com.kniazkov.widgets.model.RealToStringModel(amount, true));
+        decimal.setPlaceholder("0.00");
+        decimal.setPlaceholderColor(new Color(100, 116, 139));
+        decimal.setInputMode(com.kniazkov.widgets.common.InputMode.DECIMAL);
+        row.add(variant("Amount", decimal));
+        final TextWidget value = new TextWidget();
+        value.setTextModel(new com.kniazkov.widgets.model.RealToStringModel(amount));
+        row.add(variant("Numeric model value", value));
+    }
+
+    /**
+     * Adds input field style variants.
+     * @param root gallery root
      */
     private static void addInputFields(final RootWidget root) {
         final Panel card = addCard(root, "InputField",

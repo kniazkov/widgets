@@ -18,6 +18,48 @@ import static org.junit.Assert.assertTrue;
  */
 public final class NumericStringModelTest {
     /**
+     * Checks opt-in empty-zero editing and legacy behavior.
+     */
+    @Test public void emptyZeroIsOptionalAndPreservesEditingText() {
+        final IntegerModel integer = new IntegerModel(0);
+        final IntegerToStringModel count = new IntegerToStringModel(integer, true);
+        assertEquals("", count.getData());
+        assertEquals("0", new IntegerToStringModel(integer).getData());
+        count.setData("12");
+        assertEquals(Integer.valueOf(12), integer.getData());
+        count.setData("");
+        assertTrue(count.isValid());
+        assertEquals(Integer.valueOf(0), integer.getData());
+        count.setData("-");
+        assertFalse(count.isValid());
+        integer.setData(4);
+        assertEquals("4", count.getData());
+        integer.setData(0);
+        assertEquals("", count.getData());
+        count.setData("0");
+        assertEquals("0", count.getData());
+        final RealNumberModel real = new RealNumberModel(0.0);
+        final RealToStringModel amount = new RealToStringModel(real, true);
+        assertEquals("", amount.getData());
+        amount.setData("0.");
+        assertEquals("0.", amount.getData());
+        amount.setData("12.50");
+        assertEquals(Double.valueOf(12.5), real.getData());
+        assertEquals("12.50", amount.getData());
+        amount.setData("");
+        assertTrue(amount.isValid());
+        assertEquals(Double.valueOf(0), real.getData());
+        amount.setData("bad");
+        assertFalse(amount.isValid());
+        real.setData(3.5);
+        real.setData(0.0);
+        assertEquals("", amount.getData());
+        final RealToStringModel strict = new RealToStringModel(real);
+        strict.setData("");
+        assertFalse(strict.isValid());
+    }
+
+    /**
      * Verifies the integerAdapterSynchronizesInBothDirections behavior.
      */
     @Test

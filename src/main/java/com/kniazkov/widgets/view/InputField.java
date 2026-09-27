@@ -11,6 +11,8 @@ import com.kniazkov.widgets.model.Model;
  * An editable text input field widget.
  */
 public class InputField extends InlineWidget<InputFieldStyle> implements HasTextInput,
+        HasPlaceholder,
+        HasInputMode,
         HasStyledText, HasColor, HasBgColor, HasBorder, HasAbsoluteWidth, HasAbsoluteHeight,
         HasMargin, HasPadding, HasInvalidState, HasDisabledState, HasHorizontalAlignment,
         HandlesFocusEvents, HandlesPointerEvents, HasBoxShadow, HasOutline, HasCursor,
