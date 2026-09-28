@@ -4,6 +4,7 @@
 
 // History entries own independent runtimes, including detached DOM and protocol checkpoints.
 function initNavigation(sessionId, address, data, addresses = [address]) {
+    const defaults = readDocumentMetadata();
     const pages = new Map();
     const routes = new Set(addresses);
     const stateKey = "widgetsPage";
@@ -92,7 +93,14 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         }
     }
 
+    function showMetadata(entry) {
+        if (active === entry) {
+            applyDocumentMetadata({ ...defaults, ...entry.root._documentMetadata });
+        }
+    }
+
     function show(entry) {
+        showMetadata(entry);
         if (active === entry) {
             document.body.style.backgroundColor = entry.root.style.backgroundColor;
         }
@@ -112,6 +120,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
 
     function activate(state, url, initialData) {
         saveScroll();
+        applyDocumentMetadata(defaults);
         if (active) {
             active.hiddenAt = Date.now();
             active.hiddenOrder = ++accessOrder;
@@ -141,6 +150,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             );
             entry.runtime = createPageRuntime({
                 root: entry.root,
+                metadataChanged: () => showMetadata(entry),
                 failure: overlay => {
                     if (entry.waiting && active === entry) {
                         entry.error?.remove();

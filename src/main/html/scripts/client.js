@@ -478,6 +478,10 @@ const actionHandlers = {
     "set suggestions": setSuggestions,
     "set placeholder color": setPlaceholderColor,
     "set placeholder": setPlaceholder,
+    "set document title": data => setDocumentMetadata(data, "title"),
+    "set document description": data => setDocumentMetadata(data, "description"),
+    "set document robots": data => setDocumentMetadata(data, "robots"),
+
     "set input mode": setInputMode,
     "set suggestion separator": setSuggestionSeparator,
     "set options": setOptions,

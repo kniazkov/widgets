@@ -2755,3 +2755,19 @@ function setPlaceholderColor(data) {
     widget.style.setProperty("--widgets-placeholder-color", composeColor(color));
     return true;
 }
+
+// A detached page keeps its own metadata; only its navigation owner can publish it.
+function setDocumentMetadata(data, name) {
+    const widget = widgets[data.widget];
+    const value = data["document " + name];
+    const root = typeof page === "undefined" ? document.body : page.root;
+    if (!widget || widget !== root || typeof value !== "string") return false;
+    widget._documentMetadata ||= {};
+    widget._documentMetadata[name] = value;
+    if (typeof page === "undefined") {
+        applyDocumentMetadata({ ...readDocumentMetadata(), ...widget._documentMetadata });
+    } else {
+        page.metadataChanged?.();
+    }
+    return true;
+}
