@@ -37,6 +37,7 @@ const handlerNames = [
     "setChildOrder",
     "setMaxScale",
     "setFitContent",
+    "setFitToFirstChild",
     "setAnimationDuration",
     "resetZoom",
     "setHref",

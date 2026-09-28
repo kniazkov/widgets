@@ -209,3 +209,26 @@ describe("labeled choice row", () => {
         expect(row.style.alignItems).toBe("flex-start");
     });
 });
+
+describe("overlay sizing", () => {
+    it("uses a reversible content sizing class and validates protocol targets", () => {
+        dom = new JSDOM("<!doctype html>", { runScripts: "outside-only" });
+        dom.window.eval(`${source}\nfunction initPointerEvents() {}\n
+            const stack = widgetsLibrary["overlay stack"]();
+            widgets.stack = stack;
+            widgets.text = document.createElement("span");
+            window.overlay = {stack, setFitToFirstChild};
+        `);
+        const { stack, setFitToFirstChild } = dom.window.overlay;
+        expect(stack.style.display).toBe("inline-grid");
+        expect(stack.style.position).toBe("relative");
+        const apply = value => setFitToFirstChild({ widget: "stack", "fit to first child": value });
+        expect(stack.classList.contains("widgets-overlay-fit-first")).toBe(false);
+        expect(apply(true)).toBe(true);
+        expect(stack.classList.contains("widgets-overlay-fit-first")).toBe(true);
+        expect(apply(false)).toBe(true);
+        expect(stack.classList.contains("widgets-overlay-fit-first")).toBe(false);
+        expect(apply("true")).toBe(false);
+        expect(setFitToFirstChild({ widget: "text", "fit to first child": true })).toBe(false);
+    });
+});

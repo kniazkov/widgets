@@ -766,10 +766,9 @@ public class AllWidgets {
         ));
         centeredLabel.setCenterAlignment();
         centeredLabel.setMiddleAlignment();
-        row.add(variant(
-            "Text over image",
-            new OverlayStack(background, centeredLabel)
-        ));
+        final OverlayStack contentSized = new OverlayStack(background, centeredLabel);
+        contentSized.setFitToFirstChild(true);
+        row.add(variant("Text over image (size from image)", contentSized));
 
         final TextWidget oldPrice = new TextWidget(
             textStyle(TEXT, "18px", FontWeight.NORMAL),

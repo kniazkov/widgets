@@ -259,6 +259,8 @@ const widgetsLibrary = {
     },
     "overlay stack": function () {
         const widget = document.createElement("div");
+        widget.classList.add("widgets-overlay-stack");
+        widget.style.position = "relative";
         widget.style.display = "inline-grid";
         widget.style.verticalAlign = "middle";
         widget._layoutChild = function (child) {
@@ -2769,5 +2771,16 @@ function setDocumentMetadata(data, name) {
     } else {
         page.metadataChanged?.();
     }
+    return true;
+}
+
+// CSS keeps overlays attached to the content during intrinsic and responsive size changes.
+function setFitToFirstChild(data) {
+    const widget = widgets[data.widget];
+    const value = data["fit to first child"];
+    if (!widget?.classList.contains("widgets-overlay-stack") || typeof value !== "boolean") {
+        return false;
+    }
+    widget.classList.toggle("widgets-overlay-fit-first", value);
     return true;
 }
