@@ -65,6 +65,24 @@ import com.kniazkov.widgets.model.WidgetSizeModel;
  */
 public abstract class Property<T> {
     /**
+     * Page-specific document title, owned by RootWidget.
+     */
+    public static final Property<String> DOCUMENT_TITLE
+        = stringProperty("document title");
+
+    /**
+     * Page-specific document description, owned by RootWidget.
+     */
+    public static final Property<String> DOCUMENT_DESCRIPTION
+        = stringProperty("document description");
+
+    /**
+     * Page-specific document robots, owned by RootWidget.
+     */
+    public static final Property<String> DOCUMENT_ROBOTS
+        = stringProperty("document robots");
+
+    /**
      * Creates a property.
      */
     public Property() {

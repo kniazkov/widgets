@@ -143,6 +143,8 @@ public class AllWidgets {
      * @param root page root
      */
     private static void buildGallery(final RootWidget root) {
+        root.setTitle("All Widgets — Component Gallery");
+        root.setDescription("Explore the interactive gallery of Web Widgets components.");
         configurePage(root);
         addIntroduction(root);
         addStickyPanel(root);

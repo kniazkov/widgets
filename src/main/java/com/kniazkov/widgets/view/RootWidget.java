@@ -5,6 +5,8 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.base.Options;
+import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.StringModel;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
@@ -60,6 +62,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     public RootWidget(final Options options) {
         super(getDefaultStyle());
         this.options = Objects.requireNonNull(options, "Options must not be null");
+        this.resetMetadata();
     }
 
     /**
@@ -81,6 +84,144 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      */
     public Options getOptions() {
         return this.options;
+    }
+
+    /**
+     * Returns this page's effective title model, initialized from Options.
+     *
+     * @return reactive metadata model
+     */
+    public Model<String> getTitleModel() {
+        return this.getModel(State.ANY, Property.DOCUMENT_TITLE);
+    }
+
+    /**
+     * Binds this page's title to a reactive model.
+     *
+     * @param model page metadata; empty text removes the corresponding element
+     */
+    public void setTitleModel(final Model<String> model) {
+        this.setModel(State.ANY, Property.DOCUMENT_TITLE, Objects.requireNonNull(model));
+    }
+
+    /**
+     * Returns this page's effective title.
+     *
+     * @return metadata text
+     */
+    public String getTitle() {
+        return this.getTitleModel().getData();
+    }
+
+    /**
+     * Changes this page's title in the browser, including subsequent reactive updates.
+     *
+     * @param value plain text; empty text removes the corresponding element
+     */
+    public void setTitle(final String value) {
+        this.getTitleModel().setData(Objects.requireNonNull(value));
+    }
+
+    /**
+     * Restores the application's title and detaches any previously bound model.
+     */
+    public void resetTitle() {
+        this.setTitleModel(new StringModel(this.options.getTitle()));
+    }
+
+    /**
+     * Returns this page's effective description model, initialized from Options.
+     *
+     * @return reactive metadata model
+     */
+    public Model<String> getDescriptionModel() {
+        return this.getModel(State.ANY, Property.DOCUMENT_DESCRIPTION);
+    }
+
+    /**
+     * Binds this page's description to a reactive model.
+     *
+     * @param model page metadata; empty text removes the corresponding element
+     */
+    public void setDescriptionModel(final Model<String> model) {
+        this.setModel(State.ANY, Property.DOCUMENT_DESCRIPTION, Objects.requireNonNull(model));
+    }
+
+    /**
+     * Returns this page's effective description.
+     *
+     * @return metadata text
+     */
+    public String getDescription() {
+        return this.getDescriptionModel().getData();
+    }
+
+    /**
+     * Changes this page's description in the browser, including subsequent reactive updates.
+     *
+     * @param value plain text; empty text removes the corresponding element
+     */
+    public void setDescription(final String value) {
+        this.getDescriptionModel().setData(Objects.requireNonNull(value));
+    }
+
+    /**
+     * Restores the application's description and detaches any previously bound model.
+     */
+    public void resetDescription() {
+        this.setDescriptionModel(new StringModel(this.options.getDescription()));
+    }
+
+    /**
+     * Returns this page's effective robots model, initialized from Options.
+     *
+     * @return reactive metadata model
+     */
+    public Model<String> getRobotsModel() {
+        return this.getModel(State.ANY, Property.DOCUMENT_ROBOTS);
+    }
+
+    /**
+     * Binds this page's robots to a reactive model.
+     *
+     * @param model page metadata; empty text removes the corresponding element
+     */
+    public void setRobotsModel(final Model<String> model) {
+        this.setModel(State.ANY, Property.DOCUMENT_ROBOTS, Objects.requireNonNull(model));
+    }
+
+    /**
+     * Returns this page's effective robots.
+     *
+     * @return metadata text
+     */
+    public String getRobots() {
+        return this.getRobotsModel().getData();
+    }
+
+    /**
+     * Changes this page's robots in the browser, including subsequent reactive updates.
+     *
+     * @param value plain text; empty text removes the corresponding element
+     */
+    public void setRobots(final String value) {
+        this.getRobotsModel().setData(Objects.requireNonNull(value));
+    }
+
+    /**
+     * Restores the application's robots and detaches any previously bound model.
+     */
+    public void resetRobots() {
+        this.setRobotsModel(new StringModel(this.options.getRobots()));
+    }
+
+    /**
+     * Restores all page-specific metadata to the immutable application defaults.
+     */
+    public void resetMetadata() {
+        this.resetTitle();
+        this.resetDescription();
+        this.resetRobots();
     }
 
     @Override

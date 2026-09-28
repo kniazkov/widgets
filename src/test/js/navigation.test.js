@@ -7,8 +7,8 @@ const read = name =>
 let dom;
 afterEach(() => dom?.window.close());
 
-function harness() {
-    dom = new JSDOM("<!doctype html><body></body>", {
+function harness(head = "") {
+    dom = new JSDOM(`<!doctype html><head>${head}</head><body></body>`, {
         runScripts: "outside-only",
         url: "http://localhost/catalog?filter=blue"
     });
@@ -289,5 +289,63 @@ describe("page history cache", () => {
             address: "/product"
         });
         expect(h.win.document.body.textContent).toBe("");
+    });
+});
+
+describe("page metadata", () => {
+    const change = (id, name, value) => ({
+        id: "#" + id,
+        action: "set document " + name,
+        widget: "#1",
+        ["document " + name]: value
+    });
+    const tick = h => {
+        for (const callback of h.intervals.values()) callback();
+    };
+
+    it("restores defaults, retains hidden updates and restores metadata on Back/Forward", async () => {
+        const h = harness('<title>Shop</title><meta name="description" content="Site">');
+        h.created("first");
+        tick(h);
+        h.updates("first", [
+            change(5, "title", "Product"),
+            change(6, "description", "Details"),
+            change(7, "robots", "noindex")
+        ]);
+        expect(h.win.document.title).toBe("Product");
+        expect(h.win.document.querySelector('meta[name="robots"]').content).toBe("noindex");
+        tick(h);
+        h.navigate("/product");
+        expect(h.win.document.title).toBe("Shop");
+        expect(h.win.document.querySelector('meta[name="robots"]')).toBeNull();
+        h.created("second");
+        h.updates("first", [change(8, "title", "Updated while hidden")]);
+        expect(h.win.document.title).toBe("Shop");
+        await h.back();
+        h.updates("first");
+        expect(h.win.document.title).toBe("Updated while hidden");
+        expect(h.win.document.querySelector('meta[name="description"]').content).toBe("Details");
+        await new Promise(resolve => {
+            h.win.addEventListener("popstate", resolve, { once: true });
+            h.win.history.forward();
+        });
+        h.updates("second");
+        expect(h.win.document.title).toBe("Shop");
+        expect(h.win.document.querySelector('meta[name="description"]').content).toBe("Site");
+    });
+
+    it("uses text safely, removes empty overrides and does not duplicate head elements", () => {
+        const h = harness('<title>Shop</title><meta name="description" content="Site">');
+        h.created("first");
+        const unsafe = '</title><script>bad()</script>"&';
+        tick(h);
+        h.updates("first", [change(5, "title", unsafe), change(6, "description", unsafe)]);
+        expect(h.win.document.title).toBe(unsafe);
+        expect(h.win.document.querySelector('meta[name="description"]').content).toBe(unsafe);
+        expect(h.win.document.head.querySelector("script")).toBeNull();
+        tick(h);
+        h.updates("first", [change(7, "title", "New"), change(8, "description", "")]);
+        expect(h.win.document.head.querySelectorAll("title")).toHaveLength(1);
+        expect(h.win.document.querySelector('meta[name="description"]')).toBeNull();
     });
 });
