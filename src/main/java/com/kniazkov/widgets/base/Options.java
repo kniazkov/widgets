@@ -6,6 +6,7 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.webserver.SslOptions;
 import com.kniazkov.widgets.common.WebFont;
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -15,6 +16,31 @@ import java.util.Optional;
  * Immutable configuration used when starting a widget application.
  */
 public final class Options {
+    /**
+     * Browser tab title.
+     */
+    private final String title;
+
+    /**
+     * Public favicon URL.
+     */
+    private final String faviconUrl;
+
+    /**
+     * Search result description.
+     */
+    private final String description;
+
+    /**
+     * Crawler indexing directives.
+     */
+    private final String robots;
+
+    /**
+     * Document language tag.
+     */
+    private final String language;
+
     /**
      * Default maximum lifetime of an inactive browser client, in milliseconds.
      */
@@ -106,6 +132,11 @@ public final class Options {
      * @param builder source builder
      */
     private Options(final Builder builder) {
+        this.title = builder.title;
+        this.faviconUrl = builder.faviconUrl;
+        this.description = builder.description;
+        this.robots = builder.robots;
+        this.language = builder.language;
         this.clientLifetime = builder.clientLifetime;
         this.wwwRoot = builder.wwwRoot;
         this.port = builder.port;
@@ -219,9 +250,79 @@ public final class Options {
     }
 
     /**
+     * Returns the browser tab title.
+     *
+     * @return configured value; empty means omitted for optional head elements
+     */
+    public String getTitle() {
+        return this.title;
+    }
+
+    /**
+     * Returns the public favicon url.
+     *
+     * @return configured value; empty means omitted for optional head elements
+     */
+    public String getFaviconUrl() {
+        return this.faviconUrl;
+    }
+
+    /**
+     * Returns the search result description.
+     *
+     * @return configured value; empty means omitted for optional head elements
+     */
+    public String getDescription() {
+        return this.description;
+    }
+
+    /**
+     * Returns the crawler indexing directives.
+     *
+     * @return configured value; empty means omitted for optional head elements
+     */
+    public String getRobots() {
+        return this.robots;
+    }
+
+    /**
+     * Returns the document language tag.
+     *
+     * @return configured value; empty means omitted for optional head elements
+     */
+    public String getLanguage() {
+        return this.language;
+    }
+
+    /**
      * Builds immutable application options.
      */
     public static final class Builder {
+        /**
+         * Browser tab title.
+         */
+        private String title = "";
+
+        /**
+         * Public favicon URL.
+         */
+        private String faviconUrl = "";
+
+        /**
+         * Search result description.
+         */
+        private String description = "";
+
+        /**
+         * Crawler indexing directives.
+         */
+        private String robots = "";
+
+        /**
+         * Document language tag.
+         */
+        private String language = "en";
+
         /**
          * Maximum lifetime of an inactive browser client, in milliseconds.
          */
@@ -276,6 +377,87 @@ public final class Options {
          * Public static resource mounts.
          */
         private final List<StaticSource> staticSources = new ArrayList<>();
+
+        /**
+         * Sets the browser tab title on every application page.
+         * Empty text omits the element; null is rejected.
+         *
+         * @param value configuration value
+         * @return this builder
+         */
+        public Builder setTitle(final String value) {
+            Objects.requireNonNull(value, "Title must not be null");
+            this.title = value;
+            return this;
+        }
+
+        /**
+         * Sets the public favicon url on every application page.
+         * Use a root-relative path or an absolute HTTP(S) URL. Empty text omits the icon.
+         *
+         * @param value configuration value
+         * @return this builder
+         */
+        public Builder setFaviconUrl(final String value) {
+            Objects.requireNonNull(value, "FaviconUrl must not be null");
+            if (!value.isEmpty()) {
+                final URI uri = URI.create(value);
+                final boolean local = value.startsWith("/") && !value.startsWith("//")
+                    && uri.getRawAuthority() == null;
+                final boolean remote = ("http".equalsIgnoreCase(uri.getScheme())
+                    || "https".equalsIgnoreCase(uri.getScheme()))
+                    && uri.getHost() != null && uri.getUserInfo() == null;
+                if ((!local && !remote) || value.contains("\\")) {
+                    throw new IllegalArgumentException(
+                        "Favicon must be a public HTTP(S) URL or path"
+                    );
+                }
+            }
+            this.faviconUrl = value;
+            return this;
+        }
+
+        /**
+         * Sets the search result description on every application page.
+         * Empty text omits the element; null is rejected.
+         *
+         * @param value configuration value
+         * @return this builder
+         */
+        public Builder setDescription(final String value) {
+            Objects.requireNonNull(value, "Description must not be null");
+            this.description = value;
+            return this;
+        }
+
+        /**
+         * Sets the crawler indexing directives on every application page.
+         * Empty text omits the element; null is rejected.
+         *
+         * @param value configuration value
+         * @return this builder
+         */
+        public Builder setRobots(final String value) {
+            Objects.requireNonNull(value, "Robots must not be null");
+            this.robots = value;
+            return this;
+        }
+
+        /**
+         * Sets the document language tag on every application page.
+         * Use a language tag such as en or ru-RU; the default is en.
+         *
+         * @param value configuration value
+         * @return this builder
+         */
+        public Builder setLanguage(final String value) {
+            Objects.requireNonNull(value, "Language must not be null");
+            if (!value.matches("[a-zA-Z]{2,8}(-[a-zA-Z0-9]{1,8})*")) {
+                throw new IllegalArgumentException("Invalid document language tag");
+            }
+            this.language = value;
+            return this;
+        }
 
         /**
          * Creates a builder initialized with framework defaults.

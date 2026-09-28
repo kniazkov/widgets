@@ -128,7 +128,12 @@ public class AllWidgets {
     public static void main(final String[] args) {
         final Page page = (root, parameters) -> buildGallery(root);
         final Application application = new Application(page);
-        final Options options = new Options.Builder().build();
+        final Options options = new Options.Builder()
+            .setTitle("Web Widgets — All Widgets")
+            .setFaviconUrl("/widgets-icon.svg")
+            .setDescription("Interactive examples of the Web Widgets components.")
+            .setLanguage("en")
+            .build();
         Server.start(application, options);
     }
 

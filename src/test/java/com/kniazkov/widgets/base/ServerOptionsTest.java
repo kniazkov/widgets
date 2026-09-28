@@ -152,4 +152,34 @@ public class ServerOptionsTest {
             () -> first.getWebFonts().clear()
         );
     }
+    /**
+     * Metadata settings are immutable snapshots and reject invalid browser resource URLs.
+     */
+    @Test
+    public void validatesDocumentOptionsAndRetainsSnapshots() {
+        final Options.Builder builder = new Options.Builder().setTitle("First")
+            .setDescription("Description").setRobots("noindex")
+            .setFaviconUrl("https://example.org/icon.png").setLanguage("ru");
+        final Options first = builder.build();
+        builder.setTitle("Second").setDescription("").setRobots("")
+            .setFaviconUrl("").setLanguage("en");
+        assertEquals("First", first.getTitle());
+        assertEquals("Description", first.getDescription());
+        assertEquals("noindex", first.getRobots());
+        assertEquals("https://example.org/icon.png", first.getFaviconUrl());
+        assertEquals("ru", first.getLanguage());
+        assertEquals("Second", builder.build().getTitle());
+        for (final String value : new String[]{"javascript:alert(1)", "data:text/html,test",
+                "//example.org/icon.png", "file:///icon.png", "relative.png", "https:///icon"}) {
+            assertThrows(IllegalArgumentException.class, () -> builder.setFaviconUrl(value));
+        }
+        assertThrows(NullPointerException.class, () -> builder.setTitle(null));
+        assertThrows(NullPointerException.class, () -> builder.setDescription(null));
+        assertThrows(NullPointerException.class, () -> builder.setRobots(null));
+        assertThrows(NullPointerException.class, () -> builder.setFaviconUrl(null));
+        assertThrows(NullPointerException.class, () -> builder.setLanguage(null));
+        assertThrows(IllegalArgumentException.class, () -> builder.setLanguage(""));
+        assertThrows(IllegalArgumentException.class, () -> builder.setLanguage("en\" onclick=bad"));
+    }
+
 }

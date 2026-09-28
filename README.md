@@ -240,6 +240,8 @@ in-memory complete-file limit is 128 MiB.
 
 ## Documentation
 
+- [Document head](docs/DOCUMENT_HEAD.md) — browser title, favicon, language and search metadata
+  configured through immutable application options.
 - [Reactive database](docs/DATABASE.md) — shared record models, drafts, live queries, JSON and
   JDBC persistence, examples, and operational limitations.
 - [Model catalog and hierarchy](docs/MODELS.md) — every model type, its contract, defaults,
