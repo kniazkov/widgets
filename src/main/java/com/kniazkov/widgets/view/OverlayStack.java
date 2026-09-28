@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
+import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
@@ -74,6 +75,43 @@ public final class OverlayStack extends InlineWidget<InlineBlockStyle>
         for (final Widget<?> child : children) {
             this.appendChild(child);
         }
+    }
+
+    /**
+     * Returns the reactive sizing mode; false preserves maximum-layer sizing.
+     *
+     * @return sizing mode model
+     */
+    public Model<Boolean> getFitToFirstChildModel() {
+        return this.getModel(State.ANY, Property.FIT_TO_FIRST_CHILD);
+    }
+
+    /**
+     * Binds the sizing mode to a model.
+     *
+     * @param model true sizes the stack from its first child alone
+     */
+    public void setFitToFirstChildModel(final Model<Boolean> model) {
+        this.setModel(State.ANY, Property.FIT_TO_FIRST_CHILD, model);
+    }
+
+    /**
+     * Returns whether upper layers are excluded from intrinsic sizing.
+     *
+     * @return true for first-child sizing
+     */
+    public boolean isFitToFirstChild() {
+        return this.getFitToFirstChildModel().getData();
+    }
+
+    /**
+     * Makes upper layers absolute overlays filling the first child's area.
+     * Percent-sized decoration follows text, fonts and responsive resizing without measurement.
+     *
+     * @param value true for first-child sizing, false for maximum-layer sizing (default)
+     */
+    public void setFitToFirstChild(final boolean value) {
+        this.getFitToFirstChildModel().setData(value);
     }
 
     @Override

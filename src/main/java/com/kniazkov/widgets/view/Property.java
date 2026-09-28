@@ -389,6 +389,11 @@ public abstract class Property<T> {
         boolProperty("close on outside click");
 
     /**
+     * Sizes an overlay stack from its first child only.
+     */
+    public static final Property<Boolean> FIT_TO_FIRST_CHILD = boolProperty("fit to first child");
+
+    /**
      * Fits and centers the initial zoom view; disabled by default.
      */
     public static final Property<Boolean> FIT_CONTENT = boolProperty("fit content");

@@ -98,3 +98,11 @@ input::placeholder {
     color: var(--widgets-placeholder-color, #475569);
     opacity: 1;
 }
+
+/* Decorative layers never contribute their intrinsic dimensions in this optional mode. */
+.widgets-overlay-fit-first > :not(:first-child) {
+    position: absolute;
+    inset: 0;
+    min-width: 0;
+    min-height: 0;
+}

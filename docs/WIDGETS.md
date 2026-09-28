@@ -478,3 +478,13 @@ browser defaults do not add extra transparency. AllWidgets includes a custom col
 ```java
 field.setPlaceholderColorModel(new ColorModel(new Color(100, 116, 139)));
 ```
+
+### Content-sized overlay layers
+
+`OverlayStack` normally takes the maximum dimensions of all layers. With
+`setFitToFirstChild(true)` only the first layer participates in intrinsic sizing;
+upper layers are positioned absolutely over its area. Relative width/height on
+upper-layer content follows text, font and viewport changes automatically.
+Use `getFitToFirstChildModel` / `setFitToFirstChildModel` for reactive configuration.
+The default remains false. Children inserted or removed update their first/upper-layer
+role through CSS, without a ResizeObserver or pixel measurements.
