@@ -28,6 +28,13 @@ function createHarness() {
         runScripts: "outside-only",
         url: "http://localhost/"
     });
+    const frames = new Map();
+    let frameId = 0;
+    dom.window.requestAnimationFrame = callback => {
+        frames.set(++frameId, callback);
+        return frameId;
+    };
+    dom.window.cancelAnimationFrame = id => frames.delete(id);
     dom.window.eval(`${optionsSource}\n${librarySource}\n
         configureUploadProtocol(4 * 1024, 128 * 1024 * 1024);
         window.__selectionEvents = [];
@@ -57,7 +64,13 @@ function createHarness() {
     `);
     return {
         ...dom.window.__dropDownHarness,
-        events: dom.window.__selectionEvents
+        events: dom.window.__selectionEvents,
+        frames,
+        nextFrame() {
+            const callbacks = [...frames.values()];
+            frames.clear();
+            callbacks.forEach(callback => callback());
+        }
     };
 }
 
@@ -278,6 +291,83 @@ describe("suggestion field", () => {
         expect(options(document)).toEqual(["Silver"]);
         harness.setText({ widget: "#30", text: "stale" });
         expect(input.value).toBe("sil");
+    });
+});
+
+describe("suggestion positioning", () => {
+    function geometry() {
+        const state = field();
+        const viewport = new dom.window.EventTarget();
+        Object.assign(viewport, { offsetTop: 0, offsetLeft: 0, width: 390, height: 700 });
+        Object.defineProperty(dom.window, "visualViewport", { value: viewport });
+        const anchor = { top: 180, bottom: 220, left: 20, right: 260, width: 240 };
+        state.input.getBoundingClientRect = () => ({ ...anchor });
+        state.input.focus();
+        const list = state.document.querySelector('[role="listbox"]');
+        // Simulate a fixed/top-layer origin drifting independently of the input.
+        const origin = { x: 0, y: 0 };
+        list.getBoundingClientRect = () => {
+            const height = Math.min(132, parseFloat(list.style.maxHeight));
+            const top =
+                parseFloat(list.style.top || 0) + origin.y - (list.style.transform ? height : 0);
+            const left = parseFloat(list.style.left || 0) + origin.x;
+            const width = parseFloat(list.style.width);
+            return { top, bottom: top + height, left, right: left + width, width, height };
+        };
+        state.harness.nextFrame();
+        return { ...state, viewport, anchor, list, origin };
+    }
+
+    it("follows late field movement and a drifting fixed origin without scroll events", () => {
+        const { harness, anchor, list, origin } = geometry();
+        anchor.top += 90;
+        anchor.bottom += 90;
+        origin.y = -55;
+        origin.x = 10;
+        harness.nextFrame();
+        expect(list.getBoundingClientRect().top).toBe(anchor.bottom + 4);
+        expect(list.getBoundingClientRect().left).toBe(anchor.left);
+        harness.nextFrame();
+        expect(list.getBoundingClientRect().top).toBe(anchor.bottom + 4);
+        expect(harness.frames.size).toBe(1);
+    });
+
+    it("fits above or below the input inside a panned and resized visual viewport", () => {
+        const { harness, anchor, viewport, list } = geometry();
+        Object.assign(viewport, { offsetTop: 100, offsetLeft: 30, width: 220, height: 250 });
+        Object.assign(anchor, { top: 300, bottom: 340 });
+        viewport.dispatchEvent(new dom.window.Event("resize"));
+        harness.nextFrame();
+        const above = list.getBoundingClientRect();
+        expect(above.bottom).toBe(anchor.top - 4);
+        expect(above.top).toBeGreaterThanOrEqual(104);
+        expect(above.left).toBeGreaterThanOrEqual(34);
+        expect(above.right).toBeLessThanOrEqual(246);
+        Object.assign(anchor, { top: 120, bottom: 160 });
+        viewport.dispatchEvent(new dom.window.Event("scroll"));
+        harness.nextFrame();
+        const below = list.getBoundingClientRect();
+        expect(below.top).toBe(anchor.bottom + 4);
+        expect(below.bottom).toBeLessThanOrEqual(346);
+        Object.assign(anchor, { top: 500, bottom: 540 });
+        harness.nextFrame();
+        expect(list.style.visibility).toBe("hidden");
+        Object.assign(anchor, { top: 120, bottom: 160 });
+        harness.nextFrame();
+        expect(list.style.visibility).not.toBe("hidden");
+    });
+
+    it("stops tracking on close or detach and starts only one loop on reopening", async () => {
+        const { harness, input, document } = geometry();
+        key(input, "Escape");
+        expect(harness.frames.size).toBe(0);
+        input.click();
+        input.click();
+        expect(harness.frames.size).toBe(1);
+        input.remove();
+        await Promise.resolve();
+        expect(harness.frames.size).toBe(0);
+        expect(document.querySelector('[role="listbox"]')).toBeNull();
     });
 });
 
