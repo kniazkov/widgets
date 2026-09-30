@@ -49,7 +49,38 @@ test("source model changes update both fields without overwriting entered text",
 });
 
 test.describe("mobile suggestions", () => {
-    test.use({ viewport: { width: 390, height: 700 }, hasTouch: true, isMobile: true });
+    test.use({
+        viewport: { width: 390, height: 700 },
+        hasTouch: true,
+        isMobile: true
+    });
+
+    test("a blur during a native tap still selects once and keeps the caret", async ({ page }) => {
+        await page.goto("/suggestions");
+        const field = page.getByRole("combobox").first();
+        await field.tap();
+        await field.evaluate(input => {
+            window.__suggestionInputs = 0;
+            input.addEventListener("input", () => window.__suggestionInputs++);
+            document.addEventListener(
+                "touchstart",
+                event => {
+                    if (event.target.closest('[role="option"]')) input.blur();
+                },
+                { once: true }
+            );
+        });
+        const value = "Латунь с родиевым покрытием";
+        await page.getByRole("option", { name: value, exact: true }).tap();
+        await expect(field).toHaveValue(value);
+        await expect(field).toBeFocused();
+        await expect(page.getByText("Value: " + value, { exact: true })).toBeVisible();
+        await expect(page.getByRole("listbox")).toHaveCount(0);
+        expect(await page.evaluate(() => window.__suggestionInputs)).toBe(1);
+        expect(await field.evaluate(input => input.selectionStart)).toBe(value.length);
+        await page.keyboard.type("!");
+        await expect(field).toHaveValue(value + "!");
+    });
 
     test("tap selects editable text and an outside tap dismisses", async ({ page }) => {
         await page.goto("/suggestions");

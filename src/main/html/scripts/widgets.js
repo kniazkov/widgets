@@ -1478,8 +1478,10 @@ function createSuggestionField() {
     let active = -1;
     let observer = null;
     let composing = false;
+    let touch = null;
 
     function close() {
+        touch = null;
         if (!list) return;
         list.remove();
         list = null;
@@ -1639,6 +1641,78 @@ function createSuggestionField() {
         list.style.backgroundColor = style.backgroundColor;
         list.style.borderColor = style.borderColor;
         list.style.borderRadius = style.borderRadius;
+        // Safari may blur the input before dispatching a compatibility click. Keep
+        // the list alive for the whole touch gesture and select on touchend instead.
+        // Unlike pointerup, cancelling touchend also suppresses that later click.
+        list.addEventListener(
+            "touchstart",
+            event => {
+                if (event.touches.length !== 1) {
+                    if (touch) touch.cancelled = true;
+                    return;
+                }
+                const option = event.target.closest('[role="option"]');
+                if (!option || option.parentNode !== list) return;
+                const point = event.touches[0];
+                touch = {
+                    id: point.identifier,
+                    x: point.clientX,
+                    y: point.clientY,
+                    option,
+                    cancelled: false
+                };
+            },
+            { passive: true }
+        );
+        list.addEventListener(
+            "touchmove",
+            event => {
+                if (!touch) return;
+                const point = Array.from(event.touches).find(
+                    point => point.identifier === touch.id
+                );
+                if (!point || Math.hypot(point.clientX - touch.x, point.clientY - touch.y) > 8) {
+                    touch.cancelled = true;
+                }
+            },
+            { passive: true }
+        );
+        list.addEventListener("pointercancel", () => {
+            if (touch) touch.cancelled = true;
+        });
+        list.addEventListener("touchcancel", () => {
+            touch = null;
+            if (document.activeElement !== widget) {
+                close();
+                removeDuplicates();
+            }
+        });
+        list.addEventListener(
+            "touchend",
+            event => {
+                if (!touch) return;
+                const point = Array.from(event.changedTouches).find(
+                    point => point.identifier === touch.id
+                );
+                if (!point) return;
+                const gesture = touch;
+                touch = null;
+                // Never allow a delayed click to reach a removed option or the input
+                // underneath it (which would reopen the list and move the caret).
+                event.preventDefault();
+                if (
+                    !gesture.cancelled &&
+                    event.touches.length === 0 &&
+                    Math.hypot(point.clientX - gesture.x, point.clientY - gesture.y) <= 8
+                ) {
+                    select(gesture.option.textContent);
+                } else if (document.activeElement !== widget) {
+                    close();
+                    removeDuplicates();
+                }
+            },
+            { passive: false }
+        );
         values.forEach((value, index) => {
             const option = document.createElement("div");
             option.id = list.id + "-" + index;
@@ -1647,11 +1721,11 @@ function createSuggestionField() {
             option.textContent = value;
             // Keep focus and the on-screen keyboard on the editable field.
             option.addEventListener("pointerdown", event => event.preventDefault());
-            // Complete selection on click, after the touch gesture has finished. Removing
-            // the popup on pointerup can retarget the compatibility click to the input.
+            option.addEventListener("mousedown", event => event.preventDefault());
+            // Mouse and assistive-technology activation still use click.
             option.addEventListener("click", event => {
                 event.preventDefault();
-                select(value);
+                if (option.isConnected) select(value);
             });
             list.appendChild(option);
         });
@@ -1693,6 +1767,7 @@ function createSuggestionField() {
     widget.addEventListener("click", render);
     widget.addEventListener("input", render);
     widget.addEventListener("blur", () => {
+        if (touch) return;
         close();
         removeDuplicates();
     });

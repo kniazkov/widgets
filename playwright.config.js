@@ -8,6 +8,14 @@ if (!baseURL) {
 
 export default defineConfig({
     testDir: "./src/test/e2e",
+    projects: [
+        { name: "chromium", use: { browserName: "chromium" } },
+        {
+            name: "webkit-suggestions",
+            testMatch: "suggestion-field.spec.js",
+            use: { browserName: "webkit" }
+        }
+    ],
     fullyParallel: false,
     workers: 1,
     timeout: 30_000,
