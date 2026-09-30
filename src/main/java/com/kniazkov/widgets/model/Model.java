@@ -50,6 +50,12 @@ public interface Model<T> {
     /**
      * Registers a new listener that will be notified whenever the model's data changes.
      *
+     * <p>Standard implementations retain listeners weakly. The consumer must keep a
+     * strong reference for as long as it needs updates. A derived model can implement
+     * {@link Listener} and register {@code this}; alternatively, store the listener
+     * in a field or retain a {@link Binding}. An inline capturing lambda without an
+     * owner can be collected even while the source and consumer are still alive.</p>
+     *
      * @param listener the listener to register
      */
     void addListener(final Listener<T> listener);

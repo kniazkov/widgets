@@ -8,6 +8,8 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.view.CheckBox;
+import com.kniazkov.widgets.common.Listener;
+import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 
@@ -29,6 +31,25 @@ import com.kniazkov.widgets.view.TextWidget;
  */
 public class CheckBoxes {
     /**
+     * A caption retained by the widget tree also owns its subscription.
+     */
+    static final class CheckCaption extends TextWidget implements Listener<Boolean> {
+        /**
+         * Creates the caption and listens to the checkbox model.
+         * @param source checkbox state
+         */
+        CheckCaption(final Model<Boolean> source) {
+            super("Check me");
+            source.addListener(this);
+        }
+
+        @Override
+        public void accept(final Boolean checked) {
+            this.setText(checked ? "Checked" : "Unchecked");
+        }
+    }
+
+    /**
      * Creates the example.
      */
     public CheckBoxes() {
@@ -46,11 +67,7 @@ public class CheckBoxes {
 
             final CheckBox first = new CheckBox();
             section.add(first);
-            final TextWidget caption = new TextWidget("Check me");
-            section.add(caption);
-            first.getCheckedStateModel().addListener(
-                checked -> caption.setText(checked ? "Checked" : "Unchecked")
-            );
+            section.add(new CheckCaption(first.getCheckedStateModel()));
             section = new Section();
             root.add(section);
             final CheckBox second = new CheckBox();

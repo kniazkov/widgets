@@ -8,6 +8,7 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.model.ReadOnlyModel;
 import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.Section;
@@ -69,7 +70,7 @@ public class CustomModel {
      * A read-only model that mirrors another model's text,
      * transforming it to uppercase and reversed.
      */
-    static class MyModel extends ReadOnlyModel<String> {
+    static class MyModel extends ReadOnlyModel<String> implements Listener<String> {
         /**
          * Source model whose value is transformed.
          */
@@ -82,7 +83,12 @@ public class CustomModel {
          */
         MyModel(final Model<String> source) {
             this.source = source;
-            source.addListener(data -> this.notifyListeners());
+            source.addListener(this);
+        }
+
+        @Override
+        public void accept(final String data) {
+            this.notifyListeners();
         }
 
         @Override
