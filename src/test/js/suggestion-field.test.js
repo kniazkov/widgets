@@ -83,6 +83,22 @@ function options(document) {
     return [...document.querySelectorAll('[role="option"]')].map(el => el.textContent);
 }
 
+function touchEvent(target, type, { x = 10, y = 10, extra = false } = {}) {
+    const point = { identifier: 1, clientX: x, clientY: y, target };
+    const event = new dom.window.Event(type, { bubbles: true, cancelable: true });
+    Object.assign(event, {
+        changedTouches: [point],
+        touches:
+            type === "touchend" || type === "touchcancel"
+                ? []
+                : extra
+                  ? [point, { identifier: 2, clientX: 20, clientY: 20, target }]
+                  : [point]
+    });
+    target.dispatchEvent(event);
+    return event;
+}
+
 describe("suggestion field", () => {
     it("updates input hints without touching value, caret or validity", () => {
         const { harness, input } = field();
@@ -111,23 +127,20 @@ describe("suggestion field", () => {
         expect(input.placeholder).toBe("");
     });
 
-    it("restores focus and reveals the end after a completed touch click", () => {
+    it("selects on touchend even if Safari blurs before click", () => {
         const { harness, input, document } = field();
         const value = "Латунь с родиевым покрытием";
         harness.setSuggestions({ widget: "#30", suggestions: [value] });
         Object.defineProperty(input, "scrollWidth", { value: 600 });
         input.focus();
         const option = document.querySelector('[role="option"]');
-        const pointer = type => {
-            const event = new dom.window.Event(type, { bubbles: true, cancelable: true });
-            Object.assign(event, { pointerType: "touch", pointerId: 1, clientX: 10, clientY: 10 });
-            option.dispatchEvent(event);
-        };
-        pointer("pointerdown");
+        touchEvent(option, "touchstart");
         input.blur();
-        pointer("pointerup");
+        // A real browser cannot click an option removed during blur.
+        expect(option.isConnected).toBe(true);
         expect(input.value).toBe("");
-        option.click();
+        expect(touchEvent(option, "touchend").defaultPrevented).toBe(true);
+        option.click(); // A late compatibility click must not select twice.
         expect(document.activeElement).toBe(input);
         expect(input.value).toBe(value);
         expect(input.selectionStart).toBe(value.length);
@@ -140,25 +153,38 @@ describe("suggestion field", () => {
         expect(input.value).toBe(value);
     });
 
-    it.each(["pointercancel", "pointermove"])(
-        "does not select during touch scrolling (%s)",
+    it.each(["touchcancel", "touchmove", "pointercancel", "multitouch"])(
+        "does not select during touch scrolling or cancellation (%s)",
         cancellation => {
-            const { input, document } = field();
+            const { harness, input, document } = field();
             input.focus();
             const option = document.querySelector('[role="option"]');
-            for (const type of ["pointerdown", cancellation, "pointerup"]) {
-                const event = new dom.window.Event(type, { bubbles: true, cancelable: true });
-                Object.assign(event, {
-                    pointerType: "touch",
-                    pointerId: 1,
-                    clientX: 10,
-                    clientY: type === "pointermove" ? 50 : 10
-                });
-                option.dispatchEvent(event);
-            }
+            touchEvent(option, "touchstart");
+            input.blur();
+            if (cancellation === "multitouch") touchEvent(option, "touchstart", { extra: true });
+            else if (cancellation === "pointercancel") {
+                option.dispatchEvent(new dom.window.Event("pointercancel", { bubbles: true }));
+            } else touchEvent(option, cancellation, { y: 50 });
+            // Returning to the start must not turn a drag into a tap.
+            touchEvent(option, "touchend");
             expect(input.value).toBe("");
+            expect(options(document)).toEqual([]);
+            expect(harness.events.filter(event => event.type === "text input")).toHaveLength(0);
         }
     );
+
+    it("keeps native scrolling available and ignores detached touch targets", () => {
+        const { harness, input, document } = field();
+        input.focus();
+        const option = document.querySelector('[role="option"]');
+        expect(touchEvent(option, "touchstart").defaultPrevented).toBe(false);
+        expect(touchEvent(option, "touchmove", { y: 50 }).defaultPrevented).toBe(false);
+        harness.setDisabledFlag({ widget: "#30", disabled: true });
+        touchEvent(option, "touchend");
+        option.click();
+        expect(input.value).toBe("");
+        expect(options(document)).toEqual([]);
+    });
 
     it("shows all suggestions on empty focus and filters case-insensitive substrings", () => {
         const { input, document } = field();
