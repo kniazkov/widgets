@@ -1468,6 +1468,11 @@ function createInputField() {
 // Suggestions are view state; the text and source list remain server-backed properties.
 function createSuggestionField() {
     const widget = createInputField();
+    // WebKit client rects use the visual viewport origin (including on iOS).
+    // Keep clipping bounds in that same space; adding viewport offsets again
+    // would incorrectly hide a visible field after the keyboard pans the page.
+    const visualClientCoordinates =
+        window.CSS?.supports?.("-webkit-backdrop-filter", "none") === true;
     widget.setAttribute("role", "combobox");
     widget.setAttribute("aria-autocomplete", "list");
     widget.setAttribute("aria-expanded", "false");
@@ -1511,8 +1516,8 @@ function createSuggestionField() {
         if (!list) return;
         const rect = widget.getBoundingClientRect();
         const viewport = window.visualViewport;
-        const top = (viewport?.offsetTop ?? 0) + 4;
-        const left = (viewport?.offsetLeft ?? 0) + 4;
+        const top = (visualClientCoordinates ? 0 : (viewport?.offsetTop ?? 0)) + 4;
+        const left = (visualClientCoordinates ? 0 : (viewport?.offsetLeft ?? 0)) + 4;
         const bottom = top + (viewport?.height ?? window.innerHeight) - 8;
         const right = left + (viewport?.width ?? window.innerWidth) - 8;
         const below = Math.max(0, bottom - rect.bottom - 4);
@@ -1810,6 +1815,12 @@ function createSuggestionField() {
     widget._onDetached = close;
     widget.addEventListener("focus", render);
     widget.addEventListener("click", render);
+    // A repeated tap need not focus again or produce a compatibility click.
+    // Never focus programmatically here: scrolling or leaving the field must
+    // not steal focus or reopen the software keyboard.
+    widget.addEventListener("pointerup", event => {
+        if (event.pointerType === "touch" && document.activeElement === widget) render();
+    });
     widget.addEventListener("input", render);
     widget.addEventListener("blur", () => {
         if (touch) return;

@@ -6,8 +6,12 @@ async function expectAnchored(field, side = "below") {
             field.evaluate((input, side) => {
                 const list = document.querySelector('[role="listbox"]');
                 if (!list || getComputedStyle(list).visibility === "hidden") return false;
-                const anchor = input.getBoundingClientRect();
-                const popup = list.getBoundingClientRect();
+                // Assert against actual layout rects, independently of the
+                // client-coordinate convention supplied by the iOS fixture.
+                const measure =
+                    window.__suggestionLayoutRect || (element => element.getBoundingClientRect());
+                const anchor = measure(input);
+                const popup = measure(list);
                 const viewport = window.visualViewport;
                 const top = viewport?.offsetTop ?? 0;
                 const left = viewport?.offsetLeft ?? 0;
@@ -26,6 +30,30 @@ async function expectAnchored(field, side = "below") {
             }, side)
         )
         .toBe(true);
+}
+
+async function installMobileViewport(page, initial) {
+    await page.evaluate(initial => {
+        const viewport = new EventTarget();
+        Object.assign(viewport, initial);
+        Object.defineProperty(window, "visualViewport", { configurable: true, value: viewport });
+        const nativeRect = Element.prototype.getBoundingClientRect;
+        window.__suggestionLayoutRect = element => nativeRect.call(element);
+        // Headless WebKit has no iOS keyboard. Emulate BOTH the viewport pan
+        // and its client rect convention; mocking offsets alone misses this bug.
+        if (CSS.supports("-webkit-backdrop-filter", "none")) {
+            Element.prototype.getBoundingClientRect = function () {
+                const rect = nativeRect.call(this);
+                if (!this.matches('[role="combobox"], .suggestion-list')) return rect;
+                return new DOMRect(
+                    rect.x - viewport.offsetLeft,
+                    rect.y - viewport.offsetTop,
+                    rect.width,
+                    rect.height
+                );
+            };
+        }
+    }, initial);
 }
 
 test("keyboard selection and saved values travel through Java models", async ({ page }) => {
@@ -123,21 +151,19 @@ test.describe("mobile suggestions", () => {
     test("keeps suggestions inside a keyboard-sized, panned visual viewport", async ({ page }) => {
         await page.goto("/suggestions");
         const field = page.getByRole("combobox").first();
-        // Desktop WebKit does not open an iPhone keyboard. Supply its viewport
-        // geometry while keeping real DOM layout and top-layer popup rendering.
         await field.evaluate(input => {
             input.style.position = "fixed";
             input.style.top = "300px";
             input.style.left = "50px";
             input.style.width = "260px";
-            const viewport = new EventTarget();
-            Object.assign(viewport, { offsetTop: 100, offsetLeft: 30, width: 320, height: 280 });
-            Object.defineProperty(window, "visualViewport", {
-                configurable: true,
-                value: viewport
-            });
         });
-        await field.tap();
+        await installMobileViewport(page, {
+            offsetTop: 100,
+            offsetLeft: 30,
+            width: 320,
+            height: 280
+        });
+        await field.evaluate(input => input.focus({ preventScroll: true }));
         await expectAnchored(field, "above");
         await page.evaluate(() => {
             Object.assign(visualViewport, { offsetTop: 220, height: 140, width: 220 });
@@ -158,6 +184,79 @@ test.describe("mobile suggestions", () => {
         await expectAnchored(field);
         await field.press("Escape");
         await expect(page.getByRole("listbox")).toHaveCount(0);
+    });
+
+    for (const movement of ["stationary", "upward", "downward"]) {
+        test(`empty field stays open during ${movement} keyboard focus movement`, async ({
+            page
+        }) => {
+            await page.goto("/suggestions");
+            const field = page.getByRole("combobox").first();
+            await field.evaluate(input => {
+                input.style.cssText += "; position: fixed; top: 520px; left: 30px; width: 260px";
+            });
+            const offsets =
+                movement === "stationary"
+                    ? [400, 400]
+                    : movement === "upward"
+                      ? [0, 200, 400]
+                      : [500, 450, 400];
+            await installMobileViewport(page, {
+                offsetTop: offsets[0],
+                offsetLeft: 0,
+                width: 390,
+                height: 320
+            });
+            await field.evaluate(input => input.focus({ preventScroll: true }));
+            if (movement === "stationary") await expectAnchored(field);
+            for (const offsetTop of offsets.slice(1)) {
+                await page.evaluate(async offsetTop => {
+                    visualViewport.offsetTop = offsetTop;
+                    visualViewport.dispatchEvent(new Event("scroll"));
+                    await new Promise(requestAnimationFrame);
+                }, offsetTop);
+            }
+            await expectAnchored(field);
+            await expect(field).toBeFocused();
+            await expect(field).toHaveValue("");
+            await expect(page.getByRole("option")).toHaveCount(3);
+            await field.press("ArrowDown");
+            await field.press("Enter");
+            await expect(field).toHaveValue("Латунь с родиевым покрытием");
+            await expect(
+                page.getByText("Value: Латунь с родиевым покрытием", { exact: true })
+            ).toBeVisible();
+            await expect(page.getByRole("listbox")).toHaveCount(0);
+            await page.evaluate(() => {
+                visualViewport.offsetTop = 380;
+                visualViewport.dispatchEvent(new Event("scroll"));
+            });
+            await expect(page.getByRole("listbox")).toHaveCount(0);
+            await field.evaluate(input => {
+                input.blur();
+                input.value = "";
+                input.focus({ preventScroll: true });
+            });
+            await expectAnchored(field);
+        });
+    }
+
+    test("a repeated tap reopens an empty focused field without a compatibility click", async ({
+        page
+    }) => {
+        await page.goto("/suggestions");
+        const field = page.getByRole("combobox").first();
+        await field.tap();
+        await field.press("Escape");
+        await expect(field).toBeFocused();
+        await field.evaluate(input => {
+            // Keep the native touch/pointer events but suppress compatibility click.
+            input.addEventListener("touchend", event => event.preventDefault(), { passive: false });
+        });
+        await field.tap();
+        await expectAnchored(field);
+        await page.getByRole("option", { name: "Серебро", exact: true }).tap();
+        await expect(field).toHaveValue("Серебро");
     });
 
     test("follows scrolling inside a form", async ({ page }) => {
