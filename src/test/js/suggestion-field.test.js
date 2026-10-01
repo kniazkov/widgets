@@ -23,7 +23,7 @@ afterEach(() => {
     dom?.window.close();
 });
 
-function createHarness() {
+function createHarness(visualClientCoordinates = false) {
     dom = new JSDOM("<!doctype html><body></body>", {
         runScripts: "outside-only",
         url: "http://localhost/"
@@ -35,6 +35,7 @@ function createHarness() {
         return frameId;
     };
     dom.window.cancelAnimationFrame = id => frames.delete(id);
+    dom.window.CSS = { supports: () => visualClientCoordinates };
     dom.window.eval(`${optionsSource}\n${librarySource}\n
         configureUploadProtocol(4 * 1024, 128 * 1024 * 1024);
         window.__selectionEvents = [];
@@ -74,8 +75,8 @@ function createHarness() {
     };
 }
 
-function field() {
-    const harness = createHarness();
+function field(visualClientCoordinates = false) {
+    const harness = createHarness(visualClientCoordinates);
     harness.createWidget({ type: "suggestion field", widget: "#30" });
     const input = harness.widgets["#30"];
     dom.window.document.body.appendChild(input);
@@ -267,6 +268,23 @@ describe("suggestion field", () => {
         expect(options(document)).toEqual([]);
     });
 
+    it("reopens on a touch pointer release in an already focused field without a click", () => {
+        const { input, document, harness } = field();
+        input.focus();
+        key(input, "Escape");
+        expect(document.activeElement).toBe(input);
+        expect(options(document)).toEqual([]);
+        const event = new dom.window.Event("pointerup");
+        Object.defineProperty(event, "pointerType", { value: "touch" });
+        input.dispatchEvent(event);
+        expect(options(document)).toEqual(["Silver", "Rhodium brass", "Gold"]);
+        expect(harness.events.filter(event => event.type === "text input")).toHaveLength(0);
+        input.blur();
+        input.dispatchEvent(event);
+        expect(options(document)).toEqual([]);
+        expect(document.activeElement).not.toBe(input);
+    });
+
     it("removes the portal when an ancestor is removed", async () => {
         const { input, document } = field();
         const parent = document.createElement("div");
@@ -295,13 +313,24 @@ describe("suggestion field", () => {
 });
 
 describe("suggestion positioning", () => {
-    function geometry() {
-        const state = field();
+    function geometry(visualClientCoordinates = false) {
+        const state = field(visualClientCoordinates);
         const viewport = new dom.window.EventTarget();
         Object.assign(viewport, { offsetTop: 0, offsetLeft: 0, width: 390, height: 700 });
         Object.defineProperty(dom.window, "visualViewport", { value: viewport });
         const anchor = { top: 180, bottom: 220, left: 20, right: 260, width: 240 };
-        state.input.getBoundingClientRect = () => ({ ...anchor });
+        function clientRect(rect) {
+            const x = visualClientCoordinates ? viewport.offsetLeft : 0;
+            const y = visualClientCoordinates ? viewport.offsetTop : 0;
+            return {
+                ...rect,
+                top: rect.top - y,
+                bottom: rect.bottom - y,
+                left: rect.left - x,
+                right: rect.right - x
+            };
+        }
+        state.input.getBoundingClientRect = () => clientRect(anchor);
         state.input.focus();
         const list = state.document.querySelector('[role="listbox"]');
         // Simulate a fixed/top-layer origin drifting independently of the input.
@@ -312,10 +341,72 @@ describe("suggestion positioning", () => {
                 parseFloat(list.style.top || 0) + origin.y - (list.style.transform ? height : 0);
             const left = parseFloat(list.style.left || 0) + origin.x;
             const width = parseFloat(list.style.width);
-            return { top, bottom: top + height, left, right: left + width, width, height };
+            return clientRect({
+                top,
+                bottom: top + height,
+                left,
+                right: left + width,
+                width,
+                height
+            });
         };
         state.harness.nextFrame();
         return { ...state, viewport, anchor, list, origin };
+    }
+
+    for (const visual of [false, true]) {
+        describe(visual ? "visual client coordinates (iOS)" : "layout client coordinates", () => {
+            it.each(["stationary", "upward", "downward"])(
+                "keeps an empty focused field's suggestions visible during %s keyboard movement",
+                movement => {
+                    const { harness, input, anchor, viewport, list } = geometry(visual);
+                    Object.assign(anchor, { top: 520, bottom: 560 });
+                    const offsets =
+                        movement === "stationary"
+                            ? [400, 400]
+                            : movement === "upward"
+                              ? [0, 200, 400]
+                              : [500, 450, 400];
+                    for (const offsetTop of offsets) {
+                        Object.assign(viewport, { offsetTop, height: 320 });
+                        harness.nextFrame();
+                    }
+                    expect(input.value).toBe("");
+                    expect(dom.window.document.activeElement).toBe(input);
+                    expect(list.isConnected).toBe(true);
+                    expect(list.style.visibility).toBe("visible");
+                    expect(list.getBoundingClientRect().top).toBe(
+                        input.getBoundingClientRect().bottom + 4
+                    );
+                }
+            );
+
+            it("clamps both axes after zoom/panning and restores after a hidden intermediate frame", () => {
+                const { harness, input, anchor, viewport, list } = geometry(visual);
+                Object.assign(viewport, {
+                    offsetTop: 400,
+                    offsetLeft: 120,
+                    width: 190,
+                    height: 280
+                });
+                Object.assign(anchor, { top: 10, bottom: 50, left: 130, right: 370 });
+                harness.nextFrame();
+                expect(list.style.visibility).toBe("hidden");
+                Object.assign(anchor, { top: 630, bottom: 670 });
+                harness.nextFrame();
+                expect(list.style.visibility).toBe("visible");
+                const bounds = list.getBoundingClientRect();
+                expect(bounds.bottom).toBe(input.getBoundingClientRect().top - 4);
+                expect(bounds.top).toBeGreaterThanOrEqual(visual ? 4 : 404);
+                expect(bounds.left).toBeGreaterThanOrEqual(visual ? 4 : 124);
+                expect(bounds.right).toBeLessThanOrEqual(visual ? 186 : 306);
+                key(input, "Escape");
+                viewport.dispatchEvent(new dom.window.Event("scroll"));
+                harness.nextFrame();
+                expect(list.isConnected).toBe(false);
+                expect(harness.frames.size).toBe(0);
+            });
+        });
     }
 
     it("follows late field movement and a drifting fixed origin without scroll events", () => {
