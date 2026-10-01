@@ -234,6 +234,7 @@ test.describe("mobile suggestions", () => {
             await expect(page.getByRole("listbox")).toHaveCount(0);
             await field.evaluate(input => {
                 input.blur();
+                visualViewport.offsetTop = 400;
                 input.value = "";
                 input.focus({ preventScroll: true });
             });
