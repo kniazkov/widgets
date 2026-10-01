@@ -1479,9 +1479,14 @@ function createSuggestionField() {
     let observer = null;
     let composing = false;
     let touch = null;
+    let positionFrame = null;
 
     function close() {
         touch = null;
+        if (positionFrame !== null) {
+            window.cancelAnimationFrame(positionFrame);
+            positionFrame = null;
+        }
         if (!list) return;
         list.remove();
         list = null;
@@ -1506,19 +1511,56 @@ function createSuggestionField() {
         if (!list) return;
         const rect = widget.getBoundingClientRect();
         const viewport = window.visualViewport;
-        const top = viewport?.offsetTop || 0;
-        const left = viewport?.offsetLeft || 0;
-        const height = viewport?.height || window.innerHeight;
-        const width = viewport?.width || window.innerWidth;
-        const below = Math.max(0, top + height - rect.bottom - 4);
+        const top = (viewport?.offsetTop ?? 0) + 4;
+        const left = (viewport?.offsetLeft ?? 0) + 4;
+        const bottom = top + (viewport?.height ?? window.innerHeight) - 8;
+        const right = left + (viewport?.width ?? window.innerWidth) - 8;
+        const below = Math.max(0, bottom - rect.bottom - 4);
         const above = Math.max(0, rect.top - top - 4);
+        if (
+            rect.bottom <= top ||
+            rect.top >= bottom ||
+            rect.right <= left ||
+            rect.left >= right ||
+            right <= left ||
+            Math.max(above, below) <= 2
+        ) {
+            setListStyle("visibility", "hidden");
+            return;
+        }
         const upward = below < 160 && above > below;
-        list.style.width = Math.min(rect.width, width - 8) + "px";
-        list.style.left =
-            Math.max(left + 4, Math.min(rect.left, left + width - rect.width - 4)) + "px";
-        list.style.maxHeight = Math.min(240, upward ? above : below) + "px";
-        list.style.top = (upward ? rect.top - 4 : rect.bottom + 4) + "px";
-        list.style.transform = upward ? "translateY(-100%)" : "";
+        const width = Math.min(rect.width, right - left);
+        setListStyle("width", width + "px");
+        setListStyle("maxHeight", Math.min(240, upward ? above : below) + "px");
+        const bounds = list.getBoundingClientRect();
+        const x = Math.max(left, Math.min(rect.left, right - width));
+        const y = upward ? rect.top - 4 - bounds.height : rect.bottom + 4;
+        // Measure the rendered popup too: mobile fixed/top-layer positioning can
+        // shift independently while the keyboard pans the visual viewport.
+        if (Math.abs(x - bounds.left) > 0.5) {
+            setListStyle("left", parseFloat(list.style.left) + x - bounds.left + "px");
+        }
+        if (Math.abs(y - bounds.top) > 0.5) {
+            setListStyle("top", parseFloat(list.style.top) + y - bounds.top + "px");
+        }
+        setListStyle("visibility", "visible");
+    }
+
+    function setListStyle(name, value) {
+        if (list.style[name] !== value) list.style[name] = value;
+    }
+
+    function trackPosition() {
+        positionFrame = null;
+        if (!list) return;
+        if (!widget.isConnected) {
+            close();
+            return;
+        }
+        // Focus scrolling and layout changes can finish after the last viewport
+        // event. Track only the open list, without rewriting unchanged styles.
+        position();
+        positionFrame = window.requestAnimationFrame(trackPosition);
     }
 
     function highlight(index) {
@@ -1633,6 +1675,8 @@ function createSuggestionField() {
         if (!values.length) return;
         list = document.createElement("div");
         list.className = "suggestion-list";
+        list.style.top = "0px";
+        list.style.left = "0px";
         list.id = "suggestions-" + widget._id;
         list.setAttribute("role", "listbox");
         const style = getComputedStyle(widget);
@@ -1738,6 +1782,7 @@ function createSuggestionField() {
         widget.setAttribute("aria-controls", list.id);
         widget.setAttribute("aria-expanded", "true");
         position();
+        positionFrame = window.requestAnimationFrame(trackPosition);
         document.addEventListener("pointerdown", outside, true);
         window.addEventListener("resize", position);
         document.addEventListener("scroll", position, true);

@@ -1,5 +1,33 @@
 import { test, expect } from "@playwright/test";
 
+async function expectAnchored(field, side = "below") {
+    await expect
+        .poll(() =>
+            field.evaluate((input, side) => {
+                const list = document.querySelector('[role="listbox"]');
+                if (!list || getComputedStyle(list).visibility === "hidden") return false;
+                const anchor = input.getBoundingClientRect();
+                const popup = list.getBoundingClientRect();
+                const viewport = window.visualViewport;
+                const top = viewport?.offsetTop ?? 0;
+                const left = viewport?.offsetLeft ?? 0;
+                const bottom = top + (viewport?.height ?? innerHeight);
+                const right = left + (viewport?.width ?? innerWidth);
+                const gap =
+                    side === "below" ? popup.top - anchor.bottom : anchor.top - popup.bottom;
+                return (
+                    Math.abs(gap - 4) <= 1 &&
+                    popup.top >= top + 3 &&
+                    popup.bottom <= bottom - 3 &&
+                    popup.left >= left + 3 &&
+                    popup.right <= right - 3 &&
+                    popup.height > 0
+                );
+            }, side)
+        )
+        .toBe(true);
+}
+
 test("keyboard selection and saved values travel through Java models", async ({ page }) => {
     await page.goto("/suggestions");
     const first = page.getByRole("combobox").nth(0);
@@ -53,6 +81,105 @@ test.describe("mobile suggestions", () => {
         viewport: { width: 390, height: 700 },
         hasTouch: true,
         isMobile: true
+    });
+
+    test("follows late layout movement without viewport events and still accepts a tap", async ({
+        page
+    }) => {
+        await page.goto("/suggestions");
+        const field = page.getByRole("combobox").first();
+        await field.evaluate(input => {
+            input.style.width = "220px";
+        });
+        await field.tap();
+        await expectAnchored(field);
+        await field.evaluate(() => {
+            window.__openSuggestions = document.querySelector('[role="listbox"]');
+        });
+        for (const [x, y] of [
+            [30, 200],
+            [10, 80],
+            [50, 300]
+        ]) {
+            await field.evaluate(
+                (input, [x, y]) => {
+                    input.style.transform = `translate(${x}px, ${y}px)`;
+                },
+                [x, y]
+            );
+            await expectAnchored(field);
+        }
+        expect(
+            await page.evaluate(
+                () => window.__openSuggestions === document.querySelector('[role="listbox"]')
+            )
+        ).toBe(true);
+        await page.getByRole("option", { name: "Серебро", exact: true }).tap();
+        await expect(field).toHaveValue("Серебро");
+        await expect(field).toBeFocused();
+        await expect(page.getByRole("listbox")).toHaveCount(0);
+    });
+
+    test("keeps suggestions inside a keyboard-sized, panned visual viewport", async ({ page }) => {
+        await page.goto("/suggestions");
+        const field = page.getByRole("combobox").first();
+        // Desktop WebKit does not open an iPhone keyboard. Supply its viewport
+        // geometry while keeping real DOM layout and top-layer popup rendering.
+        await field.evaluate(input => {
+            input.style.position = "fixed";
+            input.style.top = "300px";
+            input.style.left = "50px";
+            input.style.width = "260px";
+            const viewport = new EventTarget();
+            Object.assign(viewport, { offsetTop: 100, offsetLeft: 30, width: 320, height: 280 });
+            Object.defineProperty(window, "visualViewport", {
+                configurable: true,
+                value: viewport
+            });
+        });
+        await field.tap();
+        await expectAnchored(field, "above");
+        await page.evaluate(() => {
+            Object.assign(visualViewport, { offsetTop: 220, height: 140, width: 220 });
+            visualViewport.dispatchEvent(new Event("resize"));
+        });
+        await expectAnchored(field, "above");
+        await field.evaluate(input => {
+            input.style.top = "225px";
+        });
+        await expectAnchored(field);
+        await field.evaluate(input => {
+            input.style.top = "450px";
+        });
+        await expect(page.getByRole("listbox", { includeHidden: true })).toBeHidden();
+        await field.evaluate(input => {
+            input.style.top = "225px";
+        });
+        await expectAnchored(field);
+        await field.press("Escape");
+        await expect(page.getByRole("listbox")).toHaveCount(0);
+    });
+
+    test("follows scrolling inside a form", async ({ page }) => {
+        await page.goto("/suggestions");
+        const field = page.getByRole("combobox").first();
+        await field.evaluate(input => {
+            const scroller = document.createElement("div");
+            scroller.style.cssText = "height: 230px; overflow: auto";
+            input.before(scroller);
+            const before = document.createElement("div");
+            before.style.height = "150px";
+            const after = document.createElement("div");
+            after.style.height = "500px";
+            scroller.append(before, input, after);
+            input.style.width = "220px";
+            input.focus({ preventScroll: true });
+        });
+        await expectAnchored(field);
+        await field.evaluate(input => {
+            input.parentElement.scrollTop = 100;
+        });
+        await expectAnchored(field);
     });
 
     test("a blur during a native tap still selects once and keeps the caret", async ({ page }) => {
