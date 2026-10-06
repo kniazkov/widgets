@@ -59,3 +59,18 @@ test("middle-click opens the native link in a new tab", async ({ page, context }
     expect(new URL(page.url()).pathname).toBe("/catalog");
     await product.close();
 });
+
+test("completed form is replaced while Back retains the preceding catalog", async ({ page }) => {
+    const creations = trackCreations(page);
+    await page.goto("/catalog");
+    await page.getByRole("textbox").fill("Keep this filter");
+    await page.getByRole("link", { name: "Open product" }).evaluate(link => link.click());
+    await expect(page.getByText("Product 42", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Finish form" }).click();
+    await expect(page.getByText("Product 44", { exact: true })).toBeVisible();
+    await page.goBack();
+    await expect(page.getByRole("textbox")).toHaveValue("Keep this filter");
+    await page.goForward();
+    await expect(page.getByText("Product 44", { exact: true })).toBeVisible();
+    expect(creations).toHaveLength(3);
+});

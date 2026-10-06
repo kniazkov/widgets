@@ -226,6 +226,9 @@ public final class E2ETestServer {
         application.addPage("product", (root, context) -> {
             final Section content = new Section();
             content.add(new TextWidget("Product " + context.parameters.get("id")));
+            final Button replace = new Button("Finish form");
+            replace.onClick(event -> root.goToPage("/product?id=44", true));
+            content.add(replace);
             final Button clear = new Button("Clear cached pages");
             clear.onClick(event -> root.clearPageCache());
             content.add(clear);

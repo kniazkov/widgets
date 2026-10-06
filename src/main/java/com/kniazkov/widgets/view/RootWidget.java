@@ -295,7 +295,18 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * @param href the target page URL to navigate to
      */
     public void goToPage(final String href) {
-        this.pushUpdate(new GoToPage(href));
+        goToPage(href, false);
+    }
+
+    /**
+     * Navigates to a page, optionally replacing and discarding the current history entry.
+     * Use replacement after completing a form that must not be restored with Back.
+     *
+     * @param href target page URL
+     * @param replace whether to replace the current history entry
+     */
+    public void goToPage(final String href, final boolean replace) {
+        this.pushUpdate(new GoToPage(href, replace));
     }
 
     /**
@@ -317,19 +328,24 @@ public final class RootWidget extends Widget<RootWidgetStyle>
          */
         private final String href;
 
+        /** Whether navigation discards the current history entry. */
+        private final boolean replace;
+
         /**
          * Creates a new navigation instruction that redirects the client to the specified URL.
          *
          * @param href the target page URL to navigate to
+         * @param replace whether to replace the current history entry
          */
-        public GoToPage(final String href) {
+        public GoToPage(final String href, final boolean replace) {
             super(RMId.INVALID);
             this.href = href;
+            this.replace = replace;
         }
 
         @Override
         public Update clone() {
-            return new GoToPage(this.href);
+            return new GoToPage(this.href, this.replace);
         }
 
         @Override
@@ -340,6 +356,9 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         @Override
         protected void fillJsonObject(final JsonObject obj) {
             obj.addString("href", this.href);
+            if (this.replace) {
+                obj.addBoolean("replace", true);
+            }
         }
     }
 

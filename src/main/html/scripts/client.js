@@ -441,7 +441,9 @@ function goToPage(data) {
     if (typeof href == "string") {
         log("The server initiated a switch to another page: '" + href + "'.");
         if (pageContext) {
-            pageContext.navigate(href);
+            pageContext.navigate(href, data.replace === true);
+        } else if (data.replace === true) {
+            window.location.replace(href);
         } else {
             window.location.href = href;
         }
