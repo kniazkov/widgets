@@ -176,9 +176,9 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
                         activate(current.state, current.url);
                     }
                 },
-                navigate: href => {
+                navigate: (href, replace = false) => {
                     if (active === entry) {
-                        navigate(href);
+                        navigate(href, replace);
                     }
                 }
             });
@@ -196,15 +196,22 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         prune();
     }
 
-    function navigate(href) {
+    function navigate(href, replace = false) {
         const url = new URL(href, window.location.href);
         if (url.origin !== window.location.origin || !routes.has(url.pathname) || url.hash) {
-            window.location.href = url.href;
+            if (replace) window.location.replace(url.href);
+            else window.location.href = url.href;
             return;
         }
         persistScroll();
         const state = newState();
-        window.history.pushState({ [stateKey]: { ...state } }, "", url.href);
+        if (replace) {
+            window.history.replaceState({ [stateKey]: { ...state } }, "", url.href);
+            if (active) dispose(active);
+            active = null;
+        } else {
+            window.history.pushState({ [stateKey]: { ...state } }, "", url.href);
+        }
         activate(state, url.href);
     }
 
