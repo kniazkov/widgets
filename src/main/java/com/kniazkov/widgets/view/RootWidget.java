@@ -328,7 +328,9 @@ public final class RootWidget extends Widget<RootWidgetStyle>
          */
         private final String href;
 
-        /** Whether navigation discards the current history entry. */
+        /**
+         * Whether navigation discards the current history entry.
+         */
         private final boolean replace;
 
         /**
