@@ -59,7 +59,7 @@ public final class ValueType<T> {
                 throw new IllegalArgumentException("Expected a JSON object");
             }
             return object;
-        } catch (final JsonException failure) {
+        } catch (final JsonException | RuntimeException failure) {
             throw new IllegalArgumentException("Invalid persisted JSON object", failure);
         }
     }
