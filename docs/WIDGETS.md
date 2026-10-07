@@ -37,6 +37,7 @@ classDiagram
     direction TB
     BlockWidget <|-- Section
     BlockWidget <|-- SortableSection
+    BlockWidget <|-- HorizontalLine
     BlockWidget <|-- Panel
     Panel <|-- StickyPanel
     BlockWidget <|-- Popup
@@ -116,6 +117,7 @@ the root and table structures rather than the general block/inline distinction.
 | --- | --- | --- | --- |
 | `RootWidget` | `root` | `BlockWidget` | Top-level UI root created for a client. It cannot have a parent, can reset the client, and can request navigation to another page. |
 | `Section` | `section` | `InlineWidget` | Block-level horizontal flow, similar to a paragraph or generic HTML block containing inline content. Supports alignment, margin, padding, and hidden state. |
+| `HorizontalLine` | `horizontal line` | None | Semantic horizontal separator. Reactive color, thickness (absolute height), width/max width, margins, opacity and hidden state. |
 | `Panel` | `panel` | `BlockWidget` | General-purpose block container for composing nested page regions. Supports background, border, size, spacing, and pointer events. |
 | `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
@@ -488,3 +490,21 @@ upper-layer content follows text, font and viewport changes automatically.
 Use `getFitToFirstChildModel` / `setFitToFirstChildModel` for reactive configuration.
 The default remains false. Children inserted or removed update their first/upper-layer
 role through CSS, without a ResizeObserver or pixel measurements.
+
+### Horizontal separator
+
+`HorizontalLine` renders an HTML `hr`, without the browser's default border.
+It defaults to a 1 px grey line, 100% width and 8 px vertical margins.
+Use `setHeight` / `setHeightModel` for thickness (px, pt or other absolute units),
+`setColor` / `setColorModel` for color, and the standard width, max-width,
+margin, opacity and hidden-state APIs. Derived `HorizontalLineStyle` instances
+can be reused without modifying the shared default.
+
+```java
+final HorizontalLine line = new HorizontalLine();
+line.setColor(Color.fromString("#cccccc"));
+line.setHeight(2);
+line.setWidth("80%");
+line.setVerticalMargin(12);
+panel.add(line);
+```
