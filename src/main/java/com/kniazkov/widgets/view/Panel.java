@@ -16,7 +16,8 @@ import java.util.List;
  */
 public class Panel extends BlockWidget<PanelStyle> implements BlockContainer,
         HasBgColor, HasBorder, HasWidth, HasHeight, HasMargin, HasPadding,
-        HandlesPointerEvents, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
+        HandlesPointerEvents, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing,
+        HasHiddenState {
     /**
      * Returns the default style instance used by panels.
      *
