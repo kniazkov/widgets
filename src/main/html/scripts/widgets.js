@@ -89,6 +89,16 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    "horizontal line": function () {
+        const widget = document.createElement("hr");
+        // Use currentColor so the regular reactive color property paints the line.
+        widget.style.border = "0";
+        widget.style.padding = "0";
+        widget.style.boxSizing = "border-box";
+        widget.style.backgroundColor = "currentColor";
+        widget.style.flexShrink = "0";
+        return widget;
+    },
     "sticky panel": function () {
         const widget = document.createElement("div");
         widget.style.position = "sticky";

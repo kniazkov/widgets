@@ -43,6 +43,7 @@ import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.LinkStyle;
 import com.kniazkov.widgets.view.MessagePopup;
 import com.kniazkov.widgets.view.OverlayStack;
+import com.kniazkov.widgets.view.HorizontalLine;
 import com.kniazkov.widgets.view.Panel;
 import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
@@ -148,6 +149,18 @@ public class AllWidgets {
         configurePage(root);
         addIntroduction(root);
         addStickyPanel(root);
+        final Panel separators = addCard(root, "HorizontalLine",
+            "Reactive color, thickness, width, spacing and opacity.");
+        separators.add(new HorizontalLine());
+        final HorizontalLine accent = new HorizontalLine();
+        accent.setColor(Color.fromString("#5278a3"));
+        accent.setHeight(3);
+        accent.setWidth("70%");
+        accent.setVerticalMargin(12);
+        separators.add(accent);
+        final Button recolor = new Button("Change separator color");
+        recolor.onClick(event -> accent.setColor(Color.fromString("#b89361")));
+        separators.add(new Section(recolor));
         addTextWidgets(root);
         addActiveTextWidgets(root);
         addLinks(root);

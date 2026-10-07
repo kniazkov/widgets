@@ -43,6 +43,7 @@ function createHarness() {
             setBoxSizing,
             setMaxWidth,
             setMaxHeight,
+            setHeight,
             setOverflow,
             setTextDecoration,
             setColor,
@@ -58,6 +59,24 @@ function createHarness() {
 }
 
 describe("modern style properties", () => {
+    it("renders a horizontal separator and updates its color and thickness", () => {
+        const harness = createHarness();
+        harness.createWidget({ type: "horizontal line", widget: "#line" });
+        const widget = harness.widgets["#line"];
+        expect(widget.tagName).toBe("HR");
+        expect(widget.style.border).toBe("0px");
+        expect(widget.style.backgroundColor.toLowerCase()).toBe("currentcolor");
+        expect(
+            harness.setColor({
+                widget: "#line",
+                state: "normal",
+                color: { r: 119, g: 119, b: 119 }
+            })
+        ).toBe(true);
+        expect(harness.setHeight({ widget: "#line", height: "3px" })).toBe(true);
+        expect(widget.style.color).toBe("rgb(119, 119, 119)");
+        expect(widget.style.height).toBe("3px");
+    });
     it("caps and clears image heights independently of preferred height", () => {
         const harness = createHarness();
         harness.createWidget({ type: "image", widget: "#22" });
