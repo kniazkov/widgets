@@ -3,6 +3,7 @@
  */
 package com.kniazkov.widgets.model;
 
+import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.Color;
 import java.util.UUID;
 
@@ -73,7 +74,7 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      * Creates an appropriate {@link Model} instance for the given data object.
      * <p>
      * This factory inspects the runtime type of the provided {@code data}
-     * and returns a corresponding {@link DefaultModel} subclass:
+     * and returns a corresponding model implementation:
      * <ul>
      *   <li>{@link String} → {@link StringModel}</li>
      *   <li>{@link Integer} → {@link IntegerModel}</li>
@@ -81,6 +82,7 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      *   <li>{@link Boolean} → {@link BooleanModel}</li>
      *   <li>{@link Color} → {@link ColorModel}</li>
      *   <li>{@link UUID} → {@link UuidModel}</li>
+     *   <li>{@link JsonObject} → {@link JsonObjectModel}</li>
      * </ul>
      *
      * @param data the initial data value for the model (must not be {@code null})
@@ -88,6 +90,9 @@ public abstract class DefaultModel<T> extends SingleThreadModel<T> {
      * @throws IllegalArgumentException if no matching model implementation exists
      */
     public static Model<?> create(final Object data) {
+        if (data instanceof JsonObject) {
+            return new JsonObjectModel((JsonObject) data);
+        }
         if (data instanceof String) {
             return new StringModel((String) data);
         }

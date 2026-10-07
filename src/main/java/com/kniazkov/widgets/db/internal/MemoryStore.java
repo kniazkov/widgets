@@ -199,7 +199,8 @@ final class MemoryStore implements Store {
         Objects.requireNonNull(value, "value");
         return this.call(() -> {
             this.requireCurrent(record);
-            if (Objects.equals(model.getData(), value)) {
+            if (model.getField().getType().toStoredValue(model.getData()).equals(
+                model.getField().getType().toStoredValue(value))) {
                 return false;
             }
             final long revision = record.getRevision() + 1L;
