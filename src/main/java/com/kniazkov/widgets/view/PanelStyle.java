@@ -16,7 +16,8 @@ import java.util.Set;
  * Style definition for {@link Panel}.
  */
 public class PanelStyle extends Style implements HasBgColor, HasBorder, HasWidth, HasHeight,
-        HasMargin, HasPadding, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
+        HasMargin, HasPadding, HasBoxShadow, HasCursor, HasTransition, HasBoxSizing,
+        HasHiddenState {
     /**
      * Supported visual states.
      */
