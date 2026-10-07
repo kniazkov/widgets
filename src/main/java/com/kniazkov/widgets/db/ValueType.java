@@ -3,6 +3,10 @@
  */
 package com.kniazkov.widgets.db;
 
+import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonException;
+import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.model.JsonObjectModel;
 import com.kniazkov.widgets.db.persistence.StoredValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.BooleanValue;
 import com.kniazkov.widgets.db.persistence.StoredValue.IntegerValue;
@@ -33,6 +37,33 @@ import java.util.function.Supplier;
  * @param <T> value type
  */
 public final class ValueType<T> {
+    /**
+     * JSON objects with an empty object default and no implicit ordering.
+     * Stored as JSON text by every persistence backend; models expose detached copies.
+     */
+    public static final ValueType<JsonObject> JSON_OBJECT = of(
+        "json-object", JsonObject.class, JsonObjectModel::new, Kind.STRING,
+        value -> new StringValue(value.toString()),
+        value -> parseObject(value.getString()), null
+    );
+
+    /**
+     * Parses a persisted object, rejecting malformed JSON and other root types.
+     * @param text persisted JSON
+     * @return parsed object
+     */
+    private static JsonObject parseObject(final String text) {
+        try {
+            final JsonObject object = Json.parse(text).toJsonObject();
+            if (object == null) {
+                throw new IllegalArgumentException("Expected a JSON object");
+            }
+            return object;
+        } catch (final JsonException failure) {
+            throw new IllegalArgumentException("Invalid persisted JSON object", failure);
+        }
+    }
+
     /**
      * Closed numeric intervals, without an implicit ordering.
      */

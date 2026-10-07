@@ -76,7 +76,7 @@ final class StoredModel<T> implements Model<T> {
 
     @Override
     public boolean setData(final T data) {
-        return this.record.update(this, data);
+        return this.record.update(this, this.field.getType().createModel(data).getData());
     }
 
     @Override
