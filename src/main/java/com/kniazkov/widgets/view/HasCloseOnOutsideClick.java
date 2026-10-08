@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 
 /**
  * Reactive policy for removing a modal popup when its backdrop is clicked or tapped.
@@ -13,8 +14,8 @@ public interface HasCloseOnOutsideClick extends Entity {
      * Returns the outside-click dismissal model.
      * @return boolean model, false by default
      */
-    default Model<Boolean> getCloseOnOutsideClickModel() {
-        return this.getModel(State.ANY, Property.CLOSE_ON_OUTSIDE_CLICK);
+    default BaseBooleanModel getCloseOnOutsideClickModel() {
+        return BaseBooleanModel.of(this.getModel(State.ANY, Property.CLOSE_ON_OUTSIDE_CLICK));
     }
 
     /**

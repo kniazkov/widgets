@@ -8,6 +8,7 @@ import com.kniazkov.widgets.common.FontSize;
 import com.kniazkov.widgets.common.FontWeight;
 import com.kniazkov.widgets.common.TextDecoration;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 
 /**
  * An {@link Entity} that displays stylable text.
@@ -227,8 +228,8 @@ public interface HasStyledText extends HasText {
      * @param state the logical state whose italic model is requested
      * @return a model containing a boolean flag indicating italic state
      */
-    default Model<Boolean> getItalicModel(final State state) {
-        return this.getModel(state, Property.ITALIC);
+    default BaseBooleanModel getItalicModel(final State state) {
+        return BaseBooleanModel.of(this.getModel(state, Property.ITALIC));
     }
 
     /**

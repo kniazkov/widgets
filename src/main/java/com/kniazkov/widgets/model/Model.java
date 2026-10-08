@@ -102,7 +102,7 @@ public interface Model<T> {
      *
      * @return a read-only {@link Model} that reflects the validity state of this model
      */
-    default Model<Boolean> getValidFlagModel() {
+    default BaseBooleanModel getValidFlagModel() {
         return new ValidFlagModel<>(this);
     }
 

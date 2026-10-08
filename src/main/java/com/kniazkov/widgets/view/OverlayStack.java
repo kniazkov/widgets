@@ -5,6 +5,7 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
@@ -82,8 +83,8 @@ public final class OverlayStack extends InlineWidget<InlineBlockStyle>
      *
      * @return sizing mode model
      */
-    public Model<Boolean> getFitToFirstChildModel() {
-        return this.getModel(State.ANY, Property.FIT_TO_FIRST_CHILD);
+    public BaseBooleanModel getFitToFirstChildModel() {
+        return BaseBooleanModel.of(this.getModel(State.ANY, Property.FIT_TO_FIRST_CHILD));
     }
 
     /**

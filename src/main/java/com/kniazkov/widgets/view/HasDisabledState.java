@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 
 /**
  * An {@link Entity} that exposes a reactive boolean model indicating
@@ -18,8 +19,8 @@ public interface HasDisabledState extends Entity {
      *
      * @return the disabled-state model
      */
-    default Model<Boolean> getDisabledStateModel() {
-        return this.getModel(State.ANY, Property.DISABLED);
+    default BaseBooleanModel getDisabledStateModel() {
+        return BaseBooleanModel.of(this.getModel(State.ANY, Property.DISABLED));
     }
 
     /**

@@ -20,7 +20,8 @@ import java.util.List;
  * are valid).
  * </p>
  */
-public class ConjunctionModel extends ReadOnlyModel<Boolean> implements Listener<Boolean> {
+public class ConjunctionModel extends ReadOnlyModel<Boolean>
+        implements BaseBooleanModel, Listener<Boolean> {
 
     /**
      * The list of underlying boolean models whose values and validity
@@ -83,15 +84,6 @@ public class ConjunctionModel extends ReadOnlyModel<Boolean> implements Listener
             }
         }
         return value;
-    }
-
-    /**
-     * Returns a model that represents the logical negation of this conjunction.
-     *
-     * @return a model exposing the negated conjunction value
-     */
-    public Model<Boolean> invert() {
-        return new InvertModel(this);
     }
 
     @Override
