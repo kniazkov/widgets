@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 
 /**
  * An {@link Entity} that exposes a reactive boolean model indicating
@@ -19,8 +20,8 @@ public interface HasMultipleInput extends Entity {
      *
      * @return the multiple-input model
      */
-    default Model<Boolean> getMultipleInputModel() {
-        return this.getModel(State.ANY, Property.MULTIPLE_INPUT);
+    default BaseBooleanModel getMultipleInputModel() {
+        return BaseBooleanModel.of(this.getModel(State.ANY, Property.MULTIPLE_INPUT));
     }
 
     /**

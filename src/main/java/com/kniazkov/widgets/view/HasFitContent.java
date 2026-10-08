@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 
 /**
  * Reactive policy for fitting and centering content inside a zoom viewport.
@@ -13,8 +14,8 @@ public interface HasFitContent extends Entity {
      * Returns the content-fitting model.
      * @return boolean model, false by default
      */
-    default Model<Boolean> getFitContentModel() {
-        return this.getModel(State.ANY, Property.FIT_CONTENT);
+    default BaseBooleanModel getFitContentModel() {
+        return BaseBooleanModel.of(this.getModel(State.ANY, Property.FIT_CONTENT));
     }
 
     /**

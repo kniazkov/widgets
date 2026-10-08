@@ -11,7 +11,8 @@ import java.util.function.Predicate;
  *
  * @param <T> the type of data in the base model
  */
-public final class PredicateModel<T> extends ReadOnlyModel<Boolean> implements Listener<T> {
+public final class PredicateModel<T> extends ReadOnlyModel<Boolean>
+        implements BaseBooleanModel, Listener<T> {
     /**
      * The wrapped base model.
      */
@@ -48,15 +49,6 @@ public final class PredicateModel<T> extends ReadOnlyModel<Boolean> implements L
     @Override
     public Boolean getData() {
         return this.value;
-    }
-
-    /**
-     * Returns a model that represents the logical negation of this model’s boolean value.
-     *
-     * @return a new model exposing {@code !getData()}
-     */
-    public Model<Boolean> invert() {
-        return new InvertModel(this);
     }
 
     /**

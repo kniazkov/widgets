@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 
 /**
  * An {@link Entity} that exposes a reactive boolean model indicating
@@ -18,8 +19,8 @@ public interface HasCheckedState extends Entity {
      *
      * @return the checked-state model
      */
-    default Model<Boolean> getCheckedStateModel() {
-        return this.getModel(State.ANY, Property.CHECKED);
+    default BaseBooleanModel getCheckedStateModel() {
+        return BaseBooleanModel.of(this.getModel(State.ANY, Property.CHECKED));
     }
 
     /**

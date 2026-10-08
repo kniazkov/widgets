@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.common.Cursor;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.model.BaseBooleanModel;
 import java.util.Objects;
 import java.util.Set;
 
@@ -102,8 +103,8 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
     }
 
     @Override
-    public final Model<Boolean> getCheckedStateModel() {
-        return this.control.getCheckedStateModel();
+    public final BaseBooleanModel getCheckedStateModel() {
+        return BaseBooleanModel.of(this.control.getCheckedStateModel());
     }
 
     @Override
@@ -112,8 +113,8 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
     }
 
     @Override
-    public final Model<Boolean> getDisabledStateModel() {
-        return this.control.getDisabledStateModel();
+    public final BaseBooleanModel getDisabledStateModel() {
+        return BaseBooleanModel.of(this.control.getDisabledStateModel());
     }
 
     @Override

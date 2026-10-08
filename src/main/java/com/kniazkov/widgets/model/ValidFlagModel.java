@@ -14,7 +14,8 @@ import com.kniazkov.widgets.common.Listener;
  *
  * @param <T> the type of data in the base model
  */
-public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> implements Listener<T> {
+public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean>
+        implements BaseBooleanModel, Listener<T> {
     /**
      * The wrapped base model.
      */
@@ -41,15 +42,6 @@ public final class ValidFlagModel<T> extends ReadOnlyModel<Boolean> implements L
     @Override
     public Boolean getData() {
         return this.base.isValid();
-    }
-
-    /**
-     * Returns a model that represents the logical negation of this model’s boolean value.
-     *
-     * @return a new model exposing {@code !getData()}
-     */
-    public Model<Boolean> invert() {
-        return new InvertModel(this);
     }
 
     @Override

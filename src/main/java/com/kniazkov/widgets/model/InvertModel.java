@@ -12,7 +12,8 @@ import com.kniazkov.widgets.common.Listener;
  * For example, a validation flag can be inverted and used to control a widget’s
  * disabled state.
  */
-public class InvertModel extends SingleThreadModel<Boolean> implements Listener<Boolean> {
+public class InvertModel extends SingleThreadModel<Boolean>
+        implements BaseBooleanModel, Listener<Boolean> {
     /**
      * The wrapped base model.
      */
@@ -50,7 +51,7 @@ public class InvertModel extends SingleThreadModel<Boolean> implements Listener<
     }
 
     @Override
-    public Model<Boolean> deriveWithData(final Boolean data) {
+    public BaseBooleanModel deriveWithData(final Boolean data) {
         return new BooleanModel(data);
     }
 

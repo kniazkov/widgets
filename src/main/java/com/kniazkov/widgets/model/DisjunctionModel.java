@@ -21,7 +21,8 @@ import java.util.List;
  * provided).
  * </p>
  */
-public class DisjunctionModel extends ReadOnlyModel<Boolean> implements Listener<Boolean> {
+public class DisjunctionModel extends ReadOnlyModel<Boolean>
+        implements BaseBooleanModel, Listener<Boolean> {
 
     /**
      * The list of underlying boolean models whose values and validity
@@ -84,15 +85,6 @@ public class DisjunctionModel extends ReadOnlyModel<Boolean> implements Listener
             }
         }
         return value;
-    }
-
-    /**
-     * Returns a model that represents the logical negation of this disjunction.
-     *
-     * @return a model exposing the negated disjunction value
-     */
-    public Model<Boolean> invert() {
-        return new InvertModel(this);
     }
 
     @Override

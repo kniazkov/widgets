@@ -387,3 +387,28 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution workflow and
 ## License
 
 [MIT](LICENSE)
+
+### Fluent boolean models
+
+`BaseBooleanModel` extends `Model<Boolean>` with reactive `invert()`, `and(...)`,
+and `or(...)`. Boolean models, predicates, validity flags and boolean widget
+property getters expose this interface. For example:
+
+```java
+save.setDisabledStateModel(
+    name.getValidFlagModel().and(phone.getValidFlagModel(), address.getValidFlagModel()).invert()
+);
+```
+
+`and` and `or` accept any number of `Model<Boolean>` operands, including the
+receiver in the result. With no arguments they return the receiver. Nonempty
+combinations are read-only; inversion forwards writes with the opposite value.
+Existing conjunction/disjunction validity rules remain unchanged.
+
+Use `BaseBooleanModel.of(model)` to adapt a generic or database-backed boolean
+model without copying its value. The adapter delegates writes, validity and
+listener registration to the original model. Setters still accept `Model<Boolean>`.
+Keep the resulting model alive while its reactive updates are needed.
+
+The more specific getter return types require recompilation of consumers and
+updating custom overrides that previously returned `Model<Boolean>`.
