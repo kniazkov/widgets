@@ -1,11 +1,14 @@
 import { expect, test } from "@playwright/test";
-import fs from "node:fs";
+import { readScript, readScriptGroup } from "../js/helpers/scripts.js";
+
+const source = [
+    readScript("options.js"),
+    readScriptGroup("shared"),
+    readScriptGroup("widgets")
+].join("\n");
 
 test("SVG and PNG preserve their ratio within two limits and a narrow parent", async ({ page }) => {
     await page.setContent("<!doctype html><html><body></body></html>");
-    const source = ["options", "lib", "widgets"]
-        .map(name => fs.readFileSync(`src/main/html/scripts/${name}.js`, "utf8"))
-        .join("\n");
     await page.addScriptTag({
         content:
             source + "\nwindow.imageLimits = { createWidget, widgets, setMaxWidth, setMaxHeight };"
