@@ -62,6 +62,7 @@ import com.kniazkov.widgets.view.StickyPanelStyle;
 import com.kniazkov.widgets.view.Table;
 import com.kniazkov.widgets.view.TableStyle;
 import com.kniazkov.widgets.view.Markdown;
+import com.kniazkov.widgets.view.NoWrap;
 import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.TextWidgetStyle;
@@ -164,6 +165,7 @@ public class AllWidgets {
         separators.add(new Section(recolor));
         addTextWidgets(root);
         addMarkdown(root);
+        addNoWrap(root);
         addActiveTextWidgets(root);
         addLinks(root);
         addInputFields(root);
@@ -296,6 +298,18 @@ public class AllWidgets {
         );
         italic.setItalic(true);
         row.add(variant("Italic", italic));
+    }
+
+    /**
+     * Demonstrates a text and link that wrap together.
+     *
+     * @param root target root
+     */
+    private static void addNoWrap(final RootWidget root) {
+        final Panel card = addCard(root, "NoWrap", "An inline group that stays on one line.");
+        card.add(new Section(new TextWidget("Read "), new NoWrap(
+            new TextWidget("our "), new Link("privacy policy", "https://example.com/privacy"),
+            new TextWidget("."))));
     }
 
     /**
