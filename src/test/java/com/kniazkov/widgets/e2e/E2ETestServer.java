@@ -26,6 +26,7 @@ import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.model.StringModel;
 import java.util.List;
 import java.util.ArrayList;
+import com.kniazkov.widgets.view.Markdown;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.MessagePopup;
 import com.kniazkov.widgets.view.Section;
@@ -130,6 +131,21 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("markdown", (root, context) -> {
+            final StringModel source = new StringModel("# Terms\n\nRead **carefully**.");
+            final Markdown document = new Markdown(source);
+            final TextArea editor = new TextArea();
+            editor.setTextModel(source);
+            editor.setWidth(280);
+            final Button update = new Button("Update document");
+            update.onClick(event -> {
+                source.setData("## Updated terms\n\n1. First\n2. Second");
+                document.setFontSize("20px");
+                document.setFontFace(() -> "Georgia, serif");
+            });
+            root.add(new Section(editor, update));
+            root.add(document);
+        });
         application.addPage("labeled-choices", (root, context) -> {
             final CheckBoxWithText box = new CheckBoxWithText("Receive news");
             final RadioButtonWithText first = new RadioButtonWithText("Delivery");

@@ -104,6 +104,12 @@ Open [http://localhost:8080](http://localhost:8080). Static application files ar
 Additional runnable examples are available in
 [`src/main/java/com/kniazkov/widgets/example`](src/main/java/com/kniazkov/widgets/example).
 
+### Markdown documents
+
+`Markdown` displays a block document from an ordinary reactive `Model<String>`, with a
+configurable font face and base size. See [Markdown documents](docs/MARKDOWN.md) for the
+supported subset, API and live editor example. `AllWidgets` includes a compact demonstration.
+
 ### Web fonts
 
 External fonts can be registered once in the application options and then used through the
