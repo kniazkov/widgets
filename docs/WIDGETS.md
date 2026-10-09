@@ -508,3 +508,30 @@ line.setWidth("80%");
 line.setVerticalMargin(12);
 panel.add(line);
 ```
+
+## NoWrap
+
+`NoWrap` is an inline container for `InlineWidget<?>` children. Use it inside a
+`Section` to keep a phrase, link, punctuation or a price and currency together:
+
+```java
+new Section(
+    new TextWidget("Read "),
+    new NoWrap(new TextWidget("our "),
+        new Link("privacy policy", "/info?text=privacy"), new TextWidget("."))
+);
+```
+
+The complete group can move to the next line, but automatic line wrapping inside
+it is disabled. Ordinary spaces between text children are preserved at the
+boundary; the container does not insert spaces on its own. Children keep their
+styles, reactive models and events, and can be added or removed normally.
+`NoWrapStyle` supports margins, padding and visibility. Groups can be nested.
+
+An oversized group overflows its parent instead of wrapping or shrinking its
+text. Avoid wrapping a whole long paragraph. Explicit line breaks and the internal
+layout of composite children (for example, an `InlineBlock` containing blocks)
+are not overridden.
+
+Run `com.kniazkov.widgets.example.NoWrapExample` for a live width/price demo.
+A compact example is also included in `AllWidgets`.

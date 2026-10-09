@@ -257,6 +257,14 @@ const widgetsLibrary = {
         widget.style.borderCollapse = "separate";
         return widget;
     },
+    "no-wrap": function () {
+        const widget = document.createElement("span");
+        widget.classList.add("widgets-no-wrap");
+        widget.style.display = "inline-block";
+        widget.style.whiteSpace = "nowrap";
+        widget.style.flexShrink = "0";
+        return widget;
+    },
     "inline block": function () {
         const widget = document.createElement("div");
         widget.style.display = "inline-block";
