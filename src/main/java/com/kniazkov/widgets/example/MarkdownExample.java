@@ -106,7 +106,7 @@ public final class MarkdownExample {
             final Markdown document = new Markdown(style, source);
             final TextArea editor = new TextArea();
             editor.setTextModel(source);
-            editor.setWidth("100%");
+            editor.setWidth(280);
             editor.setHeight(260);
             final Button smaller = new Button("16px");
             final Button larger = new Button("22px");

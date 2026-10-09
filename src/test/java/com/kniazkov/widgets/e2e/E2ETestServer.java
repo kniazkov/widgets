@@ -136,7 +136,7 @@ public final class E2ETestServer {
             final Markdown document = new Markdown(source);
             final TextArea editor = new TextArea();
             editor.setTextModel(source);
-            editor.setWidth("100%");
+            editor.setWidth(280);
             final Button update = new Button("Update document");
             update.onClick(event -> {
                 source.setData("## Updated terms\n\n1. First\n2. Second");
