@@ -106,3 +106,61 @@ input::placeholder {
     min-width: 0;
     min-height: 0;
 }
+
+/* Document typography follows the reactive base font and stays inside narrow containers. */
+.widgets-markdown {
+    display: flow-root;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    line-height: 1.6;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.widgets-markdown :is(p, ul, ol, blockquote, pre, hr) {
+    margin: 0 0 1em;
+}
+
+.widgets-markdown :is(h1, h2, h3, h4, h5, h6) {
+    margin: 1.25em 0 0.5em;
+    line-height: 1.25;
+    font-weight: 700;
+}
+
+.widgets-markdown h1 { font-size: 2em; }
+.widgets-markdown h2 { font-size: 1.6em; }
+.widgets-markdown h3 { font-size: 1.3em; }
+.widgets-markdown h4 { font-size: 1.15em; }
+.widgets-markdown h5 { font-size: 1em; }
+.widgets-markdown h6 { font-size: 0.9em; }
+
+.widgets-markdown :is(ul, ol) { padding-left: 1.75em; }
+.widgets-markdown li { margin: 0.25em 0; }
+.widgets-markdown li > p { margin-bottom: 0.25em; }
+.widgets-markdown li > :is(ul, ol) { margin-bottom: 0; }
+.widgets-markdown blockquote {
+    border-left: 0.2em solid currentColor;
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+}
+.widgets-markdown code {
+    font-family: monospace;
+    font-size: 0.9em;
+    background: rgba(128, 128, 128, 0.12);
+    padding: 0.1em 0.25em;
+    border-radius: 0.2em;
+}
+.widgets-markdown pre {
+    white-space: pre-wrap;
+    padding: 0.75em;
+    background: rgba(128, 128, 128, 0.12);
+    border-radius: 0.25em;
+}
+.widgets-markdown pre > code { background: none; padding: 0; }
+.widgets-markdown a { color: inherit; text-decoration: underline; }
+.widgets-markdown a:focus-visible { outline: 0.125em solid currentColor; outline-offset: 0.15em; }
+.widgets-markdown hr { border: 0; border-top: 1px solid currentColor; }
+.widgets-markdown > :first-child { margin-top: 0; }
+.widgets-markdown > :last-child, .widgets-markdown blockquote > :last-child { margin-bottom: 0; }

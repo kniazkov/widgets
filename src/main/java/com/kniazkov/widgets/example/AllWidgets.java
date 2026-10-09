@@ -61,6 +61,7 @@ import com.kniazkov.widgets.view.StickyPanel;
 import com.kniazkov.widgets.view.StickyPanelStyle;
 import com.kniazkov.widgets.view.Table;
 import com.kniazkov.widgets.view.TableStyle;
+import com.kniazkov.widgets.view.Markdown;
 import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.TextWidgetStyle;
@@ -162,6 +163,7 @@ public class AllWidgets {
         recolor.onClick(event -> accent.setColor(Color.fromString("#b89361")));
         separators.add(new Section(recolor));
         addTextWidgets(root);
+        addMarkdown(root);
         addActiveTextWidgets(root);
         addLinks(root);
         addInputFields(root);
@@ -294,6 +296,26 @@ public class AllWidgets {
         );
         italic.setItalic(true);
         row.add(variant("Italic", italic));
+    }
+
+    /**
+     * Adds a compact document sample.
+     *
+     * @param root page root
+     */
+    private static void addMarkdown(final RootWidget root) {
+        final Panel card = addCard(root, "Markdown",
+            "Block documents with headings, lists, links and reactive source text.");
+        card.add(new Markdown("""
+            ## Delivery terms
+            We confirm the **price and delivery date** before shipping.
+
+            - Carefully packed jewelry
+            - Delivery by agreement
+            - [Contact us](mailto:info@example.com)
+
+            > Keep your order number when contacting support.
+            """));
     }
 
     /**
