@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Ivan Kniazkov
+ * Copyright (c) 2026 Ivan Kniazkov
  */
 
 const server = window.location.protocol + "//" + window.location.host;
@@ -98,100 +98,4 @@ function sendRequest(query, callback, method, files) {
     req.ontimeout = req.onerror;
     req.onabort = req.onerror;
     req.send(form);
-}
-
-// Registers an event handler through either the standard or legacy DOM API.
-function addEvent(object, type, callback) {
-    if (typeof object == "string") {
-        object = document.getElementById(object);
-    }
-    if (object == null || typeof object == "undefined") {
-        return;
-    }
-    if (object.addEventListener) {
-        object.addEventListener(type, callback, false);
-    } else if (object.attachEvent) {
-        object.attachEvent("on" + type, callback);
-    } else {
-        object["on" + type] = callback;
-    }
-}
-
-function isMobileDevice() {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-
-    const byUserAgent = /iPhone|iPad|iPod|Android|Windows Phone|IEMobile|Opera Mini/i.test(
-        userAgent
-    );
-
-    const byTouchMac = navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
-
-    const byScreen =
-        window.matchMedia("(max-width: 768px)").matches &&
-        window.matchMedia("(pointer: coarse)").matches;
-
-    return byUserAgent || byTouchMac || byScreen;
-}
-
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function log(message) {
-    console["log"](message);
-}
-
-function readBit(number, bitIndex) {
-    return (number & (1 << bitIndex)) !== 0;
-}
-
-function setBit(number, bitIndex) {
-    return number | (1 << bitIndex);
-}
-
-function clearBit(number, bitIndex) {
-    return number & ~(1 << bitIndex);
-}
-
-function truncate(text, maxLength) {
-    if (text.length <= maxLength) {
-        return text;
-    }
-    return text.slice(0, maxLength - 3) + "...";
-}
-
-// Snapshot site defaults before any page runtime starts changing the document head.
-function readDocumentMetadata() {
-    return {
-        title: document.querySelector("title")?.textContent || "",
-        description: document.querySelector('meta[name="description"]')?.content || "",
-        robots: document.querySelector('meta[name="robots"]')?.content || ""
-    };
-}
-
-// Use DOM text/attributes rather than HTML parsing for application-provided metadata.
-function applyDocumentMetadata(metadata) {
-    for (const name of ["title", "description", "robots"]) {
-        const selector = name === "title" ? "title" : `meta[name="${name}"]`;
-        const elements = [...document.head.querySelectorAll(selector)];
-        const value = metadata[name] || "";
-        let element = elements.shift();
-        elements.forEach(duplicate => duplicate.remove());
-        if (!value) {
-            element?.remove();
-            continue;
-        }
-        if (!element) {
-            element = document.createElement(name === "title" ? "title" : "meta");
-            if (name !== "title") element.name = name;
-            document.head.appendChild(element);
-        }
-        if (name === "title") element.textContent = value;
-        else element.content = value;
-    }
 }

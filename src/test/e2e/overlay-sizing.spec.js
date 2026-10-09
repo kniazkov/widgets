@@ -1,10 +1,8 @@
 import fs from "node:fs";
+import { readScriptGroup } from "../js/helpers/scripts.js";
 import { expect, test } from "@playwright/test";
 
-const source = fs.readFileSync(
-    new URL("../../main/html/scripts/widgets.js", import.meta.url),
-    "utf8"
-);
+const source = readScriptGroup("widgets");
 const css = fs.readFileSync(new URL("../../main/html/style.css", import.meta.url), "utf8");
 
 test("content-sized overlays follow text, fonts and viewport changes without intrinsic feedback", async ({

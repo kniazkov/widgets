@@ -1,12 +1,9 @@
-import fs from "node:fs";
+import { readScriptGroup } from "./helpers/scripts.js";
 
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
-const source = fs.readFileSync(
-    new URL("../../main/html/scripts/client.js", import.meta.url),
-    "utf8"
-);
+const source = readScriptGroup("client");
 
 const handlerNames = [
     "log",

@@ -53,6 +53,11 @@ Both scripts switch to the repository directory, so they also work when invoked 
 from another directory and `www` resolves correctly. `run.sh` replaces itself with the Java process,
 so Ctrl+C and service-manager stop signals reach the application directly.
 
+## Browser JavaScript
+
+See [Browser JavaScript source map](docs/JAVASCRIPT.md) for file responsibilities, script loading,
+per-page scope and the shared manifest used by the server and tests.
+
 ## Development workflow
 
 1. Create a branch from the current `master`.

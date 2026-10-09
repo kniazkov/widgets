@@ -83,25 +83,14 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     /**
-     * Wraps the two classic protocol scripts in one lexical scope per history entry.
+     * Wraps the manifest-listed runtime sources in one lexical scope per history entry.
      * No dynamic evaluation or browser-global widget registry is required.
      *
      * @return page runtime factory source
      * @throws IOException if a bundled script cannot be read
      */
     private String pageRuntime() throws IOException {
-        final StringBuilder source = new StringBuilder("function createPageRuntime(page) {\n");
-        for (final String name : List.of("widgets", "client")) {
-            try (InputStream input = getClass().getResourceAsStream("/scripts/" + name + ".js")) {
-                if (input == null) {
-                    throw new IOException("Missing page runtime script: " + name);
-                }
-                source.append(new String(input.readAllBytes(), StandardCharsets.UTF_8));
-                source.append('\n');
-            }
-        }
-        source.append("return { initClient, mainCycle, disposeClient, showClientError };\n}\n");
-        final String code = source.toString();
+        final String code = BrowserScripts.pageRuntime();
         return this.options.isDebug() ? code : code.replaceAll(
             "\\blog\\([^;]*\\)\\s*;", "/* $0 */"
         );
@@ -219,6 +208,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                                 obj.addString(entry.getKey(), entry.getValue());
                             }
                             code = code
+                                .replace("__SHARED_SCRIPTS__", BrowserScripts.sharedTags())
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", requestPath)
                                 .replace("{data}", escapeInlineScriptData(obj.toString()))

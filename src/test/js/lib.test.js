@@ -1,9 +1,9 @@
-import fs from "node:fs";
+import { readScriptGroup } from "./helpers/scripts.js";
 
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const source = fs.readFileSync(new URL("../../main/html/scripts/lib.js", import.meta.url), "utf8");
+const source = readScriptGroup("shared");
 
 let dom;
 
