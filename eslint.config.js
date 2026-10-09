@@ -14,7 +14,7 @@ export default [
         }
     },
     {
-        files: ["src/main/html/scripts/*.js"],
+        files: ["src/main/html/scripts/**/*.js"],
         languageOptions: {
             sourceType: "script"
         }

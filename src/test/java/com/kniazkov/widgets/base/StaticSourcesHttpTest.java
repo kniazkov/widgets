@@ -83,6 +83,46 @@ public class StaticSourcesHttpTest {
     }
 
     /**
+     * Pages load the shared group and the complete isolated runtime from packaged resources.
+     */
+    @Test
+    public void servesBrowserScriptGroupsInOrder() throws Exception {
+        start(this.folder.newFolder().toPath());
+        final String html = request("/");
+        assertTrue(html.startsWith("HTTP/1.1 200"));
+        assertFalse(html.contains("__SHARED_SCRIPTS__"));
+        int previous = html.indexOf("/scripts/options.js");
+        assertTrue(previous >= 0);
+        for (final String path : BrowserScripts.paths("shared")) {
+            final String tag = "<script src=\"/scripts/" + path + "\"></script>";
+            final int index = html.indexOf(tag);
+            assertTrue(path, index > previous);
+            assertEquals(index, html.lastIndexOf(tag));
+            assertTrue(request("/scripts/" + path).startsWith("HTTP/1.1 200"));
+            previous = index;
+        }
+        final int runtimeIndex = html.indexOf("/scripts/page-runtime.js");
+        assertTrue(runtimeIndex > previous);
+        assertTrue(html.indexOf("/scripts/navigation.js") > runtimeIndex);
+        final String runtime = request("/scripts/page-runtime.js");
+        assertTrue(runtime.startsWith("HTTP/1.1 200"));
+        assertTrue(runtime.contains("function createPageRuntime(page) {"));
+        for (final String group : java.util.List.of("widgets", "client")) {
+            for (final String path : BrowserScripts.paths(group)) {
+                final String marker = "// Source: /scripts/" + path;
+                final int index = runtime.indexOf(marker);
+                assertTrue(path, index >= 0);
+                assertEquals(index, runtime.lastIndexOf(marker));
+                assertFalse(html.contains("src=\"/scripts/" + path));
+            }
+        }
+        assertTrue(runtime.contains("function createMarkdown()"));
+        assertTrue(runtime.contains("function sendSynchronizeRequest(callback)"));
+        assertTrue(runtime.contains(
+            "return { initClient, mainCycle, disposeClient, showClientError }"));
+    }
+
+    /**
      * File roots, classpath assets and generated scripts all support browser revalidation.
      */
     @Test

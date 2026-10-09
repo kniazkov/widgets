@@ -1,9 +1,7 @@
-import fs from "node:fs";
+import { readScript, readScriptGroup, readPageRuntime } from "./helpers/scripts.js";
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-const read = name =>
-    fs.readFileSync(new URL(`../../main/html/scripts/${name}.js`, import.meta.url), "utf8");
 let dom;
 afterEach(() => dom?.window.close());
 
@@ -28,14 +26,11 @@ function harness(head = "") {
     win.clearInterval = id => intervals.delete(id);
     win.console.log = () => {};
     win.__request = (request, callback) => requests.push({ request, callback });
-    win.eval(`${read("options")}\n${read("lib")}
+    win.eval(`${readScript("options.js")}\n${readScriptGroup("shared")}
         sendRequest = window.__request;
         isMobileDevice = () => false;
-        function createPageRuntime(page) {
-            ${read("widgets")}\n${read("client")}
-            return { initClient, mainCycle, disposeClient, showClientError };
-        }
-        ${read("navigation")}
+        ${readPageRuntime()}
+        ${readScript("navigation.js")}
         initNavigation("session", "/catalog", {filter: "blue"}, ["/catalog", "/product"]);
     `);
     function answer(action, body, client) {

@@ -1,0 +1,29 @@
+{
+    "shared": [
+        "shared/transport.js",
+        "shared/dom.js",
+        "shared/document.js"
+    ],
+    "widgets": [
+        "widgets/core.js",
+        "widgets/uploads.js",
+        "widgets/popup.js",
+        "widgets/events.js",
+        "widgets/tree.js",
+        "widgets/content.js",
+        "widgets/carousel.js",
+        "widgets/style.js",
+        "widgets/layout.js",
+        "widgets/inputs.js",
+        "widgets/suggestions.js",
+        "widgets/sortable.js",
+        "widgets/zoom.js",
+        "widgets/markdown.js"
+    ],
+    "client": [
+        "client/lifecycle.js",
+        "client/errors.js",
+        "client/protocol.js",
+        "client/synchronization.js"
+    ]
+}

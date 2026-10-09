@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import { readScript, readScriptGroup } from "./helpers/scripts.js";
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -9,12 +9,10 @@ function harness() {
         runScripts: "outside-only",
         url: "http://localhost/"
     });
-    const read = file =>
-        fs.readFileSync(new URL(`../../main/html/scripts/${file}`, import.meta.url), "utf8");
-    dom.window.eval(`${read("options.js")}\n${read("lib.js")}\n
+    dom.window.eval(`${readScript("options.js")}\n${readScriptGroup("shared")}\n
         window.events = [];
         function sendEventToServer(widget, type, data) { window.events.push({ type, data }); }
-        ${read("widgets.js")}
+        ${readScriptGroup("widgets")}
         window.h = { createWidget, appendChildWidget, setChildWidget, removeChildWidget, setChildOrder, setMaxScale, setFitContent, setAnimationDuration, resetZoom, widgets };
     `);
     const h = dom.window.h;

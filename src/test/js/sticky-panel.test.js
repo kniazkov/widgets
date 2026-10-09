@@ -1,16 +1,10 @@
-import fs from "node:fs";
+import { readScriptGroup } from "./helpers/scripts.js";
 
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
-const widgetsSource = fs.readFileSync(
-    new URL("../../main/html/scripts/widgets.js", import.meta.url),
-    "utf8"
-);
-const librarySource = fs.readFileSync(
-    new URL("../../main/html/scripts/lib.js", import.meta.url),
-    "utf8"
-);
+const widgetsSource = readScriptGroup("widgets");
+const librarySource = readScriptGroup("shared");
 
 let dom;
 
