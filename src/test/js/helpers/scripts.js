@@ -17,6 +17,6 @@ export function readPageRuntime() {
     return `function createPageRuntime(page) {
         ${readScriptGroup("widgets")}
         ${readScriptGroup("client")}
-        return { initClient, mainCycle, disposeClient, showClientError };
+        return { initClient, mainCycle, disposeClient, showClientError, resetInteractionState };
     }`;
 }

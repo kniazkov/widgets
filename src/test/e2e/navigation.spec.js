@@ -74,3 +74,32 @@ test("completed form is replaced while Back retains the preceding catalog", asyn
     await expect(page.getByText("Product 44", { exact: true })).toBeVisible();
     expect(creations).toHaveLength(3);
 });
+
+for (const [role, name, destination] of [
+    ["link", "Open product", "Product 42"],
+    ["button", "Navigate from Java", "Product 43"]
+]) {
+    test(`Back clears interaction styles after clicking ${role}`, async ({ page }) => {
+        await page.goto("/catalog");
+        const target = page.getByRole(role, { name });
+        await target.evaluate(widget => {
+            widget._properties.normal.color = "rgb(0, 0, 0)";
+            widget._properties.hovered.color = "rgb(255, 0, 0)";
+            widget._properties.focused.color = "rgb(255, 0, 0)";
+            window.__navigationTarget = widget;
+        });
+        await target.hover();
+        await expect(target).toHaveCSS("color", "rgb(255, 0, 0)");
+        await target.click();
+        await expect(page.getByText(destination, { exact: true })).toBeVisible();
+        await page.mouse.move(1000, 700);
+        await page.goBack();
+        await expect(target).toBeVisible();
+        await expect(target).toHaveCSS("color", "rgb(0, 0, 0)");
+        expect(await target.evaluate(widget => widget === window.__navigationTarget)).toBe(true);
+        await target.hover();
+        await expect(target).toHaveCSS("color", "rgb(255, 0, 0)");
+        await page.mouse.move(1000, 700);
+        await expect(target).toHaveCSS("color", "rgb(0, 0, 0)");
+    });
+}

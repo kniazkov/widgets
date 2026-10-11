@@ -344,3 +344,57 @@ describe("page metadata", () => {
         expect(h.win.document.querySelector('meta[name="description"]')).toBeNull();
     });
 });
+
+describe("cached page interaction styles", () => {
+    it.each(["link", "button", "active text", "inline block", "active image"])(
+        "clears hover, press and focus on %s across repeated Back navigation",
+        async type => {
+            const h = harness();
+            h.created("catalog");
+            // Use the real runtime's registry and protocol to create both navigation targets.
+            for (const callback of h.intervals.values()) callback();
+            const commands = [];
+            for (const widget of ["#10", "#11"]) {
+                commands.push(
+                    { action: "create widget", type, widget },
+                    { action: "append child", widget, container: "#1" }
+                );
+            }
+            h.updates(
+                "catalog",
+                commands.map((command, index) => ({
+                    ...command,
+                    id: "#" + (index + 5)
+                }))
+            );
+            const root = h.win.document.querySelector(".widgets-page");
+            const targets = [...root.children].slice(-2);
+            for (const [index, target] of targets.entries()) {
+                target._properties.normal.color = "black";
+                target._properties.hovered.color = "red";
+                target._properties.active.color = "blue";
+                target._properties.focused.color = "green";
+                target.dispatchEvent(new h.win.MouseEvent("pointerenter"));
+                expect(target.style.color).toBe("red");
+                target.dispatchEvent(new h.win.MouseEvent("pointerdown"));
+                expect(target._states.active).toBe(true);
+                target._states.focused = true;
+                h.navigate("/product?id=" + index);
+                h.created("product" + index);
+                await h.back();
+                h.updates("catalog");
+                expect(root.isConnected).toBe(true);
+                for (const restored of targets.slice(0, index + 1)) {
+                    expect(restored._states.hovered).toBe(false);
+                    expect(restored._states.active).toBe(false);
+                    expect(restored._states.focused).toBe(false);
+                    expect(restored.style.color).toBe("black");
+                }
+                target.dispatchEvent(new h.win.MouseEvent("pointerenter"));
+                expect(target.style.color).toBe("red");
+                target.dispatchEvent(new h.win.MouseEvent("pointerleave"));
+                expect(target.style.color).toBe("black");
+            }
+        }
+    );
+});

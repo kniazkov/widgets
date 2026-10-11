@@ -119,7 +119,8 @@ public class StaticSourcesHttpTest {
         assertTrue(runtime.contains("function createMarkdown()"));
         assertTrue(runtime.contains("function sendSynchronizeRequest(callback)"));
         assertTrue(runtime.contains(
-            "return { initClient, mainCycle, disposeClient, showClientError }"));
+            "return { initClient, mainCycle, disposeClient, showClientError, "
+                + "resetInteractionState }"));
     }
 
     /**
