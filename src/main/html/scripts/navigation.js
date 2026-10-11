@@ -125,6 +125,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             active.hiddenAt = Date.now();
             active.hiddenOrder = ++accessOrder;
             active.root.remove();
+            active.runtime.resetInteractionState();
             active.error?.remove();
         }
         prune();

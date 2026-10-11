@@ -97,7 +97,8 @@ final class BrowserScripts {
                 source.append(read(path)).append('\n');
             }
         }
-        source.append("return { initClient, mainCycle, disposeClient, showClientError };\n}\n");
+        source.append("return { initClient, mainCycle, disposeClient, showClientError, ")
+            .append("resetInteractionState };\n}\n");
         return source.toString();
     }
 }

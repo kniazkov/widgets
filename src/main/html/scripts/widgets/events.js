@@ -61,7 +61,24 @@ function processPointerEvent(element, event) {
     return data;
 }
 
+// Detaching a cached page does not reliably produce pointerleave or blur events.
+// Reset visual interaction state locally without inventing server-side pointer events.
+function resetInteractionState() {
+    for (const widget of Object.values(widgets)) {
+        const states = widget._states;
+        if (!states.hovered && !states.focused && !(widget._activeOnPointerDown && states.active)) {
+            continue;
+        }
+        states.hovered = false;
+        states.focused = false;
+        if (widget._activeOnPointerDown) states.active = false;
+        if (widget._events.click || widget._clientActions.click) widget.style.cursor = "default";
+        refreshWidget(widget);
+    }
+}
+
 function initPointerEvents(widget, activeOnPointerDown) {
+    widget._activeOnPointerDown = activeOnPointerDown;
     addEvent(widget, "click", function (event) {
         if (
             widget.tagName === "A" &&
