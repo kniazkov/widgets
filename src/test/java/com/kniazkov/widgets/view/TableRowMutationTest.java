@@ -60,8 +60,8 @@ public final class TableRowMutationTest {
         );
         assertEquals(1, updates.size());
         assertEquals(table.getId().toString(),
-            updates.get(0).get("container").getStringValue());
-        assertEquals(1, updates.get(0).get("index").getIntValue());
+            updates.get(0).get("container").stringValue());
+        assertEquals(1, updates.get(0).get("index").intValue());
     }
 
     /**

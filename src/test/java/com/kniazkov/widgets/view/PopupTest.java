@@ -67,7 +67,7 @@ public final class PopupTest {
 
         assertEquals(1, updates.size());
         final JsonObject color = (JsonObject) updates.get(0).get("backdrop color");
-        assertEquals(1, color.get("r").getIntValue());
+        assertEquals(1, color.get("r").intValue());
     }
 
     /**
@@ -130,7 +130,7 @@ public final class PopupTest {
             sandbox.drainUpdates(), "set close on outside click", popup
         );
         assertEquals(1, updates.size());
-        assertTrue(updates.get(0).get("close on outside click").getBooleanValue());
+        assertTrue(updates.get(0).get("close on outside click").booleanValue());
         final BooleanModel first = new BooleanModel(false);
         popup.setCloseOnOutsideClickModel(first);
         assertFalse(popup.isCloseOnOutsideClick());

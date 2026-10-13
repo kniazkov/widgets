@@ -247,7 +247,7 @@ public abstract class Property<T> {
                 name,
                 Boolean.class,
                 BooleanModel::new,
-                JsonBoolean::getInstance
+                JsonBoolean::of
         );
     }
 
@@ -437,7 +437,7 @@ public abstract class Property<T> {
         "selected index",
         Integer.class,
         () -> new IntegerModel(-1),
-        value -> new JsonNumber(value.doubleValue())
+        value -> JsonNumber.of(value.doubleValue())
     );
 
     /**
@@ -447,7 +447,7 @@ public abstract class Property<T> {
         "max scale",
         Double.class,
         () -> new ValidatedRealNumberModel(8.0, value -> Double.isFinite(value) && value >= 1),
-        JsonNumber::new
+        JsonNumber::of
     );
 
     /**
@@ -457,7 +457,7 @@ public abstract class Property<T> {
         "animation duration",
         Integer.class,
         () -> new ValidatedIntegerModel(250, ValidatedIntegerModel.NOT_NEGATIVE),
-        value -> new JsonNumber(value.doubleValue())
+        value -> JsonNumber.of(value.doubleValue())
     );
 
     /**
@@ -496,7 +496,7 @@ public abstract class Property<T> {
                     1.0,
                     ValidatedRealNumberModel.UNIT_INTERVAL
             ),
-            JsonNumber::new
+            JsonNumber::of
     );
 
     /**
@@ -526,7 +526,7 @@ public abstract class Property<T> {
             "font weight",
             FontWeight.class,
             FontWeightModel::new,
-            data -> new JsonNumber(data.getWeight())
+            data -> JsonNumber.of(data.getWeight())
     );
 
     /**

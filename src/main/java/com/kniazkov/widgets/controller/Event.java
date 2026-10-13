@@ -115,7 +115,8 @@ public abstract class Event<T> {
 
         @Override
         public String parseData(final JsonObject object) {
-            return object.get("text").getStringValue();
+            final var text = object.get("text");
+            return text.isString() ? text.stringValue() : null;
         }
 
         @Override
@@ -137,7 +138,7 @@ public abstract class Event<T> {
 
         @Override
         public Boolean parseData(final JsonObject object) {
-            return object.get("state").getBooleanValue();
+            return object.get("state").booleanValue();
         }
 
         @Override
@@ -160,7 +161,7 @@ public abstract class Event<T> {
 
         @Override
         public Integer parseData(final JsonObject object) {
-            return object.get("index").getIntValue();
+            return object.get("index").intValue();
         }
 
         @Override

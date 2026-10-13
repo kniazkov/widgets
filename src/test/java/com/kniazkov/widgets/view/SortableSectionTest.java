@@ -33,7 +33,7 @@ public final class SortableSectionTest {
         assertSame(section, first.getParent().orElseThrow());
         final List<JsonObject> updates = sandbox.drainUpdates();
         assertEquals(1, updates.size());
-        assertEquals("set child order", updates.get(0).get("action").getStringValue());
+        assertEquals("set child order", updates.get(0).get("action").stringValue());
         assertThrows(IndexOutOfBoundsException.class, () -> section.move(0, 2));
         assertThrows(UnsupportedOperationException.class, () -> section.getChildren().clear());
         first.setText("Changed");
@@ -119,10 +119,10 @@ public final class SortableSectionTest {
             sandbox.drainUpdates(), "set animation duration", section
         );
         assertEquals(1, updates.size());
-        assertEquals(600, updates.get(0).get("animation duration").getIntValue());
+        assertEquals(600, updates.get(0).get("animation duration").intValue());
         section.setAnimationDuration(0);
         assertEquals(0, section.getAnimationDuration());
-        assertEquals(0, sandbox.drainUpdates().get(0).get("animation duration").getIntValue());
+        assertEquals(0, sandbox.drainUpdates().get(0).get("animation duration").intValue());
     }
 
     /**

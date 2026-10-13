@@ -43,8 +43,8 @@ public final class HorizontalLineTest {
         line.setHeight(2);
         final var updates = sandbox.drainUpdates();
         assertTrue(updates.stream().anyMatch(update ->
-            update.get("action").getStringValue().equals("set color")));
+            update.get("action").stringValue().equals("set color")));
         assertTrue(updates.stream().anyMatch(update ->
-            update.get("action").getStringValue().equals("set height")));
+            update.get("action").stringValue().equals("set height")));
     }
 }

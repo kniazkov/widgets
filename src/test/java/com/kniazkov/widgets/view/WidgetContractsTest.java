@@ -59,7 +59,7 @@ public final class WidgetContractsTest {
             );
 
             assertEquals("creation count for " + expectedType, 1, creations.size());
-            assertEquals(expectedType, creations.get(0).get("type").getStringValue());
+            assertEquals(expectedType, creations.get(0).get("type").stringValue());
         }
     }
 

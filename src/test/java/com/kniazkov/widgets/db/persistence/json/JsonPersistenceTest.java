@@ -47,6 +47,21 @@ public final class JsonPersistenceTest {
     public final TemporaryFolder temporary = new TemporaryFolder();
 
     /**
+     * An interrupted write cannot silently reopen as an empty store.
+     * @throws Exception when temporary file access fails
+     */
+    @Test
+    public void rejectsTruncatedStore() throws Exception {
+        final Path directory = this.directory("truncated");
+        open(directory).close();
+        Files.writeString(directory.resolve("employees.json"), "[");
+        try (JsonPersistence persistence = new JsonPersistence(directory)) {
+            persistence.initialize(METADATA);
+            assertThrows(PersistenceException.class, persistence::load);
+        }
+    }
+
+    /**
      * Verifies the schema catalog is written in a language-neutral JSON form.
      *
      * @throws Exception when temporary file access fails
@@ -58,24 +73,24 @@ public final class JsonPersistenceTest {
 
         final JsonObject root = Json.parse(
             directory.resolve("database.metadata").toFile()
-        ).toJsonObject();
-        assertEquals(1, root.get("formatVersion").getIntValue());
-        final JsonArray stores = root.get("stores").toJsonArray();
+        ).objectValueOrThrow();
+        assertEquals(1, root.get("formatVersion").intValue());
+        final JsonArray stores = root.get("stores").arrayValueOrThrow();
         assertEquals(4, stores.size());
-        final JsonObject employees = stores.getElement(0).toJsonObject();
-        assertEquals("employees", employees.get("name").getStringValue());
-        assertEquals(0, employees.get("position").getIntValue());
-        final JsonArray fields = employees.get("fields").toJsonArray();
+        final JsonObject employees = stores.get(0).objectValueOrThrow();
+        assertEquals("employees", employees.get("name").stringValue());
+        assertEquals(0, employees.get("position").intValue());
+        final JsonArray fields = employees.get("fields").arrayValueOrThrow();
         assertEquals(5, fields.size());
-        final JsonObject reference = fields.getElement(4).toJsonObject();
-        assertEquals("identifier", reference.get("type").getStringValue());
-        assertEquals("STRING", reference.get("valueKind").getStringValue());
+        final JsonObject reference = fields.get(4).objectValueOrThrow();
+        assertEquals("identifier", reference.get("type").stringValue());
+        assertEquals("STRING", reference.get("valueKind").stringValue());
         assertEquals(
             "a843176c-36df-44bd-b8a2-b1d8c956c431",
-            reference.get("defaultValue").getStringValue()
+            reference.get("defaultValue").stringValue()
         );
         assertEquals("departments",
-            reference.get("referencedStore").getStringValue());
+            reference.get("referencedStore").stringValue());
     }
 
     /**
@@ -111,16 +126,16 @@ public final class JsonPersistenceTest {
 
         final JsonObject root = Json.parse(
             directory.resolve("database.metadata").toFile()
-        ).toJsonObject();
-        final JsonArray stores = root.get("stores").toJsonArray();
+        ).objectValueOrThrow();
+        final JsonArray stores = root.get("stores").arrayValueOrThrow();
         assertEquals(4, stores.size());
-        assertEquals("employees", stores.getElement(0).toJsonObject()
-            .get("name").getStringValue());
-        final JsonArray fields = stores.getElement(0).toJsonObject()
-            .get("fields").toJsonArray();
+        assertEquals("employees", stores.get(0).objectValueOrThrow()
+            .get("name").stringValue());
+        final JsonArray fields = stores.get(0).objectValueOrThrow()
+            .get("fields").arrayValueOrThrow();
         assertEquals(5, fields.size());
-        assertEquals("age", fields.getElement(1).toJsonObject()
-            .get("name").getStringValue());
+        assertEquals("age", fields.get(1).objectValueOrThrow()
+            .get("name").stringValue());
     }
 
     /**
@@ -138,7 +153,7 @@ public final class JsonPersistenceTest {
         final JsonObject object = firstObject(directory.resolve("employees.json"));
         assertTrue(object.get("revision").isNumber());
         assertFalse(object.get("revision").isString());
-        final JsonObject fields = object.get("fields").toJsonObject();
+        final JsonObject fields = object.get("fields").objectValueOrThrow();
         assertTrue(fields.get("name").isString());
         assertTrue(fields.get("age").isInteger());
         assertTrue(fields.get("score").isNumber());
@@ -255,7 +270,7 @@ public final class JsonPersistenceTest {
 
         assertTrue(persistence.load().getRecords().isEmpty());
         assertTrue(Json.parse(directory.resolve("employees.json").toFile())
-            .toJsonArray().isEmpty());
+            .arrayValueOrThrow().isEmpty());
     }
 
     /**
@@ -418,8 +433,8 @@ public final class JsonPersistenceTest {
      * @throws Exception when parsing fails
      */
     private static JsonObject firstObject(final Path file) throws Exception {
-        return Json.parse(file.toFile()).toJsonArray()
-            .getElement(0).toJsonObject();
+        return Json.parse(file.toFile()).arrayValueOrThrow()
+            .get(0).objectValueOrThrow();
     }
 
     /**

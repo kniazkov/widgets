@@ -22,8 +22,8 @@ public final class OnClientTest {
         final OnClient action = new OpenPage("/products");
         final JsonObject json = action.toJsonObject();
 
-        assertEquals("go to page", json.get("action").getStringValue());
-        assertEquals("/products", json.get("href").getStringValue());
+        assertEquals("go to page", json.get("action").stringValue());
+        assertEquals("/products", json.get("href").stringValue());
         assertEquals(new OpenPage("/products"), action);
         assertNotEquals(new OpenPage("/orders"), action);
     }
@@ -36,8 +36,8 @@ public final class OnClientTest {
         final OnClient action = new OpenPageInNewTab("images/original.png");
         final JsonObject json = action.toJsonObject();
 
-        assertEquals("open page in new tab", json.get("action").getStringValue());
-        assertEquals("images/original.png", json.get("href").getStringValue());
+        assertEquals("open page in new tab", json.get("action").stringValue());
+        assertEquals("images/original.png", json.get("href").stringValue());
         assertEquals(new OpenPageInNewTab("images/original.png"), action);
         assertNotEquals(new OpenPage("images/original.png"), action);
     }

@@ -46,14 +46,14 @@ public final class JsonObjectTest {
     @Test public void copiesNestedData() throws Exception {
         final JsonObject input = Json.parse(
             "{\"nested\":{\"text\":\"Привет\"},\"array\":[1,true,null,{\"x\":2}]}"
-        ).toJsonObject();
+        ).objectValueOrThrow();
         final String expected = input.toString();
         final JsonObjectModel model = new JsonObjectModel(input);
-        input.get("nested").toJsonObject().addString("text", "changed");
+        input.get("nested").objectValueOrThrow().addString("text", "changed");
         assertEquals(expected, model.getData().toString());
         final JsonObject read = model.getData();
-        read.get("nested").toJsonObject().addString("text", "edited");
-        read.get("array").toJsonArray().addString("new");
+        read.get("nested").objectValueOrThrow().addString("text", "edited");
+        read.get("array").arrayValueOrThrow().addString("new");
         assertEquals(expected, model.getData().toString());
         final AtomicInteger calls = new AtomicInteger();
         final Listener<JsonObject> listener = value -> {
@@ -93,7 +93,7 @@ public final class JsonObjectTest {
         final Field<String> name = new Field<>(ValueType.STRING, "name");
         final JsonObject input = Json.parse(
             "{\"destination\":{\"code\":44},\"items\":[null,true,1.5,\"Москва\"]}"
-        ).toJsonObject();
+        ).objectValueOrThrow();
         final String expected = input.toString();
         for (final String backend : List.of("json", "sqlite", "h2")) {
             final Path path = folder.getRoot().toPath().resolve(backend);

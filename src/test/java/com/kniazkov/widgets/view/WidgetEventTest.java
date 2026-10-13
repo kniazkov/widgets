@@ -158,7 +158,7 @@ public final class WidgetEventTest {
                 sandbox.drainUpdates(), "subscribe", widget
             );
             assertEquals("subscription count for " + widget.getType(), 1, subscription.size());
-            assertEquals("click", subscription.get(0).get("event").getStringValue());
+            assertEquals("click", subscription.get(0).get("event").stringValue());
 
             sandbox.fire(Event.CLICK, new JsonObject());
 
@@ -182,11 +182,11 @@ public final class WidgetEventTest {
             updates, "set client event action", image
         );
         assertEquals(1, actions.size());
-        assertEquals("click", actions.get(0).get("event").getStringValue());
-        final JsonObject clientAction = actions.get(0).get("clientAction").toJsonObject();
+        assertEquals("click", actions.get(0).get("event").stringValue());
+        final JsonObject clientAction = actions.get(0).get("clientAction").objectValueOrThrow();
         assertEquals("open page in new tab",
-            clientAction.get("action").getStringValue());
-        assertEquals("/images/original.png", clientAction.get("href").getStringValue());
+            clientAction.get("action").stringValue());
+        assertEquals("/images/original.png", clientAction.get("href").stringValue());
         assertTrue(WidgetSandbox.findUpdates(updates, "subscribe", image).isEmpty());
     }
 
@@ -219,8 +219,8 @@ public final class WidgetEventTest {
                 sandbox.drainUpdates(), "subscribe", widget
             );
             assertEquals("subscription count for " + widget.getType(), 2, subscriptions.size());
-            assertEquals("focus", subscriptions.get(0).get("event").getStringValue());
-            assertEquals("blur", subscriptions.get(1).get("event").getStringValue());
+            assertEquals("focus", subscriptions.get(0).get("event").stringValue());
+            assertEquals("blur", subscriptions.get(1).get("event").stringValue());
 
             sandbox.fire(Event.FOCUS, new JsonObject());
             sandbox.fire(Event.BLUR, new JsonObject());

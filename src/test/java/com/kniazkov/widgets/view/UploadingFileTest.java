@@ -110,7 +110,7 @@ public final class UploadingFileTest {
         assertReceipt(loader.handleUploadChunk(8, 0, bytes(3, (byte) 4)), 1, true);
 
         final JsonObject response = loader.handleUploadChunk(8, 0, bytes(3, (byte) 5));
-        assertFalse(response.get("result").getBooleanValue());
+        assertFalse(response.get("result").booleanValue());
     }
 
     /**
@@ -174,8 +174,8 @@ public final class UploadingFileTest {
             final JsonObject response,
             final int nextChunk,
             final boolean complete) {
-        assertTrue(response.get("result").getBooleanValue());
-        assertEquals(nextChunk, response.get("nextChunk").getLongValue());
-        assertEquals(complete, response.get("complete").getBooleanValue());
+        assertTrue(response.get("result").booleanValue());
+        assertEquals(nextChunk, response.get("nextChunk").longValue());
+        assertEquals(complete, response.get("complete").booleanValue());
     }
 }

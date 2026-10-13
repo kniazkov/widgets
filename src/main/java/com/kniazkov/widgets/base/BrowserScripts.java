@@ -4,10 +4,10 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonParsingMode;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
-import com.kniazkov.json.JsonObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -50,15 +50,18 @@ final class BrowserScripts {
      */
     static List<String> paths(final String group) throws IOException {
         try {
-            final JsonObject manifest = Json.parse(read("manifest.json")).toJsonObject();
-            final JsonArray entries = manifest == null ? null : manifest.get(group).toJsonArray();
+            final JsonArray entries = Json.parse(read("manifest.json"), JsonParsingMode.STRICT)
+                .toJsonObject()
+                .flatMap(manifest -> manifest.element(group))
+                .flatMap(JsonElement::toJsonArray)
+                .orElse(null);
             if (entries == null || entries.isEmpty()) {
                 throw new IOException("Missing browser script group: " + group);
             }
             final List<String> paths = new ArrayList<>();
             for (final JsonElement entry : entries) {
-                final String path = entry.getStringValue();
-                if (path == null || !path.matches("[a-z-]+/[a-z-]+\\.js")) {
+                final String path = entry.stringValue();
+                if (!entry.isString() || !path.matches("[a-z-]+/[a-z-]+\\.js")) {
                     throw new IOException("Invalid browser script path in group: " + group);
                 }
                 paths.add(path);

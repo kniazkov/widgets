@@ -101,12 +101,12 @@ public final class WidgetContainerTest {
         final List<JsonObject> updates = sandbox.drainUpdates();
         final List<JsonObject> navigation = WidgetSandbox.findUpdates(updates, "go to page");
         assertEquals(1, navigation.size());
-        assertEquals("/next", navigation.get(0).get("href").getStringValue());
+        assertEquals("/next", navigation.get(0).get("href").stringValue());
         final List<JsonObject> newTab = WidgetSandbox.findUpdates(
             updates, "open page in new tab"
         );
         assertEquals(1, newTab.size());
-        assertEquals("https://example.com", newTab.get(0).get("href").getStringValue());
+        assertEquals("https://example.com", newTab.get(0).get("href").stringValue());
         assertEquals(1, WidgetSandbox.findUpdates(updates, "reset").size());
     }
 
@@ -142,7 +142,7 @@ public final class WidgetContainerTest {
         );
         assertEquals("append count for " + container.getType(), 1, updates.size());
         assertEquals(container.getId().toString(),
-            updates.get(0).get("container").getStringValue());
+            updates.get(0).get("container").stringValue());
 
         ((Container) container).remove(child);
 
@@ -150,7 +150,7 @@ public final class WidgetContainerTest {
         updates = WidgetSandbox.findUpdates(sandbox.drainUpdates(), "remove child", child);
         assertEquals("remove count for " + container.getType(), 1, updates.size());
         assertEquals(container.getId().toString(),
-            updates.get(0).get("container").getStringValue());
+            updates.get(0).get("container").stringValue());
         assertTrue(((Container) container).getChildCount() == 0);
     }
 }

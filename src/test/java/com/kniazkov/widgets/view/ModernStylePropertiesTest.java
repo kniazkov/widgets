@@ -39,7 +39,7 @@ public final class ModernStylePropertiesTest {
         sandbox.clearUpdates();
         image.setMaxHeight("50%");
         final JsonObject update = singleUpdate(sandbox.drainUpdates(), "set max height", image);
-        assertEquals("50.0%", update.get("max height").getStringValue());
+        assertEquals("50.0%", update.get("max height").stringValue());
         image.setMaxHeight("");
         assertEquals("", image.getMaxHeight().getCSSCode());
         assertEquals("180px", style.getMaxHeight().getCSSCode());
@@ -63,7 +63,7 @@ public final class ModernStylePropertiesTest {
             sandbox.drainUpdates(), "set max width", input
         );
         assertEquals(1, updates.size());
-        assertEquals("100.0%", updates.get(0).get("max width").getStringValue());
+        assertEquals("100.0%", updates.get(0).get("max width").stringValue());
         assertEquals("400px", input.getWidth().getCSSCode());
         input.setMaxWidth(240);
         assertEquals("240px", input.getMaxWidth().getCSSCode());
@@ -114,30 +114,30 @@ public final class ModernStylePropertiesTest {
 
         final List<JsonObject> updates = sandbox.drainUpdates();
         final JsonObject shadow = singleUpdate(updates, "set box shadow", button);
-        assertEquals("focused", shadow.get("state").getStringValue());
+        assertEquals("focused", shadow.get("state").stringValue());
         assertEquals(
             "0px 0px 0px 3px rgb(0,0,255)",
-            shadow.get("box shadow").getStringValue()
+            shadow.get("box shadow").stringValue()
         );
 
         final JsonObject outline = singleUpdate(updates, "set outline", button);
-        assertEquals("focused", outline.get("state").getStringValue());
+        assertEquals("focused", outline.get("state").stringValue());
         final JsonObject value = (JsonObject) outline.get("outline");
-        assertEquals("solid", value.get("style").getStringValue());
-        assertEquals("2px", value.get("width").getStringValue());
-        assertEquals("2px", value.get("offset").getStringValue());
+        assertEquals("solid", value.get("style").stringValue());
+        assertEquals("2px", value.get("width").stringValue());
+        assertEquals("2px", value.get("offset").stringValue());
 
         assertEquals(
             "pointer",
-            singleUpdate(updates, "set cursor", button).get("cursor").getStringValue()
+            singleUpdate(updates, "set cursor", button).get("cursor").stringValue()
         );
         assertEquals(
             "all 150ms ease-out 0ms",
-            singleUpdate(updates, "set transition", button).get("transition").getStringValue()
+            singleUpdate(updates, "set transition", button).get("transition").stringValue()
         );
         assertEquals(
             "border-box",
-            singleUpdate(updates, "set box sizing", button).get("box sizing").getStringValue()
+            singleUpdate(updates, "set box sizing", button).get("box sizing").stringValue()
         );
     }
 
@@ -160,8 +160,8 @@ public final class ModernStylePropertiesTest {
         final JsonObject update = singleUpdate(
             sandbox.drainUpdates(), "set text decoration", link
         );
-        assertEquals("hovered", update.get("state").getStringValue());
-        assertEquals("overline", update.get("text decoration").getStringValue());
+        assertEquals("hovered", update.get("state").stringValue());
+        assertEquals("overline", update.get("text decoration").stringValue());
     }
 
     /**
@@ -183,10 +183,10 @@ public final class ModernStylePropertiesTest {
             sandbox.drainUpdates(), "set padding", input
         );
         final JsonObject padding = (JsonObject) update.get("padding");
-        assertEquals("18px", padding.get("left").getStringValue());
-        assertEquals("18px", padding.get("right").getStringValue());
-        assertEquals("9px", padding.get("top").getStringValue());
-        assertEquals("9px", padding.get("bottom").getStringValue());
+        assertEquals("18px", padding.get("left").stringValue());
+        assertEquals("18px", padding.get("right").stringValue());
+        assertEquals("9px", padding.get("top").stringValue());
+        assertEquals("9px", padding.get("bottom").stringValue());
     }
 
     /**
@@ -299,7 +299,7 @@ public final class ModernStylePropertiesTest {
         final JsonObject update = singleUpdate(
             sandbox.drainUpdates(), "set overflow", table
         );
-        assertEquals("hidden", update.get("overflow").getStringValue());
+        assertEquals("hidden", update.get("overflow").stringValue());
     }
 
     /**

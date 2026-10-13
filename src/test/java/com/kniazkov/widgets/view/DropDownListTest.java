@@ -34,9 +34,9 @@ public final class DropDownListTest {
             sandbox.drainUpdates(), "set options", list
         );
         assertEquals(1, updates.size());
-        final JsonArray options = updates.get(0).get("options").toJsonArray();
-        assertEquals("Number", options.getElement(0).getStringValue());
-        assertEquals("Text", options.getElement(1).getStringValue());
+        final JsonArray options = updates.get(0).get("options").arrayValueOrThrow();
+        assertEquals("Number", options.get(0).stringValue());
+        assertEquals("Text", options.get(1).stringValue());
     }
 
     /**
@@ -111,7 +111,7 @@ public final class DropDownListTest {
             sandbox.drainUpdates(), "set option", list
         );
         assertEquals(1, updates.size());
-        assertEquals(index, updates.get(0).get("index").getIntValue());
-        assertEquals(text, updates.get(0).get("text").getStringValue());
+        assertEquals(index, updates.get(0).get("index").intValue());
+        assertEquals(text, updates.get(0).get("text").stringValue());
     }
 }
