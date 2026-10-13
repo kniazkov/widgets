@@ -38,7 +38,7 @@ public final class WidgetModelReactionTest {
             ((HasText) widget).getTextModel().setData("changed");
 
             final JsonObject update = singleUpdate(sandbox, "set text", widget);
-            assertEquals("changed", update.get("text").getStringValue());
+            assertEquals("changed", update.get("text").stringValue());
         }
     }
 
@@ -55,7 +55,7 @@ public final class WidgetModelReactionTest {
         link.getHrefModel().setData("/documentation");
 
         final JsonObject update = singleUpdate(sandbox, "set href", link);
-        assertEquals("/documentation", update.get("href").getStringValue());
+        assertEquals("/documentation", update.get("href").stringValue());
     }
 
     /**
@@ -71,7 +71,7 @@ public final class WidgetModelReactionTest {
 
         assertEquals(
             "after.png",
-            singleUpdate(imageSandbox, "set source", image).get("source").getStringValue()
+            singleUpdate(imageSandbox, "set source", image).get("source").stringValue()
         );
 
         final ActiveImage activeImage = new ActiveImage("before.png");
@@ -83,8 +83,8 @@ public final class WidgetModelReactionTest {
         );
 
         final JsonObject update = singleUpdate(activeSandbox, "set source", activeImage);
-        assertEquals("hovered", update.get("state").getStringValue());
-        assertEquals("hovered.png", update.get("source").getStringValue());
+        assertEquals("hovered", update.get("state").stringValue());
+        assertEquals("hovered.png", update.get("source").stringValue());
     }
 
     /**
@@ -100,7 +100,7 @@ public final class WidgetModelReactionTest {
         assertEquals(
             true,
             singleUpdate(buttonSandbox, "set disabled", button)
-                .get("disabled").getBooleanValue()
+                .get("disabled").booleanValue()
         );
 
         final CheckBox checkBox = new CheckBox();
@@ -110,7 +110,7 @@ public final class WidgetModelReactionTest {
         assertEquals(
             true,
             singleUpdate(checkBoxSandbox, "set checked", checkBox)
-                .get("checked").getBooleanValue()
+                .get("checked").booleanValue()
         );
 
         final RadioButton radioButton = new RadioButton();
@@ -120,7 +120,7 @@ public final class WidgetModelReactionTest {
         assertEquals(
             true,
             singleUpdate(radioSandbox, "set checked", radioButton)
-                .get("checked").getBooleanValue()
+                .get("checked").booleanValue()
         );
 
         final DropDownList list = new DropDownList("first", "second");
@@ -130,7 +130,7 @@ public final class WidgetModelReactionTest {
         assertEquals(
             1,
             singleUpdate(listSandbox, "set selected index", list)
-                .get("selected index").getIntValue()
+                .get("selected index").intValue()
         );
 
         final FileLoader loader = new FileLoader();
@@ -158,7 +158,7 @@ public final class WidgetModelReactionTest {
         input.setCenterAlignment();
 
         final JsonObject update = singleUpdate(sandbox, "set horz alignment", input);
-        assertEquals("center", update.get("horz alignment").getStringValue());
+        assertEquals("center", update.get("horz alignment").stringValue());
     }
 
     /**

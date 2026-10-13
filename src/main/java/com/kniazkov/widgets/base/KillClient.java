@@ -43,6 +43,6 @@ final class KillClient extends ActionHandler {
             }
         }
 
-        return JsonBoolean.getInstance(result);
+        return JsonBoolean.of(result);
     }
 }

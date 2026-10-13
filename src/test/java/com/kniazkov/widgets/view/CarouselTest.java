@@ -35,9 +35,9 @@ public final class CarouselTest {
             sandbox.drainUpdates(), "set carousel sources", carousel
         );
         assertEquals(1, updates.size());
-        final JsonArray sources = updates.get(0).get("sources").toJsonArray();
-        assertEquals("first.png", sources.getElement(0).getStringValue());
-        assertEquals("second.png", sources.getElement(1).getStringValue());
+        final JsonArray sources = updates.get(0).get("sources").arrayValueOrThrow();
+        assertEquals("first.png", sources.get(0).stringValue());
+        assertEquals("second.png", sources.get(1).stringValue());
     }
 
     /**
@@ -122,7 +122,7 @@ public final class CarouselTest {
             sandbox.drainUpdates(), "set carousel source", carousel
         );
         assertEquals(1, updates.size());
-        assertEquals(index, updates.get(0).get("index").getIntValue());
-        assertEquals(source, updates.get(0).get("source").getStringValue());
+        assertEquals(index, updates.get(0).get("index").intValue());
+        assertEquals(source, updates.get(0).get("source").stringValue());
     }
 }

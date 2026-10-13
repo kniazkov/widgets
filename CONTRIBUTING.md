@@ -10,6 +10,12 @@ documentation together with the implementation.
 - Node.js 22.13 or newer with npm
 - Chromium installed through Playwright for end-to-end tests
 
+The Java API uses `com.kniazkov:json:2.0.0`. JSON values use `stringValue()`,
+`intValue()` and the other value accessors; `toJsonObject()` and `toJsonArray()`
+return `Optional`. Use `JsonNumber.of(...)` to create numeric values.
+Persistence files and browser event payloads are parsed in `JsonParsingMode.STRICT`
+so truncated documents cannot be accepted by the default extended parser.
+
 After cloning the repository, install the JavaScript dependencies and the matching browser:
 
 ```bash

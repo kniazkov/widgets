@@ -40,7 +40,7 @@ public final class SuggestionFieldTest {
         final List<JsonObject> updates = WidgetSandbox.findUpdates(
             sandbox.drainUpdates(), "set suggestion separator", field);
         assertEquals(1, updates.size());
-        assertEquals("|", updates.get(0).get("suggestion separator").getStringValue());
+        assertEquals("|", updates.get(0).get("suggestion separator").stringValue());
         assertSame(separator, field.getSuggestionSeparatorModel());
         field.setSuggestionSeparatorModel(new StringModel(""));
         sandbox.clearUpdates();
@@ -157,10 +157,10 @@ public final class SuggestionFieldTest {
         final List<JsonObject> updates = WidgetSandbox.findUpdates(
             sandbox.drainUpdates(), "set suggestions", field);
         assertEquals(2, updates.size());
-        assertEquals("Original", updates.get(0).get("suggestions").toJsonArray()
-            .getElement(0).getStringValue());
-        assertEquals("Changed", updates.get(1).get("suggestions").toJsonArray()
-            .getElement(0).getStringValue());
+        assertEquals("Original", updates.get(0).get("suggestions").arrayValueOrThrow()
+            .get(0).stringValue());
+        assertEquals("Changed", updates.get(1).get("suggestions").arrayValueOrThrow()
+            .get(0).stringValue());
     }
 
     /**
@@ -187,10 +187,10 @@ public final class SuggestionFieldTest {
         final List<JsonObject> updates = WidgetSandbox.findUpdates(
             sandbox.drainUpdates(), "set suggestions", field);
         assertEquals(1, updates.size());
-        assertEquals(expected.size(), updates.get(0).get("suggestions").toJsonArray().size());
+        assertEquals(expected.size(), updates.get(0).get("suggestions").arrayValueOrThrow().size());
         for (int index = 0; index < expected.size(); index++) {
-            assertEquals(expected.get(index), updates.get(0).get("suggestions").toJsonArray()
-                .getElement(index).getStringValue());
+            assertEquals(expected.get(index), updates.get(0).get("suggestions").arrayValueOrThrow()
+                .get(index).stringValue());
         }
     }
 }

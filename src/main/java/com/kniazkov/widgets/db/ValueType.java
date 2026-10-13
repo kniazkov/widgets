@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.db;
 
 import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonParsingMode;
 import com.kniazkov.json.JsonException;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.model.JsonObjectModel;
@@ -54,7 +55,8 @@ public final class ValueType<T> {
      */
     private static JsonObject parseObject(final String text) {
         try {
-            final JsonObject object = Json.parse(text).toJsonObject();
+            final JsonObject object = Json.parse(text, JsonParsingMode.STRICT)
+                .toJsonObject().orElse(null);
             if (object == null) {
                 throw new IllegalArgumentException("Expected a JSON object");
             }

@@ -32,9 +32,9 @@ public final class GestureStyleTest {
         final SortableSection sorting = new SortableSection();
         final ZoomDecorator zoom = new ZoomDecorator();
         assertEquals(250, WidgetSandbox.findUpdates(WidgetSandbox.open(sorting).drainUpdates(),
-            "set animation duration", sorting).get(0).get("animation duration").getIntValue());
+            "set animation duration", sorting).get(0).get("animation duration").intValue());
         assertEquals(8, WidgetSandbox.findUpdates(WidgetSandbox.open(zoom).drainUpdates(),
-            "set max scale", zoom).get(0).get("max scale").getIntValue());
+            "set max scale", zoom).get(0).get("max scale").intValue());
     }
 
     /**
@@ -104,8 +104,8 @@ public final class GestureStyleTest {
         duration.setData(300);
         limit.setData(4.0);
         assertEquals(300, sortingSandbox.drainUpdates().get(0)
-            .get("animation duration").getIntValue());
-        assertEquals(4, zoomSandbox.drainUpdates().get(0).get("max scale").getIntValue());
+            .get("animation duration").intValue());
+        assertEquals(4, zoomSandbox.drainUpdates().get(0).get("max scale").intValue());
         sorting.setAnimationDurationModel(new IntegerModel(200));
         zoom.setMaxScaleModel(new RealNumberModel(2.0));
         sortingSandbox.clearUpdates();

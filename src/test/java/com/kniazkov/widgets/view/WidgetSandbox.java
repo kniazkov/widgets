@@ -127,9 +127,9 @@ final class WidgetSandbox<W extends Widget<?>> {
             final Widget<?> widget) {
         final List<JsonObject> result = new ArrayList<>();
         for (final JsonObject update : updates) {
-            if (action.equals(update.get("action").getStringValue())
+            if (action.equals(update.get("action").stringValue())
                     && widget.getId().toString().equals(
-                        update.get("widget").getStringValue())) {
+                        update.get("widget").stringValue())) {
                 result.add(update);
             }
         }
@@ -146,7 +146,7 @@ final class WidgetSandbox<W extends Widget<?>> {
     static List<JsonObject> findUpdates(final List<JsonObject> updates, final String action) {
         final List<JsonObject> result = new ArrayList<>();
         for (final JsonObject update : updates) {
-            if (action.equals(update.get("action").getStringValue())) {
+            if (action.equals(update.get("action").stringValue())) {
                 result.add(update);
             }
         }

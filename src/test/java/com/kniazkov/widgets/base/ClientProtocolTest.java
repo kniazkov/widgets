@@ -38,6 +38,41 @@ import static org.junit.Assert.fail;
  */
 public class ClientProtocolTest {
     /**
+     * Wrong JSON types and truncated payloads never acknowledge or dispatch an event.
+     */
+    @Test
+    public void rejectsInvalidJsonEvents() {
+        final Client client = new Client();
+        final Button button = new Button("Run");
+        final AtomicInteger calls = new AtomicInteger();
+        button.onClick(event -> calls.incrementAndGet());
+        client.getRootWidget().add(new Section(button));
+        final JsonObject event = new JsonObject();
+        event.addString("id", RMId.create().toString());
+        event.addString("widget", button.getId().toString());
+        event.addString("type", "click");
+        event.createObject("data");
+        final String valid = "[" + event + "]";
+        final java.util.List<String> payloads = new java.util.ArrayList<>();
+        payloads.add(valid.substring(0, valid.length() - 1));
+        payloads.add("{}");
+        payloads.add("[null,42,[]]");
+        for (final String key : java.util.List.of("id", "widget", "type", "data")) {
+            final JsonObject invalid = event.clone().objectValueOrThrow();
+            invalid.addNumber(key, 42);
+            payloads.add("[" + invalid + "]");
+        }
+        for (final String payload : payloads) {
+            final JsonObject response = new JsonObject();
+            client.synchronize(Collections.singletonMap("events", payload), response);
+            assertEquals(0, calls.get());
+            assertEquals(RMId.INVALID.toString(), response.get("lastEvent").stringValue());
+        }
+        client.synchronize(Collections.singletonMap("events", valid), new JsonObject());
+        assertEquals(1, calls.get());
+    }
+
+    /**
      * Authentication changes invalidate history without discarding the current widget tree.
      */
     @Test
@@ -47,11 +82,11 @@ public class ClientProtocolTest {
         client.getRootWidget().clearPageCache();
         final JsonObject response = new JsonObject();
         client.synchronize(Collections.emptyMap(), response);
-        final JsonArray updates = response.get("updates").toJsonArray();
+        final JsonArray updates = response.get("updates").arrayValueOrThrow();
         boolean invalidated = false;
         for (int index = 0; index < updates.size(); index++) {
-            final String action = updates.getElement(index).toJsonObject()
-                .get("action").getStringValue();
+            final String action = updates.get(index).objectValueOrThrow()
+                .get("action").stringValue();
             invalidated |= "clear page cache".equals(action);
             assertFalse("reset".equals(action));
         }
@@ -80,8 +115,8 @@ public class ClientProtocolTest {
         client.synchronize(request, second);
 
         assertEquals(1, calls.get());
-        assertEquals(eventId.toString(), first.get("lastEvent").getStringValue());
-        assertEquals(eventId.toString(), second.get("lastEvent").getStringValue());
+        assertEquals(eventId.toString(), first.get("lastEvent").stringValue());
+        assertEquals(eventId.toString(), second.get("lastEvent").stringValue());
     }
 
     /**
@@ -93,14 +128,14 @@ public class ClientProtocolTest {
         client.getRootWidget().add(new Section(new TextWidget("hello")));
         final JsonObject first = new JsonObject();
         client.synchronize(Collections.emptyMap(), first);
-        final JsonArray updates = first.get("updates").toJsonArray();
-        final String lastUpdate = updates.getElement(updates.size() - 1)
-            .toJsonObject().get("id").getStringValue();
+        final JsonArray updates = first.get("updates").arrayValueOrThrow();
+        final String lastUpdate = updates.get(updates.size() - 1)
+            .objectValueOrThrow().get("id").stringValue();
         final JsonObject second = new JsonObject();
 
         client.synchronize(Collections.singletonMap("lastUpdate", lastUpdate), second);
 
-        assertTrue(second.get("updates").toJsonArray().isEmpty());
+        assertTrue(second.get("updates").arrayValueOrThrow().isEmpty());
     }
 
     /**
@@ -129,12 +164,12 @@ public class ClientProtocolTest {
         loader.handleUploadEvent(selection);
         final JsonObject initial = new JsonObject();
         client.synchronize(Collections.emptyMap(), initial);
-        final JsonArray initialUpdates = initial.get("updates").toJsonArray();
+        final JsonArray initialUpdates = initial.get("updates").arrayValueOrThrow();
         final String initialLastUpdate = initialUpdates
-            .getElement(initialUpdates.size() - 1)
-            .toJsonObject()
+            .get(initialUpdates.size() - 1)
+            .objectValueOrThrow()
             .get("id")
-            .getStringValue();
+            .stringValue();
 
         final JsonObject first = client.uploadChunk(
             loader.getId(),
@@ -144,15 +179,15 @@ public class ClientProtocolTest {
             initialLastUpdate
         );
 
-        assertTrue(first.get("result").getBooleanValue());
-        assertFalse(first.get("updates").toJsonArray().isEmpty());
+        assertTrue(first.get("result").booleanValue());
+        assertFalse(first.get("updates").arrayValueOrThrow().isEmpty());
         assertTrue(first.toString().contains("50%"));
-        final JsonArray firstUpdates = first.get("updates").toJsonArray();
+        final JsonArray firstUpdates = first.get("updates").arrayValueOrThrow();
         final String firstLastUpdate = firstUpdates
-            .getElement(firstUpdates.size() - 1)
-            .toJsonObject()
+            .get(firstUpdates.size() - 1)
+            .objectValueOrThrow()
             .get("id")
-            .getStringValue();
+            .stringValue();
 
         final JsonObject second = client.uploadChunk(
             loader.getId(),

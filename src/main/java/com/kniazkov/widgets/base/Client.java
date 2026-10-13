@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonParsingMode;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
@@ -174,13 +175,13 @@ public final class Client implements Comparable<Client> {
             return;
         }
         try {
-            final JsonElement element = Json.parse(request.get("events"));
-            final JsonArray events = element.toJsonArray();
+            final JsonElement element = Json.parse(request.get("events"), JsonParsingMode.STRICT);
+            final JsonArray events = element.toJsonArray().orElse(null);
             if (events == null || events.isEmpty()) {
                 return;
             }
             if (events.size() == 1) {
-                processSingleEvent(events.getElement(0).toJsonObject());
+                processSingleEvent(events.get(0).toJsonObject().orElse(null));
                 return;
             }
             final Map<RMId, Widget<?>> map = new TreeMap<>();
@@ -188,7 +189,7 @@ public final class Client implements Comparable<Client> {
                 map.put(widget.getId(), widget);
             }
             for (JsonElement item : events) {
-                final JsonObject event = item.toJsonObject();
+                final JsonObject event = item.toJsonObject().orElse(null);
                 if (event == null) {
                     continue;
                 }
@@ -224,17 +225,17 @@ public final class Client implements Comparable<Client> {
         if (widget == null || !event.containsKey("id") || !event.containsKey("type")) {
             return;
         }
-        final String serializedId = event.get("id").getStringValue();
-        final String type = event.get("type").getStringValue();
-        if (serializedId == null || type == null) {
+        if (!event.get("id").isString() || !event.get("type").isString()) {
             return;
         }
+        final String serializedId = event.get("id").stringValue();
+        final String type = event.get("type").stringValue();
         final RMId eventId = RMId.parse(serializedId);
         if (eventId.compareTo(this.lastHandledEventId) <= 0) {
             return;
         }
         final JsonObject data = event.containsKey("data")
-            ? event.get("data").toJsonObject()
+            ? event.get("data").toJsonObject().orElse(null)
             : new JsonObject();
         if (data == null) {
             return;
@@ -248,11 +249,11 @@ public final class Client implements Comparable<Client> {
      * Returns the target widget identifier, or {@link RMId#INVALID} for malformed events.
      */
     private static RMId getEventWidgetId(final JsonObject event) {
-        if (!event.containsKey("widget")) {
+        if (!event.containsKey("widget") || !event.get("widget").isString()) {
             return RMId.INVALID;
         }
-        final String serializedId = event.get("widget").getStringValue();
-        return serializedId == null ? RMId.INVALID : RMId.parse(serializedId);
+        final String serializedId = event.get("widget").stringValue();
+        return RMId.parse(serializedId);
     }
 
     /**

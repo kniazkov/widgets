@@ -30,7 +30,7 @@ public final class JsonObjectModel extends SingleThreadModel<JsonObject> {
      * @param data initial object
      */
     public JsonObjectModel(final JsonObject data) {
-        this.data = Objects.requireNonNull(data, "data").clone().toJsonObject();
+        this.data = Objects.requireNonNull(data, "data").clone().objectValueOrThrow();
     }
 
     @Override
@@ -40,7 +40,7 @@ public final class JsonObjectModel extends SingleThreadModel<JsonObject> {
 
     @Override
     public JsonObject getData() {
-        return this.data.clone().toJsonObject();
+        return this.data.clone().objectValueOrThrow();
     }
 
     @Override
@@ -48,7 +48,7 @@ public final class JsonObjectModel extends SingleThreadModel<JsonObject> {
         if (data == null) {
             return false;
         }
-        final JsonObject snapshot = data.clone().toJsonObject();
+        final JsonObject snapshot = data.clone().objectValueOrThrow();
         if (this.data.toString().equals(snapshot.toString())) {
             return false;
         }

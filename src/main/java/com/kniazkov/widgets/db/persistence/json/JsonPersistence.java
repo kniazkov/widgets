@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.db.persistence.json;
 
 import com.kniazkov.json.Json;
+import com.kniazkov.json.JsonParsingMode;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonException;
@@ -169,8 +170,8 @@ public final class JsonPersistence implements Persistence {
         final String store
     ) {
         try {
-            final JsonElement root = Json.parse(file.toFile());
-            final JsonArray array = root == null ? null : root.toJsonArray();
+            final JsonElement root = Json.parse(file.toFile(), JsonParsingMode.STRICT);
+            final JsonArray array = root == null ? null : root.toJsonArray().orElse(null);
             if (array == null) {
                 throw new PersistenceException(
                     "Store JSON root must be an array: " + file
@@ -200,16 +201,16 @@ public final class JsonPersistence implements Persistence {
         final JsonElement element,
         final String store
     ) {
-        final JsonObject object = element.toJsonObject();
+        final JsonObject object = element.toJsonObject().orElse(null);
         if (object == null) {
             throw new PersistenceException("Database record must be an object");
         }
         final UUID id = UUID.fromString(requiredString(object, "id"));
         final Instant createdAt = Instant.parse(requiredString(object, "createdAt"));
         final long revision = requiredLong(object, "revision");
-        final JsonElement fieldsElement = object.getElement("fields");
+        final JsonElement fieldsElement = object.get("fields");
         final JsonObject fieldsObject =
-            fieldsElement == null ? null : fieldsElement.toJsonObject();
+            fieldsElement == null ? null : fieldsElement.toJsonObject().orElse(null);
         if (fieldsObject == null) {
             throw new PersistenceException("Record fields must be an object");
         }
@@ -232,20 +233,20 @@ public final class JsonPersistence implements Persistence {
         final String name,
         final JsonElement element
     ) {
-        if (element.toJsonObject() != null) {
+        if (element.toJsonObject().isPresent()) {
             return parseRange(element);
         }
         if (element.isString()) {
-            return new StringValue(element.getStringValue());
+            return new StringValue(element.stringValue());
         }
         if (element.isBoolean()) {
-            return new BooleanValue(element.getBooleanValue());
+            return new BooleanValue(element.booleanValue());
         }
         if (element.isInteger()) {
-            return new IntegerValue(element.getIntValue());
+            return new IntegerValue(element.intValue());
         }
         if (element.isNumber()) {
-            return new RealValue(element.getDoubleValue());
+            return new RealValue(element.doubleValue());
         }
         throw new PersistenceException(
             "Field '" + name + "' must be a scalar value"
@@ -257,17 +258,17 @@ public final class JsonPersistence implements Persistence {
      * @return typed stored interval
      */
     private static StoredValue parseRange(final JsonElement element) {
-        if (element.toJsonObject() == null) {
+        if (element.toJsonObject().isEmpty()) {
             throw new IllegalArgumentException("Expected range object");
         }
-        final JsonObject object = element.toJsonObject();
+        final JsonObject object = element.toJsonObject().orElse(null);
         final JsonElement lower = requiredElement(object, "lower");
         final JsonElement upper = requiredElement(object, "upper");
         if (!lower.isNumber() || !upper.isNumber()) {
             throw new IllegalArgumentException("Range endpoints must be numbers");
         }
         return new StoredValue.RangeValue(new com.kniazkov.widgets.common.NumericRange(
-            lower.getDoubleValue(), upper.getDoubleValue()));
+            lower.doubleValue(), upper.doubleValue()));
     }
 
     /**
@@ -281,13 +282,13 @@ public final class JsonPersistence implements Persistence {
         final JsonObject object,
         final String name
     ) {
-        final JsonElement value = object.getElement(name);
+        final JsonElement value = object.get(name);
         if (value == null || !value.isString()) {
             throw new PersistenceException(
                 "Property '" + name + "' must be a string"
             );
         }
-        return value.getStringValue();
+        return value.stringValue();
     }
 
     /**
@@ -301,13 +302,13 @@ public final class JsonPersistence implements Persistence {
         final JsonObject object,
         final String name
     ) {
-        final JsonElement value = object.getElement(name);
+        final JsonElement value = object.get(name);
         if (value == null || !value.isLongInteger()) {
             throw new PersistenceException(
                 "Property '" + name + "' must be an integer"
             );
         }
-        return value.getLongValue();
+        return value.longValue();
     }
 
     @Override
@@ -387,9 +388,9 @@ public final class JsonPersistence implements Persistence {
      */
     private DatabaseMetadata readMetadata(final Path file) {
         try {
-            final JsonElement rootElement = Json.parse(file.toFile());
+            final JsonElement rootElement = Json.parse(file.toFile(), JsonParsingMode.STRICT);
             final JsonObject root = rootElement == null
-                ? null : rootElement.toJsonObject();
+                ? null : rootElement.toJsonObject().orElse(null);
             if (root == null) {
                 throw new PersistenceException(
                     "JSON database metadata root must be an object"
@@ -401,9 +402,9 @@ public final class JsonPersistence implements Persistence {
                     "JSON database format version is too large"
                 );
             }
-            final JsonElement storesElement = root.getElement("stores");
+            final JsonElement storesElement = root.get("stores");
             final JsonArray storeArray = storesElement == null
-                ? null : storesElement.toJsonArray();
+                ? null : storesElement.toJsonArray().orElse(null);
             if (storeArray == null) {
                 throw new PersistenceException(
                     "Metadata property 'stores' must be an array"
@@ -431,15 +432,15 @@ public final class JsonPersistence implements Persistence {
     private static StoreMetadata parseStoreMetadata(
         final JsonElement element
     ) {
-        final JsonObject object = element.toJsonObject();
+        final JsonObject object = element.toJsonObject().orElse(null);
         if (object == null) {
             throw new PersistenceException("Store metadata must be an object");
         }
         final String name = requiredString(object, "name");
         final int position = requiredPosition(object, "position");
-        final JsonElement fieldsElement = object.getElement("fields");
+        final JsonElement fieldsElement = object.get("fields");
         final JsonArray fieldArray = fieldsElement == null
-            ? null : fieldsElement.toJsonArray();
+            ? null : fieldsElement.toJsonArray().orElse(null);
         if (fieldArray == null) {
             throw new PersistenceException(
                 "Store metadata property 'fields' must be an array"
@@ -461,11 +462,11 @@ public final class JsonPersistence implements Persistence {
     private static FieldMetadata parseFieldMetadata(
         final JsonElement element
     ) {
-        final JsonObject object = element.toJsonObject();
+        final JsonObject object = element.toJsonObject().orElse(null);
         if (object == null) {
             throw new PersistenceException("Field metadata must be an object");
         }
-        final JsonElement reference = object.getElement("referencedStore");
+        final JsonElement reference = object.get("referencedStore");
         if (reference != null && !reference.isString()) {
             throw new PersistenceException(
                 "Field metadata property 'referencedStore' must be a string"
@@ -480,7 +481,7 @@ public final class JsonPersistence implements Persistence {
             kind,
             parseDefault(kind, requiredElement(object, "defaultValue")),
             requiredPosition(object, "position"),
-            reference == null ? null : reference.getStringValue()
+            reference == null ? null : reference.stringValue()
         );
     }
 
@@ -500,26 +501,26 @@ public final class JsonPersistence implements Persistence {
                 if (!element.isString()) {
                     throw invalidDefault(kind);
                 }
-                yield new StringValue(element.getStringValue());
+                yield new StringValue(element.stringValue());
             }
             case INTEGER -> {
                 if (!element.isInteger()) {
                     throw invalidDefault(kind);
                 }
-                yield new IntegerValue(element.getIntValue());
+                yield new IntegerValue(element.intValue());
             }
             case RANGE -> parseRange(element);
             case REAL -> {
                 if (!element.isNumber()) {
                     throw invalidDefault(kind);
                 }
-                yield new RealValue(element.getDoubleValue());
+                yield new RealValue(element.doubleValue());
             }
             case BOOLEAN -> {
                 if (!element.isBoolean()) {
                     throw invalidDefault(kind);
                 }
-                yield new BooleanValue(element.getBooleanValue());
+                yield new BooleanValue(element.booleanValue());
             }
         };
     }
@@ -549,7 +550,7 @@ public final class JsonPersistence implements Persistence {
         final JsonObject object,
         final String name
     ) {
-        final JsonElement value = object.getElement(name);
+        final JsonElement value = object.get(name);
         if (value == null) {
             throw new PersistenceException(
                 "Property '" + name + "' is required"

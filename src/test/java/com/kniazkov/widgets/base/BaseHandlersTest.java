@@ -38,13 +38,14 @@ public class BaseHandlersTest {
         request.put("mobile", "true");
         request.put("item", "42");
 
-        final JsonObject response = new CreateClient(application).process(request).toJsonObject();
-        final RMId clientId = RMId.parse(response.get("id").getStringValue());
+        final JsonObject response = new CreateClient(application).process(request)
+            .objectValueOrThrow();
+        final RMId clientId = RMId.parse(response.get("id").stringValue());
 
         assertTrue(clientId.isValid());
         assertEquals(
             application.getServerId(),
-            UUID.fromString(response.get("serverId").getStringValue())
+            UUID.fromString(response.get("serverId").stringValue())
         );
         assertNotNull(captured.get());
         assertEquals(browserId, captured.get().browserId);
@@ -54,8 +55,8 @@ public class BaseHandlersTest {
         final Map<String, String> killRequest = Collections.singletonMap(
             "client", clientId.toString()
         );
-        assertTrue(new KillClient(application).process(killRequest).getBooleanValue());
-        assertFalse(new KillClient(application).process(killRequest).getBooleanValue());
+        assertTrue(new KillClient(application).process(killRequest).booleanValue());
+        assertFalse(new KillClient(application).process(killRequest).booleanValue());
     }
 
     /**
@@ -69,16 +70,17 @@ public class BaseHandlersTest {
             "client", clientId.toString()
         );
 
-        final JsonObject response = new Synchronize(application).process(request).toJsonObject();
+        final JsonObject response = new Synchronize(application).process(request)
+            .objectValueOrThrow();
 
         assertTrue(
             "A live client was synchronized, but the protocol still returned result=false",
-            response.get("result").getBooleanValue()
+            response.get("result").booleanValue()
         );
-        assertTrue(response.get("clientAlive").getBooleanValue());
+        assertTrue(response.get("clientAlive").booleanValue());
         assertEquals(
             application.getServerId(),
-            UUID.fromString(response.get("serverId").getStringValue())
+            UUID.fromString(response.get("serverId").stringValue())
         );
     }
 
@@ -92,13 +94,14 @@ public class BaseHandlersTest {
             "client", RMId.create().toString()
         );
 
-        final JsonObject response = new Synchronize(application).process(request).toJsonObject();
+        final JsonObject response = new Synchronize(application).process(request)
+            .objectValueOrThrow();
 
-        assertFalse(response.get("result").getBooleanValue());
-        assertFalse(response.get("clientAlive").getBooleanValue());
+        assertFalse(response.get("result").booleanValue());
+        assertFalse(response.get("clientAlive").booleanValue());
         assertEquals(
             application.getServerId(),
-            UUID.fromString(response.get("serverId").getStringValue())
+            UUID.fromString(response.get("serverId").stringValue())
         );
     }
 }
