@@ -22,7 +22,11 @@ public enum TextDecoration {
     /**
      * A line through the text.
      */
-    LINE_THROUGH("line-through");
+    LINE_THROUGH("line-through"),
+    /**
+     * Two parallel lines through the text.
+     */
+    DOUBLE_LINE_THROUGH("line-through double");
 
     /**
      * CSS keyword.
