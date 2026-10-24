@@ -6,7 +6,7 @@ package com.kniazkov.widgets.db.internal;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.db.Field;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.SynchronizedModel;
+
 
 /**
  * A field model whose writes are committed through its owning store.
@@ -27,7 +27,7 @@ final class StoredModel<T> implements Model<T> {
     /**
      * Thread-safe observable value.
      */
-    private final SynchronizedModel<T> delegate;
+    private final DatabaseModel<T> delegate;
 
     /**
      * Creates a stored model.
@@ -43,7 +43,8 @@ final class StoredModel<T> implements Model<T> {
     ) {
         this.record = record;
         this.field = field;
-        this.delegate = field.getType().createModel(value).asSynchronized();
+        this.delegate = new DatabaseModel<>(record.getStore(),
+            field.getType().createModel(value));
     }
 
     /**
@@ -62,6 +63,13 @@ final class StoredModel<T> implements Model<T> {
      */
     void apply(final T value) {
         this.delegate.setData(value);
+    }
+
+    /**
+     * @param prepared validated field model
+     */
+    void replace(final StoredModel<T> prepared) {
+        this.delegate.replace(prepared.delegate);
     }
 
     @Override

@@ -15,7 +15,7 @@ import com.kniazkov.widgets.db.persistence.StoredRecord;
 import com.kniazkov.widgets.db.query.Query;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
-import com.kniazkov.widgets.model.SynchronizedModel;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -59,7 +59,7 @@ final class MemoryStore implements Store {
     /**
      * Reactive record count.
      */
-    private final SynchronizedModel<Integer> count;
+    private final DatabaseModel<Integer> count;
 
     /**
      * Creates a store.
@@ -78,7 +78,53 @@ final class MemoryStore implements Store {
         this.schema = schema;
         this.records = new LinkedHashMap<>();
         this.views = Collections.newSetFromMap(new WeakHashMap<>());
-        this.count = new IntegerModel().asSynchronized();
+        this.count = new DatabaseModel<>(this, new IntegerModel());
+    }
+
+    /**
+     * @param owner expected database
+     * @return ownership match
+     */
+    boolean belongsTo(final MemoryDatabase owner) {
+        return this.database == owner;
+    }
+
+    /**
+     * @param action deferred observer
+     */
+    void notifyAfterCommit(final Runnable action) {
+        this.database.notifyAfterCommit(action);
+    }
+
+    /**
+     * Removes a prevalidated record after commit.
+     *
+     * @param record record
+     */
+    void uninstall(final MemoryRecord record) {
+        this.records.remove(record.getId());
+        this.count.setData(this.records.size());
+    }
+
+    /**
+     * Refreshes all views after the complete batch is installed.
+     *
+     * @param mutations committed mutations
+     */
+    void refreshBatch(final List<ChangeSet.Mutation> mutations) {
+        final Set<UUID> affected = new java.util.HashSet<>();
+        for (final ChangeSet.Mutation mutation : mutations) {
+            if (mutation instanceof ChangeSet.Upsert upsert
+                && this.name.equals(upsert.record().getStore())) {
+                affected.add(upsert.record().getId());
+            } else if (mutation instanceof ChangeSet.Delete delete
+                && this.name.equals(delete.store())) {
+                affected.add(delete.id());
+            }
+        }
+        for (final MemoryLiveRecordSet view : List.copyOf(this.views)) {
+            view.refreshBatch(affected);
+        }
     }
 
     /**
@@ -148,6 +194,21 @@ final class MemoryStore implements Store {
      * @return committed record
      */
     DataRecord commit(final MemoryDraft draft) {
+        final StoredRecord stored = this.prepare(draft);
+        final MemoryRecord prepared = new MemoryRecord(this, stored);
+        this.database.persist(ChangeSet.upsert(stored));
+        final MemoryRecord committed = this.install(stored, prepared);
+        this.refreshViews(committed, null);
+        return committed;
+    }
+
+    /**
+     * Validates ownership-independent revision constraints without changing state.
+     *
+     * @param draft input
+     * @return prepared snapshot
+     */
+    StoredRecord prepare(final MemoryDraft draft) {
         final MemoryRecord current = this.records.get(draft.getId());
         final long revision;
         if (draft.editsExisting()) {
@@ -166,19 +227,28 @@ final class MemoryStore implements Store {
             }
             revision = 1L;
         }
-        final StoredRecord stored = draft.snapshot(revision);
-        this.database.persist(ChangeSet.upsert(stored));
+        return draft.snapshot(revision);
+    }
+
+    /**
+     * Installs a prevalidated snapshot after persistence.
+     *
+     * @param stored snapshot
+     * @param prepared converted new record
+     * @return canonical record
+     */
+    MemoryRecord install(final StoredRecord stored, final MemoryRecord prepared) {
+        final MemoryRecord current = this.records.get(stored.getId());
         final MemoryRecord committed;
         if (current == null) {
-            committed = new MemoryRecord(this, stored);
+            committed = prepared;
             this.records.put(committed.getId(), committed);
             this.count.setData(this.records.size());
         } else {
-            current.applyFields(stored.getFields());
-            current.setRevision(revision);
+            current.applyPrepared(prepared);
+            current.setRevision(stored.getRevision());
             committed = current;
         }
-        this.refreshViews(committed, null);
         return committed;
     }
 
@@ -237,7 +307,7 @@ final class MemoryStore implements Store {
      *
      * @param record record
      */
-    private void requireCurrent(final MemoryRecord record) {
+    void requireCurrent(final MemoryRecord record) {
         if (this.records.get(record.getId()) != record) {
             throw new IllegalStateException(
                 "Record " + record.getId() + " is not in this store"

@@ -530,6 +530,7 @@ public final class JdbcPersistence implements Persistence {
             );
         }
         SQLException failure = null;
+        boolean deciding = false;
         try {
             this.connection.setAutoCommit(false);
             for (final ChangeSet.Mutation mutation : changes.getMutations()) {
@@ -539,6 +540,7 @@ public final class JdbcPersistence implements Persistence {
                     this.delete(delete.store(), delete.id());
                 }
             }
+            deciding = true;
             this.connection.commit();
         } catch (final SQLException err) {
             failure = err;
@@ -548,7 +550,7 @@ public final class JdbcPersistence implements Persistence {
                 this.connection.setAutoCommit(autoCommit);
             } catch (final SQLException err) {
                 if (failure == null) {
-                    throw new PersistenceException(
+                    throw new com.kniazkov.widgets.db.persistence.RecoveryRequiredException(
                         "Cannot restore JDBC auto-commit mode",
                         err
                     );
@@ -557,6 +559,10 @@ public final class JdbcPersistence implements Persistence {
             }
         }
         if (failure != null) {
+            if (deciding) {
+                throw new com.kniazkov.widgets.db.persistence.RecoveryRequiredException(
+                    "JDBC commit outcome requires reopening", failure);
+            }
             throw new PersistenceException("Cannot commit JDBC changes", failure);
         }
     }

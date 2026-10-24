@@ -60,6 +60,36 @@ final class MemoryRecord implements DataRecord {
     }
 
     /**
+     * @return owning store
+     */
+    MemoryStore getStore() {
+        return this.store;
+    }
+
+    /**
+     * Installs values converted before commit, preserving canonical model identities.
+     *
+     * @param prepared validated record
+     */
+    void applyPrepared(final MemoryRecord prepared) {
+        for (final Field<?> field : prepared.models.keySet()) {
+            this.replaceModel(field, prepared);
+        }
+    }
+
+    /**
+     * @param field field identity
+     * @param prepared validated record
+     * @param <T> field type
+     */
+    private <T> void replaceModel(final Field<T> field, final MemoryRecord prepared) {
+        @SuppressWarnings("unchecked")
+        final StoredModel<T> source = (StoredModel<T>) prepared.models.get(field);
+        final StoredModel<T> target = this.storedModel(field, source.getData());
+        target.replace(source);
+    }
+
+    /**
      * Applies stored field values without persistence.
      *
      * @param values stored values
@@ -88,8 +118,11 @@ final class MemoryRecord implements DataRecord {
         final StoredValue value
     ) {
         final T restored = field.getType().fromStoredValue(value);
-        final StoredModel<T> model = this.storedModel(field, restored);
-        model.apply(restored);
+        if (this.models.containsKey(field)) {
+            this.storedModel(field, restored).apply(restored);
+        } else {
+            this.storedModel(field, restored);
+        }
     }
 
     /**
