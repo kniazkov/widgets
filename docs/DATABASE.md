@@ -296,10 +296,10 @@ Strings, integers, real numbers, and booleans use native JSON scalars. UUIDs and
 strings because JSON has no corresponding native types. Missing fields receive their model's
 default value when loaded; unknown fields are rejected by the configured Java schema.
 
-Each commit writes a temporary file and replaces only the affected store file. An atomic move is
-used when the filesystem supports it. A JSON change set cannot span stores because replacing
-several files cannot provide a real cross-store transaction. The complete affected store is
-rewritten, so drafts should group frequent form changes.
+A change set can span stores. Complete replacement images are written to a forced redo journal
+before any store file is replaced; startup replays an outstanding committed journal before loading
+records. The complete affected stores are rewritten, so drafts should group frequent form changes.
+See [atomic batches and recovery](ATOMIC_BATCHES.md) for the protocol and durability limits.
 
 ### JDBC persistence
 
@@ -411,7 +411,9 @@ try (Database database = Database.builder()
 ```
 
 Mutation methods are synchronous from the caller's point of view. A persistence error throws
-`PersistenceException`, and the corresponding in-memory change is not published.
+`PersistenceException`, and the corresponding in-memory change is not published. An uncertain
+commit instead throws `RecoveryRequiredException` and fences the database until it is closed and
+reopened. Do not retry the business operation before inspecting the recovered state.
 
 ## Examples
 

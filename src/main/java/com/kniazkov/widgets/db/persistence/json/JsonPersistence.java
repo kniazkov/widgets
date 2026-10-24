@@ -54,9 +54,19 @@ public final class JsonPersistence implements Persistence {
     private final Path directory;
 
     /**
+     * Durable multi-file commit protocol.
+     */
+    private final JsonJournal journal;
+
+    /**
      * Current records grouped by store.
      */
     private Map<String, Map<UUID, StoredRecord>> stores;
+
+    /**
+     * An uncertain commit requires a new backend instance.
+     */
+    private boolean recoveryRequired;
 
     /**
      * Validated database metadata.
@@ -69,7 +79,16 @@ public final class JsonPersistence implements Persistence {
      * @param directory database directory
      */
     public JsonPersistence(final Path directory) {
+        this(directory, ignored -> { });
+    }
+
+    /**
+     * @param directory database directory
+     * @param checkpoint crash-test checkpoint
+     */
+    JsonPersistence(final Path directory, final java.util.function.Consumer<String> checkpoint) {
         this.directory = directory.toAbsolutePath().normalize();
+        this.journal = new JsonJournal(this.directory, checkpoint);
         this.stores = new LinkedHashMap<>();
     }
 
@@ -80,6 +99,7 @@ public final class JsonPersistence implements Persistence {
             "metadata"
         );
         this.requireDirectory();
+        this.journal.recover();
         final Path file = this.directory.resolve(METADATA_FILE);
         if (Files.exists(file)) {
             final DatabaseMetadata stored = this.readMetadata(file);
@@ -314,35 +334,31 @@ public final class JsonPersistence implements Persistence {
     @Override
     public synchronized void commit(final ChangeSet changes) {
         this.requireInitialized();
-        String store = null;
+        final Map<String, Map<UUID, StoredRecord>> next = new LinkedHashMap<>(this.stores);
+        final Map<String, String> images = new LinkedHashMap<>();
         for (final ChangeSet.Mutation mutation : changes.getMutations()) {
-            final String mutationStore = storeOf(mutation);
-            if (store == null) {
-                store = mutationStore;
-            } else if (!store.equals(mutationStore)) {
-                throw new PersistenceException(
-                    "JSON persistence cannot atomically change multiple stores"
-                );
-            }
-        }
-        if (store == null) {
-            return;
-        }
-        final Map<UUID, StoredRecord> updated = new LinkedHashMap<>(
-            this.stores.getOrDefault(store, Map.of())
-        );
-        for (final ChangeSet.Mutation mutation : changes.getMutations()) {
+            final String store = storeOf(mutation);
+            final Map<UUID, StoredRecord> updated = new LinkedHashMap<>(
+                next.getOrDefault(store, Map.of()));
             if (mutation instanceof ChangeSet.Upsert upsert) {
-                final StoredRecord record = upsert.record();
-                updated.put(record.getId(), record);
+                updated.put(upsert.record().getId(), upsert.record());
             } else if (mutation instanceof ChangeSet.Delete delete) {
                 updated.remove(delete.id());
             }
+            next.put(store, updated);
+            images.put(this.fileForStore(store).getFileName().toString(), null);
         }
-        this.write(store, updated.values());
-        final Map<String, Map<UUID, StoredRecord>> next =
-            new LinkedHashMap<>(this.stores);
-        next.put(store, updated);
+        for (final ChangeSet.Mutation mutation : changes.getMutations()) {
+            final String store = storeOf(mutation);
+            images.put(this.fileForStore(store).getFileName().toString(),
+                serialize(next.get(store).values()));
+        }
+        try {
+            this.journal.commit(images);
+        } catch (final com.kniazkov.widgets.db.persistence.RecoveryRequiredException failure) {
+            this.recoveryRequired = true;
+            throw failure;
+        }
         this.stores = next;
     }
 
@@ -373,7 +389,7 @@ public final class JsonPersistence implements Persistence {
      * Verifies that schema metadata was initialized.
      */
     private void requireInitialized() {
-        if (this.metadata == null) {
+        if (this.metadata == null || this.recoveryRequired) {
             throw new IllegalStateException(
                 "JSON persistence metadata is not initialized"
             );
@@ -687,13 +703,10 @@ public final class JsonPersistence implements Persistence {
     /**
      * Writes one store to a temporary file and atomically replaces the target.
      *
-     * @param store store name
      * @param source records
+     * @return complete JSON file
      */
-    private void write(
-        final String store,
-        final Collection<StoredRecord> source
-    ) {
+    private static String serialize(final Collection<StoredRecord> source) {
         final JsonArray array = new JsonArray();
         final List<StoredRecord> ordered = new ArrayList<>(source);
         ordered.sort(Comparator.comparing(StoredRecord::getId));
@@ -708,34 +721,7 @@ public final class JsonPersistence implements Persistence {
                 writeValue(fields, entry.getKey(), entry.getValue());
             }
         }
-        final Path target = this.fileForStore(store);
-        Path temporary = null;
-        try {
-            Files.createDirectories(this.directory);
-            temporary = Files.createTempFile(
-                this.directory,
-                target.getFileName().toString(),
-                ".tmp"
-            );
-            Files.writeString(temporary, array.toText("  "));
-            FileReplacement.replace(temporary, target);
-            temporary = null;
-        } catch (final IOException err) {
-            throw new PersistenceException(
-                "Cannot write JSON store to " + target,
-                err
-            );
-        } finally {
-            if (temporary != null) {
-                try {
-                    Files.deleteIfExists(temporary);
-                } catch (final IOException ignored) {
-                    /*
-                     * Best-effort cleanup after a failed commit.
-                     */
-                }
-            }
-        }
+        return array.toText("  ");
     }
 
     /**

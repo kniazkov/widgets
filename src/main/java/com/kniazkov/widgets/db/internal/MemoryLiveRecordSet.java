@@ -136,13 +136,46 @@ final class MemoryLiveRecordSet implements LiveRecordSet {
     }
 
     /**
+     * Recomputes the final view once and emits changes against its previous snapshot.
+     *
+     * @param affected identifiers mutated by the batch
+     */
+    void refreshBatch(final Set<java.util.UUID> affected) {
+        if (affected.isEmpty()) {
+            return;
+        }
+        final List<MemoryRecord> previous = this.records;
+        this.records = this.evaluate();
+        final Set<MemoryRecord> candidates = new java.util.LinkedHashSet<>(previous);
+        candidates.addAll(this.records);
+        for (final MemoryRecord record : candidates) {
+            final int before = previous.indexOf(record);
+            final int after = this.records.indexOf(record);
+            if (!affected.contains(record.getId()) && before == after) {
+                continue;
+            }
+            final RecordChange.Kind kind;
+            if (before < 0) {
+                kind = RecordChange.Kind.ADDED;
+            } else if (after < 0) {
+                kind = RecordChange.Kind.REMOVED;
+            } else if (before != after) {
+                kind = RecordChange.Kind.MOVED;
+            } else {
+                kind = RecordChange.Kind.UPDATED;
+            }
+            this.emit(new RecordChange(kind, record, before, after));
+        }
+    }
+
+    /**
      * Notifies current listeners.
      *
      * @param change change
      */
     private void emit(final RecordChange change) {
         for (final RecordSetListener listener : List.copyOf(this.listeners)) {
-            listener.accept(change);
+            this.store.notifyAfterCommit(() -> listener.accept(change));
         }
     }
 

@@ -274,12 +274,12 @@ public final class JsonPersistenceTest {
     }
 
     /**
-     * Verifies a JSON change set cannot span several store files.
+     * Verifies a JSON change set persists several store files together.
      *
      * @throws Exception when temporary file access fails
      */
     @Test
-    public void rejectsCrossStoreTransactions() throws Exception {
+    public void commitsCrossStoreTransactions() throws Exception {
         final Path directory = this.directory("cross-store");
         final JsonPersistence persistence = open(directory);
         final ChangeSet changes = new ChangeSet(Arrays.asList(
@@ -287,11 +287,15 @@ public final class JsonPersistenceTest {
             new ChangeSet.Upsert(record("settings", UUID.randomUUID(), 1L))
         ));
 
-        assertThrows(PersistenceException.class,
-            () -> persistence.commit(changes));
+        persistence.commit(changes);
+        persistence.close();
+        try (JsonPersistence reopened = open(directory)) {
+            assertEquals(2, reopened.load().getRecords().size());
+        }
         assertTrue(Files.isRegularFile(directory.resolve("database.metadata")));
-        assertFalse(Files.exists(directory.resolve("employees.json")));
-        assertFalse(Files.exists(directory.resolve("settings.json")));
+        assertTrue(Files.exists(directory.resolve("employees.json")));
+        assertTrue(Files.exists(directory.resolve("settings.json")));
+        assertFalse(Files.exists(directory.resolve("database.commit")));
     }
 
     /**

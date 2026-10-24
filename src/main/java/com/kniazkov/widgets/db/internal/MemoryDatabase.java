@@ -4,6 +4,10 @@
 package com.kniazkov.widgets.db.internal;
 
 import com.kniazkov.widgets.db.Database;
+import com.kniazkov.widgets.db.DataRecord;
+import com.kniazkov.widgets.db.Draft;
+import java.util.List;
+import java.util.HashSet;
 import com.kniazkov.widgets.db.Schema;
 import com.kniazkov.widgets.db.Store;
 import com.kniazkov.widgets.db.persistence.ChangeSet;
@@ -47,6 +51,26 @@ public final class MemoryDatabase implements Database {
      * Configured stores.
      */
     private final Map<String, MemoryStore> stores;
+
+    /**
+     * Notifications deferred until all canonical records and views have been updated.
+     */
+    private List<Runnable> notifications;
+
+    /**
+     * Business validation may read but cannot write canonical state.
+     */
+    private boolean validating;
+
+    /**
+     * Prevents listener writes from interleaving publication of a committed batch.
+     */
+    private boolean publishing;
+
+    /**
+     * Storage outcome is uncertain; reopen is required.
+     */
+    private volatile boolean recoveryRequired;
 
     /**
      * Closed flag.
@@ -197,27 +221,154 @@ public final class MemoryDatabase implements Database {
      * @param changes changes
      */
     void persist(final ChangeSet changes) {
-        this.persistence.commit(changes);
+        this.requireWritable();
+        try {
+            this.persistence.commit(changes);
+        } catch (final com.kniazkov.widgets.db.persistence.RecoveryRequiredException failure) {
+            this.recoveryRequired = true;
+            throw failure;
+        }
+    }
+
+    /**
+     * Queues a notification during publication preparation.
+     *
+     * @param action notification
+     */
+    void notifyAfterCommit(final Runnable action) {
+        if (this.notifications == null) {
+            action.run();
+        } else {
+            this.notifications.add(action);
+        }
+    }
+
+    /**
+     * Rejects reentrant mutations while observers receive a consistent snapshot.
+     */
+    void requireWritable() {
+        if (this.publishing || this.validating) {
+            throw new IllegalStateException("Cannot write from batch validation or notification");
+        }
+    }
+
+    @Override
+    public List<DataRecord> commit(
+        final List<? extends Draft> drafts,
+        final List<? extends DataRecord> removals,
+        final Runnable validation
+    ) {
+        Objects.requireNonNull(validation, "validation");
+        final List<? extends Draft> inputs = List.copyOf(drafts);
+        final List<? extends DataRecord> deletes = List.copyOf(removals);
+        return this.call(() -> {
+            this.requireWritable();
+            this.validating = true;
+            try {
+                validation.run();
+            } finally {
+                this.validating = false;
+            }
+            final List<ChangeSet.Mutation> mutations = new ArrayList<>();
+            final List<Runnable> applications = new ArrayList<>();
+            final List<DataRecord> results = new ArrayList<>();
+            final HashSet<String> targets = new HashSet<>();
+            for (final Draft input : inputs) {
+                if (!(input instanceof MemoryDraft draft)
+                    || !draft.getStore().belongsTo(this)) {
+                    throw new IllegalArgumentException("Foreign draft");
+                }
+                draft.requireOpen();
+                final MemoryStore store = draft.getStore();
+                final StoredRecord saved = store.prepare(draft);
+                requireUnique(targets, saved.getStore(), saved.getId());
+                final MemoryRecord prepared = new MemoryRecord(store, saved);
+                mutations.add(new ChangeSet.Upsert(saved));
+                applications.add(() -> {
+                    results.add(store.install(saved, prepared));
+                    draft.markCommitted();
+                });
+            }
+            for (final DataRecord input : deletes) {
+                if (!(input instanceof MemoryRecord record)
+                    || !record.getStore().belongsTo(this)) {
+                    throw new IllegalArgumentException("Foreign record");
+                }
+                final MemoryStore store = record.getStore();
+                store.requireCurrent(record);
+                requireUnique(targets, store.getName(), record.getId());
+                mutations.add(new ChangeSet.Delete(store.getName(), record.getId()));
+                applications.add(() -> store.uninstall(record));
+            }
+            this.persist(new ChangeSet(mutations));
+            this.notifications = new ArrayList<>();
+            try {
+                for (final Runnable application : applications) {
+                    application.run();
+                }
+                for (final MemoryStore store : this.stores.values()) {
+                    store.refreshBatch(mutations);
+                }
+                this.publishing = true;
+                for (final Runnable notification : this.notifications) {
+                    try {
+                        notification.run();
+                    } catch (final RuntimeException failure) {
+                        LOGGER.log(Level.WARNING, "Database listener failed", failure);
+                    }
+                }
+            } finally {
+                this.publishing = false;
+                this.notifications = null;
+            }
+            return List.copyOf(results);
+        });
+    }
+
+    /**
+     * Rejects ambiguous multiple mutations of one target.
+     *
+     * @param targets visited targets
+     * @param store store name
+     * @param id record identifier
+     */
+    private static void requireUnique(
+        final HashSet<String> targets,
+        final String store,
+        final java.util.UUID id
+    ) {
+        if (!targets.add(store + ":" + id)) {
+            throw new IllegalArgumentException("Duplicate batch target");
+        }
     }
 
     /**
      * Verifies that the database is open.
      */
     private void requireOpen() {
-        if (this.closed) {
-            throw new IllegalStateException("Database is closed");
+        if (this.closed || this.recoveryRequired) {
+            throw new IllegalStateException("Database is closed or requires recovery");
         }
     }
 
     @Override
-    public synchronized void close() {
-        if (this.closed) {
-            return;
+    public void close() {
+        try {
+            this.dispatcher.run(() -> {
+                if (!this.closed) {
+                    this.requireWritable();
+                    this.closed = true;
+                    this.persistence.close();
+                }
+            });
+        } catch (final RejectedExecutionException failure) {
+            if (!this.closed) {
+                throw failure;
+            }
+        } finally {
+            if (this.closed) {
+                this.dispatcher.close();
+            }
         }
-        this.dispatcher.run(() -> {
-            this.closed = true;
-            this.persistence.close();
-        });
-        this.dispatcher.close();
     }
 }

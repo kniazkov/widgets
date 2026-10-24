@@ -85,6 +85,13 @@ final class MemoryDraft implements Draft {
     }
 
     /**
+     * @return owning store
+     */
+    MemoryStore getStore() {
+        return this.store;
+    }
+
+    /**
      * Returns the base revision.
      *
      * @return revision, or {@code -1}
@@ -146,7 +153,7 @@ final class MemoryDraft implements Draft {
     /**
      * Verifies that the draft is open.
      */
-    private void requireOpen() {
+    void requireOpen() {
         if (this.closed) {
             throw new IllegalStateException("Draft is closed");
         }
