@@ -29,6 +29,11 @@ import java.util.TreeSet;
  */
 public final class Client implements Comparable<Client> {
     /**
+     * Shared revocable document identity.
+     */
+    private final TabContext tabContext;
+
+    /**
      * Unique identifier for this client instance.
      */
     private final RMId id;
@@ -75,9 +80,25 @@ public final class Client implements Comparable<Client> {
      * @param options application options shared by the client widget tree
      */
     Client(final Options options) {
+        this(options, new TabContext(java.util.UUID.randomUUID(), Long.MAX_VALUE));
+    }
+
+    /**
+     * @param options application options
+     * @param tabContext shared document context
+     */
+    Client(final Options options, final TabContext tabContext) {
+        this.tabContext = tabContext;
         this.id = RMId.create();
         this.root = new RootWidget(options);
         this.updates = new TreeSet<>();
+    }
+
+    /**
+     * @return revocable document context
+     */
+    TabContext getTabContext() {
+        return this.tabContext;
     }
 
     /**
@@ -123,6 +144,10 @@ public final class Client implements Comparable<Client> {
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
         synchronized (this.root) {
+            if (!this.tabContext.isActive()) {
+                response.addBoolean("tabContextExpired", true);
+                return;
+            }
             this.processEvents(request);
             this.collectUpdates(request.get("lastUpdate"));
             this.serializeUpdates(response);
@@ -146,6 +171,9 @@ public final class Client implements Comparable<Client> {
             final byte[] data,
             final String lastUpdate) {
         synchronized (this.root) {
+            if (!this.tabContext.isActive()) {
+                return UploadProtocol.rejected();
+            }
             for (final Widget<?> widget : this.root) {
                 if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
                     final JsonObject response = ((FileLoader) widget).handleUploadChunk(
@@ -222,7 +250,8 @@ public final class Client implements Comparable<Client> {
      * Dispatches an event to its target widget.
      */
     private void handleEventObject(final JsonObject event, final Widget<?> widget) {
-        if (widget == null || !event.containsKey("id") || !event.containsKey("type")) {
+        if (!this.tabContext.isActive() || widget == null
+            || !event.containsKey("id") || !event.containsKey("type")) {
             return;
         }
         if (!event.get("id").isString() || !event.get("type").isString()) {

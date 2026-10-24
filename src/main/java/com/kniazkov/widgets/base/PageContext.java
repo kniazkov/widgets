@@ -30,6 +30,14 @@ public class PageContext {
     public UUID browserId;
 
     /**
+     * Server-owned, revocable identity for this tab's live document. Shared by internal
+     * navigations, independent of browserId and Client IDs. Applications must check
+     * isActive() and real-user permissions at every privileged operation. The server
+     * populates this field; manually constructed contexts may leave it null.
+     */
+    public TabContext tabContext;
+
+    /**
      * Indicates whether the page request comes from a mobile device.
      * <p>
      * This value is determined from client/browser characteristics and may be used

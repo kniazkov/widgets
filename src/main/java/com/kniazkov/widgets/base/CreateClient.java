@@ -57,12 +57,21 @@ final class CreateClient extends ActionHandler {
         parameters.remove("address");
         parameters.remove("browserId");
         parameters.remove("mobile");
+        parameters.remove("tabId");
 
         /*
          * Prepare a container for request-specific settings passed to a page
          */
         final PageContext context = new PageContext();
         context.browserId = parsedBrowserId;
+        context.tabContext = this.application.resolveTab(parsedBrowserId, data.get("tabId"));
+        if (context.tabContext == null) {
+            final JsonObject expired = new JsonObject();
+            expired.addBoolean("result", false);
+            expired.addBoolean("tabContextExpired", true);
+            expired.addString("serverId", this.application.getServerId().toString());
+            return expired;
+        }
         context.mobile = Boolean.parseBoolean(mobile);
         context.parameters = Collections.unmodifiableMap(parameters);
 
@@ -79,6 +88,7 @@ final class CreateClient extends ActionHandler {
          */
         JsonObject obj = new JsonObject();
         obj.addString("id", id);
+        obj.addString("tabId", context.tabContext.getId().toString());
         obj.addString("serverId", this.application.getServerId().toString());
 
         /*

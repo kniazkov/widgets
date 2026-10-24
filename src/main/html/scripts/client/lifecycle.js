@@ -4,6 +4,7 @@
 
 // Each runtime factory owns these variables, its widget registry and upload scheduler.
 const pageContext = typeof page === "undefined" ? null : page;
+const tabContext = pageContext?.tab || { id: null };
 let clientDisposed = false;
 let clientId = null;
 let serverId = null;
@@ -47,42 +48,69 @@ function startClient(address, data) {
     request.address = address;
     request.browserId = browserId;
     request.mobile = isMobileDevice();
-    sendRequest(request, function (data) {
-        clientCreationInProgress = false;
-        if (!data) {
-            recordRequestFailure();
-            retryClientCreation(address, request);
-            return;
-        }
-        let json;
-        try {
-            json = JSON.parse(data);
-        } catch (error) {
-            recordRequestFailure();
-            retryClientCreation(address, request);
-            return;
-        }
-        if (clientDisposed) {
-            if (typeof json.id === "string") {
-                sendRequest({ action: "kill", client: json.id });
+    // Query parameters must never select a context, including during retries.
+    delete request.tabId;
+    if (tabContext.id) {
+        request.tabId = tabContext.id;
+    }
+    sendRequest(
+        request,
+        function (data) {
+            clientCreationInProgress = false;
+            if (!data) {
+                recordRequestFailure();
+                retryClientCreation(address, request);
+                return;
             }
-            return;
-        }
-        if (responseHasClientError(json)) {
-            return;
-        }
-        if (typeof json.id !== "string" || typeof json.serverId !== "string") {
-            recordRequestFailure();
-            retryClientCreation(address, request);
-            return;
-        }
-        recordRequestSuccess();
-        clientId = json.id;
-        serverId = json.serverId;
-        log("Client created, id: " + clientId + ".");
-        mainCycleTask = setInterval(mainCycle, period);
-        mainCycle();
-    });
+            let json;
+            try {
+                json = JSON.parse(data);
+            } catch (error) {
+                recordRequestFailure();
+                retryClientCreation(address, request);
+                return;
+            }
+            if (clientDisposed) {
+                if (typeof json.id === "string") {
+                    sendRequest({ action: "kill", client: json.id });
+                }
+                return;
+            }
+            if (json.tabContextExpired === true) {
+                if (pageContext?.resetTab) {
+                    pageContext.resetTab();
+                } else {
+                    tabContext.id = null;
+                    retryClientCreation(address, request);
+                }
+                return;
+            }
+            if (responseHasClientError(json)) {
+                return;
+            }
+            if (typeof json.id !== "string" || typeof json.serverId !== "string") {
+                recordRequestFailure();
+                retryClientCreation(address, request);
+                return;
+            }
+            if (typeof json.tabId === "string") {
+                if (tabContext.id && tabContext.id !== json.tabId) {
+                    // A concurrent initial navigation already established the document's context.
+                    sendRequest({ action: "kill", client: json.id });
+                    retryClientCreation(address, request);
+                    return;
+                }
+                tabContext.id = json.tabId;
+            }
+            recordRequestSuccess();
+            clientId = json.id;
+            serverId = json.serverId;
+            log("Client created, id: " + clientId + ".");
+            mainCycleTask = setInterval(mainCycle, period);
+            mainCycle();
+        },
+        "post"
+    );
 }
 
 function mainCycle() {

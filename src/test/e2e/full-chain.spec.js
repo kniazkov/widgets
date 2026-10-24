@@ -145,7 +145,8 @@ test("a dead client rebuilds the same page without changing its URL", async ({ p
     let rejectNextSynchronization = false;
     const created = [];
     page.on("response", async response => {
-        if (new URL(response.url()).searchParams.get("action") === "new instance") {
+        const body = response.request().postDataBuffer();
+        if (body && multipartField(body, "action") === "new instance") {
             created.push(await response.json());
         }
     });

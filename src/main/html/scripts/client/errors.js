@@ -119,6 +119,15 @@ function reloadCurrentPage() {
 }
 
 function serverStateIsCurrent(response) {
+    if (response.tabContextExpired === true || response.serverId !== serverId) {
+        if (pageContext?.resetTab) {
+            pageContext.resetTab();
+        } else {
+            tabContext.id = null;
+            reloadCurrentPage();
+        }
+        return false;
+    }
     if (response.serverId !== serverId || response.clientAlive !== true) {
         reloadCurrentPage();
         return false;

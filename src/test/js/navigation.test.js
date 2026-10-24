@@ -59,8 +59,8 @@ function harness(head = "") {
             client
         );
     }
-    function created(id, text = id) {
-        answer("new instance", { id, serverId: "server" });
+    function created(id, text = id, tabId) {
+        answer("new instance", { id, serverId: "server", tabId });
         updates(id, [
             { id: "#1", action: "create widget", type: "root", widget: "#1" },
             { id: "#2", action: "create widget", type: "text", widget: "#2" },
@@ -397,4 +397,73 @@ describe("cached page interaction styles", () => {
             }
         }
     );
+});
+
+describe("document tab context", () => {
+    it("shares a server token across navigation without trusting URL parameters", async () => {
+        const h = harness();
+        expect(h.requests[0].request.tabId).toBeUndefined();
+        h.created("catalog", "catalog", "tab-one");
+        h.navigate("/product?tabId=untrusted");
+        const request = h.requests.find(
+            item => !item.answered && item.request.action === "new instance"
+        );
+        expect(request.request.tabId).toBe("tab-one");
+        h.created("product", "product", "tab-one");
+        await h.back();
+        h.updates("catalog");
+        expect(h.win.document.body.textContent).toContain("catalog");
+        expect(h.win.location.href).not.toContain("tab-one");
+        expect(JSON.stringify(h.win.history.state)).not.toContain("tab-one");
+        expect(h.win.localStorage.getItem("tabId")).toBeNull();
+        expect(h.win.sessionStorage.length).toBe(0);
+    });
+
+    it.each([{ tabContextExpired: true }, { serverId: "new-server" }])(
+        "discards all retained pages and the context on %j",
+        async invalid => {
+            const h = harness();
+            h.created("catalog", "old operator page", "tab-one");
+            h.navigate("/product");
+            h.created("product", "operator", "tab-one");
+            const tick = [...h.intervals.values()].at(-1);
+            tick();
+            h.updates("product", [], invalid);
+            const fresh = h.requests
+                .filter(item => !item.answered && item.request.action === "new instance")
+                .at(-1);
+            expect(fresh.request.tabId).toBeUndefined();
+            h.created("fresh", "normal", "tab-two");
+            await h.back();
+            const back = h.requests
+                .filter(item => !item.answered && item.request.action === "new instance")
+                .at(-1);
+            expect(back.request.tabId).toBe("tab-two");
+            expect(h.win.document.body.textContent).not.toContain("old operator page");
+        }
+    );
+
+    it("keeps the tab when only a page Client expires", () => {
+        const h = harness();
+        h.created("catalog", "catalog", "tab-one");
+        [...h.intervals.values()].at(-1)();
+        h.updates("catalog", [], { clientAlive: false });
+        const request = h.requests
+            .filter(item => !item.answered && item.request.action === "new instance")
+            .at(-1);
+        expect(request.request.tabId).toBe("tab-one");
+    });
+
+    it("recovers an invalid creation token without retaining cached pages", () => {
+        const h = harness();
+        h.created("catalog", "catalog", "tab-one");
+        h.navigate("/product");
+        h.answer("new instance", { tabContextExpired: true, serverId: "server", result: false });
+        const request = h.requests
+            .filter(item => !item.answered && item.request.action === "new instance")
+            .at(-1);
+        expect(request.request.tabId).toBeUndefined();
+        h.created("fresh", "normal", "tab-two");
+        expect(h.win.document.body.textContent).toContain("normal");
+    });
 });
