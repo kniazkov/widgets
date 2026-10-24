@@ -101,7 +101,7 @@ final class BrowserScripts {
             }
         }
         source.append("return { initClient, mainCycle, disposeClient, showClientError, ")
-            .append("resetInteractionState };\n}\n");
+            .append("resetInteractionState, refreshCountdowns };\n}\n");
         return source.toString();
     }
 }

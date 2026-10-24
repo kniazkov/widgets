@@ -40,6 +40,7 @@ respective files. All of these declarations still belong to the same per-page le
 | [`widgets/tree.js`](../src/main/html/scripts/widgets/tree.js) | Child insertion/removal and overlay child layout |
 | [`widgets/style.js`](../src/main/html/scripts/widgets/style.js) | Colors, typography, borders and visual effects |
 | [`widgets/layout.js`](../src/main/html/scripts/widgets/layout.js) | Dimensions, spacing and alignment |
+| [`widgets/countdown.js`](../src/main/html/scripts/widgets/countdown.js) | Server-time anchor, countdown rendering and scheduler lifetime |
 | [`widgets/content.js`](../src/main/html/scripts/widgets/content.js) | Text, options, selection, images, links and page metadata updates |
 | [`widgets/inputs.js`](../src/main/html/scripts/widgets/inputs.js) | Editable text, deferred updates, placeholders and input modes |
 | [`widgets/suggestions.js`](../src/main/html/scripts/widgets/suggestions.js) | Suggestion popup, filtering, keyboard and pointer interaction |

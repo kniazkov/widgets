@@ -37,6 +37,7 @@ final class Synchronize extends ActionHandler {
             this.application.synchronize(clientId, data, obj);
         }
 
+        obj.addNumber("serverNow", System.currentTimeMillis());
         return obj;
     }
 }
