@@ -95,3 +95,21 @@ and uploads after revocation. Navigation JS tests cover cache disposal, server c
 expiration and query-token injection. `tab-context.spec.js` exercises actual internal navigation,
 Back/Forward, revocation, reload, independent tabs, opener-copied sessionStorage and reconnection.
 The `/tab-context` and `/tab-context-next` routes are test-server fixtures, not production routes.
+
+## Runnable example
+
+Run [`TabContextExample`](../src/main/java/com/kniazkov/widgets/example/TabContextExample.java):
+
+```bash
+./run.sh com.kniazkov.widgets.example.TabContextExample
+```
+
+Open `http://localhost:8080/`. Both `/` and `/second` display the browser ID, tab context ID and
+an editable note backed by the same model within that context. Edit the note, follow the internal
+link and use Back/Forward. Open another tab to compare IDs and independent notes, then try reload
+and **Revoke this tab context**: both start with a fresh ID and default note. The open-tab button
+uses the framework's new-tab command; if blocked by the browser, open the URL manually.
+
+The example's application-owned registry uses weak context keys, and its values do not retain
+the keys. It removes the entry explicitly on revocation. This is demonstration state only;
+no customer selection, authentication or real operator privileges are implemented.
