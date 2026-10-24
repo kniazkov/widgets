@@ -73,3 +73,9 @@ manageable size. Small related widgets share files; complex interactions have de
 The manifest test catches omitted/duplicate source entries. HTTP tests check shared-script order
 and generated runtime resources; navigation and browser tests exercise isolation and the full
 Java-to-browser round trip.
+
+## Tab identity
+
+`navigation.js` owns a memory-only, server-issued context shared by its page runtimes.
+See [revocable tab context](TAB_CONTEXT.md) for the reload/duplicate-tab policy, protocol,
+revocation, application authorization responsibilities and tests.

@@ -6,6 +6,8 @@
 function initNavigation(sessionId, address, data, addresses = [address]) {
     const defaults = readDocumentMetadata();
     const pages = new Map();
+    // Deliberately memory-only: reloads and duplicated sessionStorage cannot inherit a mode.
+    const tab = { id: null };
     const routes = new Set(addresses);
     const stateKey = "widgetsPage";
     const invalidationKey = "widgetsPageCacheInvalidation";
@@ -80,6 +82,18 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         }
     }
 
+    function resetTab() {
+        tab.id = null;
+        const current = active;
+        for (const entry of [...pages.values()]) {
+            dispose(entry);
+        }
+        active = null;
+        if (current) {
+            activate(current.state, current.url);
+        }
+    }
+
     function restoreScroll(entry) {
         if (active !== entry || !entry.root.isConnected) {
             return;
@@ -151,6 +165,8 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             );
             entry.runtime = createPageRuntime({
                 root: entry.root,
+                tab,
+                resetTab,
                 metadataChanged: () => showMetadata(entry),
                 failure: overlay => {
                     if (entry.waiting && active === entry) {
@@ -273,6 +289,12 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         persistScroll();
         for (const entry of pages.values()) {
             dispose(entry);
+        }
+    });
+    window.addEventListener("pageshow", event => {
+        if (event.persisted) {
+            // pagehide disposed these runtimes. A restored document starts without its old mode.
+            window.location.reload();
         }
     });
     window.addEventListener("error", event => active?.runtime.showClientError(event.error));

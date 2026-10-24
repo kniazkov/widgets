@@ -48,6 +48,11 @@ public final class Application {
     private final ConcurrentMap<RMId, Client> clients;
 
     /**
+     * Server-issued tab identities, cleaned after revocation or inactivity.
+     */
+    private final ConcurrentMap<UUID, TabContext> tabs = new ConcurrentHashMap<>();
+
+    /**
      * Available pages in this application, keyed by path.
      */
     private final Map<String, Page> pages;
@@ -131,6 +136,31 @@ public final class Application {
     }
 
     /**
+     * Resolves a browser-bound context. An absent token starts an independent context;
+     * malformed, foreign, expired and revoked tokens never create or resume a mode.
+     *
+     * @param browserId browser identity
+     * @param token optional context token
+     * @return context, or null for an invalid token
+     */
+    TabContext resolveTab(final UUID browserId, final String token) {
+        if (token == null) {
+            final TabContext tab = new TabContext(browserId, this.options.getClientLifetime());
+            this.tabs.put(tab.getId(), tab);
+            return tab;
+        }
+        try {
+            final TabContext tab = this.tabs.get(UUID.fromString(token));
+            if (tab != null && tab.getBrowserId().equals(browserId) && tab.touch()) {
+                return tab;
+            }
+        } catch (final IllegalArgumentException invalid) {
+            return null;
+        }
+        return null;
+    }
+
+    /**
      * Creates a new client and initializes its page.
      *
      * @param address page address
@@ -139,7 +169,11 @@ public final class Application {
      */
     RMId createClient(final String address, final PageContext context) {
         this.counter++;
-        final Client client = new Client(this.options);
+        if (context.tabContext == null) {
+            context.tabContext = this.resolveTab(
+                context.browserId == null ? UUID.randomUUID() : context.browserId, null);
+        }
+        final Client client = new Client(this.options, context.tabContext);
         client.timer = this.options.getClientLifetime();
 
         final RMId id = client.getId();
@@ -230,8 +264,15 @@ public final class Application {
         this.counter++;
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
+                if (!client.getTabContext().touch()) {
+                    response.addBoolean("tabContextExpired", true);
+                    return client;
+                }
                 client.timer = this.options.getClientLifetime();
                 client.synchronize(request, response);
+                if (!client.getTabContext().isActive()) {
+                    response.addBoolean("tabContextExpired", true);
+                }
                 response.addBoolean("result", true);
                 response.addBoolean("clientAlive", true);
             }
@@ -261,6 +302,9 @@ public final class Application {
         final JsonObject[] result = {UploadProtocol.rejected()};
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
+                if (!client.getTabContext().touch()) {
+                    return client;
+                }
                 client.timer = this.options.getClientLifetime();
                 result[0] = client.uploadChunk(
                     widgetId,
@@ -282,6 +326,7 @@ public final class Application {
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
+            tabs.entrySet().removeIf(entry -> !entry.getValue().isActive());
             for (final Map.Entry<RMId, Client> entry : clients.entrySet()) {
                 final RMId id = entry.getKey();
                 clients.computeIfPresent(id, (key, client) -> {

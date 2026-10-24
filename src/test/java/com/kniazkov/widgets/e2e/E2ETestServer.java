@@ -131,6 +131,29 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        final java.util.Set<java.util.UUID> modes =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+        final Page tabPage = (root, context) -> {
+            final var tab = context.tabContext;
+            final TextWidget mode = new TextWidget(modes.contains(tab.getId())
+                ? "Mode: operator" : "Mode: normal");
+            final Button enter = new Button("Enter tab mode");
+            enter.onClick(event -> {
+                modes.add(tab.getId());
+                mode.setText("Mode: operator");
+            });
+            final Button exit = new Button("Revoke tab mode");
+            exit.onClick(event -> {
+                modes.remove(tab.getId());
+                tab.revoke();
+            });
+            root.add(new Section(new TextWidget("Tab: " + tab.getId())));
+            root.add(new Section(new TextWidget("Browser: " + context.browserId)));
+            root.add(new Section(mode, enter, exit));
+            root.add(new Section(new Link("Next tab page", "/tab-context-next")));
+        };
+        application.addPage("tab-context", tabPage);
+        application.addPage("tab-context-next", tabPage);
         application.addPage("markdown", (root, context) -> {
             final StringModel source = new StringModel("# Terms\n\nRead **carefully**.");
             final Markdown document = new Markdown(source);

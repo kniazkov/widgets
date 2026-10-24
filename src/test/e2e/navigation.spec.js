@@ -3,7 +3,8 @@ import { expect, test } from "@playwright/test";
 function trackCreations(page) {
     const creations = [];
     page.on("request", request => {
-        if (new URL(request.url()).searchParams.get("action") === "new instance") {
+        const body = request.postDataBuffer()?.toString("utf8") || "";
+        if (body.includes('name="action"\r\n\r\nnew instance\r\n')) {
             creations.push(request.url());
         }
     });
