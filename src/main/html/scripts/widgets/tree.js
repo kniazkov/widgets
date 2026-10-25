@@ -16,6 +16,7 @@ function setChildWidget(data) {
             widget._onAttached();
         }
         log("Widget " + data.widget + " is set as a child of widget " + data.container + ".");
+        refreshCountdowns();
         return true;
     }
     return false;
@@ -33,6 +34,7 @@ function appendChildWidget(data) {
             widget._onAttached();
         }
         log("Widget " + data.widget + " is added as a child of widget " + data.container + ".");
+        refreshCountdowns();
         return true;
     }
     return false;
@@ -65,6 +67,7 @@ function insertChildWidget(data) {
                 data.container +
                 "."
         );
+        refreshCountdowns();
         return true;
     }
     return false;
@@ -79,6 +82,7 @@ function removeChildWidget(data) {
         }
         (container._childHost || container).removeChild(widget);
         log("Widget " + data.widget + " is removed from parent widget " + data.container + ".");
+        refreshCountdowns();
         return true;
     }
     return false;

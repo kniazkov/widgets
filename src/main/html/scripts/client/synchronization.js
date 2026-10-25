@@ -73,6 +73,7 @@ function sendSynchronizeRequest(callback) {
                 return;
             }
             try {
+                sampleCountdownClock(json.serverNow);
                 processUpdates(json.updates);
                 removeProcessedEvents(json.lastEvent);
                 reconcileTextInputs();

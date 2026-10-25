@@ -11,6 +11,7 @@
         "widgets/events.js",
         "widgets/tree.js",
         "widgets/content.js",
+        "widgets/countdown.js",
         "widgets/carousel.js",
         "widgets/style.js",
         "widgets/layout.js",

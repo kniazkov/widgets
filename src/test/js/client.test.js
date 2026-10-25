@@ -7,6 +7,9 @@ const source = readScriptGroup("client");
 
 const handlerNames = [
     "log",
+    "setCountdownDeadline",
+    "sampleCountdownClock",
+    "disposeCountdowns",
     "createWidget",
     "reset",
     "goToPage",

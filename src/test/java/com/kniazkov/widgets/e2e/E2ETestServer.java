@@ -152,6 +152,10 @@ public final class E2ETestServer {
             root.add(new Section(mode, enter, exit));
             root.add(new Section(new Link("Next tab page", "/tab-context-next")));
         };
+        application.addPage("countdown",
+            com.kniazkov.widgets.example.CountdownExample.createPage("/countdown-next"));
+        application.addPage("countdown-next",
+            com.kniazkov.widgets.example.CountdownExample.createPage("/countdown"));
         application.addPage("tab-context", tabPage);
         application.addPage("tab-context-next", tabPage);
         application.addPage("markdown", (root, context) -> {

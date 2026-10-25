@@ -124,6 +124,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         entry.waiting = false;
         entry.error?.remove();
         document.body.appendChild(entry.root);
+        entry.runtime.refreshCountdowns?.();
         entry.restoring = true;
         entry.scrollDeadline = Date.now() + 2000;
         restoreScroll(entry);
@@ -139,6 +140,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             active.hiddenAt = Date.now();
             active.hiddenOrder = ++accessOrder;
             active.root.remove();
+            active.runtime.refreshCountdowns?.();
             active.runtime.resetInteractionState();
             active.error?.remove();
         }

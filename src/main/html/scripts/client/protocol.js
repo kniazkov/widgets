@@ -105,6 +105,7 @@ const actionHandlers = {
     "set valid": setValidFlag,
     "set disabled": setDisabledFlag,
     "set hidden": setHiddenFlag,
+    "set countdown deadline": setCountdownDeadline,
     "set text": setText,
     "set suggestions": setSuggestions,
     "set placeholder color": setPlaceholderColor,

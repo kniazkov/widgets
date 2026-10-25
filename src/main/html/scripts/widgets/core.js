@@ -112,6 +112,7 @@ const widgetsLibrary = {
     "modal popup": function () {
         return createPopup(true);
     },
+    countdown: createCountdown,
     markdown: createMarkdown,
     text: function () {
         return document.createElement("span");
