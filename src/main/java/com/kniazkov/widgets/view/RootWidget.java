@@ -319,6 +319,20 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
+     * Передаёт небольшой файл текущему браузеру без публичного HTTP-адреса.
+     * Приложение проверяет права перед вызовом; файл не сохраняется на сервере.
+     * Браузер может потребовать разрешение пользователя на скачивание.
+     *
+     * @param name безопасное имя файла без пути
+     * @param contentType MIME-тип без параметров
+     * @param content содержимое размером от 1 байта до 5 МиБ
+     * @throws IllegalArgumentException если параметры не удовлетворяют ограничениям
+     */
+    public void downloadFile(final String name, final String contentType, final byte[] content) {
+        this.pushUpdate(new com.kniazkov.widgets.protocol.DownloadFile(name, contentType, content));
+    }
+
+    /**
      * Instruction sent to the client to trigger an immediate navigation to another page.
      */
     private static final class GoToPage extends Update {
