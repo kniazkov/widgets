@@ -182,3 +182,37 @@ function openPageInNewTab(data) {
     }
     return true;
 }
+
+function downloadFile(data) {
+    if (
+        typeof data.name !== "string" ||
+        !/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(data.name) ||
+        typeof data.contentType !== "string" ||
+        !/^[a-z0-9][a-z0-9.+-]*\/[a-z0-9][a-z0-9.+-]*$/.test(data.contentType) ||
+        typeof data.content !== "string" ||
+        data.content.length > 6990508
+    ) {
+        return false;
+    }
+    let decoded;
+    try {
+        decoded = atob(data.content);
+    } catch {
+        return false;
+    }
+    if (!decoded.length || decoded.length > 5 * 1024 * 1024) return false;
+    const bytes = Uint8Array.from(decoded, char => char.charCodeAt(0));
+    const url = URL.createObjectURL(new Blob([bytes], { type: data.contentType }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = data.name;
+    link.hidden = true;
+    document.body.appendChild(link);
+    try {
+        link.click();
+    } finally {
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+    return true;
+}

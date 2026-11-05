@@ -319,6 +319,20 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
+     * Sends a small file to the current browser without a public HTTP URL.
+     * The application must check permissions before calling; the file is not stored on the server.
+     * The browser may require the user's permission to download the file.
+     *
+     * @param name safe file name without a path
+     * @param contentType MIME type without parameters
+     * @param content content between 1 byte and 5 MiB
+     * @throws IllegalArgumentException if the arguments do not satisfy the constraints
+     */
+    public void downloadFile(final String name, final String contentType, final byte[] content) {
+        this.pushUpdate(new com.kniazkov.widgets.protocol.DownloadFile(name, contentType, content));
+    }
+
+    /**
      * Instruction sent to the client to trigger an immediate navigation to another page.
      */
     private static final class GoToPage extends Update {

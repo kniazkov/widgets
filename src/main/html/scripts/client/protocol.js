@@ -96,6 +96,7 @@ const actionHandlers = {
     "clear page cache": clearPageCache,
     "go to page": goToPage,
     "open page in new tab": openPageInNewTab,
+    "download file": downloadFile,
     subscribe: subscribeToEvent,
     "set client event action": setClientEventAction,
     "set child": setChildWidget,
