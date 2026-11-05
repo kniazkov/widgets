@@ -13,11 +13,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 /**
- * Проверяет передачу файла только текущему корневому виджету.
+ * Tests file transfers scoped to the current root widget.
  */
 public final class DownloadFileTest {
     /**
-     * Массив фиксируется до отправки, а клонирование сохраняет содержимое.
+     * The array is snapshotted before sending, and cloning preserves its content.
      */
     @Test
     public void snapshotsFileAndSerializesCommand() {
@@ -38,7 +38,7 @@ public final class DownloadFileTest {
     }
 
     /**
-     * Запрещает пути, заголовки с параметрами, пустые и чрезмерные файлы.
+     * Rejects paths, MIME types with parameters, empty files, and oversized files.
      */
     @Test
     public void rejectsInvalidArguments() {

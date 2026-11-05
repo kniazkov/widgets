@@ -319,14 +319,14 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
-     * Передаёт небольшой файл текущему браузеру без публичного HTTP-адреса.
-     * Приложение проверяет права перед вызовом; файл не сохраняется на сервере.
-     * Браузер может потребовать разрешение пользователя на скачивание.
+     * Sends a small file to the current browser without a public HTTP URL.
+     * The application must check permissions before calling; the file is not stored on the server.
+     * The browser may require the user's permission to download the file.
      *
-     * @param name безопасное имя файла без пути
-     * @param contentType MIME-тип без параметров
-     * @param content содержимое размером от 1 байта до 5 МиБ
-     * @throws IllegalArgumentException если параметры не удовлетворяют ограничениям
+     * @param name safe file name without a path
+     * @param contentType MIME type without parameters
+     * @param content content between 1 byte and 5 MiB
+     * @throws IllegalArgumentException if the arguments do not satisfy the constraints
      */
     public void downloadFile(final String name, final String contentType, final byte[] content) {
         this.pushUpdate(new com.kniazkov.widgets.protocol.DownloadFile(name, contentType, content));

@@ -9,39 +9,39 @@ import java.util.Base64;
 import java.util.Objects;
 
 /**
- * Одноразовая передача файла внутри протокола текущей страницы.
+ * A one-time file transfer through the current page's protocol.
  */
 public final class DownloadFile extends Update {
     /**
-     * Имя файла без пути.
+     * The file name without a path.
      */
     private final String name;
     /**
-     * MIME-тип содержимого.
+     * The MIME type of the content.
      */
     private final String contentType;
     /**
-     * Неизменяемый снимок файла в Base64.
+     * An immutable Base64-encoded snapshot of the file.
      */
     private final String content;
 
     /**
-     * Проверяет параметры и копирует содержимое в неизменяемое представление.
+     * Validates the arguments and copies the content into an immutable representation.
      *
-     * @param name имя файла из латинских букв, цифр, точек, дефисов и подчёркиваний
-     * @param contentType MIME-тип без параметров
-     * @param content файл размером от 1 байта до 5 МиБ
+     * @param name file name using ASCII letters, digits, dots, hyphens, and underscores
+     * @param contentType MIME type without parameters
+     * @param content file content between 1 byte and 5 MiB
      */
     public DownloadFile(final String name, final String contentType, final byte[] content) {
         this(name, contentType, encode(content));
     }
 
     /**
-     * Создаёт команду из уже неизменяемого содержимого.
+     * Creates a command from content that is already immutable.
      *
-     * @param name имя файла
-     * @param contentType MIME-тип
-     * @param content содержимое в Base64
+     * @param name file name
+     * @param contentType MIME type
+     * @param content Base64-encoded content
      */
     private DownloadFile(final String name, final String contentType, final String content) {
         super(RMId.INVALID);
@@ -56,10 +56,10 @@ public final class DownloadFile extends Update {
     }
 
     /**
-     * Ограничивает расход памяти и фиксирует снимок массива.
+     * Limits memory usage and captures a snapshot of the array.
      *
-     * @param bytes содержимое файла
-     * @return содержимое в Base64
+     * @param bytes file content
+     * @return Base64-encoded content
      */
     private static String encode(final byte[] bytes) {
         if (Objects.requireNonNull(bytes).length == 0 || bytes.length > 5 * 1024 * 1024) {
