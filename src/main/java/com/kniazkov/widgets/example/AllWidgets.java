@@ -23,6 +23,8 @@ import com.kniazkov.widgets.view.ActiveText;
 import com.kniazkov.widgets.view.ActiveTextStyle;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.ButtonStyle;
+import com.kniazkov.widgets.view.Carousel;
+import com.kniazkov.widgets.view.Countdown;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CheckBox;
 import com.kniazkov.widgets.view.CheckBoxWithText;
@@ -42,6 +44,11 @@ import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.LinkStyle;
 import com.kniazkov.widgets.view.MessagePopup;
+import com.kniazkov.widgets.view.ModalPopup;
+import com.kniazkov.widgets.view.Popup;
+import com.kniazkov.widgets.view.MarginDecorator;
+import com.kniazkov.widgets.view.TextFlow;
+import java.time.Instant;
 import com.kniazkov.widgets.view.OverlayStack;
 import com.kniazkov.widgets.view.HorizontalLine;
 import com.kniazkov.widgets.view.Panel;
@@ -132,6 +139,7 @@ public class AllWidgets {
         final Page page = (root, parameters) -> buildGallery(root);
         final Application application = new Application(page);
         final Options options = new Options.Builder()
+            .setPort(args.length == 0 ? 8080 : Integer.parseInt(args[0]))
             .setTitle("Web Widgets — All Widgets")
             .setFaviconUrl("/widgets-icon.svg")
             .setDescription("Interactive examples of the Web Widgets components.")
@@ -185,6 +193,61 @@ public class AllWidgets {
         addOverlayStacks(root);
         addTables(root);
         addGestureWidgets(root);
+        addLayoutWidgets(root);
+        addCountdown(root);
+        addCarousel(root);
+    }
+
+    /**
+     * Shows the visible composition of the basic layout widgets.
+     * @param root gallery root
+     */
+    private static void addLayoutWidgets(final RootWidget root) {
+        final Panel card = addCard(root, "Layout composition",
+            "RootWidget contains Panels; Sections contain InlineBlocks and inline widgets.");
+        final TextFlow flow = new TextFlow();
+        flow.add(new TextWidget("TextFlow wraps text and "));
+        flow.add(new Link("links", "#"));
+        flow.add(new TextWidget(" together as a paragraph, preserving ordinary spaces."));
+        card.add(flow);
+        final MarginDecorator spaced = new MarginDecorator(new TextWidget("24 px margin"));
+        spaced.setMargin(24);
+        final InlineBlock block = new InlineBlock(new Section(spaced));
+        block.setBgColor(new Color(226, 232, 240));
+        card.add(new Section(new TextWidget("Section:"), block, new TextWidget("InlineBlock")));
+    }
+
+    /**
+     * Shows a running and expired server deadline.
+     * @param root gallery root
+     */
+    private static void addCountdown(final RootWidget root) {
+        final Panel card = addCard(root, "Countdown",
+            "The browser counts down locally; reaching zero has no business effect.");
+        final Countdown running = new Countdown(Instant.now().plusSeconds(1200));
+        final Button restart = new Button("Restart 20 minutes");
+        restart.onClick(event -> running.setDeadline(Instant.now().plusSeconds(1200)));
+        card.add(new Section(variant("Running", running),
+            variant("Expired", new Countdown(Instant.EPOCH)), variant("Reset", restart)));
+    }
+
+    /**
+     * Shows an image sequence and server-observed selection.
+     * @param root gallery root
+     */
+    private static void addCarousel(final RootWidget root) {
+        final Panel card = addCard(root, "Carousel",
+            "Swipe or drag between three images; selection travels to the server.");
+        final Carousel carousel = new Carousel(demoImage("#2563eb", "#7c3aed", "1 / 3"),
+            demoImage("#059669", "#0d9488", "2 / 3"),
+            demoImage("#ea580c", "#dc2626", "3 / 3"));
+        carousel.setWidth(280);
+        carousel.setHeight(160);
+        final TextWidget selected = feedback("Selected image: 1");
+        carousel.onSelect(event -> selected.setText("Selected image: "
+            + (carousel.getSelectedIndexModel().getData() + 1)));
+        card.add(new Section(carousel));
+        card.add(new Section(selected));
     }
 
     /**
@@ -714,6 +777,27 @@ public class AllWidgets {
             root.add(popup);
         });
         row.add(variant("Click or tap outside", outsideLauncher));
+        final Button plainLauncher = new Button("Show plain popup");
+        plainLauncher.onClick(event -> {
+            final Popup popup = new Popup();
+            final Button close = new Button("Close plain popup");
+            close.onClick(closeEvent -> popup.remove());
+            popup.add(new Section(new TextWidget("Popup: the page remains interactive.")));
+            popup.add(new Section(close));
+            root.add(popup);
+        });
+        row.add(variant("Non-modal", plainLauncher));
+        final Button modalLauncher = new Button("Show custom modal");
+        modalLauncher.onClick(event -> {
+            final ModalPopup popup = new ModalPopup();
+            final Button close = new Button("Close custom modal");
+            close.onClick(closeEvent -> popup.remove());
+            popup.add(new Section(new TextWidget("ModalPopup with caller-supplied content.")));
+            popup.add(new Section(new InputField("Editable content")));
+            popup.add(new Section(close));
+            root.add(popup);
+        });
+        row.add(variant("Custom modal", modalLauncher));
     }
 
     /**

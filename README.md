@@ -246,6 +246,12 @@ in-memory complete-file limit is 128 MiB.
 
 ## Documentation
 
+- [Visual widget gallery](docs/WIDGET_GALLERY.ru.md) — real cloud-browser screenshot crops for
+  every concrete visible widget, with a coverage matrix and capture metadata.
+- [Review implementation checklist](docs/REVIEW_CHECKLIST.ru.md) — 43 prioritized issues with
+  detailed Russian scope, dependencies, testing and acceptance criteria.
+- [Cloud verification record](docs/CLOUD_VERIFICATION.ru.md) — build, browser checks and limitations.
+
 - [Document head](docs/DOCUMENT_HEAD.md) — browser title, favicon, language and search metadata
   configured through immutable application options.
 - [Reactive database](docs/DATABASE.md) — shared record models, drafts, live queries, JSON and

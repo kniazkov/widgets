@@ -71,6 +71,12 @@ per-page scope and the shared manifest used by the server and tests.
 3. Follow [CODE_STYLE.md](CODE_STYLE.md). Do not disable a repository-wide rule to make one change
    pass.
 4. Update public documentation and examples when behavior or API contracts change.
+   Every new widget must be documented and demonstrated in `AllWidgets`. For every visible widget,
+   capture the built example in a real browser on the cloud computer, crop the widget from its
+   screenshot, and embed the image in `docs/WIDGET_GALLERY.ru.md`. Update
+   `docs/images/widgets/manifest.json`; refresh existing images when appearance changes. Abstract
+   classes and nonvisual helpers do not need separate images. See the visual catalog for capture
+   metadata and the complete coverage matrix. Run `npm run check:gallery` to check coverage.
 5. Run the complete local gates before opening a pull request.
 
 ```bash
