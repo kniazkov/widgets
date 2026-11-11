@@ -54,6 +54,19 @@ jobs:
           cache: npm
       - name: Install JavaScript dependencies
         run: npm ci
+      # Keep Ubuntu package downloads independent of Canonical DNS outages.
+      # APT still verifies packages with the runner's Ubuntu archive keyring.
+      - name: Configure Ubuntu package mirror
+        timeout-minutes: 1
+        run: |
+          test -f /etc/apt/apt-mirrors.txt
+          for mirror_list in /etc/apt/apt-mirrors*.txt; do
+            echo 'https://mirrors.edge.kernel.org/ubuntu/' | sudo tee "$mirror_list"
+          done
+          echo 'APT::Update::Error-Mode "any";' | sudo tee /etc/apt/apt.conf.d/99-ci-network
+          echo 'Acquire::Retries "1";' | sudo tee -a /etc/apt/apt.conf.d/99-ci-network
+          echo 'Acquire::http::Timeout "15";' | sudo tee -a /etc/apt/apt.conf.d/99-ci-network
+          echo 'Acquire::https::Timeout "15";' | sudo tee -a /etc/apt/apt.conf.d/99-ci-network
       - name: Install browser system dependencies
         timeout-minutes: 5
         run: npx playwright install-deps chromium webkit
