@@ -11,7 +11,8 @@
     "format:js": "prettier --write \"playwright.config.js\" \"vitest.config.js\" \"eslint.config.js\" \"scripts/**/*.mjs\" \"src/**/*.js\"",
     "install:e2e-browser": "playwright install chromium",
     "lint:js": "eslint playwright.config.js vitest.config.js eslint.config.js scripts src/main/html/scripts src/test/js src/test/e2e",
-    "test:browser": "npm run check:js && npm run test:js && npm run test:e2e",
+    "check:gallery": "node scripts/check-widget-gallery.mjs",
+    "test:browser": "npm run check:js && npm run check:gallery && npm run test:js && npm run test:e2e",
     "test:e2e": "node scripts/run-e2e.mjs",
     "test:js": "vitest run",
     "test:js:watch": "vitest"

@@ -1,5 +1,9 @@
 # Widget catalog
 
+See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all 37 concrete visual
+widget classes, including open popups and composed layout widgets. The [review checklist](REVIEW_CHECKLIST.ru.md)
+tracks remaining defects and planned components; planned widgets are not part of the current API.
+
 The `com.kniazkov.widgets.view` package contains the server-side view tree. Every actual UI
 widget extends `Widget`, owns a unique ID and a style, binds reactive models to properties, and
 queues protocol updates for the browser. A widget may also expose controllers for browser events.

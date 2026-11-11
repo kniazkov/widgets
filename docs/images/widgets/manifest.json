@@ -1,0 +1,578 @@
+{
+  "capture": {
+    "date": "2026-11-11",
+    "baseCommit": "7112edfa10eea3f3f895e426895242f432eba41e",
+    "branch": "docs/review-roadmap-2026-11",
+    "page": "AllWidgets, http://127.0.0.1:18087/",
+    "browser": "Cloud Chromium",
+    "reportedViewport": [
+      1363,
+      936
+    ],
+    "fullScreenshotPixels": [
+      1348,
+      6775
+    ],
+    "allWidgetsSourceSha256": "8df268107e38f3d235eff10bcec767888dde012a926710ce382e3d6f6616547b",
+    "method": "Real cloud browser screenshots, cropped without retouching or resizing."
+  },
+  "images": {
+    "root-widget": {
+      "file": "root-widget.png",
+      "title": "All widgets",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        26,
+        1316,
+        101
+      ],
+      "sha256": "14b64e58a5ec6fd81c41b3b99331e7e822abce1a840d703ddb4db955756186f0"
+    },
+    "sticky-panel": {
+      "file": "sticky-panel.png",
+      "title": "StickyPanel — scroll the page to see this block stick to the top.",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        127,
+        1316,
+        51
+      ],
+      "sha256": "3fd33c74625b36e7450b3e2bb4696ee4ec322c5f230cc4f69423970162e449aa"
+    },
+    "horizontal-line": {
+      "file": "horizontal-line.png",
+      "title": "HorizontalLine",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        178,
+        1316,
+        174
+      ],
+      "sha256": "32970419309792932e5f5a641f3fd37be80770c49ec06462f952ab1512c222c5"
+    },
+    "text-widget": {
+      "file": "text-widget.png",
+      "title": "TextWidget",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        352,
+        1316,
+        189
+      ],
+      "sha256": "7ce278c0a8bbb4815d114e3d61c511ac6e8e1181f88f16994121ec5e7eb1deeb"
+    },
+    "markdown": {
+      "file": "markdown.png",
+      "title": "Markdown",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        541,
+        1316,
+        315
+      ],
+      "sha256": "b37694d119bdeba2cd82ed61ecdde3da9b478433151f99bbff63dfa2e4c504dc"
+    },
+    "no-wrap": {
+      "file": "no-wrap.png",
+      "title": "NoWrap",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        855,
+        1316,
+        121
+      ],
+      "sha256": "39347cdb340333f92eee3286a789e79f3017995380674805fffcae20eacf2652"
+    },
+    "active-text": {
+      "file": "active-text.png",
+      "title": "ActiveText",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        975,
+        1316,
+        211
+      ],
+      "sha256": "04523a9425b8e53b33c81f80c7feffd02d1d3a01490a5d43803fbc7814008514"
+    },
+    "link": {
+      "file": "link.png",
+      "title": "Link",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1185,
+        1316,
+        187
+      ],
+      "sha256": "ad4e8a71e874dae035e0d199a847b4d9941e85cbcbc2be4d2c105937b7cc956b"
+    },
+    "input-field": {
+      "file": "input-field.png",
+      "title": "InputField",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1371,
+        1316,
+        213
+      ],
+      "sha256": "f4a539f2f4224dbd25322ecb2b8ca686fc0c4d12b23b67369ef7abfd73bbccdf"
+    },
+    "numeric-hints": {
+      "file": "numeric-hints.png",
+      "title": "Numeric input hints",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1583,
+        1316,
+        213
+      ],
+      "sha256": "10449d4043b7911930dda0cf6034533dca2da0a45b2ec5bc97d66d9bb5c934dc"
+    },
+    "suggestion-field": {
+      "file": "suggestion-field.png",
+      "title": "SuggestionField",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1795,
+        1316,
+        357
+      ],
+      "sha256": "3fe623ad5cb597612c81431381f8958da34deb95358c0c6166535ee67d9baf15"
+    },
+    "password-input": {
+      "file": "password-input.png",
+      "title": "PasswordInput",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2151,
+        1316,
+        213
+      ],
+      "sha256": "e15452bbef25be12b5e02eebaad458a876fc3feeea9ea1e7413bb688963b5ab7"
+    },
+    "text-area": {
+      "file": "text-area.png",
+      "title": "TextArea",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2363,
+        1316,
+        267
+      ],
+      "sha256": "6d57a89e43e88dbb28393c1ed8cda524e328cc82133ec1b0fd39f246e83823cf"
+    },
+    "check-box": {
+      "file": "check-box.png",
+      "title": "CheckBox",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2629,
+        1316,
+        219
+      ],
+      "sha256": "6b987c96b622dc6ff2783a1f008eb4811b01e67db00a4df064bef40f550f46bd"
+    },
+    "radio-button": {
+      "file": "radio-button.png",
+      "title": "RadioButton",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2847,
+        1316,
+        195
+      ],
+      "sha256": "8a06533e5710ec4d1c73f58c0336ef068532cc2cfc4db11bbe0fc140161283ef"
+    },
+    "labeled-choices": {
+      "file": "labeled-choices.png",
+      "title": "CheckBoxWithText / RadioButtonWithText",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3041,
+        1316,
+        277
+      ],
+      "sha256": "548e83fa5e57b44a58fad4968f2c941e4e2a9b8869e3bdf64a9e25f5781b380e"
+    },
+    "drop-down-list": {
+      "file": "drop-down-list.png",
+      "title": "DropDownList",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3317,
+        1316,
+        237
+      ],
+      "sha256": "b3c0ba423fe00212ca24a7272f86d20637add2b4630e16337886bf90a35c4ef6"
+    },
+    "button": {
+      "file": "button.png",
+      "title": "Button",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3553,
+        1316,
+        239
+      ],
+      "sha256": "31a6b9d65bae8dcb3558740be7d0aae65a59c4a6febb32f0416a4bd5f217f87a"
+    },
+    "popup-launchers": {
+      "file": "popup-launchers.png",
+      "title": "Popup",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3791,
+        1316,
+        213
+      ],
+      "sha256": "f0c3e493ae26b85cffe1fe588e8558d9b1b4853369a95330355ebf7b0ba62945"
+    },
+    "file-loader": {
+      "file": "file-loader.png",
+      "title": "FileLoader",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4003,
+        1316,
+        237
+      ],
+      "sha256": "b57455a677d450dbd8bf6e266d7eef20a8bc9d6ed5a4efdc03a58f4f4412cb27"
+    },
+    "image-widget": {
+      "file": "image-widget.png",
+      "title": "ImageWidget",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4239,
+        1316,
+        265
+      ],
+      "sha256": "a2e0a2803cb489c71d087b0a60d0116ec6a1c84e77cd8625b44cd00ca99ab076"
+    },
+    "active-image": {
+      "file": "active-image.png",
+      "title": "ActiveImage",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4503,
+        1316,
+        289
+      ],
+      "sha256": "fbf6f5e2d60eda55057821ca04fc93d3ca708bc9b6fec6db31d0ddc6a6bc8135"
+    },
+    "overlay-stack": {
+      "file": "overlay-stack.png",
+      "title": "OverlayStack",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4791,
+        1316,
+        289
+      ],
+      "sha256": "568ed6ef4129e550ec883fb3a2270d8f22faa4c12ada42e026ea5265776817a5"
+    },
+    "table": {
+      "file": "table.png",
+      "title": "Table",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        5079,
+        1316,
+        466
+      ],
+      "sha256": "c3501784524fd751329ed92da4f49243a0edecf2ab943398451fe9ce6d7f2a61"
+    },
+    "sortable-section": {
+      "file": "sortable-section.png",
+      "title": "SortableSection",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        5544,
+        1316,
+        187
+      ],
+      "sha256": "c068b59a23deb161f2d68374f1b61684fdf0174d618dcf5ebeb183e928c541f2"
+    },
+    "zoom-decorator": {
+      "file": "zoom-decorator.png",
+      "title": "ZoomDecorator",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        5730,
+        1316,
+        357
+      ],
+      "sha256": "32777a6c8feb27a1dfe93407c3ed0b067c3c5e58861a990a7a22438209527fbe"
+    },
+    "layout-composition": {
+      "file": "layout-composition.png",
+      "title": "Layout composition",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        6086,
+        1316,
+        187
+      ],
+      "sha256": "5fde813b6477fb2d4e286f66d2d8df1449338cd1df58ae5ed788158d57e1ac25"
+    },
+    "countdown": {
+      "file": "countdown.png",
+      "title": "Countdown",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        6272,
+        1316,
+        213
+      ],
+      "sha256": "8542b19b7ed1dc0dd70f58ce4d6a9d4c61dc62699129da1e09152c94c62443f3"
+    },
+    "carousel": {
+      "file": "carousel.png",
+      "title": "Carousel",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        6484,
+        1316,
+        277
+      ],
+      "sha256": "b08a460c3668e0ba9ab740de65b5fa7aa2c13646f993316992976c6abeb83769"
+    },
+    "message-popup": {
+      "file": "message-popup.png",
+      "title": "MessagePopup",
+      "states": "Открытое сообщение; видна модальная подложка вокруг окна.",
+      "sourceScreenshot": "message-popup.jpg",
+      "crop": [
+        430,
+        365,
+        490,
+        215
+      ],
+      "sha256": "9e95f82b784ee8b1875875dcca2ff98c20ad26702e63e3e1d863f923697758e0"
+    },
+    "popup": {
+      "file": "popup.png",
+      "title": "Popup",
+      "states": "Открытое немодальное окно; фон страницы остаётся активным.",
+      "sourceScreenshot": "popup.jpg",
+      "crop": [
+        475,
+        370,
+        400,
+        200
+      ],
+      "sha256": "32d2d9871305689502d5b1699bee449094db2a37a9614493b36ce014c78fa3e1"
+    },
+    "modal-popup": {
+      "file": "modal-popup.png",
+      "title": "ModalPopup",
+      "states": "Открытое модальное окно с произвольным содержимым и полем ввода.",
+      "sourceScreenshot": "modal-popup.jpg",
+      "crop": [
+        460,
+        350,
+        430,
+        235
+      ],
+      "sha256": "5eaf340deccb0c18b82b87cf83ef189a9491b5e43ef4eb9c92fdfb5a4459b7f4"
+    },
+    "suggestion-open": {
+      "file": "suggestion-open.png",
+      "title": "SuggestionField — раскрытый список",
+      "states": "Фокус в поле, открыт список подсказок перед выбором с клавиатуры.",
+      "sourceScreenshot": "suggestion-open.jpg",
+      "crop": [
+        25,
+        320,
+        1285,
+        356
+      ],
+      "sha256": "4324bf91e71bed06a4678e26f578e39102eaac761656a43f09434dd6b27a8b1d"
+    },
+    "carousel-selected": {
+      "file": "carousel-selected.png",
+      "title": "Carousel — второй слайд",
+      "states": "После drag браузер показал 2 / 3; Java обновила подпись Selected image: 2.",
+      "sourceScreenshot": "carousel-selected.jpg",
+      "crop": [
+        25,
+        640,
+        1285,
+        274
+      ],
+      "sha256": "2c55104bd5a3a645329f89f52cb569b6b770624133e88eef9ab7361760c5d6d2"
+    }
+  },
+  "widgets": {
+    "RootWidget": [
+      "root-widget"
+    ],
+    "StickyPanel": [
+      "sticky-panel"
+    ],
+    "HorizontalLine": [
+      "horizontal-line"
+    ],
+    "TextWidget": [
+      "text-widget"
+    ],
+    "Markdown": [
+      "markdown"
+    ],
+    "NoWrap": [
+      "no-wrap"
+    ],
+    "ActiveText": [
+      "active-text"
+    ],
+    "Link": [
+      "link"
+    ],
+    "InputField": [
+      "input-field"
+    ],
+    "SuggestionField": [
+      "suggestion-field",
+      "suggestion-open"
+    ],
+    "PasswordInput": [
+      "password-input"
+    ],
+    "TextArea": [
+      "text-area"
+    ],
+    "CheckBox": [
+      "check-box"
+    ],
+    "RadioButton": [
+      "radio-button"
+    ],
+    "CheckBoxWithText": [
+      "labeled-choices"
+    ],
+    "RadioButtonWithText": [
+      "labeled-choices"
+    ],
+    "DropDownList": [
+      "drop-down-list"
+    ],
+    "Button": [
+      "button"
+    ],
+    "FileLoader": [
+      "file-loader"
+    ],
+    "ImageWidget": [
+      "image-widget"
+    ],
+    "ActiveImage": [
+      "active-image"
+    ],
+    "OverlayStack": [
+      "overlay-stack"
+    ],
+    "Table": [
+      "table"
+    ],
+    "Row": [
+      "table"
+    ],
+    "Cell": [
+      "table"
+    ],
+    "SortableSection": [
+      "sortable-section"
+    ],
+    "ZoomDecorator": [
+      "zoom-decorator"
+    ],
+    "Panel": [
+      "layout-composition"
+    ],
+    "Section": [
+      "layout-composition"
+    ],
+    "InlineBlock": [
+      "layout-composition"
+    ],
+    "TextFlow": [
+      "layout-composition"
+    ],
+    "MarginDecorator": [
+      "layout-composition"
+    ],
+    "Countdown": [
+      "countdown"
+    ],
+    "Carousel": [
+      "carousel",
+      "carousel-selected"
+    ],
+    "MessagePopup": [
+      "message-popup"
+    ],
+    "Popup": [
+      "popup"
+    ],
+    "ModalPopup": [
+      "modal-popup"
+    ]
+  }
+}
