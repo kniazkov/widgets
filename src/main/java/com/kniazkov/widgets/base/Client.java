@@ -161,7 +161,7 @@ public final class Client implements Comparable<Client> {
                 response.addBoolean("tabContextExpired", true);
                 return;
             }
-            this.processEvents(request);
+            this.processEvents(request, response);
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
                 response.addBoolean("tabContextExpired", true);
@@ -231,7 +231,7 @@ public final class Client implements Comparable<Client> {
      *
      * @param request the map of client parameters containing the "events" key
      */
-    private void processEvents(final Map<String, String> request) {
+    private void processEvents(final Map<String, String> request, final JsonObject response) {
         if (!request.containsKey("events")) {
             return;
         }
@@ -242,7 +242,7 @@ public final class Client implements Comparable<Client> {
                 return;
             }
             if (events.size() == 1) {
-                processSingleEvent(events.get(0).toJsonObject().orElse(null));
+                processSingleEvent(events.get(0).toJsonObject().orElse(null), response);
                 return;
             }
             final Map<RMId, Widget<?>> map = new TreeMap<>();
@@ -254,7 +254,7 @@ public final class Client implements Comparable<Client> {
                 if (event == null) {
                     continue;
                 }
-                handleEventObject(event, map.get(getEventWidgetId(event)));
+                handleEventObject(event, map.get(getEventWidgetId(event)), response);
             }
 
         } catch (final JsonException ignored) {
@@ -264,7 +264,7 @@ public final class Client implements Comparable<Client> {
     /**
      * Handles a single event (used in the fast path).
      */
-    private void processSingleEvent(final JsonObject event) {
+    private void processSingleEvent(final JsonObject event, final JsonObject response) {
         if (event == null) {
             return;
         }
@@ -276,13 +276,14 @@ public final class Client implements Comparable<Client> {
                 break;
             }
         }
-        handleEventObject(event, widget);
+        handleEventObject(event, widget, response);
     }
 
     /**
      * Dispatches an event to its target widget.
      */
-    private void handleEventObject(final JsonObject event, final Widget<?> widget) {
+    private void handleEventObject(final JsonObject event, final Widget<?> widget,
+            final JsonObject response) {
         if (!this.tabContext.isActive() || widget == null
             || !event.containsKey("id") || !event.containsKey("type")) {
             return;
@@ -299,11 +300,23 @@ public final class Client implements Comparable<Client> {
         final JsonObject data = event.containsKey("data")
             ? event.get("data").toJsonObject().orElse(null)
             : new JsonObject();
-        if (data == null) {
-            return;
+        this.requireLiveSession();
+        final com.kniazkov.widgets.controller.Event<?> kind =
+            com.kniazkov.widgets.controller.Event.getByName(type);
+        final java.util.Optional<String> rejection =
+            widget.getRootWidget().orElse(null) != this.root
+                ? java.util.Optional.of("detachedWidget") : kind.rejectionReason(widget, data);
+        if (rejection.isPresent()) {
+            final JsonArray rejected = response.containsKey("rejectedEvents")
+                ? response.get("rejectedEvents").arrayValueOrThrow()
+                : response.createArray("rejectedEvents");
+            final JsonObject item = new JsonObject();
+            item.addString("id", serializedId);
+            item.addString("reason", rejection.get());
+            rejected.add(item);
+        } else {
+            widget.handleEvent(kind, data);
         }
-
-        widget.handleEvent(type, data);
         this.lastHandledEventId = eventId;
     }
 

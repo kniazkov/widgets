@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.controller.EventTestData;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.StringModel;
@@ -51,13 +52,13 @@ public class ClientProtocolTest {
         event.addString("id", RMId.create().toString());
         event.addString("widget", button.getId().toString());
         event.addString("type", "click");
-        event.createObject("data");
+        event.put("data", EventTestData.pointer());
         final String valid = "[" + event + "]";
         final java.util.List<String> payloads = new java.util.ArrayList<>();
         payloads.add(valid.substring(0, valid.length() - 1));
         payloads.add("{}");
         payloads.add("[null,42,[]]");
-        for (final String key : java.util.List.of("id", "widget", "type", "data")) {
+        for (final String key : java.util.List.of("id", "widget", "type")) {
             final JsonObject invalid = event.clone().objectValueOrThrow();
             invalid.addNumber(key, 42);
             payloads.add("[" + invalid + "]");
@@ -106,7 +107,7 @@ public class ClientProtocolTest {
         client.getRootWidget().add(new Section(button));
         final RMId eventId = RMId.create();
         final String event = "[{\"id\":\"" + eventId + "\",\"widget\":\""
-            + button.getId() + "\",\"type\":\"click\",\"data\":{}}]";
+            + button.getId() + "\",\"type\":\"click\",\"data\":" + EventTestData.pointer() + "}]";
         final Map<String, String> request = Collections.singletonMap("events", event);
         final JsonObject first = new JsonObject();
         final JsonObject second = new JsonObject();

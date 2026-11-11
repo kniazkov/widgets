@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.controller.EventTestData;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.client.OpenPageInNewTab;
 import com.kniazkov.widgets.controller.Event;
@@ -160,7 +161,7 @@ public final class WidgetEventTest {
             assertEquals("subscription count for " + widget.getType(), 1, subscription.size());
             assertEquals("click", subscription.get(0).get("event").stringValue());
 
-            sandbox.fire(Event.CLICK, new JsonObject());
+            sandbox.fire(Event.CLICK, EventTestData.pointer());
 
             assertEquals("click count for " + widget.getType(), 1, calls.get());
         }

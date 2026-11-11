@@ -143,6 +143,22 @@ public final class E2ETestServer {
             root.add(new Section(status, change, revoke));
             root.add(new Section(new Link("Next private page", "/channel-security-next")));
         };
+        application.addPage("event-validation", (root, context) -> {
+            final TextWidget status = new TextWidget("Accepted clicks: 0");
+            final var count = new java.util.concurrent.atomic.AtomicInteger();
+            final Button action = new Button("Guarded action");
+            action.disable();
+            action.onClick(event -> status.setText("Accepted clicks: " + count.incrementAndGet()));
+            final Button enable = new Button("Enable guarded action");
+            enable.onClick(event -> action.enable());
+            final InputField input = new InputField("initial input");
+            final TextWidget echo = new TextWidget("Echo: initial input");
+            input.onTextInput(value -> echo.setText("Echo: " + value));
+            final DropDownList select = new DropDownList("First", "Second");
+            final TextWidget selection = new TextWidget("Selected: -1");
+            select.onSelect(value -> selection.setText("Selected: " + value));
+            root.add(new Section(status, action, enable, input, echo, select, selection));
+        });
         application.addPage("channel-security", securityPage);
         application.addPage("channel-security-next", securityPage);
         final java.util.Set<java.util.UUID> modes =

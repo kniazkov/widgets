@@ -196,6 +196,11 @@ public final class DropDownList extends InlineWidget<DropDownListStyle>
     }
 
     @Override
+    public boolean acceptsSelectedIndex(final int index) {
+        return index >= -1 && index < this.options.size();
+    }
+
+    @Override
     public String getType() {
         return "drop down list";
     }

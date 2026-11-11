@@ -12,7 +12,11 @@ export default defineConfig({
         { name: "chromium", use: { browserName: "chromium" } },
         {
             name: "webkit-suggestions",
-            testMatch: ["suggestion-field.spec.js", "channel-security.spec.js"],
+            testMatch: [
+                "suggestion-field.spec.js",
+                "channel-security.spec.js",
+                "event-validation.spec.js"
+            ],
             use: { browserName: "webkit" }
         }
     ],

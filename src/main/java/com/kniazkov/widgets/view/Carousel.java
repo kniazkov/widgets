@@ -145,6 +145,11 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
     }
 
     @Override
+    public boolean acceptsSelectedIndex(final int index) {
+        return index >= 0 && index < this.sources.size();
+    }
+
+    @Override
     public String getType() {
         return "carousel";
     }

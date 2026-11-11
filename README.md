@@ -27,6 +27,9 @@ JavaScript error reports and logging boundaries.
 See [Client channel security](docs/CLIENT_CHANNEL_SECURITY.ru.md) for authenticated protocol
 requests, session revocation and the required public-origin setting behind a TLS reverse proxy.
 
+See [Server event validation](docs/SERVER_EVENT_VALIDATION.ru.md) for allowed widget events,
+payload limits, rejection responses and custom-input migration.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,
