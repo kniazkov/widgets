@@ -30,13 +30,21 @@ final class KillClient extends ActionHandler {
         super(application);
     }
 
+    /**
+     * @param application owning application
+     * @param access verified transport credentials
+     */
+    KillClient(final Application application, final ChannelAccess access) {
+        super(application, access);
+    }
+
     @Override
     JsonElement process(final Map<String, String> data) {
         boolean result = false;
 
         if (data.containsKey("client")) {
             RMId clientId = RMId.parse(data.get("client"));
-            result = application.killClient(clientId);
+            result = application.killClient(clientId, this.access);
 
             if (result) {
                 LOGGER.info("Client " + clientId + " is killed.");

@@ -25,6 +25,11 @@ public final class TabContext {
     private final UUID browserId;
 
     /**
+     * Server-verified transport owner, or null for unbound in-process contexts.
+     */
+    private BrowserSession browserSession;
+
+    /**
      * Maximum inactivity in nanoseconds.
      */
     private final long lifetime;
@@ -43,6 +48,23 @@ public final class TabContext {
      * Terminal revocation flag.
      */
     private boolean revoked;
+
+    /**
+     * @param session verified transport owner
+     * @param browserId untrusted application browser identifier
+     * @param milliseconds inactivity timeout
+     */
+    TabContext(final BrowserSession session, final UUID browserId, final long milliseconds) {
+        this(browserId, milliseconds);
+        this.browserSession = session;
+    }
+
+    /**
+     * @return verified transport owner, or null for an in-process context
+     */
+    BrowserSession getBrowserSession() {
+        return this.browserSession;
+    }
 
     /**
      * Creates an isolated document identity.
@@ -95,7 +117,7 @@ public final class TabContext {
         if (this.clock.getAsLong() - this.lastActivity >= this.lifetime) {
             this.revoked = true;
         }
-        return !this.revoked;
+        return !this.revoked && (this.browserSession == null || this.browserSession.isActive());
     }
 
     /**

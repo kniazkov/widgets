@@ -209,7 +209,7 @@ public class StaticSourcesHttpTest {
         assertEquals("", header(page, "ETag"));
         assertTrue(page.contains("configureUploadProtocol"));
         assertTrue(request("/?action=unknown", "If-None-Match: *\r\n")
-            .startsWith("HTTP/1.1 404"));
+            .startsWith("HTTP/1.1 405"));
     }
 
     /**

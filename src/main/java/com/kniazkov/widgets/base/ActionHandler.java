@@ -20,12 +20,26 @@ abstract class ActionHandler {
     protected final Application application;
 
     /**
+     * Verified HTTP credentials; null only for unbound in-process handlers.
+     */
+    protected final ChannelAccess access;
+
+    /**
      * Constructs a new action handler.
      *
      * @param application the application instance
      */
     ActionHandler(final Application application) {
+        this(application, null);
+    }
+
+    /**
+     * @param application owning application
+     * @param access verified transport credentials
+     */
+    ActionHandler(final Application application, final ChannelAccess access) {
         this.application = application;
+        this.access = access;
     }
 
     /**

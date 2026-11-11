@@ -53,6 +53,11 @@ public final class Application {
     private final ConcurrentMap<UUID, TabContext> tabs = new ConcurrentHashMap<>();
 
     /**
+     * Server-issued browser credentials, expired with the ordinary client idle budget.
+     */
+    private final ConcurrentMap<String, BrowserSession> browserSessions = new ConcurrentHashMap<>();
+
+    /**
      * Available pages in this application, keyed by path.
      */
     private final Map<String, Page> pages;
@@ -80,6 +85,39 @@ public final class Application {
         Watchdog watchdog = new Watchdog();
         watchdog.start(WATCHDOG_PERIOD);
     }
+
+    /**
+     * @param credential untrusted cookie
+     * @return active owner, or null without creating or renewing a session
+     */
+    BrowserSession browserSession(final String credential) {
+        final BrowserSession session = credential == null
+            ? null : this.browserSessions.get(credential);
+        return session != null && session.isActive() ? session : null;
+    }
+
+    /**
+     * @param credential optional cookie from a document GET
+     * @return an existing live owner or a newly issued independent owner
+     */
+    BrowserSession bootstrapSession(final String credential) {
+        final BrowserSession existing = this.browserSession(credential);
+        if (existing != null && existing.touch()) {
+            return existing;
+        }
+        final BrowserSession created = new BrowserSession(this.options.getClientLifetime());
+        this.browserSessions.put(created.credential(), created);
+        return created;
+    }
+
+    /**
+     * @param id newly created client
+     * @return channel secret for its initial authenticated response only
+     */
+    String channelToken(final RMId id) {
+        return this.clients.get(id).channelToken();
+    }
+
 
     /**
      * Returns the identifier shared by every client of this application instance.
@@ -144,14 +182,26 @@ public final class Application {
      * @return context, or null for an invalid token
      */
     TabContext resolveTab(final UUID browserId, final String token) {
+        return this.resolveTab(browserId, token, null);
+    }
+
+    /**
+     * @param browserId application browser metadata
+     * @param token optional document identity
+     * @param owner verified transport owner
+     * @return owned context, or null if invalid or revoked
+     */
+    TabContext resolveTab(final UUID browserId, final String token, final BrowserSession owner) {
         if (token == null) {
-            final TabContext tab = new TabContext(browserId, this.options.getClientLifetime());
+            final TabContext tab = new TabContext(
+                owner, browserId, this.options.getClientLifetime());
             this.tabs.put(tab.getId(), tab);
             return tab;
         }
         try {
             final TabContext tab = this.tabs.get(UUID.fromString(token));
-            if (tab != null && tab.getBrowserId().equals(browserId) && tab.touch()) {
+            if (tab != null && tab.getBrowserSession() == owner
+                    && tab.getBrowserId().equals(browserId) && tab.touch()) {
                 return tab;
             }
         } catch (final IllegalArgumentException invalid) {
@@ -171,7 +221,8 @@ public final class Application {
         this.counter++;
         if (context.tabContext == null) {
             context.tabContext = this.resolveTab(
-                context.browserId == null ? UUID.randomUUID() : context.browserId, null);
+                context.browserId == null ? UUID.randomUUID() : context.browserId, null,
+                context.browserSession);
         }
         final Client client = new Client(this.options, context.tabContext);
         client.timer = this.options.getClientLifetime();
@@ -196,6 +247,14 @@ public final class Application {
      * @param data diagnostic fields, never request payloads or form values
      */
     void reportBrowserError(final Map<String, String> data) {
+        this.reportBrowserError(data, null);
+    }
+
+    /**
+     * @param data bounded diagnostic fields
+     * @param access authenticated channel credentials
+     */
+    void reportBrowserError(final Map<String, String> data, final ChannelAccess access) {
         final Client client;
         try {
             client = this.clients.get(RMId.parse(data.get("client")));
@@ -206,6 +265,10 @@ public final class Application {
             return;
         }
         synchronized (client) {
+            ChannelAccess.require(access, client, this.serverId);
+            if (!client.getTabContext().isActive()) {
+                return;
+            }
             if (client.errorReported) {
                 return;
             }
@@ -213,6 +276,10 @@ public final class Application {
             String report = data.getOrDefault("error", "Unknown browser error");
             report = report.substring(0, Math.min(8192, report.length()));
             report = report.replaceAll("[\\p{Cntrl}]", " ");
+            report = report.replace(client.channelToken(), "[redacted]");
+            if (access != null) {
+                report = access.session.redact(report);
+            }
             LOGGER.severe("Browser-reported error; client=" + client.getId()
                 + "; server=" + this.serverId + "; detail=" + report);
         }
@@ -226,15 +293,26 @@ public final class Application {
      * @return {@code true} if the client was removed
      */
     boolean killClient(final RMId clientId) {
+        return this.killClient(clientId, null);
+    }
+
+    /**
+     * @param clientId target client
+     * @param access authenticated channel credentials
+     * @return whether a live owned client was removed
+     */
+    boolean killClient(final RMId clientId, final ChannelAccess access) {
         this.counter++;
-        final Client client = this.clients.remove(clientId);
-        if (client != null) {
+        final boolean[] removed = {false};
+        this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
+                ChannelAccess.require(access, client, this.serverId);
                 client.destroy();
+                removed[0] = true;
             }
-            return true;
-        }
-        return false;
+            return null;
+        });
+        return removed[0];
     }
 
 
@@ -261,9 +339,24 @@ public final class Application {
      */
     void synchronize(final RMId clientId, final Map<String, String> request,
                         final JsonObject response) {
+        this.synchronize(clientId, request, response, null);
+    }
+
+    /**
+     * @param clientId target client
+     * @param request synchronization data
+     * @param response response destination
+     * @param access authenticated channel credentials
+     */
+    void synchronize(final RMId clientId, final Map<String, String> request,
+            final JsonObject response, final ChannelAccess access) {
         this.counter++;
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
+                ChannelAccess.require(access, client, this.serverId);
+                if (access != null && !access.session.touch()) {
+                    throw new ProtocolAccessException(true);
+                }
                 if (!client.getTabContext().touch()) {
                     response.addBoolean("tabContextExpired", true);
                     return client;
@@ -298,10 +391,30 @@ public final class Application {
             final int chunkIndex,
             final byte[] data,
             final String lastUpdate) {
+        return this.uploadChunk(clientId, widgetId, fileId, chunkIndex, data, lastUpdate, null);
+    }
+
+    /**
+     * @param clientId target client
+     * @param widgetId target file loader
+     * @param fileId browser-local file ID
+     * @param chunkIndex chunk position
+     * @param data binary data
+     * @param lastUpdate checkpoint
+     * @param access authenticated channel credentials
+     * @return upload acknowledgement
+     */
+    JsonObject uploadChunk(final RMId clientId, final RMId widgetId, final int fileId,
+            final int chunkIndex, final byte[] data, final String lastUpdate,
+            final ChannelAccess access) {
         this.counter++;
         final JsonObject[] result = {UploadProtocol.rejected()};
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
+                ChannelAccess.require(access, client, this.serverId);
+                if (access != null && !access.session.touch()) {
+                    throw new ProtocolAccessException(true);
+                }
                 if (!client.getTabContext().touch()) {
                     return client;
                 }
@@ -326,6 +439,7 @@ public final class Application {
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
+            browserSessions.entrySet().removeIf(entry -> !entry.getValue().isActive());
             tabs.entrySet().removeIf(entry -> !entry.getValue().isActive());
             for (final Map.Entry<RMId, Client> entry : clients.entrySet()) {
                 final RMId id = entry.getKey();

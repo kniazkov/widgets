@@ -37,6 +37,11 @@ public class HttpHandlerSecurityTest {
     private com.kniazkov.webserver.Server server;
 
     /**
+     * Credentials for authenticated protocol tests.
+     */
+    private ProtocolTestBrowser browser;
+
+    /**
      * Stops the Java 21 server, whose accept loop deliberately keeps the JVM alive.
      */
     @After
@@ -209,7 +214,7 @@ public class HttpHandlerSecurityTest {
     }
 
     /**
-     * Empty and unknown actions keep their existing not-found response for both methods.
+     * Unknown POST actions return not-found; GET actions are never dispatched.
      */
     @Test
     public void rejectsEmptyAndUnknownActions() throws Exception {
@@ -218,7 +223,7 @@ public class HttpHandlerSecurityTest {
             assertTrue(this.request("POST", "/", "action=" + action)
                 .startsWith("HTTP/1.1 404"));
             assertTrue(this.request("GET", "/?action=" + action, null)
-                .startsWith("HTTP/1.1 404"));
+                .startsWith("HTTP/1.1 405"));
         }
     }
 
@@ -276,7 +281,7 @@ public class HttpHandlerSecurityTest {
     /**
      * Starts the framework on an ephemeral loopback port.
      */
-    private Options start(final File root, final WebFont... fonts) {
+    private Options start(final File root, final WebFont... fonts) throws Exception {
         final Options.Builder builder = new Options.Builder()
             .setPort(0)
             .setBindAddress(InetAddress.getLoopbackAddress())
@@ -292,13 +297,14 @@ public class HttpHandlerSecurityTest {
     /**
      * Starts an application with custom document options.
      */
-    private Options start(final Options.Builder builder) {
+    private Options start(final Options.Builder builder) throws Exception {
         final Options options = builder.setPort(0)
             .setBindAddress(InetAddress.getLoopbackAddress()).build();
         final Page page = (widget, context) -> { };
         final Application application = BaseTestSupport.application(page);
         application.addPage("page", page);
         this.server = Server.start(application, options);
+        this.browser = new ProtocolTestBrowser(this.server.getPort());
         return options;
     }
 
@@ -348,6 +354,11 @@ public class HttpHandlerSecurityTest {
                 .append(method).append(' ').append(target).append(" HTTP/1.1\r\n")
                 .append("Host: localhost\r\n")
                 .append("Connection: close\r\n");
+            if ("POST".equals(method) && this.browser != null) {
+                headers.append("Cookie: ").append(this.browser.cookie).append("\r\n")
+                    .append("X-Widgets-Session: ").append(this.browser.session).append("\r\n")
+                    .append("X-Widgets-CSRF: ").append(this.browser.csrf).append("\r\n");
+            }
             if (body != null) {
                 headers.append("Content-Type: ").append(contentType).append("\r\n")
                     .append("Content-Length: ").append(content.length).append("\r\n");

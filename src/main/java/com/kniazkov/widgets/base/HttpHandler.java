@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
@@ -14,6 +15,8 @@ import com.kniazkov.webserver.HttpStatus;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseFactory;
+import com.kniazkov.webserver.ResponseCookie;
+import com.kniazkov.webserver.SameSite;
 import com.kniazkov.webserver.ServerException;
 import com.kniazkov.webserver.UploadedFile;
 import java.io.ByteArrayOutputStream;
@@ -58,11 +61,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     private final Application application;
 
     /**
-     * Registered action handlers (e.g. "new instance", "synchronize", etc.).
-     */
-    private final Map<String, ActionHandler> actionHandlers;
-
-    /**
      * Various options.
      */
     private final Options options;
@@ -75,10 +73,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      */
     HttpHandler(final Application application, final Options options) {
         this.application = application;
-        this.actionHandlers = new TreeMap<>();
-        this.actionHandlers.put("new instance", new CreateClient(application));
-        this.actionHandlers.put("synchronize", new Synchronize(application));
-        this.actionHandlers.put("kill", new KillClient(application));
         this.options = options;
     }
 
@@ -101,6 +95,12 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             throws ServerException {
         try {
             return this.route(request, environment);
+        } catch (final ProtocolAccessException denied) {
+            final JsonObject result = new JsonObject();
+            result.addBoolean(denied.sessionExpired() ? "sessionExpired" : "accessDenied", true);
+            return environment.getResponseFactory().custom(HttpStatus.FORBIDDEN,
+                ContentType.APPLICATION_JSON, result.toString().getBytes(StandardCharsets.UTF_8))
+                .setHeader("Cache-Control", "no-store").build();
         } catch (final ServerException | RuntimeException | Error failure) {
             LOGGER.log(Level.SEVERE, "Widgets HTTP request failed; "
                 + RequestDiagnostics.describe(request), failure);
@@ -141,22 +141,36 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     .setHeader("X-Widgets-Request-Id", requestId)
                     .setHeader("Cache-Control", "no-store").build();
             }
-            if (method == HttpMethod.POST && "upload chunk".equals(action)) {
-                return responses.fromJson(
-                    this.handleUploadChunk(request, parameters).toString()
-                ).build();
+            if (method != HttpMethod.POST) {
+                return responses.custom(HttpStatus.METHOD_NOT_ALLOWED, ContentType.TEXT_PLAIN,
+                    new byte[0]).setHeader("Allow", "POST")
+                    .setHeader("Cache-Control", "no-store").build();
             }
-            if (method == HttpMethod.POST && "report error".equals(action)) {
-                this.application.reportBrowserError(parameters);
-                return responses.fromJson("{}").build();
+            final ChannelAccess access = this.authorize(request);
+            final JsonElement result;
+            switch (action) {
+                case "upload chunk":
+                    result = this.handleUploadChunk(request, parameters, access);
+                    break;
+                case "report error":
+                    this.application.reportBrowserError(parameters, access);
+                    result = new JsonObject();
+                    break;
+                case "new instance":
+                    result = new CreateClient(this.application, access).process(parameters);
+                    break;
+                case "synchronize":
+                    result = new Synchronize(this.application, access).process(parameters);
+                    break;
+                case "kill":
+                    result = new KillClient(this.application, access).process(parameters);
+                    break;
+                default:
+                    return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN,
+                        new byte[0]).setHeader("Cache-Control", "no-store").build();
             }
-            final ActionHandler handler = actionHandlers.get(action);
-            if (handler != null) {
-                return responses.fromJson(
-                    handler.process(parameters).toString()
-                ).build();
-            }
-            return responses.notFound();
+            return responses.fromJson(result.toString())
+                .setHeader("Cache-Control", "no-store").build();
         }
 
         final String address;
@@ -175,6 +189,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             replaceAddress = false;
         }
 
+        final BrowserSession session = replaceAddress
+            ? this.application.bootstrapSession(ProtocolSecurity.cookie(request, this.options))
+            : null;
         final int dot = address.lastIndexOf('.');
         final ContentType contentType = ContentType.fromExtension(
             dot > address.lastIndexOf('/') ? address.substring(dot + 1) : "");
@@ -209,6 +226,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             }
                             code = code
                                 .replace("__SHARED_SCRIPTS__", BrowserScripts.sharedTags())
+                                .replace("__PROTOCOL_CSRF__", session.csrf())
+                                .replace("__PROTOCOL_SESSION__", session.getId().toString())
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", requestPath)
                                 .replace("{data}", escapeInlineScriptData(obj.toString()))
@@ -263,6 +282,10 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                  * Page bootstrap contains a new session and request-specific parameters.
                  */
                 return responses.custom(HttpStatus.OK, contentType, data)
+                    .setCookie(new ResponseCookie.Builder(ProtocolSecurity.cookieName(this.options),
+                        session.credential()).setPath("/").setHttpOnly(true)
+                        .setSecure(ProtocolSecurity.secureCookie(this.options))
+                        .setSameSite(SameSite.STRICT).build())
                     .setHeader("Cache-Control", "no-store").build();
             }
             final String hash = StaticSource.contentHash(data);
@@ -299,6 +322,39 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
          * Resource not found
          */
         return responses.notFound();
+    }
+
+    /**
+     * Verifies common credentials before dispatch; the client owner is checked under its lock.
+     * @param request protocol POST request
+     * @return authenticated request context
+     */
+    private ChannelAccess authorize(final Request request) {
+        if (!ProtocolSecurity.sameOrigin(request, this.options)) {
+            throw new ProtocolAccessException(false);
+        }
+        final BrowserSession session = this.application.browserSession(
+            ProtocolSecurity.cookie(request, this.options));
+        if (session == null) {
+            throw new ProtocolAccessException(true);
+        }
+        final String documentSession = ProtocolSecurity.header(request, "X-Widgets-Session");
+        if (documentSession == null) {
+            throw new ProtocolAccessException(false);
+        }
+        if (!session.getId().toString().equals(documentSession)) {
+            /*
+             * Another document rotated the shared cookie after logout. Reload this document
+             * instead of treating its now-stale CSRF token as a permanently broken client.
+             */
+            throw new ProtocolAccessException(true);
+        }
+        if (!ProtocolSecurity.matches(session.csrf(), ProtocolSecurity.header(request,
+                "X-Widgets-CSRF"))) {
+            throw new ProtocolAccessException(false);
+        }
+        return new ChannelAccess(session, ProtocolSecurity.header(request, "X-Widgets-Channel"),
+            ProtocolSecurity.header(request, "X-Widgets-Epoch"));
     }
 
     /**
@@ -339,12 +395,14 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      *
      * @param request immutable web-server request
      * @param parameters flattened multipart fields
+     * @param access verified transport credentials
      * @return serialized upload acknowledgement
      * @throws ServerException if the temporary upload data cannot be read
      */
     private JsonObject handleUploadChunk(
             final Request request,
-            final Map<String, String> parameters) throws ServerException {
+            final Map<String, String> parameters, final ChannelAccess access)
+            throws ServerException {
         final List<UploadedFile> files = request.getFiles().get("chunk");
         if (request.getFiles().size() != 1 || files == null || files.size() != 1) {
             return UploadProtocol.rejected();
@@ -372,7 +430,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 fileId,
                 chunkIndex,
                 chunk.readAllBytes(),
-                parameters.get("lastUpdate")
+                parameters.get("lastUpdate"),
+                access
             );
         } catch (final NumberFormatException | NullPointerException ignored) {
             return UploadProtocol.rejected();

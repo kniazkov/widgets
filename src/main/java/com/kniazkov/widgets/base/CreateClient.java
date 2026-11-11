@@ -32,6 +32,14 @@ final class CreateClient extends ActionHandler {
         super(application);
     }
 
+    /**
+     * @param application owning application
+     * @param access verified transport credentials
+     */
+    CreateClient(final Application application, final ChannelAccess access) {
+        super(application, access);
+    }
+
     @Override
     JsonElement process(final Map<String, String> data) {
         final String address = data.get("address");
@@ -58,13 +66,21 @@ final class CreateClient extends ActionHandler {
         parameters.remove("browserId");
         parameters.remove("mobile");
         parameters.remove("tabId");
+        parameters.remove("channelToken");
+        parameters.remove("serverId");
+        parameters.remove("csrfToken");
 
         /*
          * Prepare a container for request-specific settings passed to a page
          */
         final PageContext context = new PageContext();
         context.browserId = parsedBrowserId;
-        context.tabContext = this.application.resolveTab(parsedBrowserId, data.get("tabId"));
+        context.browserSession = this.access == null ? null : this.access.session;
+        if (context.browserSession != null && !context.browserSession.touch()) {
+            throw new ProtocolAccessException(true);
+        }
+        context.tabContext = this.application.resolveTab(
+            parsedBrowserId, data.get("tabId"), context.browserSession);
         if (context.tabContext == null) {
             final JsonObject expired = new JsonObject();
             expired.addBoolean("result", false);
@@ -88,6 +104,8 @@ final class CreateClient extends ActionHandler {
          */
         JsonObject obj = new JsonObject();
         obj.addString("id", id);
+        obj.addString("channelToken", this.application.channelToken(
+            com.kniazkov.widgets.common.RMId.parse(id)));
         obj.addString("tabId", context.tabContext.getId().toString());
         obj.addString("serverId", this.application.getServerId().toString());
 

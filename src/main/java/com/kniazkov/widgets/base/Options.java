@@ -22,6 +22,11 @@ public final class Options {
     private final String title;
 
     /**
+     * Explicit external HTTP(S) origin, required behind a TLS/re-hosting proxy.
+     */
+    private final String publicOrigin;
+
+    /**
      * Public favicon URL.
      */
     private final String faviconUrl;
@@ -133,6 +138,7 @@ public final class Options {
      */
     private Options(final Builder builder) {
         this.title = builder.title;
+        this.publicOrigin = builder.publicOrigin;
         this.faviconUrl = builder.faviconUrl;
         this.description = builder.description;
         this.robots = builder.robots;
@@ -148,6 +154,14 @@ public final class Options {
         this.debug = builder.debug;
         this.webFonts = List.copyOf(builder.webFonts);
         this.staticSources = List.copyOf(builder.staticSources);
+    }
+
+    /**
+     * Returns the trusted origin used for protocol requests and session cookies.
+     * @return configured external origin, or empty for the direct listener origin
+     */
+    public String getPublicOrigin() {
+        return this.publicOrigin;
     }
 
     /**
@@ -304,6 +318,11 @@ public final class Options {
         private String title = "";
 
         /**
+         * Explicit external origin; forwarding headers are never trusted implicitly.
+         */
+        private String publicOrigin = "";
+
+        /**
          * Public favicon URL.
          */
         private String faviconUrl = "";
@@ -377,6 +396,22 @@ public final class Options {
          * Public static resource mounts.
          */
         private final List<StaticSource> staticSources = new ArrayList<>();
+
+        /**
+         * Sets the external origin used by CSRF checks and Secure session cookies.
+         * Configure this explicitly behind a reverse proxy; forwarded headers are ignored.
+         * @param value absolute HTTP(S) origin, without a path, query or credentials
+         * @return this builder
+         */
+        public Builder setPublicOrigin(final String value) {
+            Objects.requireNonNull(value, "Public origin must not be null");
+            final String normalized = ProtocolSecurity.origin(value);
+            if (normalized == null) {
+                throw new IllegalArgumentException("Public origin must be an HTTP(S) origin");
+            }
+            this.publicOrigin = normalized;
+            return this;
+        }
 
         /**
          * Sets the browser tab title on every application page.

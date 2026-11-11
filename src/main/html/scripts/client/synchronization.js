@@ -30,7 +30,7 @@ function sendSynchronizeRequest(callback) {
             sendSynchronizeRequest();
         }
     };
-    sendRequest(
+    sendClientRequest(
         {
             action: "synchronize",
             client: clientId,

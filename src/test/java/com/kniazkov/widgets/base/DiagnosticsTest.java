@@ -111,16 +111,15 @@ public final class DiagnosticsTest {
         final com.kniazkov.webserver.Server server = Server.start(application,
             new Options.Builder().setPort(0).build());
         try {
-            final HttpResponse<String> response = HttpClient.newHttpClient().send(
-                HttpRequest.newBuilder(URI.create("http://localhost:" + server.getPort()
-                    + "/?action=new%20instance&address=/&mobile=false"
-                    + "&browserId=00000000-0000-0000-0000-000000000001")).GET().build(),
-                HttpResponse.BodyHandlers.ofString());
+            final var browser = new ProtocolTestBrowser(server.getPort());
+            final HttpResponse<String> response = browser.post(Map.of("action", "new instance",
+                "address", "/", "mobile", "false", "browserId", ProtocolTestBrowser.BROWSER_ID),
+                browser.headers(null));
             assertEquals(500, response.statusCode());
             assertFalse(response.body().contains("private-test-message"));
             assertEquals(1, capture.records.size());
             assertSame(failure, capture.records.get(0).getThrown());
-            assertTrue(capture.records.get(0).getMessage().contains("method=GET path=/ "));
+            assertTrue(capture.records.get(0).getMessage().contains("method=POST path=/ "));
             assertFalse(capture.records.get(0).getMessage().contains("browserId="));
         } finally {
             server.stop();

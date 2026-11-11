@@ -24,6 +24,9 @@ See [Color strings](docs/COLORS.md) for syntax, examples and compatibility rules
 See [Request and browser diagnostics](docs/DIAGNOSTICS.md) for exception propagation,
 JavaScript error reports and logging boundaries.
 
+See [Client channel security](docs/CLIENT_CHANNEL_SECURITY.ru.md) for authenticated protocol
+requests, session revocation and the required public-origin setting behind a TLS reverse proxy.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,

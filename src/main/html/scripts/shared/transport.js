@@ -3,6 +3,14 @@
  */
 
 const server = window.location.protocol + "//" + window.location.host;
+let protocolCsrf = null;
+let protocolSession = null;
+
+// The document bootstrap proves access to this origin; credentials never enter URLs/storage.
+function configureProtocolSecurity(csrf, session) {
+    protocolCsrf = csrf;
+    protocolSession = session;
+}
 
 // Creates an independent transport so overlapping protocol requests cannot abort each other.
 function getXmlHttp() {
@@ -23,11 +31,11 @@ function getXmlHttp() {
 }
 
 // Object-valued fields are serialized as JSON; POST and file requests use multipart form data.
-function sendRequest(query, callback, method, files) {
+function sendRequest(query, callback, method, files, channel) {
     const req = getXmlHttp();
     let form = null;
     const hasFiles = files && files.length;
-    const post = method == "post" || hasFiles;
+    const post = typeof query.action === "string" || method == "post" || hasFiles;
     if (post) {
         form = new FormData();
         for (const key in query) {
@@ -63,6 +71,14 @@ function sendRequest(query, callback, method, files) {
         }
         req.open("GET", server + "?" + queryString, true);
     }
+    if (typeof query.action === "string") {
+        if (protocolSession) req.setRequestHeader("X-Widgets-Session", protocolSession);
+        if (protocolCsrf) req.setRequestHeader("X-Widgets-CSRF", protocolCsrf);
+        if (channel) {
+            req.setRequestHeader("X-Widgets-Channel", channel.token);
+            req.setRequestHeader("X-Widgets-Epoch", channel.epoch);
+        }
+    }
     let completed = false;
     const complete = function (data) {
         if (completed) {
@@ -83,7 +99,17 @@ function sendRequest(query, callback, method, files) {
                     "requestId=" + (req.getResponseHeader("X-Widgets-Request-Id") || "unavailable")
                 );
             }
-            if (req.status >= 500 && req.status <= 599) {
+            if (req.status === 403) {
+                let expired = false;
+                try {
+                    expired = JSON.parse(req.responseText).sessionExpired === true;
+                } catch {
+                    // An unrecognized denial is terminal, never an automatic retry loop.
+                }
+                complete(
+                    JSON.stringify(expired ? { sessionExpired: true } : { accessDenied: true })
+                );
+            } else if (req.status >= 500 && req.status <= 599) {
                 complete(
                     JSON.stringify({ result: false, clientError: true, httpStatus: req.status })
                 );
