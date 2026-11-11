@@ -16,6 +16,7 @@
     </head>
     <body>
         <script>
+            configureProtocolSecurity("__PROTOCOL_CSRF__", "__PROTOCOL_SESSION__");
             configureUploadProtocol(__UPLOAD_CHUNK_SIZE__, __MAX_UPLOAD_FILE_SIZE__);
 
             addEvent(window, "load", function() {

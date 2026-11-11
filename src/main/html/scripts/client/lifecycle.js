@@ -8,10 +8,22 @@ const tabContext = pageContext?.tab || { id: null };
 let clientDisposed = false;
 let clientId = null;
 let serverId = null;
+let channelToken = null;
 let browserId = null;
 const period = 2500;
 let mainCycleTask = null;
 let clientCreationInProgress = false;
+
+// Always attach the credentials of this runtime, including cleanup of a late creation.
+function sendClientRequest(query, callback, method, files, channel) {
+    sendRequest(
+        query,
+        callback,
+        method,
+        files,
+        channel || { token: channelToken, epoch: serverId }
+    );
+}
 
 function initClient(sessionId, address, data) {
     browserId = localStorage.getItem("browserId");
@@ -22,7 +34,7 @@ function initClient(sessionId, address, data) {
     if (!pageContext) {
         window.addEventListener("beforeunload", function () {
             if (clientId != null) {
-                sendRequest({
+                sendClientRequest({
                     action: "kill",
                     client: clientId
                 });
@@ -72,7 +84,10 @@ function startClient(address, data) {
             }
             if (clientDisposed) {
                 if (typeof json.id === "string") {
-                    sendRequest({ action: "kill", client: json.id });
+                    sendClientRequest({ action: "kill", client: json.id }, null, "post", null, {
+                        token: json.channelToken,
+                        epoch: json.serverId
+                    });
                 }
                 return;
             }
@@ -88,7 +103,11 @@ function startClient(address, data) {
             if (responseHasClientError(json)) {
                 return;
             }
-            if (typeof json.id !== "string" || typeof json.serverId !== "string") {
+            if (
+                typeof json.id !== "string" ||
+                typeof json.serverId !== "string" ||
+                typeof json.channelToken !== "string"
+            ) {
                 recordRequestFailure();
                 retryClientCreation(address, request);
                 return;
@@ -96,7 +115,10 @@ function startClient(address, data) {
             if (typeof json.tabId === "string") {
                 if (tabContext.id && tabContext.id !== json.tabId) {
                     // A concurrent initial navigation already established the document's context.
-                    sendRequest({ action: "kill", client: json.id });
+                    sendClientRequest({ action: "kill", client: json.id }, null, "post", null, {
+                        token: json.channelToken,
+                        epoch: json.serverId
+                    });
                     retryClientCreation(address, request);
                     return;
                 }
@@ -105,6 +127,7 @@ function startClient(address, data) {
             recordRequestSuccess();
             clientId = json.id;
             serverId = json.serverId;
+            channelToken = json.channelToken;
             log("Client created, id: " + clientId + ".");
             mainCycleTask = setInterval(mainCycle, period);
             mainCycle();
@@ -134,7 +157,7 @@ function disposeClient() {
     disposeCountdowns();
     clearInterval(mainCycleTask);
     if (clientId != null) {
-        sendRequest({ action: "kill", client: clientId });
+        sendClientRequest({ action: "kill", client: clientId });
     }
 }
 
@@ -153,6 +176,7 @@ function reset() {
         return true;
     }
     clientId = null;
+    channelToken = null;
     clearInterval(mainCycleTask);
     document.body.innerHTML = "";
     startClient();

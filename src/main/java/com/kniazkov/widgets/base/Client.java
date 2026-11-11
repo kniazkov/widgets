@@ -39,6 +39,11 @@ public final class Client implements Comparable<Client> {
     private final RMId id;
 
     /**
+     * Independent 256-bit secret for this page, never a widget ID or browser ID.
+     */
+    private final String channelToken = ProtocolSecurity.secret();
+
+    /**
      * Client expiration timer in milliseconds.
      * When this value reaches zero, the client is considered expired and should be removed.
      * It is the responsibility of external code (e.g., a scheduler) to decrement this timer
@@ -102,6 +107,13 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
+     * @return channel secret, only for authenticated creation and verification
+     */
+    String channelToken() {
+        return this.channelToken;
+    }
+
+    /**
      * Returns the unique identifier assigned to this client.
      *
      * @return client ID
@@ -144,11 +156,17 @@ public final class Client implements Comparable<Client> {
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
         synchronized (this.root) {
+            this.requireLiveSession();
             if (!this.tabContext.isActive()) {
                 response.addBoolean("tabContextExpired", true);
                 return;
             }
             this.processEvents(request);
+            this.requireLiveSession();
+            if (!this.tabContext.isActive()) {
+                response.addBoolean("tabContextExpired", true);
+                return;
+            }
             this.collectUpdates(request.get("lastUpdate"));
             this.serializeUpdates(response);
         }
@@ -171,6 +189,7 @@ public final class Client implements Comparable<Client> {
             final byte[] data,
             final String lastUpdate) {
         synchronized (this.root) {
+            this.requireLiveSession();
             if (!this.tabContext.isActive()) {
                 return UploadProtocol.rejected();
             }
@@ -184,6 +203,10 @@ public final class Client implements Comparable<Client> {
                     if (response == UploadProtocol.rejected()) {
                         return response;
                     }
+                    this.requireLiveSession();
+                    if (!this.tabContext.isActive()) {
+                        return UploadProtocol.rejected();
+                    }
                     this.collectUpdates(lastUpdate);
                     this.serializeUpdates(response);
                     return response;
@@ -191,6 +214,16 @@ public final class Client implements Comparable<Client> {
             }
         }
         return UploadProtocol.rejected();
+    }
+
+    /**
+     * Rechecks revocation after waiting for the root and after application callbacks.
+     */
+    private void requireLiveSession() {
+        final BrowserSession owner = this.tabContext.getBrowserSession();
+        if (owner != null && !owner.isActive()) {
+            throw new ProtocolAccessException(true);
+        }
     }
 
     /**

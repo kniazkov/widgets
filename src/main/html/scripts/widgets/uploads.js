@@ -151,7 +151,7 @@ function sendNextUploadChunk() {
     const offset = file.nextChunk * uploadProtocol.chunkSize;
     const chunk = file.source.slice(offset, Math.min(file.size, offset + uploadProtocol.chunkSize));
     uploadRequestInFlight = true;
-    sendRequest(
+    sendClientRequest(
         {
             action: "upload chunk",
             client: clientId,

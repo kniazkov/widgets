@@ -57,7 +57,7 @@ function showClientError(error) {
                     0,
                     8192
                 );
-                sendRequest(
+                sendClientRequest(
                     { action: "report error", client: clientId, error: detail },
                     null,
                     "post"
@@ -79,7 +79,16 @@ function showClientError(error) {
 }
 
 function responseHasClientError(response) {
-    if (response && response.clientError === true) {
+    if (response?.sessionExpired === true) {
+        if (!reloadRequested && !clientDisposed) {
+            reloadRequested = true;
+            clientFailed = true;
+            clearInterval(mainCycleTask);
+            window.location.reload();
+        }
+        return true;
+    }
+    if (response && (response.clientError === true || response.accessDenied === true)) {
         showClientError();
         return true;
     }

@@ -50,6 +50,7 @@ function harness(head = "") {
             "synchronize",
             {
                 serverId: "server",
+                channelToken: "test-channel",
                 clientAlive: true,
                 result: true,
                 lastEvent: "#0",
@@ -60,7 +61,7 @@ function harness(head = "") {
         );
     }
     function created(id, text = id, tabId) {
-        answer("new instance", { id, serverId: "server", tabId });
+        answer("new instance", { id, serverId: "server", channelToken: "test-channel", tabId });
         updates(id, [
             { id: "#1", action: "create widget", type: "root", widget: "#1" },
             { id: "#2", action: "create widget", type: "text", widget: "#2" },
@@ -254,7 +255,11 @@ describe("page history cache", () => {
         for (let i = 0; i < 4; i++) {
             h.navigate(`/product?id=${i}`);
         }
-        h.answer("new instance", { id: "late-client", serverId: "server" });
+        h.answer("new instance", {
+            id: "late-client",
+            serverId: "server",
+            channelToken: "test-channel"
+        });
         expect(
             h.requests.some(x => x.request.action === "kill" && x.request.client === "late-client")
         ).toBe(true);
@@ -458,7 +463,12 @@ describe("document tab context", () => {
         const h = harness();
         h.created("catalog", "catalog", "tab-one");
         h.navigate("/product");
-        h.answer("new instance", { tabContextExpired: true, serverId: "server", result: false });
+        h.answer("new instance", {
+            tabContextExpired: true,
+            serverId: "server",
+            channelToken: "test-channel",
+            result: false
+        });
         const request = h.requests
             .filter(item => !item.answered && item.request.action === "new instance")
             .at(-1);

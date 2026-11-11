@@ -45,7 +45,7 @@ function createHarness() {
         ${widgetsSource}`);
 
     const requests = [];
-    dom.window.sendRequest = (query, callback, method, files) => {
+    dom.window.sendClientRequest = (query, callback, method, files) => {
         requests.push({ query, callback, method, files });
     };
     return {

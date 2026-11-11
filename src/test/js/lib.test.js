@@ -89,6 +89,90 @@ describe("sendRequest", () => {
         expect(callback).toHaveBeenCalledExactlyOnceWith(null);
     });
 
+    it("sends every action as POST and keeps credentials in headers only", () => {
+        const requests = [];
+        class MockXmlHttpRequest {
+            constructor() {
+                this.headers = {};
+                requests.push(this);
+            }
+            open(method, url) {
+                this.method = method;
+                this.url = url;
+            }
+            setRequestHeader(name, value) {
+                this.headers[name] = value;
+            }
+            send(body) {
+                this.body = body;
+            }
+        }
+        dom = new JSDOM("<!doctype html>", {
+            runScripts: "outside-only",
+            url: "http://localhost/"
+        });
+        dom.window.XMLHttpRequest = MockXmlHttpRequest;
+        dom.window.eval(source);
+        dom.window.configureProtocolSecurity("document-csrf-secret", "document-session-id");
+        for (const action of [
+            "new instance",
+            "synchronize",
+            "kill",
+            "upload chunk",
+            "report error"
+        ]) {
+            dom.window.sendRequest({ action, client: "#1" }, null, undefined, undefined, {
+                token: "page-secret",
+                epoch: "server-epoch"
+            });
+        }
+        for (const request of requests) {
+            expect(request.method).toBe("POST");
+            expect(request.url).toBe("http://localhost");
+            expect(request.headers).toEqual({
+                "X-Widgets-CSRF": "document-csrf-secret",
+                "X-Widgets-Session": "document-session-id",
+                "X-Widgets-Channel": "page-secret",
+                "X-Widgets-Epoch": "server-epoch"
+            });
+            expect([...request.body.keys()]).toEqual(["action", "client"]);
+        }
+    });
+
+    it.each([
+        ['{"sessionExpired":true}', { sessionExpired: true }],
+        ['{"accessDenied":true}', { accessDenied: true }],
+        ["private proxy error", { accessDenied: true }]
+    ])("turns HTTP 403 into a controlled protocol denial: %s", (body, expected) => {
+        let request;
+        class MockXmlHttpRequest {
+            constructor() {
+                request = this;
+            }
+            open() {}
+            send() {}
+            getResponseHeader() {
+                return null;
+            }
+        }
+        dom = new JSDOM("<!doctype html>", {
+            runScripts: "outside-only",
+            url: "http://localhost/"
+        });
+        dom.window.XMLHttpRequest = MockXmlHttpRequest;
+        vi.spyOn(dom.window.console, "error").mockImplementation(() => {});
+        dom.window.eval(source);
+        let result;
+        dom.window.sendRequest({ action: "synchronize" }, value => {
+            result = JSON.parse(value);
+        });
+        request.readyState = 4;
+        request.status = 403;
+        request.responseText = body;
+        request.onreadystatechange();
+        expect(result).toEqual(expected);
+    });
+
     it("does not abort an in-flight request when another request starts", () => {
         const requests = [];
 

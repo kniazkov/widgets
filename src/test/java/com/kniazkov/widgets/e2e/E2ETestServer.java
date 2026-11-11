@@ -131,6 +131,20 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        final Page securityPage = (root, context) -> {
+            final var session = context.browserSession;
+            final var count = new java.util.concurrent.atomic.AtomicInteger();
+            final TextWidget status = new TextWidget("Private counter: 0");
+            final Button change = new Button("Change private counter");
+            change.onClick(event -> status.setText("Private counter: " + count.incrementAndGet()));
+            final Button revoke = new Button("Revoke browser session");
+            revoke.onClick(event -> session.revoke());
+            root.add(new Section(new TextWidget("Transport session: " + session.getId())));
+            root.add(new Section(status, change, revoke));
+            root.add(new Section(new Link("Next private page", "/channel-security-next")));
+        };
+        application.addPage("channel-security", securityPage);
+        application.addPage("channel-security-next", securityPage);
         final java.util.Set<java.util.UUID> modes =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
         final Page tabPage = (root, context) -> {
