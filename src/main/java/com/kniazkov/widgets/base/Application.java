@@ -43,6 +43,11 @@ public final class Application {
     private Options options;
 
     /**
+     * One upload budget across all client roots in this application.
+     */
+    private com.kniazkov.widgets.view.UploadRegistry uploads;
+
+    /**
      * All active clients, keyed by unique identifier.
      */
     private final ConcurrentMap<RMId, Client> clients;
@@ -171,6 +176,7 @@ public final class Application {
      */
     void setOptions(Options options) {
         this.options = options;
+        this.uploads = new com.kniazkov.widgets.view.UploadRegistry(options);
     }
 
     /**
@@ -224,7 +230,7 @@ public final class Application {
                 context.browserId == null ? UUID.randomUUID() : context.browserId, null,
                 context.browserSession);
         }
-        final Client client = new Client(this.options, context.tabContext);
+        final Client client = new Client(this.options, context.tabContext, this.uploads);
         client.timer = this.options.getClientLifetime();
 
         final RMId id = client.getId();
@@ -446,7 +452,9 @@ public final class Application {
                 clients.computeIfPresent(id, (key, client) -> {
                     synchronized (client) {
                         client.timer -= WATCHDOG_PERIOD;
-                        if (client.timer <= 0) {
+                        if (client.timer <= 0 || !client.getTabContext().isActive()
+                                || (client.getTabContext().getBrowserSession() != null
+                                && !client.getTabContext().getBrowserSession().isActive())) {
                             client.destroy();
                             LOGGER.info("Client " + id + " is killed by the watchdog.");
                             return null;

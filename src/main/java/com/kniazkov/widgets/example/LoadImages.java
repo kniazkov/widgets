@@ -88,11 +88,13 @@ public class LoadImages {
                 descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file -> {
                     widget.setSource(progress.getWaitingImageSource());
+                    final byte[] content = file.getContent();
+                    final String contentType = file.getType();
                     imageProcessors.execute(() -> {
                         try {
                             final BufferedImage original = ImageLoader.load(
-                                file.getType(),
-                                file.getContent()
+                                contentType,
+                                content
                             );
                             final BufferedImage cropped = ImageProcessor.cropToSquare(original);
                             final BufferedImage resized = ImageProcessor.resizeToFit(

@@ -47,6 +47,16 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     private final Options options;
 
     /**
+     * Server-owned budget shared by all roots of one Application.
+     */
+    private final UploadRegistry uploadRegistry;
+
+    /**
+     * Terminal upload disposal flag, visible to the resource sweeper.
+     */
+    private volatile boolean uploadsClosed;
+
+    /**
      * Constructor.
      *
      */
@@ -60,9 +70,43 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * @param options immutable application configuration
      */
     public RootWidget(final Options options) {
+        this(options, new UploadRegistry(options));
+    }
+
+    /**
+     * Creates a root with an application-wide upload budget.
+     * @param options immutable configuration
+     * @param registry shared server upload resources
+     */
+    public RootWidget(final Options options, final UploadRegistry registry) {
         super(getDefaultStyle());
+        this.uploadRegistry = Objects.requireNonNull(registry);
         this.options = Objects.requireNonNull(options, "Options must not be null");
         this.resetMetadata();
+    }
+
+    /**
+     * Returns server-owned resource registry for this root.
+     * @return server-owned resource registry for this root
+     */
+    public UploadRegistry getUploadRegistry() {
+        return this.uploadRegistry;
+    }
+
+    /**
+     * Permanently disposes all upload data belonging to this client, even detached widgets.
+     */
+    public void closeUploads() {
+        this.uploadsClosed = true;
+        this.uploadRegistry.closeRoot(this);
+    }
+
+    /**
+     * Returns whether this client's upload resources have been disposed.
+     * @return whether this client's upload resources have been disposed
+     */
+    boolean areUploadsClosed() {
+        return this.uploadsClosed;
     }
 
     /**

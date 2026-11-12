@@ -8,8 +8,6 @@ import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.model.Model;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * A specialized button widget that handles file uploads from the client.
@@ -19,9 +17,9 @@ import java.util.TreeMap;
  */
 public class FileLoader extends Button implements HasMultipleInput {
     /**
-     * Map of currently uploading files, keyed by their unique file ID.
+     * Highest consumed browser file ID; late metadata retries must not restart completed work.
      */
-    private final Map<Integer, UploadingFile> uploading = new TreeMap<>();
+    private int lastUploadId;
 
     /**
      * Controller to notify when a new file upload starts.
@@ -68,17 +66,32 @@ public class FileLoader extends Button implements HasMultipleInput {
      * @param event selected file metadata
      */
     public void handleUploadEvent(final UploadEvent event) {
-        if (this.uploading.containsKey(event.fileId)) {
+        if (event == null || event.fileId <= this.lastUploadId) {
             return;
         }
+        this.lastUploadId = event.fileId;
+        final RootWidget root = this.getRootWidget().orElse(null);
+        if (root == null || root.areUploadsClosed()) {
+            return;
+        }
+        final UploadRegistry registry = root.getUploadRegistry();
+        registry.cleanup();
+        final UploadingFile file;
         try {
-            final UploadingFile file = new UploadingFile(this, event);
-            this.uploading.put(event.fileId, file);
-            this.onSelectCtrl.handleEvent(file);
+            file = registry.select(root, this, event);
         } catch (final IllegalArgumentException ignored) {
             /*
-             * Malformed external metadata is rejected at the widget boundary.
+             * Only malformed metadata is swallowed; application controller failures propagate.
              */
+            return;
+        }
+        if (file != null) {
+            try {
+                this.onSelectCtrl.handleEvent(file);
+            } catch (final RuntimeException | Error error) {
+                file.cancel();
+                throw error;
+            }
         }
     }
 
@@ -94,15 +107,11 @@ public class FileLoader extends Button implements HasMultipleInput {
             final int fileId,
             final int chunkIndex,
             final byte[] data) {
-        final UploadingFile file = this.uploading.get(fileId);
-        if (file == null || !file.handleUploadChunk(chunkIndex, data)) {
+        final RootWidget root = this.getRootWidget().orElse(null);
+        if (root == null || root.areUploadsClosed()) {
             return UploadProtocol.rejected();
         }
-        final JsonObject response = new JsonObject();
-        response.addBoolean("result", true);
-        response.addNumber("nextChunk", file.getNextMissingChunk());
-        response.addBoolean("complete", file.isComplete());
-        return response;
+        return root.getUploadRegistry().chunk(root, this, fileId, chunkIndex, data);
     }
 
     /**

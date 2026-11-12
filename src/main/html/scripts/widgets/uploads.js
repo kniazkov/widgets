@@ -12,6 +12,26 @@ let uploadRequestInFlight = false;
 
 let nextUploadIndex = 0;
 
+const uploadRetryTasks = new Set();
+
+function scheduleUploadRetry(callback) {
+    if (typeof clientDisposed !== "undefined" && clientDisposed) return;
+    const task = setTimeout(() => {
+        uploadRetryTasks.delete(task);
+        if (typeof clientDisposed === "undefined" || !clientDisposed) callback();
+    }, UPLOAD_RETRY_DELAY);
+    uploadRetryTasks.add(task);
+}
+
+function disposeUploads() {
+    for (const task of uploadRetryTasks) clearTimeout(task);
+    uploadRetryTasks.clear();
+    for (const file of [...pendingUploads, ...activeUploads]) file.source = null;
+    pendingUploads.length = 0;
+    activeUploads.length = 0;
+    uploadRequestInFlight = false;
+}
+
 function setMultipleInput(data) {
     const widget = widgets[data.widget];
     const flag = data["multiple input"];
@@ -90,9 +110,7 @@ function acknowledgeSelections(selected) {
     }
     sendSynchronizeRequest(function (accepted) {
         if (!accepted) {
-            setTimeout(function () {
-                acknowledgeSelections(selected);
-            }, UPLOAD_RETRY_DELAY);
+            scheduleUploadRetry(() => acknowledgeSelections(selected));
             return;
         }
         for (let index = 0; index < selected.length; index++) {
@@ -121,6 +139,7 @@ function removeActiveUpload(file) {
         return;
     }
     activeUploads.splice(index, 1);
+    file.source = null;
     if (index < nextUploadIndex) {
         nextUploadIndex--;
     }
@@ -167,7 +186,7 @@ function sendNextUploadChunk() {
             uploadRequestInFlight = false;
             if (!data) {
                 recordRequestFailure();
-                setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+                scheduleUploadRetry(sendNextUploadChunk);
                 return;
             }
             let receipt;
@@ -175,7 +194,7 @@ function sendNextUploadChunk() {
                 receipt = JSON.parse(data);
             } catch (error) {
                 recordRequestFailure();
-                setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+                scheduleUploadRetry(sendNextUploadChunk);
                 return;
             }
             if (typeof responseHasClientError === "function" && responseHasClientError(receipt)) {
@@ -204,7 +223,7 @@ function sendNextUploadChunk() {
                 sendNextUploadChunk();
                 return;
             }
-            setTimeout(sendNextUploadChunk, UPLOAD_RETRY_DELAY);
+            scheduleUploadRetry(sendNextUploadChunk);
         },
         "post",
         [

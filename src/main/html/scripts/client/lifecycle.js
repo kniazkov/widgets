@@ -155,6 +155,7 @@ function mainCycle() {
 function disposeClient() {
     clientDisposed = true;
     cancelSynchronization();
+    if (typeof disposeUploads === "function") disposeUploads();
     disposeCountdowns();
     clearInterval(mainCycleTask);
     if (clientId != null) {
