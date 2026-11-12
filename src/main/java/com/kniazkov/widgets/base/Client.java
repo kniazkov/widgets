@@ -17,7 +17,6 @@ import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -242,23 +241,12 @@ public final class Client implements Comparable<Client> {
                 response.addBoolean("eventResyncRequired", true);
                 return;
             }
-            if (events.isEmpty()) {
-                return;
-            }
-            if (events.size() == 1) {
-                processSingleEvent(events.get(0).toJsonObject().orElse(null), response);
-                return;
-            }
-            final Map<RMId, Widget<?>> map = new TreeMap<>();
-            for (final Widget<?> widget : this.root) {
-                map.put(widget.getId(), widget);
-            }
-            for (JsonElement item : events) {
-                final JsonObject event = item.toJsonObject().orElse(null);
-                if (event == null) {
-                    continue;
+            for (final JsonElement item : events) {
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    return;
                 }
-                handleEventObject(event, map.get(getEventWidgetId(event)), response);
+                this.processEvent(item.objectValueOrThrow(), response);
             }
 
         } catch (final JsonException ignored) {
@@ -267,12 +255,10 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Handles a single event (used in the fast path).
+     * Resolves each target in the current tree, after all preceding callbacks have finished.
+     * No iterator or index survives a callback that can mutate the tree.
      */
-    private void processSingleEvent(final JsonObject event, final JsonObject response) {
-        if (event == null) {
-            return;
-        }
+    private void processEvent(final JsonObject event, final JsonObject response) {
         final RMId widgetId = getEventWidgetId(event);
         Widget<?> widget = null;
         for (final Widget<?> child : this.root) {

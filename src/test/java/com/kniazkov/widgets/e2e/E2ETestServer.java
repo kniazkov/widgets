@@ -155,6 +155,26 @@ public final class E2ETestServer {
             remove.onClick(event -> remove.remove());
             root.add(new Section(status, action, remove));
         });
+        application.addPage("live-event-targets", (root, context) -> {
+            final var count = new java.util.concurrent.atomic.AtomicInteger();
+            final TextWidget status = new TextWidget("Tree actions: 0");
+            final Button hold = new Button("Hold response");
+            hold.onClick(event -> { });
+            final Button old = new Button("Old target");
+            old.onClick(event -> status.setText("Tree actions: " + count.addAndGet(100)));
+            final Button replacement = new Button("New target");
+            replacement.onClick(event -> status.setText("Tree actions: " + count.addAndGet(10)));
+            final Section holder = new Section(old);
+            final Button replace = new Button("Replace tree");
+            replace.onClick(event -> {
+                holder.removeAll();
+                holder.add(replacement);
+            });
+            final Button following = new Button("Following action");
+            following.onClick(event -> status.setText("Tree actions: " + count.incrementAndGet()));
+            root.add(new Section(status, hold, replace, following));
+            root.add(holder);
+        });
         application.addPage("event-validation", (root, context) -> {
             final TextWidget status = new TextWidget("Accepted clicks: 0");
             final var count = new java.util.concurrent.atomic.AtomicInteger();

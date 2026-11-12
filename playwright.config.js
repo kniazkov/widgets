@@ -16,7 +16,8 @@ export default defineConfig({
                 "suggestion-field.spec.js",
                 "channel-security.spec.js",
                 "event-validation.spec.js",
-                "event-ack.spec.js"
+                "event-ack.spec.js",
+                "live-event-targets.spec.js"
             ],
             use: { browserName: "webkit" }
         }
