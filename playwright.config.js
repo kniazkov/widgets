@@ -15,7 +15,8 @@ export default defineConfig({
             testMatch: [
                 "suggestion-field.spec.js",
                 "channel-security.spec.js",
-                "event-validation.spec.js"
+                "event-validation.spec.js",
+                "event-ack.spec.js"
             ],
             use: { browserName: "webkit" }
         }

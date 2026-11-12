@@ -143,6 +143,18 @@ public final class E2ETestServer {
             root.add(new Section(status, change, revoke));
             root.add(new Section(new Link("Next private page", "/channel-security-next")));
         };
+        final java.util.Map<java.util.UUID, java.util.concurrent.atomic.AtomicInteger> ackCounts =
+            new java.util.concurrent.ConcurrentHashMap<>();
+        application.addPage("event-ack", (root, context) -> {
+            final var count = ackCounts.computeIfAbsent(context.tabContext.getId(),
+                id -> new java.util.concurrent.atomic.AtomicInteger());
+            final TextWidget status = new TextWidget("Accepted actions: " + count.get());
+            final Button action = new Button("Count action");
+            action.onClick(event -> status.setText("Accepted actions: " + count.incrementAndGet()));
+            final Button remove = new Button("Remove action");
+            remove.onClick(event -> remove.remove());
+            root.add(new Section(status, action, remove));
+        });
         application.addPage("event-validation", (root, context) -> {
             final TextWidget status = new TextWidget("Accepted clicks: 0");
             final var count = new java.util.concurrent.atomic.AtomicInteger();

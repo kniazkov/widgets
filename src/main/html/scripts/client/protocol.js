@@ -5,6 +5,7 @@
 // Events stay queued until the server acknowledges their monotonically increasing IDs.
 const events = [];
 let lastEventId = 0;
+let lastAcknowledgedEventId = 0;
 let lastProcessedUpdateId = 0;
 
 // IDs travel over the wire as "#<number>" strings.
@@ -65,14 +66,19 @@ function processUpdates(updates) {
 }
 
 // Drops every queued event through the last ID acknowledged by the server.
-function removeProcessedEvents(id) {
-    let i;
-    for (i = events.length - 1; i >= 0; i--) {
-        if (events[i].id == id) {
-            break;
-        }
+function removeProcessedEvents(id, sentThrough = lastEventId) {
+    if (typeof id !== "string" || (id !== "#?" && !/^#(0|[1-9][0-9]*)$/.test(id))) {
+        throw new Error("Invalid event acknowledgement");
     }
-    events.splice(0, i + 1);
+    const ack = id === "#?" ? 0 : parseId(id);
+    if (!Number.isSafeInteger(ack) || ack < lastAcknowledgedEventId || ack > sentThrough) {
+        throw new Error("Invalid event acknowledgement");
+    }
+    let count = 0;
+    while (count < events.length && parseId(events[count].id) <= ack) count++;
+    events.splice(0, count);
+    lastAcknowledgedEventId = ack;
+    return count;
 }
 
 // Reconciles delayed text updates after the server acknowledges local input events.

@@ -30,6 +30,9 @@ requests, session revocation and the required public-origin setting behind a TLS
 See [Server event validation](docs/SERVER_EVENT_VALIDATION.ru.md) for allowed widget events,
 payload limits, rejection responses and custom-input migration.
 
+See [Event acknowledgements](docs/EVENT_ACKNOWLEDGEMENTS.ru.md) for terminal delivery results,
+duplicate suppression, bounded retries and page resynchronization.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,

@@ -58,7 +58,7 @@ public class ClientProtocolTest {
         payloads.add(valid.substring(0, valid.length() - 1));
         payloads.add("{}");
         payloads.add("[null,42,[]]");
-        for (final String key : java.util.List.of("id", "widget", "type")) {
+        for (final String key : java.util.List.of("id")) {
             final JsonObject invalid = event.clone().objectValueOrThrow();
             invalid.addNumber(key, 42);
             payloads.add("[" + invalid + "]");
@@ -67,6 +67,7 @@ public class ClientProtocolTest {
             final JsonObject response = new JsonObject();
             client.synchronize(Collections.singletonMap("events", payload), response);
             assertEquals(0, calls.get());
+            assertTrue(response.get("eventResyncRequired").booleanValue());
             assertEquals(RMId.INVALID.toString(), response.get("lastEvent").stringValue());
         }
         client.synchronize(Collections.singletonMap("events", valid), new JsonObject());

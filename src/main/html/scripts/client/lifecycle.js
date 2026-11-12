@@ -154,6 +154,7 @@ function mainCycle() {
 // Disposed runtimes cannot send events, retry uploads or apply late responses.
 function disposeClient() {
     clientDisposed = true;
+    cancelSynchronization();
     disposeCountdowns();
     clearInterval(mainCycleTask);
     if (clientId != null) {

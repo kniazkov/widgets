@@ -238,7 +238,11 @@ public final class Client implements Comparable<Client> {
         try {
             final JsonElement element = Json.parse(request.get("events"), JsonParsingMode.STRICT);
             final JsonArray events = element.toJsonArray().orElse(null);
-            if (events == null || events.isEmpty()) {
+            if (events == null || !validEventSequence(events)) {
+                response.addBoolean("eventResyncRequired", true);
+                return;
+            }
+            if (events.isEmpty()) {
                 return;
             }
             if (events.size() == 1) {
@@ -258,6 +262,7 @@ public final class Client implements Comparable<Client> {
             }
 
         } catch (final JsonException ignored) {
+            response.addBoolean("eventResyncRequired", true);
         }
     }
 
@@ -284,40 +289,93 @@ public final class Client implements Comparable<Client> {
      */
     private void handleEventObject(final JsonObject event, final Widget<?> widget,
             final JsonObject response) {
-        if (!this.tabContext.isActive() || widget == null
-            || !event.containsKey("id") || !event.containsKey("type")) {
+        if (!this.tabContext.isActive()) {
             return;
         }
-        if (!event.get("id").isString() || !event.get("type").isString()) {
-            return;
-        }
+        this.requireLiveSession();
         final String serializedId = event.get("id").stringValue();
-        final String type = event.get("type").stringValue();
         final RMId eventId = RMId.parse(serializedId);
         if (eventId.compareTo(this.lastHandledEventId) <= 0) {
+            eventResult(response, serializedId, "obsolete", "alreadyConsumed");
             return;
         }
-        final JsonObject data = event.containsKey("data")
-            ? event.get("data").toJsonObject().orElse(null)
-            : new JsonObject();
-        this.requireLiveSession();
-        final com.kniazkov.widgets.controller.Event<?> kind =
-            com.kniazkov.widgets.controller.Event.getByName(type);
-        final java.util.Optional<String> rejection =
-            widget.getRootWidget().orElse(null) != this.root
-                ? java.util.Optional.of("detachedWidget") : kind.rejectionReason(widget, data);
-        if (rejection.isPresent()) {
+        final String status;
+        final String reason;
+        if (!event.get("type").isString()
+                || getEventWidgetId(event).equals(RMId.INVALID)) {
+            status = "rejected";
+            reason = "invalidEnvelope";
+        } else if (widget == null || widget.getRootWidget().orElse(null) != this.root) {
+            status = "obsolete";
+            reason = "detachedWidget";
+        } else {
+            final JsonObject data = event.containsKey("data")
+                ? event.get("data").toJsonObject().orElse(null) : new JsonObject();
+            final com.kniazkov.widgets.controller.Event<?> kind =
+                com.kniazkov.widgets.controller.Event.getByName(event.get("type").stringValue());
+            final java.util.Optional<String> rejection = kind.rejectionReason(widget, data);
+            if (rejection.isEmpty()) {
+                /*
+                 * Consume before invoking application code: an exception after a side effect
+                 * must not cause that side effect to be repeated on a lost-response retry.
+                 */
+                this.lastHandledEventId = eventId;
+                eventResult(response, serializedId, "applied", "");
+                widget.handleEvent(kind, data);
+                return;
+            }
+            status = "rejected";
+            reason = rejection.get();
+        }
+        this.lastHandledEventId = eventId;
+        eventResult(response, serializedId, status, reason);
+    }
+
+    /**
+     * Preflights identifiers before dispatch so a corrupt/out-of-order batch cannot skip
+     * an earlier action through the cumulative ACK. Duplicate IDs are safe and permitted.
+     */
+    private static boolean validEventSequence(final JsonArray events) {
+        RMId previous = RMId.INVALID;
+        for (final JsonElement item : events) {
+            final JsonObject event = item.toJsonObject().orElse(null);
+            if (event == null || !event.get("id").isString()) {
+                return false;
+            }
+            final String value = event.get("id").stringValue();
+            final RMId id = RMId.parse(value);
+            if (id.equals(RMId.INVALID) || !id.toString().equals(value)
+                    || id.compareTo(previous) < 0) {
+                return false;
+            }
+            previous = id;
+        }
+        return true;
+    }
+
+    /**
+     * Adds a terminal delivery result without retaining an unbounded per-client history.
+     * The R02 rejectedEvents projection remains available to existing integrations.
+     */
+    private static void eventResult(final JsonObject response, final String id,
+            final String status, final String reason) {
+        final JsonArray results = response.containsKey("eventResults")
+            ? response.get("eventResults").arrayValueOrThrow()
+            : response.createArray("eventResults");
+        final JsonObject result = results.createObject();
+        result.addString("id", id);
+        result.addString("status", status);
+        if (!reason.isEmpty()) {
+            result.addString("reason", reason);
+        }
+        if ("rejected".equals(status) || "detachedWidget".equals(reason)) {
             final JsonArray rejected = response.containsKey("rejectedEvents")
                 ? response.get("rejectedEvents").arrayValueOrThrow()
                 : response.createArray("rejectedEvents");
-            final JsonObject item = new JsonObject();
-            item.addString("id", serializedId);
-            item.addString("reason", rejection.get());
-            rejected.add(item);
-        } else {
-            widget.handleEvent(kind, data);
+            final JsonObject item = rejected.createObject();
+            item.addString("id", id);
+            item.addString("reason", reason);
         }
-        this.lastHandledEventId = eventId;
     }
 
     /**
