@@ -4,29 +4,69 @@
 
 let synchronizationInFlight = false;
 const synchronizationCallbacks = [];
+const maxEventStalls = 3;
+let eventStalls = 0;
+let synchronizationRetryTask = null;
+let synchronizationStopped = false;
+
+// All entry points (polling, new input and upload callbacks) share the same retry gate.
+function scheduleSynchronization(delay) {
+    if (
+        synchronizationRetryTask !== null ||
+        synchronizationStopped ||
+        clientDisposed ||
+        clientFailed
+    )
+        return;
+    synchronizationRetryTask = setTimeout(() => {
+        synchronizationRetryTask = null;
+        sendSynchronizeRequest();
+    }, delay);
+}
+
+function cancelSynchronization() {
+    clearTimeout(synchronizationRetryTask);
+    synchronizationRetryTask = null;
+    synchronizationStopped = true;
+    for (const done of synchronizationCallbacks.splice(0)) done(false);
+}
+
+// Rebuild the same URL/tab without replaying actions whose delivery is uncertain.
+function resynchronizeEvents(callbacks) {
+    cancelSynchronization();
+    for (const done of callbacks) done(false);
+    reloadCurrentPage();
+}
 
 // One synchronization request carries both pending browser events and the update checkpoint.
 function sendSynchronizeRequest(callback) {
-    if (clientDisposed || clientFailed || clientId == null) {
+    if (clientDisposed || clientFailed || synchronizationStopped || clientId == null) {
         return;
     }
     if (callback) {
         synchronizationCallbacks.push(callback);
     }
-    if (synchronizationInFlight) {
+    if (synchronizationInFlight || synchronizationRetryTask !== null) {
         return;
     }
     synchronizationInFlight = true;
+    const sentEvents = events.slice();
+    const sentThrough = sentEvents.length ? parseId(sentEvents.at(-1).id) : lastAcknowledgedEventId;
+    let stalled = false;
     const callbacks = synchronizationCallbacks.splice(0);
     callback = function (accepted) {
         synchronizationInFlight = false;
-        if (clientDisposed) {
+        if (clientDisposed || synchronizationStopped) {
             return;
         }
-        for (const done of callbacks) {
-            done(accepted);
+        // Install the gate before callbacks: upload metadata callbacks may request another sync.
+        if (stalled) {
+            scheduleSynchronization(250 * 2 ** (eventStalls - 1));
+        } else if (!accepted) {
+            scheduleSynchronization(period);
         }
-        if (synchronizationCallbacks.length > 0 || (accepted && events.length > 0)) {
+        for (const done of callbacks) done(accepted && !stalled);
+        if (!stalled && accepted && (synchronizationCallbacks.length > 0 || events.length > 0)) {
             sendSynchronizeRequest();
         }
     };
@@ -34,11 +74,11 @@ function sendSynchronizeRequest(callback) {
         {
             action: "synchronize",
             client: clientId,
-            events: events,
+            events: sentEvents,
             lastUpdate: "#" + lastProcessedUpdateId
         },
         function (data) {
-            if (clientDisposed) {
+            if (clientDisposed || synchronizationStopped) {
                 return;
             }
             if (!data) {
@@ -72,10 +112,29 @@ function sendSynchronizeRequest(callback) {
                 }
                 return;
             }
+            if (json.eventResyncRequired === true) {
+                resynchronizeEvents(callbacks);
+                return;
+            }
+            let removed;
+            try {
+                // Validate ACKs before applying updates; never discard input created in flight.
+                removed =
+                    json.result === true ? removeProcessedEvents(json.lastEvent, sentThrough) : 0;
+            } catch {
+                resynchronizeEvents(callbacks);
+                return;
+            }
+            stalled = sentEvents.length > 0 && removed === 0;
+            if (stalled) eventStalls++;
+            else if (removed > 0) eventStalls = 0;
+            if (eventStalls >= maxEventStalls) {
+                resynchronizeEvents(callbacks);
+                return;
+            }
             try {
                 sampleCountdownClock(json.serverNow);
                 processUpdates(json.updates);
-                removeProcessedEvents(json.lastEvent);
                 reconcileTextInputs();
                 if (pageContext) {
                     pageContext.ready();

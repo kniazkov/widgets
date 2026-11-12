@@ -101,9 +101,19 @@ function createHarness() {
         function isMobileDevice() {
             return false;
         }
-        window.setTimeout = function (callback) {
-            window.__scheduledTasks.push(callback);
-            return window.__scheduledTasks.length;
+        window.setTimeout = function (callback, delay) {
+            const task = function () {
+                if (!task.active) return;
+                task.active = false;
+                callback();
+            };
+            task.delay = delay;
+            task.active = true;
+            window.__scheduledTasks.push(task);
+            return task;
+        };
+        window.clearTimeout = function (task) {
+            if (task) task.active = false;
         };
         ${source}\n
         window.__reloadCount = 0;
@@ -128,6 +138,10 @@ function createHarness() {
             reconcileTextInputs,
             openPageInNewTab,
             sendEventToServer,
+            createEvent,
+            sendSynchronizeRequest,
+            mainCycle,
+            disposeClient,
             openedTabs: window.__openedTabs,
             events,
             widgets
@@ -284,5 +298,159 @@ describe("new tab navigation", () => {
 
         expect(harness.openPageInNewTab({ href: 42 })).toBe(true);
         expect(harness.openedTabs).toEqual([]);
+    });
+});
+
+describe("event delivery acknowledgements", () => {
+    function deliveryHarness() {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        harness.setServerId("server");
+        harness.enqueue = () => harness.createEvent({ _id: "#7" }, "click");
+        harness.sync = harness.sendSynchronizeRequest;
+        harness.respond = (lastEvent, extra = {}) => {
+            harness.requests.at(-1).callback(
+                JSON.stringify({
+                    result: true,
+                    clientAlive: true,
+                    serverId: "server",
+                    lastEvent,
+                    ...extra
+                })
+            );
+        };
+        return harness;
+    }
+
+    it("consumes rejected/obsolete events and leaves subsequent in-flight input queued", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        harness.enqueue();
+        expect(harness.requests[0].request.events).toHaveLength(1);
+        harness.respond("#1", { eventResults: [{ id: "#1", status: "obsolete" }] });
+        expect(harness.events.map(event => event.id)).toEqual(["#2"]);
+        expect(harness.requests).toHaveLength(2);
+        harness.respond("#2", { eventResults: [{ id: "#2", status: "rejected" }] });
+        expect(harness.events).toHaveLength(0);
+        expect(harness.requests).toHaveLength(2);
+        expect(harness.scheduledTasks).toHaveLength(0);
+    });
+
+    it("bounds unchanged ACKs and gates polling, new input and recursive callbacks", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        const results = [];
+        const again = accepted => {
+            results.push(accepted);
+            harness.sync(again);
+        };
+        harness.sync(again);
+        harness.respond("#?");
+        expect(results).toEqual([false]);
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.scheduledTasks[0].delay).toBe(250);
+        harness.enqueue();
+        harness.mainCycle();
+        harness.sync();
+        expect(harness.requests).toHaveLength(1);
+        harness.scheduledTasks[0]();
+        harness.respond("#?");
+        expect(harness.scheduledTasks[1].delay).toBe(500);
+        harness.scheduledTasks[1]();
+        harness.respond("#?");
+        expect(harness.requests).toHaveLength(3);
+        expect(dom.window.__reloadCount).toBe(1);
+        harness.sync();
+        harness.mainCycle();
+        for (const task of harness.scheduledTasks) task();
+        expect(harness.requests).toHaveLength(3);
+        expect(results.every(value => !value)).toBe(true);
+    });
+
+    it("resets the stall budget after partial cumulative progress", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.enqueue();
+        harness.sync();
+        harness.respond("#?");
+        harness.scheduledTasks[0]();
+        harness.respond("#1");
+        expect(harness.events.map(event => event.id)).toEqual(["#2"]);
+        harness.respond("#1");
+        expect(harness.scheduledTasks[1].delay).toBe(250);
+        harness.scheduledTasks[1]();
+        harness.respond("#2");
+        expect(harness.events).toHaveLength(0);
+        expect(dom.window.__reloadCount).toBe(0);
+    });
+
+    it("retries a lost reply with the same IDs after the polling delay", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        harness.requests[0].callback(null);
+        harness.enqueue();
+        harness.sync();
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.scheduledTasks[0].delay).toBe(2500);
+        harness.scheduledTasks[0]();
+        expect(harness.requests[1].request.events.map(event => event.id)).toEqual(["#1", "#2"]);
+        harness.respond("#2");
+        expect(harness.events).toHaveLength(0);
+        expect(dom.window.__reloadCount).toBe(0);
+    });
+
+    it.each([undefined, "broken", "#", "#01", "#1.0", "#2", "#9007199254740992"])(
+        "resynchronizes an invalid or unsent ACK %s without dropping pending input",
+        ack => {
+            const harness = deliveryHarness();
+            harness.enqueue();
+            harness.sync();
+            harness.enqueue();
+            harness.respond(ack);
+            expect(dom.window.__reloadCount).toBe(1);
+            expect(harness.events).toHaveLength(2);
+            expect(harness.requests).toHaveLength(1);
+        }
+    );
+
+    it("resynchronizes a regressing ACK even on an empty poll", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        harness.respond("#1");
+        harness.sync();
+        harness.respond("#?");
+        expect(dom.window.__reloadCount).toBe(1);
+        expect(harness.requests).toHaveLength(2);
+    });
+
+    it("honors server resync and closes the gate before invoking callbacks", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync(() => harness.sync());
+        harness.respond("#?", { eventResyncRequired: true });
+        expect(dom.window.__reloadCount).toBe(1);
+        expect(harness.requests).toHaveLength(1);
+    });
+
+    it("cancels retry timers and ignores late replies after disposal", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        const reply = harness.requests[0].callback;
+        harness.respond("#?");
+        harness.disposeClient();
+        harness.scheduledTasks[0]();
+        reply(
+            JSON.stringify({ result: true, serverId: "server", clientAlive: true, lastEvent: "#1" })
+        );
+        expect(harness.requests.map(entry => entry.request.action)).toEqual([
+            "synchronize",
+            "kill"
+        ]);
+        expect(dom.window.__reloadCount).toBe(0);
+        expect(harness.events).toHaveLength(1);
     });
 });
