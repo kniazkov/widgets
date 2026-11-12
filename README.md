@@ -240,7 +240,7 @@ root.goToPage("/account");
 
 ### File uploads
 
-`FileLoader` reports every selected file through `onSelect` immediately, with its loading model at
+`FileLoader` reports each admitted file through `onSelect`, with its loading model at
 zero percent. The browser retains the original `File` and sends 64 KiB `Blob.slice()` values as
 binary multipart parts by default; file contents are never expanded into Base16 or read into one
 browser-side buffer. The chunk and complete-file limits have one server-side source of truth and
@@ -253,7 +253,14 @@ on the server. A request or response lost in transit therefore causes the same c
 repeated chunks are verified and handled idempotently. Successful chunk responses also carry
 pending widget updates and acknowledge the last update applied by the browser, so upload progress
 is rendered immediately instead of waiting for the periodic synchronization cycle. The default
-in-memory complete-file limit is 128 MiB.
+individual file limit is 128 MiB. Server data is stored in private temporary files, with shared
+count, byte and lifetime budgets configured through `Options.Builder.setUploadLimits(...)`.
+
+Framework-owned `UploadedFile` content is valid only during `onLoad`, until cancellation or
+expiry. Use `openStream()` or `copyTo(Path)` for streaming access; copy data before scheduling
+asynchronous work. Completion retries use bounded, expiring hashes instead of retaining files.
+See [Upload resource lifetime and limits](docs/UPLOAD_RESOURCES.ru.md) for defaults,
+compatibility changes, cancellation semantics and examples.
 
 ## Documentation
 

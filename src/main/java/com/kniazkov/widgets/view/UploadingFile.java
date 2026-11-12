@@ -10,278 +10,386 @@ import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.model.Model;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import java.util.Optional;
+import java.util.BitSet;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 
 /**
- * Tracks one selected file, accepts binary chunks, and publishes upload progress.
+ * Bounded disk-backed upload descriptor. Register onLoad during onSelect, before completion.
+ * Cancellation and callback return release framework-owned content, streams and reservations.
  */
 public class UploadingFile {
     /**
-     * Widget that owns the upload descriptor.
+     * Immutable owner, including after widget detachment.
      */
-    private final Widget<?> widget;
-
+    private final RootWidget root;
     /**
-     * Original filename of the file being uploaded.
+     * Selecting widget.
+     */
+    private final FileLoader loader;
+    /**
+     * Shared application budget.
+     */
+    private final UploadRegistry registry;
+    /**
+     * Owner configuration snapshot.
+     */
+    private final Options options;
+    /**
+     * Browser-local upload ID.
+     */
+    private final int id;
+    /**
+     * Original display name, never a storage path.
      */
     private final String name;
-
     /**
-     * MIME type of the file being uploaded.
+     * Declared/inferred MIME type.
      */
     private final String type;
-
     /**
-     * Total declared size of the complete file in bytes.
+     * Declared byte reservation.
      */
     private final int size;
-
     /**
-     * Binary chunk size configured for this widget tree.
-     */
-    private final int chunkSize;
-
-    /**
-     * Binary chunks retained until the complete file has been assembled.
-     */
-    private final byte[][] content;
-
-    /**
-     * SHA-256 digest of every accepted chunk, retained for idempotent retries.
-     */
-    private final byte[][] digests;
-
-    /**
-     * Number of chunks that have been accepted so far.
-     */
-    private int uploadedChunksCount;
-
-    /**
-     * Index of the first chunk that has not been accepted yet.
-     */
-    private int nextMissingChunk;
-
-    /**
-     * Total number of chunks expected for this file.
+     * Expected chunk count.
      */
     private final int totalChunks;
-
     /**
-     * The fully assembled file, available once all chunks are received.
+     * One bit per accepted chunk, with data stored only on disk.
      */
-    private UploadedFile fullyUploadedFile;
-
+    private BitSet received = new BitSet();
     /**
-     * Controller to notify when the file is completely uploaded.
+     * Absolute monotonic start time, not extended by duplicate chunks or polling.
+     */
+    private final long started;
+    /**
+     * Private temporary file, allocated lazily on the first valid chunk.
+     */
+    private Path path;
+    /**
+     * Open receiving handle, closed before handing the file to application code.
+     */
+    private RandomAccessFile output;
+    /**
+     * Scoped callback content, cleared after cleanup.
+     */
+    private UploadedFile uploaded;
+    /**
+     * Completion callback registered before binary completion.
      */
     private Controller<UploadedFile> onLoadCtrl = Controller.stub();
-
     /**
-     * Model tracking the upload progress as a percentage from zero to one hundred.
+     * Optional progress model retained without file contents.
      */
     private Model<Integer> percentage;
+    /**
+     * Accepted chunk count.
+     */
+    private int count;
+    /**
+     * First missing chunk index.
+     */
+    private int next;
+    /**
+     * Binary completion is separate from callback lifetime.
+     */
+    private boolean complete;
+    /**
+     * Terminal cancellation/disposal flag.
+     */
+    private boolean cancelled;
+    /**
+     * Queued/running application work; cancelled on expiration or disposal.
+     */
+    private Future<?> task;
 
     /**
-     * Constructs a zero-progress descriptor from selected-file metadata.
-     *
-     * @param widget widget that owns the selected file
-     * @param event selected-file metadata
+     * Validates metadata before allocating any file, bitmap or reservation.
      */
-    UploadingFile(final Widget<?> widget, final UploadEvent event) {
-        final Options options = widget.getRootWidget()
-            .orElseThrow(() -> new IllegalArgumentException("Widget is not attached to a root"))
-            .getOptions();
-        validate(event, options);
-        this.widget = widget;
+    UploadingFile(final FileLoader loader, final UploadEvent event,
+            final UploadRegistry registry, final long started) {
+        this.root = loader.getRootWidget().orElseThrow(
+            () -> new IllegalArgumentException("Detached upload target"));
+        this.options = this.root.getOptions();
+        validate(event, this.options);
+        this.loader = loader;
+        this.registry = registry;
+        this.started = started;
+        this.id = event.fileId;
         this.name = event.name;
         final int dot = event.name.lastIndexOf('.');
         this.type = event.type == null || event.type.isEmpty()
-            ? ContentType.fromExtension(dot >= 0 ? event.name.substring(dot + 1) : "")
-                .getValue()
+            ? ContentType.fromExtension(dot >= 0 ? event.name.substring(dot + 1) : "").getValue()
             : event.type;
         this.size = event.size;
-        this.chunkSize = options.getChunkSize();
         this.totalChunks = event.totalChunks;
-        this.content = new byte[this.totalChunks][];
-        this.digests = new byte[this.totalChunks][];
     }
 
     /**
-     * Returns the original filename of the file being uploaded.
-     *
-     * @return the filename
+     * Returns display name.
+     * @return display name
      */
     public String getName() {
         return this.name;
     }
 
     /**
-     * Returns the MIME type of the file being uploaded.
-     *
-     * @return the MIME type
+     * Returns MIME type.
+     * @return MIME type
      */
     public String getType() {
         return this.type;
     }
 
     /**
-     * Returns the total declared size of the file in bytes.
-     *
-     * @return the file size
+     * Returns declared byte count.
+     * @return declared byte count
      */
     public int getSize() {
         return this.size;
     }
 
     /**
-     * Registers a controller to be notified when the file is completely uploaded.
-     * If the file is already fully uploaded, the controller is invoked immediately.
-     *
-     * @param ctrl the controller to notify upon completion
+     * Registers one completion callback. Late registration cannot resurrect released content.
+     * @param ctrl callback; file access ends when it returns or the upload is cancelled/expired
      */
-    public void onLoad(final Controller<UploadedFile> ctrl) {
-        this.onLoadCtrl = ctrl;
-        if (this.fullyUploadedFile != null) {
-            this.runOnLoadHandler();
+    public synchronized void onLoad(final Controller<UploadedFile> ctrl) {
+        if (this.complete || this.cancelled) {
+            throw new IllegalStateException("Upload is already terminal");
         }
+        this.onLoadCtrl = java.util.Objects.requireNonNull(ctrl);
     }
 
     /**
-     * Returns a model that tracks the upload progress as a percentage.
-     *
-     * @return a model containing the current upload percentage
+     * Returns progress model; completion does not imply business processing succeeded.
+     * @return progress model; completion does not imply business processing succeeded
      */
-    public Model<Integer> getLoadingPercentageModel() {
+    public synchronized Model<Integer> getLoadingPercentageModel() {
         if (this.percentage == null) {
             this.percentage = new IntegerModel();
-            this.percentage.setData(this.uploadedChunksCount * 100 / this.totalChunks);
+            this.percentage.setData((int) ((long) this.count * 100 / this.totalChunks));
         }
         return this.percentage;
     }
 
     /**
-     * Accepts a binary chunk or verifies that a repeated chunk is identical.
-     *
-     * @param chunkIndex zero-based chunk index
-     * @param data binary chunk content
-     * @return whether the chunk is valid for this upload
+     * Accepts out-of-order chunks without keeping file-sized arrays in memory.
      */
-    boolean handleUploadChunk(final int chunkIndex, final byte[] data) {
-        if (data == null || chunkIndex < 0 || chunkIndex >= this.totalChunks
-                || data.length != this.expectedChunkSize(chunkIndex)) {
+    synchronized boolean handleUploadChunk(final int index, final byte[] data) {
+        if (this.cancelled || this.complete) {
             return false;
         }
-        final byte[] digest = digest(data);
-        if (this.digests[chunkIndex] != null) {
-            if (!MessageDigest.isEqual(this.digests[chunkIndex], digest)) {
-                return false;
+        if (data == null || index < 0 || index >= this.totalChunks
+                || data.length != this.expectedChunkSize(index)) {
+            this.cancel();
+            return false;
+        }
+        try {
+            if (this.output == null) {
+                Files.createDirectories(this.options.getUploadLimits().directory());
+                this.path = Files.createTempFile(this.options.getUploadLimits().directory(),
+                    "widgets-upload-", ".tmp");
+                this.output = new RandomAccessFile(this.path.toFile(), "rw");
             }
-            return this.content[chunkIndex] == null
-                || Arrays.equals(this.content[chunkIndex], data);
+            this.output.seek((long) index * this.options.getChunkSize());
+            if (this.received.get(index)) {
+                final byte[] previous = new byte[data.length];
+                this.output.readFully(previous);
+                if (!Arrays.equals(previous, data)) {
+                    this.cancel();
+                    return false;
+                }
+                return true;
+            }
+            this.output.write(data);
+            this.received.set(index);
+            this.count++;
+            this.next = this.received.nextClearBit(this.next);
+            if (this.percentage != null) {
+                this.percentage.setData((int) ((long) this.count * 100 / this.totalChunks));
+            }
+            if (this.count == this.totalChunks) {
+                this.output.close();
+                this.output = null;
+                this.complete = true;
+                this.received = new BitSet();
+                this.uploaded = new UploadedFile(this.name, this.type, this.path, this.size);
+                this.registry.completed(this, index, data);
+            }
+            return true;
+        } catch (final IOException error) {
+            UploadRegistry.LOGGER.log(Level.WARNING, "Upload storage failed", error);
+            this.cancel();
+            return false;
+        } catch (final RuntimeException | Error error) {
+            this.cancel();
+            throw error;
         }
-
-        this.content[chunkIndex] = data.clone();
-        this.digests[chunkIndex] = digest;
-        this.uploadedChunksCount++;
-        while (this.nextMissingChunk < this.totalChunks
-                && this.digests[this.nextMissingChunk] != null) {
-            this.nextMissingChunk++;
-        }
-        if (this.percentage != null) {
-            this.percentage.setData(this.uploadedChunksCount * 100 / this.totalChunks);
-        }
-        if (this.uploadedChunksCount == this.totalChunks) {
-            this.fullyUploadedFile = this.createFile();
-            Arrays.fill(this.content, null);
-            this.runOnLoadHandler();
-        }
-        return true;
     }
 
     /**
-     * Returns the first chunk index that the server has not received.
-     *
-     * @return first missing index, or total chunk count after completion
+     * Returns cumulative binary progress.
+     * @return cumulative binary progress
      */
-    int getNextMissingChunk() {
-        return this.nextMissingChunk;
+    synchronized int getNextMissingChunk() {
+        return this.next;
     }
 
     /**
-     * Returns whether every binary chunk has been accepted.
-     *
-     * @return true after the complete file has been assembled
+     * Returns whether all chunks were accepted.
+     * @return whether all chunks were accepted
      */
-    boolean isComplete() {
-        return this.fullyUploadedFile != null;
+    synchronized boolean isComplete() {
+        return this.complete;
     }
 
     /**
-     * Assembles the complete file from all accepted binary chunks.
-     *
-     * @return the fully assembled file
+     * Explicit cancellation also interrupts queued/running callbacks; it cannot undo effects.
      */
-    private UploadedFile createFile() {
-        final byte[] data = new byte[this.size];
-        int offset = 0;
-        for (final byte[] chunk : this.content) {
-            System.arraycopy(chunk, 0, data, offset, chunk.length);
-            offset += chunk.length;
+    public synchronized void cancel() {
+        this.cancelled = true;
+        this.registry.forget(this);
+        if (this.task != null) {
+            this.task.cancel(true);
         }
-        return new UploadedFile(this.name, this.type, data);
+        this.release();
     }
 
     /**
-     * Launches the completion handler after the current synchronization operation.
+     * Invokes application code outside descriptor/registry/root locks, at most once.
      */
-    private void runOnLoadHandler() {
-        final Optional<RootWidget> root = this.widget.getRootWidget();
-        if (root.isPresent()) {
-            synchronized (root.get()) {
-                new Thread(
-                    () -> this.onLoadCtrl.handleEvent(this.fullyUploadedFile),
-                    "widgets-upload-handler"
-                ).start();
+    void deliver() {
+        final UploadedFile file;
+        final Controller<UploadedFile> callback;
+        synchronized (this) {
+            if (this.cancelled || this.root.areUploadsClosed()
+                    || this.loader.getRootWidget().orElse(null) != this.root) {
+                this.cancel();
+                return;
+            }
+            file = this.uploaded;
+            callback = this.onLoadCtrl;
+            this.onLoadCtrl = Controller.stub();
+        }
+        try {
+            callback.handleEvent(file);
+        } catch (final RuntimeException | Error error) {
+            UploadRegistry.LOGGER.log(Level.SEVERE, "Upload callback failed", error);
+        } finally {
+            synchronized (this) {
+                this.release();
             }
         }
     }
 
     /**
-     * Returns the only valid byte count for a given chunk index.
+     * Closes all library-owned resources; failed deletions remain charged for cleanup retry.
      */
-    private int expectedChunkSize(final int chunkIndex) {
-        if (chunkIndex < this.totalChunks - 1) {
-            return this.chunkSize;
+    private void release() {
+        try {
+            if (this.output != null) {
+                this.output.close();
+                this.output = null;
+            }
+            if (this.uploaded != null) {
+                this.uploaded.close();
+                this.uploaded = null;
+            }
+            if (this.path != null) {
+                Files.deleteIfExists(this.path);
+                this.path = null;
+            }
+            this.received = new BitSet();
+            this.onLoadCtrl = Controller.stub();
+            this.registry.released(this);
+        } catch (final IOException error) {
+            this.cancelled = true;
+            UploadRegistry.LOGGER.log(Level.WARNING, "Upload resource cleanup failed", error);
         }
-        return this.size - chunkIndex * this.chunkSize;
     }
 
     /**
-     * Validates browser-controlled upload metadata before allocating chunk storage.
+     * Returns whether cleanup should terminate this upload.
+     * @return whether cleanup should terminate this upload
+     */
+    synchronized boolean expired(final long now) {
+        return this.cancelled || this.root.areUploadsClosed()
+            || this.loader.getRootWidget().orElse(null) != this.root
+            || now - this.started >= TimeUnit.MILLISECONDS.toNanos(
+                this.options.getUploadLimits().lifetimeMillis());
+    }
+
+    /**
+     * @param task bounded completion work handle
+     */
+    synchronized void setTask(final Future<?> task) {
+        this.task = task;
+    }
+
+    /**
+     * Returns immutable owning root.
+     * @return immutable owning root
+     */
+    RootWidget owner() {
+        return this.root;
+    }
+
+    /**
+     * Returns immutable selecting widget.
+     * @return immutable selecting widget
+     */
+    FileLoader loader() {
+        return this.loader;
+    }
+
+    /**
+     * Returns immutable browser-local ID.
+     * @return immutable browser-local ID
+     */
+    int id() {
+        return this.id;
+    }
+
+    /**
+     * Computes chunk boundaries without integer multiplication overflow.
+     */
+    private int expectedChunkSize(final int index) {
+        return index < this.totalChunks - 1 ? this.options.getChunkSize()
+            : (int) (this.size - (long) index * this.options.getChunkSize());
+    }
+
+    /**
+     * Rejects malformed metadata before allocating storage or reserving quotas.
      */
     private static void validate(final UploadEvent event, final Options options) {
         if (event == null || event.fileId <= 0 || event.name == null || event.name.isEmpty()
-                || event.name.indexOf('/') >= 0 || event.name.indexOf('\\') >= 0
-                || event.name.indexOf('\0') >= 0 || event.size < 0
-                || event.size > options.getMaxFileSize()) {
+                || event.name.length() > 255 || event.name.indexOf('/') >= 0
+                || event.name.indexOf('\\') >= 0 || event.name.indexOf('\0') >= 0
+                || event.size < 0 || event.size > options.getMaxFileSize()
+                || (event.type != null && event.type.length() > 255)) {
             throw new IllegalArgumentException("Invalid upload metadata");
         }
-        final int expectedChunks = (int) Math.max(
-            1L,
-            ((long) event.size + options.getChunkSize() - 1L) / options.getChunkSize()
-        );
-        if (event.totalChunks != expectedChunks) {
+        final int chunks = (int) Math.max(1L,
+            ((long) event.size + options.getChunkSize() - 1) / options.getChunkSize());
+        if (event.totalChunks != chunks) {
             throw new IllegalArgumentException("Invalid upload chunk count");
         }
     }
 
     /**
-     * Calculates the digest used to verify a repeated chunk after response loss.
+     * Returns fixed-size SHA-256 proof; never retains the supplied data.
+     * @return fixed-size SHA-256 proof; never retains the supplied data
      */
-    private static byte[] digest(final byte[] data) {
+    static byte[] digest(final byte[] data) {
         try {
             return MessageDigest.getInstance("SHA-256").digest(data);
         } catch (final NoSuchAlgorithmException error) {

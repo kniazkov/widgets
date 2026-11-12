@@ -14,7 +14,6 @@ import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
@@ -83,7 +82,7 @@ public class LoadFiles {
                     loading.setText("Loaded");
                     percent.setColor(Color.BLUE);
                     try {
-                        Files.write(Paths.get(file.getName()), file.getContent());
+                        file.copyTo(Paths.get(file.getName()));
                     } catch (IOException ignored) {
                     }
                 });

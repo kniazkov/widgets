@@ -23,6 +23,7 @@ function createHarness() {
         window.__uploadEvents = [];
         window.__processedUpdates = [];
         let clientId = "#1";
+        let clientDisposed = false;
         let lastProcessedUpdateId = 0;
         function createEvent(widget, type, data) {
             window.__uploadEvents.push({ widget, type, data });
@@ -42,7 +43,9 @@ function createHarness() {
         function recordRequestSuccess() {
             window.__requestSuccesses = (window.__requestSuccesses || 0) + 1;
         }
-        ${widgetsSource}`);
+        ${widgetsSource}
+        window.__dispose = () => { clientDisposed = true; disposeUploads(); };
+        window.__files = () => [...pendingUploads, ...activeUploads];`);
 
     const requests = [];
     dom.window.sendClientRequest = (query, callback, method, files) => {
@@ -131,4 +134,16 @@ describe("binary upload scheduler", () => {
         expect(retry.query.chunkIndex).toBe(0);
         expect(retry.files[0].data.size).toBe(3);
     });
+});
+
+it("releases browser files and stops retries on disposal", async () => {
+    const harness = createHarness();
+    dom.window.loadFiles(harness.widget, [file("cancel.bin", 8192)]);
+    const selected = dom.window.__files();
+    harness.requests[0].callback(null);
+    dom.window.__dispose();
+    expect(selected.every(item => item.source === null)).toBe(true);
+    expect(dom.window.__files()).toHaveLength(0);
+    await new Promise(resolve => setTimeout(resolve, 350));
+    expect(harness.requests).toHaveLength(1);
 });

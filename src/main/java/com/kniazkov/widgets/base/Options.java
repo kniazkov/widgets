@@ -117,6 +117,11 @@ public final class Options {
     private final int maxFileSize;
 
     /**
+     * Upload resource and temporary storage policy.
+     */
+    private final com.kniazkov.widgets.common.UploadLimits uploadLimits;
+
+    /**
      * Whether browser and server debug logging is enabled.
      */
     private final boolean debug;
@@ -151,6 +156,7 @@ public final class Options {
         this.sslOptions = builder.sslOptions;
         this.chunkSize = builder.chunkSize;
         this.maxFileSize = builder.maxFileSize;
+        this.uploadLimits = builder.uploadLimits;
         this.debug = builder.debug;
         this.webFonts = List.copyOf(builder.webFonts);
         this.staticSources = List.copyOf(builder.staticSources);
@@ -235,6 +241,15 @@ public final class Options {
     public int getMaxFileSize() {
         return this.maxFileSize;
     }
+
+    /**
+     * Returns upload resource budgets shared by application clients.
+     * @return upload resource budgets shared by application clients
+     */
+    public com.kniazkov.widgets.common.UploadLimits getUploadLimits() {
+        return this.uploadLimits;
+    }
+
 
     /**
      * Returns whether browser and server debug logging is enabled.
@@ -381,6 +396,12 @@ public final class Options {
          * Maximum size of one complete uploaded file.
          */
         private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
+
+        /**
+         * Upload storage and resource budgets.
+         */
+        private com.kniazkov.widgets.common.UploadLimits uploadLimits =
+            com.kniazkov.widgets.common.UploadLimits.defaults();
 
         /**
          * Whether browser and server debug logging is enabled.
@@ -617,6 +638,16 @@ public final class Options {
             this.maxFileSize = value;
             return this;
         }
+
+        /**
+         * @param limits immutable upload budgets and private storage directory
+         * @return this builder
+         */
+        public Builder setUploadLimits(final com.kniazkov.widgets.common.UploadLimits limits) {
+            this.uploadLimits = java.util.Objects.requireNonNull(limits);
+            return this;
+        }
+
 
         /**
          * Enables or disables browser and server debug logging.

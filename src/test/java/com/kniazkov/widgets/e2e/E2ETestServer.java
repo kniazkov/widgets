@@ -101,7 +101,13 @@ public final class E2ETestServer {
                 descriptor.onLoad(file -> upload.setText(
                     "Loaded " + file.getName() + " 100% " + sha256(file.getContent())
                 ));
+                final Button cancelUpload = new Button("Cancel " + descriptor.getName());
+                cancelUpload.onClick(event -> {
+                    descriptor.cancel();
+                    upload.setText("Cancelled " + descriptor.getName());
+                });
                 content.add(upload);
+                content.add(cancelUpload);
             });
             content.add(status);
             content.add(button);

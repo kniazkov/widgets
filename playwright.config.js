@@ -17,7 +17,8 @@ export default defineConfig({
                 "channel-security.spec.js",
                 "event-validation.spec.js",
                 "event-ack.spec.js",
-                "live-event-targets.spec.js"
+                "live-event-targets.spec.js",
+                "upload-lifecycle.spec.js"
             ],
             use: { browserName: "webkit" }
         }

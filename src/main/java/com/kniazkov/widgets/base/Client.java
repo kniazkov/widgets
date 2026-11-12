@@ -88,17 +88,30 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
+     * Configures upload resource ownership.
      * @param options application options
      * @param tabContext shared document context
      */
     Client(final Options options, final TabContext tabContext) {
+        this(options, tabContext, new com.kniazkov.widgets.view.UploadRegistry(options));
+    }
+
+    /**
+     * Configures upload resource ownership.
+     * @param options application configuration
+     * @param tabContext document context
+     * @param uploads application-wide upload resources
+     */
+    Client(final Options options, final TabContext tabContext,
+            final com.kniazkov.widgets.view.UploadRegistry uploads) {
         this.tabContext = tabContext;
         this.id = RMId.create();
-        this.root = new RootWidget(options);
+        this.root = new RootWidget(options, uploads);
         this.updates = new TreeSet<>();
     }
 
     /**
+     * Returns revocable document context.
      * @return revocable document context
      */
     TabContext getTabContext() {
@@ -106,6 +119,7 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
+     * Returns channel secret, only for authenticated creation and verification.
      * @return channel secret, only for authenticated creation and verification
      */
     String channelToken() {
@@ -157,12 +171,14 @@ public final class Client implements Comparable<Client> {
         synchronized (this.root) {
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
+                this.root.closeUploads();
                 response.addBoolean("tabContextExpired", true);
                 return;
             }
             this.processEvents(request, response);
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
+                this.root.closeUploads();
                 response.addBoolean("tabContextExpired", true);
                 return;
             }
@@ -190,6 +206,7 @@ public final class Client implements Comparable<Client> {
         synchronized (this.root) {
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
+                this.root.closeUploads();
                 return UploadProtocol.rejected();
             }
             for (final Widget<?> widget : this.root) {
@@ -204,6 +221,7 @@ public final class Client implements Comparable<Client> {
                     }
                     this.requireLiveSession();
                     if (!this.tabContext.isActive()) {
+                        this.root.closeUploads();
                         return UploadProtocol.rejected();
                     }
                     this.collectUpdates(lastUpdate);
@@ -221,6 +239,7 @@ public final class Client implements Comparable<Client> {
     private void requireLiveSession() {
         final BrowserSession owner = this.tabContext.getBrowserSession();
         if (owner != null && !owner.isActive()) {
+            this.root.closeUploads();
             throw new ProtocolAccessException(true);
         }
     }
@@ -244,6 +263,7 @@ public final class Client implements Comparable<Client> {
             for (final JsonElement item : events) {
                 this.requireLiveSession();
                 if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
                     return;
                 }
                 this.processEvent(item.objectValueOrThrow(), response);
@@ -276,6 +296,7 @@ public final class Client implements Comparable<Client> {
     private void handleEventObject(final JsonObject event, final Widget<?> widget,
             final JsonObject response) {
         if (!this.tabContext.isActive()) {
+            this.root.closeUploads();
             return;
         }
         this.requireLiveSession();
@@ -408,9 +429,7 @@ public final class Client implements Comparable<Client> {
      * Cleans up client state before destruction.
      */
     void destroy() {
-        /*
-         * nothing for now
-         */
+        this.root.closeUploads();
     }
 
     /**
