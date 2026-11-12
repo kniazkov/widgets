@@ -32,6 +32,8 @@ payload limits, rejection responses and custom-input migration.
 
 See [Event acknowledgements](docs/EVENT_ACKNOWLEDGEMENTS.ru.md) for terminal delivery results,
 duplicate suppression, bounded retries and page resynchronization.
+See [Live event targets](docs/LIVE_EVENT_TARGETS.ru.md) for tree mutations between batch events,
+replacement, movement and context revocation.
 
 ## MVC architecture
 
