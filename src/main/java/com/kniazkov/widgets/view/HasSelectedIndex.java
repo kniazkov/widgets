@@ -11,6 +11,16 @@ import com.kniazkov.widgets.model.Model;
  */
 public interface HasSelectedIndex extends Entity, HandlesSelectionEvents {
     /**
+     * Checks a browser selection before changing any model. Custom selection widgets must
+     * override this method to describe their domain; the default denies browser selection.
+     * @param index requested position
+     * @return whether the position is permitted
+     */
+    default boolean acceptsSelectedIndex(final int index) {
+        return false;
+    }
+
+    /**
      * Returns the selected-index model.
      *
      * @return selected-index model

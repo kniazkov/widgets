@@ -48,8 +48,8 @@ function processPointerEvent(element, event) {
         x: Math.round(event.screenX),
         y: Math.round(event.screenY)
     };
-    data.type = event.pointerType;
-    data.primary = event.isPrimary;
+    data.type = event.pointerType || "";
+    data.primary = event.isPrimary ?? true;
     data.buttons = event.buttons;
     data.keys = {
         ctrl: event.ctrlKey,
@@ -57,7 +57,7 @@ function processPointerEvent(element, event) {
         shift: event.shiftKey,
         meta: event.metaKey
     };
-    data.pressure = event.pressure;
+    data.pressure = event.pressure ?? 0;
     return data;
 }
 

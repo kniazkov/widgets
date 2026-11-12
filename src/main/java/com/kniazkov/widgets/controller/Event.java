@@ -8,7 +8,7 @@ import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.ModalPopup;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
-import com.kniazkov.widgets.view.HasText;
+import com.kniazkov.widgets.view.HasTextInput;
 import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.SortableSection;
 import com.kniazkov.widgets.view.Widget;
@@ -71,6 +71,17 @@ public abstract class Event<T> {
          */
     }
 
+    /**
+     * Validates an untrusted event without updating models or invoking controllers.
+     * @param widget target widget
+     * @param object payload
+     * @return stable protocol rejection code, or empty for an admissible event
+     */
+    public java.util.Optional<String> rejectionReason(final Widget<?> widget,
+            final JsonObject object) {
+        return EventValidation.rejection(this, widget, object);
+    }
+
     @Override
     public String toString() {
         return this.getName();
@@ -83,6 +94,9 @@ public abstract class Event<T> {
      * @param object the serialized event data
      */
     public void process(final Widget<?> widget, final JsonObject object) {
+        if (this.rejectionReason(widget, object).isPresent()) {
+            return;
+        }
         final Controller<T> controller = widget.getController(this);
         final T data = this.parseData(object);
         this.updateWidget(widget, data);
@@ -121,8 +135,8 @@ public abstract class Event<T> {
 
         @Override
         public void updateWidget(final Widget<?> widget, final String data) {
-            if (widget instanceof HasText) {
-                ((HasText) widget).getTextModel().setData(data);
+            if (widget instanceof HasTextInput) {
+                ((HasTextInput) widget).getTextModel().setData(data);
             }
         }
     };
@@ -188,6 +202,9 @@ public abstract class Event<T> {
 
         @Override
         public void process(final Widget<?> widget, final JsonObject object) {
+            if (this.rejectionReason(widget, object).isPresent()) {
+                return;
+            }
             final ReorderEvent data = this.parseData(object);
             if (widget instanceof SortableSection section && section.acceptReorder(data)) {
                 widget.getController(this).handleEvent(data);

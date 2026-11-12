@@ -143,6 +143,25 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
         this.controllers.put(event, controller);
     }
 
+    /**
+     * Checks server-side hidden/disabled flags on this widget and its current ancestors.
+     * This read does not create property bindings or enqueue updates.
+     * @return whether interaction is currently allowed
+     */
+    public final boolean isInteractionEnabled() {
+        final Map<Property<?>, Binding<?>> values = this.bindings.get(State.ANY);
+        if (values != null) {
+            for (final Property<Boolean> flag : java.util.List.of(Property.HIDDEN,
+                    Property.DISABLED)) {
+                final Binding<?> binding = values.get(flag);
+                if (binding != null && Boolean.TRUE.equals(binding.getModel().getData())) {
+                    return false;
+                }
+            }
+        }
+        return !(this.parent instanceof Widget<?> ancestor) || ancestor.isInteractionEnabled();
+    }
+
     @Override
     public void handleEvent(final Event<?> event, final JsonObject object) {
         event.process(this, object);

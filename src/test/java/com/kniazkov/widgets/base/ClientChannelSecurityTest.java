@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.controller.EventTestData;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.FileLoader;
@@ -440,7 +441,7 @@ public final class ClientChannelSecurityTest {
      */
     private String click(final String id) {
         return "[{\"id\":\"" + id + "\",\"widget\":\"" + this.button.get().getId()
-            + "\",\"type\":\"click\"}]";
+            + "\",\"type\":\"click\",\"data\":" + EventTestData.pointer() + "}]";
     }
 
     /**
