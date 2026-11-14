@@ -74,7 +74,15 @@ public final class ClientChannelSecurityTest {
      */
     @Before
     public void start() {
-        this.app = new Application((widget, page) -> {
+        this.app = this.application();
+        this.server = Server.start(this.app, new Options.Builder().setPort(0).build());
+    }
+
+    /**
+     * @return fresh application instance for each independent listener
+     */
+    private Application application() {
+        return new Application((widget, page) -> {
             this.context.set(page);
             this.root.set(widget);
             final Button action = new Button("Change private state");
@@ -85,7 +93,6 @@ public final class ClientChannelSecurityTest {
             widget.add(new Section(new TextWidget("private account data"), action, upload));
             widget.downloadFile("private.txt", "text/plain", new byte[]{11, 22, 33});
         });
-        this.server = Server.start(this.app, new Options.Builder().setPort(0).build());
     }
 
     /**
@@ -395,6 +402,7 @@ public final class ClientChannelSecurityTest {
     @Test
     public void rejectsExpiredSessionOverHttp() throws Exception {
         this.server.stop();
+        this.app = this.application();
         this.server = Server.start(this.app, new Options.Builder().setPort(0)
             .setClientLifetime(1000).build());
         final var browser = new ProtocolTestBrowser(this.server.getPort());
@@ -418,6 +426,7 @@ public final class ClientChannelSecurityTest {
     @Test
     public void honorsExplicitPublicOriginWithoutTrustingForwardedHeaders() throws Exception {
         this.server.stop();
+        this.app = this.application();
         this.server = Server.start(this.app, new Options.Builder().setPort(0)
             .setPublicOrigin("https://shop.example").build());
         final var browser = new ProtocolTestBrowser(this.server.getPort());

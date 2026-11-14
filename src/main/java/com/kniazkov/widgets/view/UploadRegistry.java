@@ -11,6 +11,7 @@ import com.kniazkov.widgets.controller.UploadEvent;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -26,7 +27,7 @@ import java.util.logging.Logger;
  * Application-wide upload reservations, disk ownership and bounded completion receipts.
  * Metadata locks never invoke application callbacks or acquire widget-root locks.
  */
-public final class UploadRegistry {
+public final class UploadRegistry implements AutoCloseable {
     /**
      * Registries with expiring resources; empty registries are removed by the sweeper.
      */
@@ -73,6 +74,11 @@ public final class UploadRegistry {
      * Declared bytes reserved before accepting any binary data.
      */
     private long reservedBytes;
+
+    /**
+     * Whether the owning application has permanently closed this registry.
+     */
+    private boolean closed;
     /**
      * Bounded callback workers; idle threads retire instead of retaining unused registries.
      */
@@ -110,7 +116,7 @@ public final class UploadRegistry {
             final UploadEvent event) {
         final UploadLimits limits = this.options.getUploadLimits();
         final long count = this.files.keySet().stream().filter(key -> key.root == root).count();
-        if (root.areUploadsClosed() || count >= limits.filesPerClient()
+        if (this.closed || root.areUploadsClosed() || count >= limits.filesPerClient()
                 || this.files.size() >= limits.filesPerApplication()
                 || event.size > limits.reservedBytes() - this.reservedBytes) {
             return null;
@@ -219,6 +225,27 @@ public final class UploadRegistry {
             file.cancel();
         }
         this.callbacks.purge();
+    }
+
+    /**
+     * Stops admitting uploads, cancels owned data and releases callback workers.
+     */
+    @Override
+    public void close() {
+        final List<UploadingFile> snapshot;
+        synchronized (this) {
+            if (this.closed) {
+                return;
+            }
+            this.closed = true;
+            snapshot = new ArrayList<>(this.files.values());
+            this.receipts.clear();
+        }
+        for (final UploadingFile file : snapshot) {
+            file.cancel();
+        }
+        this.callbacks.shutdownNow();
+        this.cleanup();
     }
 
     /**

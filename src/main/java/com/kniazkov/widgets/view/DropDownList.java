@@ -276,6 +276,7 @@ public final class DropDownList extends InlineWidget<DropDownListStyle>
             );
             this.model = model;
             this.model.addListener(this.listener);
+            DropDownList.this.onRetire(() -> this.model.removeListener(this.listener));
         }
 
         /**
@@ -293,6 +294,7 @@ public final class DropDownList extends InlineWidget<DropDownListStyle>
          * @param replacement replacement model
          */
         void setModel(final Model<String> replacement) {
+            DropDownList.this.requireUsable();
             if (this.model != replacement) {
                 this.model.removeListener(this.listener);
                 this.model = replacement;

@@ -7,12 +7,14 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.view.RootWidget;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -20,7 +22,7 @@ import java.util.logging.Logger;
  * To use this framework, you must implement and provide at least one {@link Page}
  * (the index page) and pass it to this class.
  */
-public final class Application {
+public final class Application implements AutoCloseable {
     /**
      * Logger.
      */
@@ -73,6 +75,31 @@ public final class Application {
     private int counter;
 
     /**
+     * Guards registration and the transition to terminal shutdown, never user code.
+     */
+    private final Object lifecycle = new Object();
+
+    /**
+     * Timer owned by this application.
+     */
+    private final Watchdog watchdog = new Watchdog();
+
+    /**
+     * Application-owned resource actions to execute in reverse registration order.
+     */
+    private final List<Runnable> cleanup = new ArrayList<>();
+
+    /**
+     * Whether shutdown has begun.
+     */
+    private volatile boolean closed;
+
+    /**
+     * Whether a listener was already requested for this instance.
+     */
+    private boolean starting;
+
+    /**
      * Constructs an application with a given index page (served at path {@code "/"}).
      *
      * @param index the root page of the application
@@ -80,15 +107,108 @@ public final class Application {
     public Application(Page index) {
         this.serverId = UUID.randomUUID();
         this.clients = new ConcurrentHashMap<>();
-        this.pages = new TreeMap<>();
+        this.pages = new ConcurrentHashMap<>();
         this.pages.put("/", index);
         this.counter = 0;
 
         /*
          * Start watchdog to clean up inactive clients
          */
-        Watchdog watchdog = new Watchdog();
-        watchdog.start(WATCHDOG_PERIOD);
+        this.watchdog.start(WATCHDOG_PERIOD);
+    }
+
+    /**
+     * Registers application-owned cleanup (for example cancellation of an executor).
+     *
+     * @param action cleanup action
+     * @throws IllegalStateException if shutdown has begun
+     */
+    public void onClose(final Runnable action) {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            this.cleanup.add(java.util.Objects.requireNonNull(action));
+        }
+    }
+
+    /**
+     * Reports whether shutdown has begun.
+     *
+     * @return terminal shutdown status
+     */
+    public boolean isClosed() {
+        return this.closed;
+    }
+
+    /**
+     * Revokes sessions, releases clients and stops application-owned resources once.
+     * Invoke from the server owner, outside widget event handlers.
+     */
+    @Override
+    public void close() {
+        final List<Client> active;
+        final List<Runnable> actions;
+        synchronized (this.lifecycle) {
+            if (this.closed) {
+                return;
+            }
+            this.closed = true;
+            this.watchdog.stop();
+            this.browserSessions.values().forEach(BrowserSession::revoke);
+            this.browserSessions.clear();
+            this.tabs.values().forEach(TabContext::revoke);
+            this.tabs.clear();
+            active = List.copyOf(this.clients.values());
+            actions = List.copyOf(this.cleanup).reversed();
+            this.cleanup.clear();
+            this.pages.clear();
+        }
+        try {
+            active.forEach(client -> runCleanup(client::close));
+        } finally {
+            this.clients.clear();
+            if (this.uploads != null) {
+                runCleanup(this.uploads::close);
+            }
+            actions.forEach(Application::runCleanup);
+        }
+    }
+
+    /**
+     * Runs one cleanup action independently of failures in other resources.
+     *
+     * @param action owned cleanup
+     */
+    private static void runCleanup(final Runnable action) {
+        try {
+            action.run();
+        } catch (final RuntimeException failure) {
+            LOGGER.log(Level.WARNING, "Application cleanup failed", failure);
+        }
+    }
+
+    /**
+     * Starts the once-only listener configuration.
+     *
+     * @param settings immutable configuration
+     */
+    void beginStart(final Options settings) {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            if (this.starting) {
+                throw new IllegalStateException("Application already started");
+            }
+            this.starting = true;
+            this.setOptions(settings);
+        }
+    }
+
+    /**
+     * Rejects Java-side registrations after shutdown begins.
+     */
+    private void requireOpen() {
+        if (this.closed) {
+            throw new IllegalStateException("Application is closed");
+        }
     }
 
     /**
@@ -110,9 +230,14 @@ public final class Application {
         if (existing != null && existing.touch()) {
             return existing;
         }
-        final BrowserSession created = new BrowserSession(this.options.getClientLifetime());
-        this.browserSessions.put(created.credential(), created);
-        return created;
+        synchronized (this.lifecycle) {
+            if (this.closed) {
+                throw new ProtocolAccessException(true);
+            }
+            final BrowserSession created = new BrowserSession(this.options.getClientLifetime());
+            this.browserSessions.put(created.credential(), created);
+            return created;
+        }
     }
 
     /**
@@ -120,7 +245,7 @@ public final class Application {
      * @return channel secret for its initial authenticated response only
      */
     String channelToken(final RMId id) {
-        return this.clients.get(id).channelToken();
+        return this.requireClient(id).channelToken();
     }
 
 
@@ -131,7 +256,21 @@ public final class Application {
      * @return non-secret update epoch
      */
     String updateEpoch(final RMId id) {
-        return this.clients.get(id).updateEpoch();
+        return this.requireClient(id).updateEpoch();
+    }
+
+    /**
+     * Returns a still-registered client for the initial response.
+     *
+     * @param id newly created client identity
+     * @return client accessible for initialization
+     */
+    private Client requireClient(final RMId id) {
+        final Client client = this.clients.get(id);
+        if (this.closed || client == null) {
+            throw new ProtocolAccessException(true);
+        }
+        return client;
     }
 
     /**
@@ -157,7 +296,10 @@ public final class Application {
      * @param page    the page instance to register
      */
     public void addPage(final String address, final Page page) {
-        this.pages.put("/" + address, page);
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            this.pages.put("/" + address, page);
+        }
     }
 
     /**
@@ -209,10 +351,15 @@ public final class Application {
      */
     TabContext resolveTab(final UUID browserId, final String token, final BrowserSession owner) {
         if (token == null) {
-            final TabContext tab = new TabContext(
-                owner, browserId, this.options.getClientLifetime());
-            this.tabs.put(tab.getId(), tab);
-            return tab;
+            synchronized (this.lifecycle) {
+                if (this.closed) {
+                    return null;
+                }
+                final TabContext tab = new TabContext(
+                    owner, browserId, this.options.getClientLifetime());
+                this.tabs.put(tab.getId(), tab);
+                return tab;
+            }
         }
         try {
             final TabContext tab = this.tabs.get(UUID.fromString(token));
@@ -240,21 +387,33 @@ public final class Application {
                 context.browserId == null ? UUID.randomUUID() : context.browserId, null,
                 context.browserSession);
         }
-        final Client client = new Client(this.options, context.tabContext, this.uploads);
-        client.timer = this.options.getClientLifetime();
-
+        final Client client;
+        final Page page;
+        synchronized (this.lifecycle) {
+            if (this.closed || context.tabContext == null) {
+                throw new ProtocolAccessException(true);
+            }
+            page = this.pages.getOrDefault(address, this.pages.get("/"));
+            client = new Client(this.options, context.tabContext, this.uploads);
+            client.timer = this.options.getClientLifetime();
+        }
         final RMId id = client.getId();
         final RootWidget root = client.getRootWidget();
-        final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
         try {
             page.create(root, context);
         } catch (final RuntimeException | Error failure) {
-            client.destroy();
+            client.close();
             throw failure;
         }
 
-        this.clients.put(id, client);
-        return id;
+        synchronized (this.lifecycle) {
+            if (!this.closed) {
+                this.clients.put(id, client);
+                return id;
+            }
+        }
+        client.close();
+        throw new ProtocolAccessException(true);
     }
 
     /**
@@ -323,7 +482,7 @@ public final class Application {
         this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
                 ChannelAccess.require(access, client, this.serverId);
-                client.destroy();
+                client.close();
                 removed[0] = true;
             }
             return null;
@@ -459,6 +618,9 @@ public final class Application {
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
+            if (closed) {
+                return false;
+            }
             browserSessions.entrySet().removeIf(entry -> !entry.getValue().isActive());
             tabs.entrySet().removeIf(entry -> !entry.getValue().isActive());
             for (final Map.Entry<RMId, Client> entry : clients.entrySet()) {
@@ -469,7 +631,7 @@ public final class Application {
                         if (client.timer <= 0 || !client.getTabContext().isActive()
                                 || (client.getTabContext().getBrowserSession() != null
                                 && !client.getTabContext().getBrowserSession().isActive())) {
-                            client.destroy();
+                            client.close();
                             LOGGER.info("Client " + id + " is killed by the watchdog.");
                             return null;
                         }

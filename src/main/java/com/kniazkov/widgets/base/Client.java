@@ -26,7 +26,7 @@ import java.util.TreeSet;
  * managed by a {@link RootWidget}. The client tracks all registered widgets, handles
  * incoming events from the front end, and collects outgoing updates for transmission.
  */
-public final class Client implements Comparable<Client> {
+public final class Client implements Comparable<Client>, AutoCloseable {
     /**
      * Shared revocable document identity.
      */
@@ -288,6 +288,9 @@ public final class Client implements Comparable<Client> {
      * Rechecks revocation after waiting for the root and after application callbacks.
      */
     private void requireLiveSession() {
+        if (this.closed) {
+            throw new ProtocolAccessException(true);
+        }
         final BrowserSession owner = this.tabContext.getBrowserSession();
         if (owner != null && !owner.isActive()) {
             this.root.closeUploads();
@@ -467,10 +470,22 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Cleans up client state before destruction.
+     * Terminal page lifecycle, guarded by the root monitor.
      */
-    void destroy() {
-        this.root.closeUploads();
+    private boolean closed;
+
+    /**
+     * Releases this page without revoking sibling pages in the same document.
+     */
+    @Override
+    public void close() {
+        synchronized (this.root) {
+            if (this.closed) {
+                return;
+            }
+            this.closed = true;
+        }
+        this.root.closePage();
     }
 
     /**

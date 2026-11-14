@@ -29,8 +29,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.TreeMap;
+import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Abstract base class for all UI widgets. A widget represents a single element in the view tree.
@@ -67,9 +70,43 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
     private RMId ownerRootId;
 
     /**
+     * Most recent lifecycle owner, without retaining an abandoned page.
+     */
+    private WeakReference<RootWidget> lifecycleOwner;
+
+    /**
+     * Tracks cleanup independently from browser export/reparent validation.
+     *
+     * @param root owning page
+     */
+    final void setLifecycleOwner(final RootWidget root) {
+        if (!this.belongsTo(root)) {
+            this.lifecycleOwner = new WeakReference<>(root);
+        }
+    }
+
+    /**
+     * @param root proposed owner
+     * @return whether the page still owns this widget's cleanup
+     */
+    final boolean belongsTo(final RootWidget root) {
+        return this.lifecycleOwner != null && this.lifecycleOwner.get() == root;
+    }
+
+    /**
      * Whether this widget is permanently retired.
      */
-    private boolean retired;
+    private volatile boolean retired;
+
+    /**
+     * Server-side cleanup diagnostics.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Widget.class.getName());
+
+    /**
+     * Resource actions owned exclusively by this widget.
+     */
+    private final List<Runnable> cleanup = new ArrayList<>();
 
     /**
      * Two-dimensional mapping: {@link State} → ({@link Property} → {@link Binding}).
@@ -108,11 +145,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
                 this.bindings.computeIfAbsent(state, s -> new HashMap<>());
             subset.put(
                 property,
-                property.bindModel(
-                    state,
-                    model.asCascading(),
-                    this
-                )
+                property.bindStyleModel(state, model, this)
             );
         });
     }
@@ -320,10 +353,67 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
         if (this instanceof RootWidget) {
             throw new IllegalStateException("The page owns its root widget lifecycle");
         }
-        final Optional<RootWidget> root = this.getRootWidget();
-        this.remove();
-        this.visitSubtree(widget -> widget.retired = true);
-        root.ifPresent(owner -> owner.pushUpdate(new DisposeWidget(this.id)));
+        if (!this.retired) {
+            final Optional<RootWidget> root = this.getRootWidget();
+            this.remove();
+            this.visitSubtree(Widget::retire);
+            root.ifPresent(owner -> owner.pushUpdate(new DisposeWidget(this.id)));
+        }
+    }
+
+    /**
+     * Adds cleanup for one subscription or resource owned by this widget.
+     *
+     * @param action cleanup action
+     */
+    protected final synchronized void onRetire(final Runnable action) {
+        this.requireUsable();
+        this.cleanup.add(Objects.requireNonNull(action));
+    }
+
+    /**
+     * @return whether this widget is no longer active
+     */
+    protected final boolean isRetired() {
+        return this.retired;
+    }
+
+    /**
+     * Rejects configuration that would reopen a retired widget's resources.
+     */
+    protected final void requireUsable() {
+        if (this.retired) {
+            throw new IllegalStateException("Widget is disposed");
+        }
+    }
+
+    /**
+     * Closes owned model listeners exactly once, without holding the widget monitor
+     * when calling custom resource closers.
+     */
+    final void retire() {
+        final List<Runnable> actions;
+        synchronized (this) {
+            if (this.retired) {
+                return;
+            }
+            this.retired = true;
+            this.controllers.clear();
+            this.updates = null;
+            actions = new ArrayList<>(this.cleanup);
+            this.cleanup.clear();
+            this.bindings.values().forEach(properties -> {
+                properties.values().forEach(binding -> actions.add(binding::close));
+                properties.clear();
+            });
+        }
+        for (final Runnable action : actions) {
+            try {
+                action.run();
+            } catch (final RuntimeException failure) {
+                LOGGER.log(Level.WARNING, "Widget cleanup failed", failure);
+            }
+        }
     }
 
     /**
@@ -453,6 +543,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
             previous.remove(this);
         }
         this.parent = destination;
+        this.getRootWidget().ifPresent(root -> this.visitSubtree(root::trackOwned));
     }
 
     /**
@@ -496,16 +587,16 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * @param style new widget style
      */
     public void setStyle(final S style) {
+        this.requireUsable();
         this.style = style;
         style.forEachModel((state, property, model) -> {
             final Map<Property<?>, Binding<?>> subset =
                 this.bindings.computeIfAbsent(state, s -> new HashMap<>());
-            final Model<?> fork = model.asCascading();
             final Binding<?> binding = subset.get(property);
             if (binding == null) {
-                subset.put(property, property.bindModel(state, fork, this));
+                subset.put(property, property.bindStyleModel(state, model, this));
             } else {
-                property.rebindModel(binding, fork);
+                property.rebindStyleModel(binding, model);
             }
         });
     }
@@ -516,6 +607,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * @param update the update to add
      */
     protected synchronized void pushUpdate(final Update update) {
+        if (this.retired) {
+            return;
+        }
         if (this.updates == null) {
             this.updates = new ArrayList<>();
         }
@@ -532,7 +626,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * @return an existing or newly created {@link Binding} for the given property and state
      * @throws IllegalArgumentException if the existing binding has an incompatible model type
      */
-    private <T> Binding<T> getBinding(final State state, final Property<T> property) {
+    private synchronized <T> Binding<T> getBinding(
+            final State state, final Property<T> property) {
+        this.requireUsable();
         Map<Property<?>, Binding<?>> subset
             = this.bindings.computeIfAbsent(state, k -> new HashMap<>());
         final Binding<?> existingBinding = subset.get(property);

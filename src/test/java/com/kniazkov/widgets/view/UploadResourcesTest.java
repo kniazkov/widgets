@@ -197,6 +197,33 @@ public final class UploadResourcesTest {
     }
 
     /**
+     * Application-owned registry shutdown deletes partial files and rejects further data.
+     */
+    @Test
+    public void registryShutdownCancelsUploadsAndReleasesFiles() throws Exception {
+        for (int iteration = 0; iteration < 3; iteration++) {
+            final Options options = this.options(2, 4, 100, 4);
+            final UploadRegistry registry = new UploadRegistry(options);
+            final RootWidget root = new RootWidget(options, registry);
+            final FileLoader loader = new FileLoader();
+            root.add(new Section(loader));
+            loader.handleUploadEvent(event(1, 8, 2));
+            assertTrue(loader.handleUploadChunk(1, 0, new byte[4]).get("result").booleanValue());
+            assertEquals(1, this.files());
+
+            registry.close();
+            registry.close();
+
+            assertEquals(0, this.files());
+            assertEquals(0, registry.getActiveCount());
+            assertEquals(0, registry.getReservedBytes());
+            loader.handleUploadEvent(event(2, 8, 2));
+            assertFalse(loader.handleUploadChunk(2, 0, new byte[4]).get("result").booleanValue());
+            root.closePage();
+        }
+    }
+
+    /**
      * Controller exceptions cannot retain reservations or make final retries repeat onLoad.
      */
     @Test
