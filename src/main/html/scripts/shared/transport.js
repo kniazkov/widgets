@@ -5,6 +5,14 @@
 const server = window.location.protocol + "//" + window.location.host;
 let protocolCsrf = null;
 let protocolSession = null;
+const widgetsProtocolVersion = "1";
+
+// Keep retries local to the caller that owns the idempotency key or event checkpoint.
+function transportRetryDelay(failures, base = 500) {
+    const ceiling = 15000;
+    const delay = Math.min(ceiling, base * 2 ** Math.min(Math.max(0, failures - 1), 8));
+    return Math.min(ceiling, Math.round(delay * (0.75 + Math.random() * 0.5)));
+}
 
 // The document bootstrap proves access to this origin; credentials never enter URLs/storage.
 function configureProtocolSecurity(csrf, session) {
@@ -33,9 +41,10 @@ function getXmlHttp() {
 // Object-valued fields are serialized as JSON; POST and file requests use multipart form data.
 function sendRequest(query, callback, method, files, channel) {
     const req = getXmlHttp();
+    const protocolAction = typeof query.action === "string";
     let form = null;
     const hasFiles = files && files.length;
-    const post = typeof query.action === "string" || method == "post" || hasFiles;
+    const post = protocolAction || method == "post" || hasFiles;
     if (post) {
         form = new FormData();
         for (const key in query) {
@@ -71,7 +80,7 @@ function sendRequest(query, callback, method, files, channel) {
         }
         req.open("GET", server + "?" + queryString, true);
     }
-    if (typeof query.action === "string") {
+    if (protocolAction) {
         if (protocolSession) req.setRequestHeader("X-Widgets-Session", protocolSession);
         if (protocolCsrf) req.setRequestHeader("X-Widgets-CSRF", protocolCsrf);
         if (channel) {
@@ -99,7 +108,20 @@ function sendRequest(query, callback, method, files, channel) {
                     "requestId=" + (req.getResponseHeader("X-Widgets-Request-Id") || "unavailable")
                 );
             }
-            if (req.status === 403) {
+            if (protocolAction && req.status === 200) {
+                const version = req.getResponseHeader("X-Widgets-Protocol-Version");
+                complete(
+                    version !== null && version !== widgetsProtocolVersion
+                        ? JSON.stringify({ protocolMismatch: true })
+                        : req.responseText
+                );
+            } else if (
+                protocolAction &&
+                req.status === 500 &&
+                req.getResponseHeader("X-Widgets-Protocol-Error") === "application"
+            ) {
+                complete(JSON.stringify({ clientError: true }));
+            } else if (protocolAction && req.status === 403) {
                 let expired = false;
                 try {
                     expired = JSON.parse(req.responseText).sessionExpired === true;
@@ -109,10 +131,18 @@ function sendRequest(query, callback, method, files, channel) {
                 complete(
                     JSON.stringify(expired ? { sessionExpired: true } : { accessDenied: true })
                 );
-            } else if (req.status >= 500 && req.status <= 599) {
-                complete(
-                    JSON.stringify({ result: false, clientError: true, httpStatus: req.status })
-                );
+            } else if (protocolAction && req.status === 401) {
+                complete(JSON.stringify({ accessDenied: true }));
+            } else if (protocolAction && (req.status === 426 || req.status === 505)) {
+                complete(JSON.stringify({ protocolMismatch: true }));
+            } else if (
+                protocolAction &&
+                req.status >= 400 &&
+                req.status < 500 &&
+                req.status !== 408 &&
+                req.status !== 429
+            ) {
+                complete(JSON.stringify({ clientError: true }));
             } else {
                 complete(req.status == 200 ? req.responseText : null);
             }

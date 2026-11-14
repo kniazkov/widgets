@@ -8,6 +8,18 @@ const clientErrorOverlayId = "client-error-overlay";
 let consecutiveRequestFailures = 0;
 let reloadRequested = false;
 let clientFailed = false;
+const sessionRefreshKey = "widgetsSessionRefreshAttempted";
+
+function readProtocolResponse(data) {
+    try {
+        const response = JSON.parse(data);
+        if (response && typeof response === "object" && !Array.isArray(response)) return response;
+    } catch {
+        // A non-protocol HTTP 200 cannot safely acknowledge queued input.
+    }
+    showClientError(undefined, "protocol");
+    return null;
+}
 
 // A persistent transport failure blocks interaction without discarding the current page state.
 function showConnectionTerminated() {
@@ -21,6 +33,7 @@ function showConnectionTerminated() {
     const overlay = document.createElement("div");
     overlay.id = connectionOverlayId;
     overlay.textContent = "Connection Terminated";
+    overlay.setAttribute("role", "status");
     (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
         overlay
     );
@@ -39,12 +52,12 @@ function hideConnectionTerminated() {
 }
 
 // A client failure is fatal for the current page and must not be retried as a network failure.
-function showClientError(error) {
+function showClientError(error, reason = "application") {
     if (clientDisposed || clientFailed) {
         return;
     }
     clientFailed = true;
-    clearInterval(mainCycleTask);
+    stopClientRecovery();
     hideConnectionTerminated();
     if (error) {
         console.error("Client error", error);
@@ -70,6 +83,8 @@ function showClientError(error) {
     const overlay = document.createElement("div");
     overlay.id = clientErrorOverlayId;
     overlay.textContent = "Client Error";
+    overlay.dataset.reason = reason;
+    overlay.setAttribute("role", "alert");
     (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
         overlay
     );
@@ -80,19 +95,44 @@ function showClientError(error) {
 
 function responseHasClientError(response) {
     if (response?.sessionExpired === true) {
-        if (!reloadRequested && !clientDisposed) {
-            reloadRequested = true;
-            clientFailed = true;
-            clearInterval(mainCycleTask);
-            window.location.reload();
+        if (reloadRequested || clientDisposed || clientFailed) return true;
+        // Carry one refresh attempt across the document reload, without retaining credentials.
+        try {
+            if (!window.sessionStorage.getItem(sessionRefreshKey)) {
+                window.sessionStorage.setItem(sessionRefreshKey, "1");
+                reloadRequested = true;
+                clientFailed = true;
+                stopClientRecovery();
+                window.location.reload();
+                return true;
+            }
+        } catch {
+            // If storage is unavailable, do not risk an unbounded reload loop.
         }
+        showClientError(undefined, "session");
         return true;
     }
-    if (response && (response.clientError === true || response.accessDenied === true)) {
+    if (response?.protocolMismatch === true) {
+        showClientError(undefined, "protocol");
+        return true;
+    }
+    if (response?.accessDenied === true) {
+        showClientError(undefined, "access");
+        return true;
+    }
+    if (response?.clientError === true) {
         showClientError();
         return true;
     }
     return false;
+}
+
+function clearSessionRefreshAttempt() {
+    try {
+        window.sessionStorage.removeItem(sessionRefreshKey);
+    } catch {
+        // Storage is optional; request authorization is unaffected.
+    }
 }
 
 function recordRequestFailure() {
@@ -128,6 +168,10 @@ function reloadCurrentPage() {
 }
 
 function serverStateIsCurrent(response) {
+    if (typeof response.serverId !== "string" && response.tabContextExpired !== true) {
+        showClientError(undefined, "protocol");
+        return false;
+    }
     if (response.tabContextExpired === true || response.serverId !== serverId) {
         if (pageContext?.resetTab) {
             pageContext.resetTab();
@@ -137,7 +181,7 @@ function serverStateIsCurrent(response) {
         }
         return false;
     }
-    if (response.serverId !== serverId || response.clientAlive !== true) {
+    if (response.clientAlive !== true) {
         reloadCurrentPage();
         return false;
     }

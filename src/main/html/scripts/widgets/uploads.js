@@ -11,11 +11,28 @@ const activeUploads = [];
 let uploadRequestInFlight = false;
 
 let nextUploadIndex = 0;
+let uploadNetworkFailures = 0;
+let uploadNetworkRetry = null;
+
+function scheduleUploadNetworkRetry() {
+    if (uploadNetworkRetry !== null) return;
+    uploadNetworkRetry = setTimeout(
+        () => {
+            uploadNetworkRetry = null;
+            sendNextUploadChunk();
+        },
+        transportRetryDelay(++uploadNetworkFailures, UPLOAD_RETRY_DELAY)
+    );
+}
 
 const uploadRetryTasks = new Set();
 
 function scheduleUploadRetry(callback) {
-    if (typeof clientDisposed !== "undefined" && clientDisposed) return;
+    if (
+        (typeof clientDisposed !== "undefined" && clientDisposed) ||
+        (typeof clientFailed !== "undefined" && clientFailed)
+    )
+        return;
     const task = setTimeout(() => {
         uploadRetryTasks.delete(task);
         if (typeof clientDisposed === "undefined" || !clientDisposed) callback();
@@ -26,6 +43,9 @@ function scheduleUploadRetry(callback) {
 function disposeUploads() {
     for (const task of uploadRetryTasks) clearTimeout(task);
     uploadRetryTasks.clear();
+    clearTimeout(uploadNetworkRetry);
+    uploadNetworkRetry = null;
+    uploadNetworkFailures = 0;
     for (const file of [...pendingUploads, ...activeUploads]) {
         file.source = null;
         file.widget = null;
@@ -175,12 +195,18 @@ function sendNextUploadChunk() {
     if (
         (typeof clientDisposed !== "undefined" && clientDisposed) ||
         (typeof clientFailed !== "undefined" && clientFailed) ||
-        uploadRequestInFlight
+        uploadRequestInFlight ||
+        uploadNetworkRetry !== null
     ) {
         return;
     }
     fillActiveUploads();
     if (activeUploads.length == 0) {
+        return;
+    }
+    if (navigator.onLine === false) {
+        recordRequestFailure();
+        scheduleUploadNetworkRetry();
         return;
     }
     if (nextUploadIndex >= activeUploads.length) {
@@ -201,26 +227,29 @@ function sendNextUploadChunk() {
             lastUpdate: "#" + lastProcessedUpdateId
         },
         function (data) {
-            if (typeof clientDisposed !== "undefined" && clientDisposed) {
+            if (
+                (typeof clientDisposed !== "undefined" && clientDisposed) ||
+                (typeof clientFailed !== "undefined" && clientFailed)
+            ) {
                 return;
             }
             uploadRequestInFlight = false;
-            if (!data) {
+            if (data == null) {
                 recordRequestFailure();
-                scheduleUploadRetry(sendNextUploadChunk);
+                scheduleUploadNetworkRetry();
                 return;
             }
-            let receipt;
-            try {
-                receipt = JSON.parse(data);
-            } catch (error) {
-                recordRequestFailure();
-                scheduleUploadRetry(sendNextUploadChunk);
+            const receipt =
+                typeof readProtocolResponse === "function"
+                    ? readProtocolResponse(data)
+                    : JSON.parse(data);
+            if (
+                !receipt ||
+                (typeof responseHasClientError === "function" && responseHasClientError(receipt))
+            ) {
                 return;
             }
-            if (typeof responseHasClientError === "function" && responseHasClientError(receipt)) {
-                return;
-            }
+            uploadNetworkFailures = 0;
             recordRequestSuccess();
             processUpdates(receipt.updates);
             if (file.source === null) {

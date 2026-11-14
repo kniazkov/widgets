@@ -1,9 +1,9 @@
-import { readScriptGroup } from "./helpers/scripts.js";
+import { readScript, readScriptGroup } from "./helpers/scripts.js";
 
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
-const source = readScriptGroup("client");
+const source = readScript("shared/transport.js") + "\n" + readScriptGroup("client");
 
 const handlerNames = [
     "log",
@@ -97,8 +97,9 @@ function createHarness() {
     const handlers = handlerNames.map(name => `function ${name}() { return true; }`).join("\n");
     dom.window.eval(`const widgets = {};\n${handlers}\n
         window.__requests = [];
+        Math.random = () => 0.5;
         window.__scheduledTasks = [];
-        function sendRequest(request, callback) {
+        function captureRequest(request, callback) {
             window.__requests.push({ request, callback });
         }
         function isMobileDevice() {
@@ -119,6 +120,7 @@ function createHarness() {
             if (task) task.active = false;
         };
         ${source}\n
+        sendRequest = captureRequest;
         window.__reloadCount = 0;
         window.__openedTabs = [];
         window.open = function (...args) {
@@ -213,6 +215,42 @@ describe("connection recovery", () => {
 
         harness.succeed();
         expect(dom.window.document.getElementById("client-error-overlay")).toBe(overlay);
+    });
+
+    it.each([
+        [{ protocolMismatch: true }, "protocol"],
+        [{ accessDenied: true }, "access"],
+        [{ sessionExpired: true }, "session"]
+    ])("stops synchronization on a terminal response: %o", (response, reason) => {
+        const harness = createHarness();
+        if (response.sessionExpired) {
+            dom.window.sessionStorage.setItem("widgetsSessionRefreshAttempted", "1");
+        }
+        harness.setClientId("#123");
+        harness.sendSynchronizeRequest();
+        harness.requests[0].callback(JSON.stringify(response));
+        expect(dom.window.document.getElementById("client-error-overlay")?.dataset.reason).toBe(
+            reason
+        );
+        dom.window.dispatchEvent(new dom.window.Event("online"));
+        harness.mainCycle();
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.scheduledTasks).toHaveLength(0);
+    });
+
+    it("does not send offline and wakes the existing gate when back online", () => {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        Object.defineProperty(dom.window.navigator, "onLine", { configurable: true, value: false });
+        harness.sendSynchronizeRequest();
+        harness.sendSynchronizeRequest();
+        expect(harness.requests).toHaveLength(0);
+        expect(harness.scheduledTasks).toHaveLength(1);
+        Object.defineProperty(dom.window.navigator, "onLine", { configurable: true, value: true });
+        dom.window.dispatchEvent(new dom.window.Event("online"));
+        expect(harness.requests).toHaveLength(1);
+        harness.scheduledTasks[0]();
+        expect(harness.requests).toHaveLength(1);
     });
 
     it("reloads when the server instance changes", () => {
@@ -388,7 +426,7 @@ describe("event delivery acknowledgements", () => {
         expect(dom.window.__reloadCount).toBe(0);
     });
 
-    it("retries a lost reply with the same IDs after the polling delay", () => {
+    it("retries a lost reply with the same IDs through the backoff gate", () => {
         const harness = deliveryHarness();
         harness.enqueue();
         harness.sync();
@@ -396,7 +434,7 @@ describe("event delivery acknowledgements", () => {
         harness.enqueue();
         harness.sync();
         expect(harness.requests).toHaveLength(1);
-        expect(harness.scheduledTasks[0].delay).toBe(2500);
+        expect(harness.scheduledTasks[0].delay).toBe(500);
         harness.scheduledTasks[0]();
         expect(harness.requests[1].request.events.map(event => event.id)).toEqual(["#1", "#2"]);
         harness.respond("#2");

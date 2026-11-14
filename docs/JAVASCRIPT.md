@@ -80,3 +80,6 @@ Java-to-browser round trip.
 `navigation.js` owns a memory-only, server-issued context shared by its page runtimes.
 See [revocable tab context](TAB_CONTEXT.md) for the reload/duplicate-tab policy, protocol,
 revocation, application authorization responsibilities and tests.
+
+For transient HTTP errors, session refresh, and event ACK behavior, see the
+[connection recovery contract](CONNECTION_RECOVERY.ru.md).

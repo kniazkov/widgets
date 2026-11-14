@@ -26,33 +26,61 @@ describe("escapeHtml", () => {
 });
 
 describe("sendRequest", () => {
-    it("preserves HTTP 500 as a fatal protocol result without exposing the response body", () => {
-        let request;
-        class MockXmlHttpRequest {
-            constructor() {
-                request = this;
+    it.each([
+        [500, {}, null],
+        [502, {}, null],
+        [503, {}, null],
+        [504, {}, null],
+        [500, { "X-Widgets-Protocol-Error": "application" }, '{"clientError":true}'],
+        [401, {}, '{"accessDenied":true}'],
+        [426, {}, '{"protocolMismatch":true}'],
+        [200, { "X-Widgets-Protocol-Version": "2" }, '{"protocolMismatch":true}'],
+        [200, { "X-Widgets-Protocol-Version": "1" }, "private body"],
+        [200, {}, "private body"]
+    ])(
+        "classifies HTTP %i and protocol headers without leaking error bodies",
+        (status, headers, expected) => {
+            let request;
+            class MockXmlHttpRequest {
+                constructor() {
+                    request = this;
+                }
+                open() {}
+                send() {}
+                getResponseHeader(name) {
+                    return headers[name] ?? null;
+                }
             }
-            open() {}
-            send() {}
-            getResponseHeader() {
-                return null;
-            }
+            dom = new JSDOM("<!doctype html>", {
+                runScripts: "outside-only",
+                url: "http://localhost/"
+            });
+            dom.window.XMLHttpRequest = MockXmlHttpRequest;
+            vi.spyOn(dom.window.console, "error").mockImplementation(() => {});
+            dom.window.eval(source);
+            const callback = vi.fn();
+            dom.window.sendRequest({ action: "synchronize" }, callback);
+            request.readyState = 4;
+            request.status = status;
+            request.responseText = "private body";
+            request.onreadystatechange();
+            request.onerror();
+            expect(callback).toHaveBeenCalledExactlyOnceWith(expected);
         }
+    );
+
+    it("caps exponential backoff and jitters attempts independently", () => {
         dom = new JSDOM("<!doctype html>", {
             runScripts: "outside-only",
             url: "http://localhost/"
         });
-        dom.window.XMLHttpRequest = MockXmlHttpRequest;
         dom.window.eval(source);
-        let result;
-        dom.window.sendRequest({ action: "synchronize" }, data => {
-            result = JSON.parse(data);
-        });
-        request.readyState = 4;
-        request.status = 500;
-        request.responseText = "private server stack";
-        request.onreadystatechange();
-        expect(result).toEqual({ result: false, clientError: true, httpStatus: 500 });
+        dom.window.Math.random = () => 0;
+        expect(dom.window.transportRetryDelay(1)).toBe(375);
+        expect(dom.window.transportRetryDelay(2)).toBe(750);
+        dom.window.Math.random = () => 0.99;
+        expect(dom.window.transportRetryDelay(1)).toBeGreaterThan(600);
+        expect(dom.window.transportRetryDelay(1000000)).toBe(15000);
     });
 
     it("logs the rejected request ID without logging the response body", () => {
