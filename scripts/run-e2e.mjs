@@ -150,7 +150,11 @@ async function main() {
         await waitForServer(upload.baseURL, upload.process);
         await run(
             process.execPath,
-            [join(projectRoot, "node_modules", "@playwright", "test", "cli.js"), "test"],
+            [
+                join(projectRoot, "node_modules", "@playwright", "test", "cli.js"),
+                "test",
+                ...process.argv.slice(2)
+            ],
             {
                 env: {
                     ...process.env,
