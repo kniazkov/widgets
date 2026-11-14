@@ -36,7 +36,7 @@ import java.util.TreeSet;
  *
  * @param <S> Widget style
  */
-public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
+public abstract class Widget<S extends Style> implements Entity, HandlesEvents, HasAccessibleName {
     /**
      * Widget unique Id.
      */
@@ -123,6 +123,87 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
         }
         final Binding<T> binding = this.getBinding(state, property);
         binding.setModel(model);
+    }
+
+    /**
+     * Returns the widget supplying semantics for this control or composite.
+     * @return this widget or a native control owned by it
+     */
+    protected Widget<?> accessibleTarget() {
+        return this;
+    }
+
+    @Override
+    public Model<String> getAccessibleNameModel() {
+        return this.accessibleTarget().getModel(State.ANY, Property.ACCESSIBLE_NAME);
+    }
+
+    @Override
+    public void setAccessibleNameModel(final Model<String> model) {
+        this.accessibleTarget().setModel(State.ANY, Property.ACCESSIBLE_NAME, model);
+    }
+
+    /**
+     * Returns the model storing the optional plain-text accessible description.
+     * @return description model
+     */
+    public final Model<String> getAccessibleDescriptionModel() {
+        return this.accessibleTarget().getModel(State.ANY, Property.ACCESSIBLE_DESCRIPTION);
+    }
+
+    /**
+     * Binds the accessible description to application state.
+     * @param model description model
+     */
+    public final void setAccessibleDescriptionModel(final Model<String> model) {
+        this.accessibleTarget().setModel(State.ANY, Property.ACCESSIBLE_DESCRIPTION, model);
+    }
+
+    /**
+     * Sets the plain-text description, or clears it with an empty string.
+     * @param description accessible description
+     */
+    public final void setAccessibleDescription(final String description) {
+        this.getAccessibleDescriptionModel().setData(description);
+    }
+
+    /**
+     * Names this widget from another widget on the same page.
+     * @param label label widget, or null to restore the explicit or native name
+     */
+    public final void setAccessibleLabel(final Widget<?> label) {
+        this.setAccessibleReference(Property.ACCESSIBLE_LABEL, label);
+    }
+
+    /**
+     * Associates a help widget with this widget's accessible description.
+     * @param description description widget, or null to clear the relationship
+     */
+    public final void setAccessibleDescriptionWidget(final Widget<?> description) {
+        this.setAccessibleReference(Property.ACCESSIBLE_DESCRIPTION_WIDGET, description);
+    }
+
+    /**
+     * Associates a message with this widget while it is invalid.
+     * @param error error message widget, or null to clear the relationship
+     */
+    public final void setAccessibleError(final Widget<?> error) {
+        this.setAccessibleReference(Property.ACCESSIBLE_ERROR, error);
+    }
+
+    /**
+     * Serializes the stable identity without retaining the target as a Java object.
+     * @param property relationship property
+     * @param target referenced widget, or null
+     */
+    private void setAccessibleReference(final Property<String> property, final Widget<?> target) {
+        final Widget<?> source = this.accessibleTarget();
+        if (target == this || target == source) {
+            throw new IllegalArgumentException("The label target cannot be its own source");
+        }
+        source.getModel(State.ANY, property).setData(
+            target == null ? "" : target.getId().toString()
+        );
     }
 
     @Override

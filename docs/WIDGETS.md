@@ -372,6 +372,15 @@ Tab/Shift+Tab and restores focus when hidden or removed. Use `setAccessibleName`
 this setting is independent of outside dismissal. See the [accessibility contract and example](MODAL_ACCESSIBILITY.ru.md).
 See the [interactive gallery and screenshots](WIDGET_GALLERY.ru.md#modal-popup).
 
+## Accessible widget semantics
+
+Use `setAccessibleName` and `setAccessibleDescription` for explicit plain-text metadata.
+`setAccessibleLabel`, `setAccessibleDescriptionWidget` and `setAccessibleError` link
+widgets on the same page. `TextWidget.setHeadingLevel` preserves styling, and image
+widgets accept alternative text or a decorative flag. `Button.icon` is an ordinary
+native Button with a required action name and decorative image child.
+See the [contract and examples](ACCESSIBLE_WIDGETS.ru.md).
+
 ## Editable suggestions
 
 `SuggestionField` extends `InputField`. It preserves text binding, validation, disabled state,

@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.protocol.SetChild;
+import java.util.Objects;
 
 /**
  * A clickable button widget that decorates a single {@link InlineWidget}.
@@ -21,6 +22,34 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
      */
     public static ButtonStyle getDefaultStyle() {
         return ButtonStyle.DEFAULT;
+    }
+
+    /**
+     * Creates a native button with only an icon as visible content.
+     * The caller supplies an unparented icon; the action name belongs to the button.
+     * @param icon decorative icon displayed inside the button
+     * @param name nonblank accessible action name
+     * @return native button with ordinary Button behavior
+     */
+    public static Button icon(final ImageWidget icon, final String name) {
+        return icon(getDefaultStyle(), icon, name);
+    }
+
+    /**
+     * Creates a styled native icon button with an explicit action name.
+     * @param style button style
+     * @param icon decorative icon displayed inside the button
+     * @param name nonblank accessible action name
+     * @return styled native button
+     */
+    public static Button icon(final ButtonStyle style, final ImageWidget icon, final String name) {
+        if (Objects.requireNonNull(name, "name").isBlank()) {
+            throw new IllegalArgumentException("An icon button requires an accessible name");
+        }
+        icon.setDecorative(true);
+        final Button button = new Button(style, icon);
+        button.setAccessibleName(name);
+        return button;
     }
 
     /**

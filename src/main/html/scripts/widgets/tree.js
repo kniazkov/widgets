@@ -34,6 +34,7 @@ function resumeWidgetSubtree(widget) {
 function retainDetachedWidget(widget) {
     pauseWidgetSubtree(widget);
     widget.remove();
+    refreshAccessibleRelations();
     detachedWidgets.delete(widget);
     detachedWidgets.set(widget, true);
 }
@@ -48,10 +49,12 @@ function disposeWidgetSubtree(widget, preserveElement = false) {
         node._clientActions = {};
         discardWidgetUploads(node);
         detachedWidgets.delete(node);
+        forgetAccessibleWidget(node);
         if (widgets[node._id] === node) delete widgets[node._id];
     }
     if (preserveElement) widget.replaceChildren();
     else widget.remove();
+    refreshAccessibleRelations();
 }
 
 function disposeWidget(data) {
@@ -98,6 +101,7 @@ function trimDetachedWidgets() {
 function finishWidgetAttachment(widget) {
     detachedWidgets.delete(widget);
     resumeWidgetSubtree(widget);
+    refreshAccessibleRelations();
     refreshCountdowns();
 }
 

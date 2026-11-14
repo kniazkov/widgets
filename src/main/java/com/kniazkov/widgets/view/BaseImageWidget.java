@@ -24,6 +24,38 @@ public abstract class BaseImageWidget<S extends Style> extends InlineWidget<S>
     }
 
     /**
+     * Returns the image alternative text model.
+     * @return alternative text model
+     */
+    public final Model<String> getAlternativeTextModel() {
+        return this.getModel(State.ANY, Property.ALTERNATIVE_TEXT);
+    }
+
+    /**
+     * Binds image alternative text to application state.
+     * @param model alternative text model
+     */
+    public final void setAlternativeTextModel(final Model<String> model) {
+        this.setModel(State.ANY, Property.ALTERNATIVE_TEXT, model);
+    }
+
+    /**
+     * Describes an informative image, or supplies an empty alternative.
+     * @param text alternative text
+     */
+    public final void setAlternativeText(final String text) {
+        this.getAlternativeTextModel().setData(text);
+    }
+
+    /**
+     * Marks an image as decorative without discarding its stored alternative text.
+     * @param decorative true to exclude the image from the accessibility tree
+     */
+    public final void setDecorative(final boolean decorative) {
+        this.getModel(State.ANY, Property.DECORATIVE_IMAGE).setData(decorative);
+    }
+
+    /**
      * Reserves the image box before its bytes arrive using HTML width/height attributes.
      * CSS size limits still apply; the image is contained in the box without distortion.
      * Supply dimensions from trusted image metadata, not the configured maximum limits.

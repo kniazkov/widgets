@@ -22,6 +22,7 @@ export default defineConfig({
                 "labeled-choices.spec.js",
                 "modal-visibility.spec.js",
                 "modal-accessibility.spec.js",
+                "widget-semantics.spec.js",
                 "upload-lifecycle.spec.js"
             ],
             use: { browserName: "webkit" }

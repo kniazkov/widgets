@@ -8,6 +8,7 @@
         "widgets/core.js",
         "widgets/uploads.js",
         "widgets/popup.js",
+        "widgets/semantics.js",
         "widgets/events.js",
         "widgets/tree.js",
         "widgets/content.js",

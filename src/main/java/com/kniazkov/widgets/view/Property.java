@@ -400,6 +400,40 @@ public abstract class Property<T> {
         stringProperty("accessible description");
 
     /**
+     * Stable ID of the visible label or empty when unset.
+     */
+    static final Property<String> ACCESSIBLE_LABEL = stringProperty("accessible label");
+
+    /**
+     * Stable ID of the help widget or empty when unset.
+     */
+    static final Property<String> ACCESSIBLE_DESCRIPTION_WIDGET =
+        stringProperty("accessible description widget");
+
+    /**
+     * Stable ID of the error widget or empty when unset.
+     */
+    static final Property<String> ACCESSIBLE_ERROR = stringProperty("accessible error");
+
+    /**
+     * Alternative text for an informative image.
+     */
+    public static final Property<String> ALTERNATIVE_TEXT = stringProperty("alternative text");
+
+    /**
+     * Whether the image is excluded from the accessible tree.
+     */
+    public static final Property<Boolean> DECORATIVE_IMAGE = boolProperty("decorative image");
+
+    /**
+     * Heading level, with zero representing ordinary inline text.
+     */
+    static final Property<Integer> HEADING_LEVEL = of(
+        "heading level", Integer.class, () -> new IntegerModel(0),
+        value -> JsonNumber.of(value.doubleValue())
+    );
+
+    /**
      * Sizes an overlay stack from its first child only.
      */
     public static final Property<Boolean> FIT_TO_FIRST_CHILD = boolProperty("fit to first child");
