@@ -1,3 +1,4 @@
+import AxeBuilder from "@axe-core/playwright";
 import { test, expect } from "@playwright/test";
 
 for (const touch of [false, true]) {
@@ -8,31 +9,48 @@ for (const touch of [false, true]) {
             const news = page.getByText("Receive news", { exact: true });
             const delivery = page.getByText("Delivery", { exact: true });
             const pickup = page.getByText("Pickup", { exact: true });
-            const icons = page.locator("img");
-            await expect(icons).toHaveCount(3);
+            const checkbox = page.getByRole("checkbox", { name: "Receive news" });
+            const first = page.getByRole("radio", { name: "Delivery" });
+            const second = page.getByRole("radio", { name: "Pickup" });
+            const checks = [];
+            page.on("request", request => {
+                const match = request.postData()?.match(/name="events"\r\n\r\n([^\r]+)\r\n/);
+                if (match)
+                    checks.push(...JSON.parse(match[1]).filter(event => event.type === "check"));
+            });
             const activate = locator => (touch ? locator.tap() : locator.click());
             await activate(news);
-            await expect(icons.nth(0)).toHaveJSProperty("_selected", true);
-            await activate(icons.nth(0));
-            await expect(icons.nth(0)).toHaveJSProperty("_selected", false);
+            await expect(checkbox).toBeChecked();
+            await activate(checkbox);
+            await expect(checkbox).not.toBeChecked();
             await activate(pickup);
-            await expect(icons.nth(1)).toHaveJSProperty("_selected", false);
-            await expect(icons.nth(2)).toHaveJSProperty("_selected", true);
+            await expect(first).not.toBeChecked();
+            await expect(second).toBeChecked();
             await activate(pickup);
-            await expect(icons.nth(2)).toHaveJSProperty("_selected", true);
+            await expect(second).toBeChecked();
             const normal = await news.evaluate(el => getComputedStyle(el).color);
             await activate(page.getByRole("button", { name: "Toggle disabled" }));
             for (const caption of [news, delivery, pickup]) {
                 await expect(caption).toHaveCSS("color", "rgb(128, 128, 128)");
             }
-            await activate(news);
-            await activate(delivery);
-            await expect(icons.nth(0)).toHaveJSProperty("_selected", false);
-            await expect(icons.nth(2)).toHaveJSProperty("_selected", true);
+            await expect(checkbox).toBeDisabled();
+            await expect(first).toBeDisabled();
+            // Physical input reaches the label even when its associated control is disabled.
+            for (const caption of [news, delivery]) {
+                const bounds = await caption.boundingBox();
+                const x = bounds.x + bounds.width / 2;
+                const y = bounds.y + bounds.height / 2;
+                if (touch) await page.touchscreen.tap(x, y);
+                else await page.mouse.click(x, y);
+            }
+            await expect(checkbox).not.toBeChecked();
+            await expect(second).toBeChecked();
             await activate(page.getByRole("button", { name: "Toggle disabled" }));
             await expect(news).toHaveCSS("color", normal);
             await activate(delivery);
-            await expect(icons.nth(1)).toHaveJSProperty("_selected", true);
+            await expect(first).toBeChecked();
+            await expect.poll(() => checks.length).toBe(4);
+            expect(checks.map(event => event.data.state)).toEqual([true, false, true, true]);
         });
     });
 }
@@ -42,7 +60,7 @@ for (const width of [320, 390, 1280]) {
         await page.setViewportSize({ width, height: 844 });
         await page.goto("/labeled-choices");
         const captions = page.locator(".widgets-labeled-choice-row");
-        await expect(captions).toHaveCount(3);
+        await expect(captions).toHaveCount(4);
         for (const text of [
             "Brass with gold plating and brass with rhodium plating, a long description",
             "VeryLongUnbrokenCaption".repeat(12)
@@ -84,3 +102,44 @@ for (const width of [320, 390, 1280]) {
         }
     });
 }
+
+test("native choice accessibility, focus, Space and arrow-only navigation", async ({ page }) => {
+    await page.goto("/labeled-choices");
+    const box = page.getByRole("checkbox", { name: "Receive news" });
+    const delivery = page.getByRole("radio", { name: "Delivery" });
+    const unavailable = page.getByRole("radio", { name: "Unavailable option" });
+    const pickup = page.getByRole("radio", { name: "Pickup" });
+    const toggle = page.getByRole("button", { name: "Toggle disabled" });
+    await expect(box).toBeVisible();
+    const tree = await page.locator(".widgets-page").ariaSnapshot();
+    expect(tree).toContain('checkbox "Receive news"');
+    expect(tree).toContain('radio "Delivery" [checked]');
+    expect(tree).toContain('radio "Unavailable option" [disabled]');
+    await expect(delivery).toBeChecked();
+    await expect(unavailable).toBeDisabled();
+    const audit = await new AxeBuilder({ page }).include(".widgets-labeled-choice-row").analyze();
+    expect(audit.violations).toEqual([]);
+    await page.keyboard.press("Tab");
+    await expect(box).toBeFocused();
+    await expect(box).toHaveCSS("outline-style", "solid");
+    await expect(box).toHaveCSS("outline-width", "2px");
+    await page.keyboard.press("Space");
+    await expect(box).toBeChecked();
+    await page.keyboard.press("Tab");
+    await expect(delivery).toBeFocused();
+    await page.keyboard.press("ArrowRight");
+    await expect(pickup).toBeFocused();
+    await expect(pickup).toBeChecked();
+    await expect(delivery).not.toBeChecked();
+    await page.keyboard.press("ArrowDown");
+    await expect(delivery).toBeFocused();
+    await expect(delivery).toBeChecked();
+    await expect(pickup).not.toBeChecked();
+    await page.keyboard.press("Tab");
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press("Space");
+    await expect(box).toBeDisabled();
+    await expect(delivery).toBeDisabled();
+    await expect(pickup).toBeDisabled();
+    await expect(box).toBeChecked();
+});

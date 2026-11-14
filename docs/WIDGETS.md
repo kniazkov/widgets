@@ -267,6 +267,11 @@ for editable captions, shared checkbox values and model-driven disabling.
 only select it. Clearing remains available to application code through `uncheck()` or the model.
 Place related buttons in a `RadioGroup`; selecting any member then clears the other members.
 
+Checkboxes and radio buttons are native inputs, with the configured SVG used as their
+artwork. Use `setAccessibleName(...)` for a standalone control or the labeled variants for
+a visible native label. Tab, Space and radio-group arrows follow browser behavior. See the
+[choice accessibility contract](CHOICE_ACCESSIBILITY.ru.md).
+
 `DropDownList` wraps the browser's native `select` element. Each option position contains a
 `Model<String>` that controls its visible text. The number and order of positions are fixed by the
 constructor: application code may change a model's value with `setOptionText(...)`, or replace the

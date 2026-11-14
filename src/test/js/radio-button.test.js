@@ -35,7 +35,10 @@ function createHarness() {
         ${widgetsSource}
         window.__radioHarness = {
             createWidget,
+            appendChildWidget,
             setCheckedFlag,
+            setChoiceAccessibleName,
+            setText,
             setDisabledFlag,
             subscribeToEvent,
             widgets
@@ -54,6 +57,7 @@ describe("radio button", () => {
         expect(harness.createWidget({ type: "radio button", widget: id })).toBe(true);
         harness.subscribeToEvent({ widget: id, event: "check" });
         const widget = harness.widgets[id];
+        dom.window.document.body.appendChild(widget);
 
         widget.click();
 
@@ -84,4 +88,36 @@ describe("radio button", () => {
         expect(widget._selected).toBe(false);
         expect(harness.events).toEqual([]);
     });
+});
+
+it("gives an empty caption a fallback name and activates its native control once", () => {
+    const h = createHarness();
+    for (const [widget, type] of [
+        ["root", "root"],
+        ["row", "labeled choice row"],
+        ["choice", "checkbox"],
+        ["label", "choice label"],
+        ["text", "active text"]
+    ])
+        h.createWidget({ widget, type });
+    for (const [widget, container] of [
+        ["text", "label"],
+        ["choice", "row"],
+        ["label", "row"],
+        ["row", "root"]
+    ])
+        h.appendChildWidget({ widget, container });
+    const { choice, label } = h.widgets;
+    expect(choice.getAttribute("aria-label")).toBe("Checkbox");
+    h.setText({ widget: "text", text: "Delivery updates" });
+    expect(choice.getAttribute("aria-label")).toBeNull();
+    expect(label.control).toBe(choice);
+    h.setChoiceAccessibleName({ widget: "choice", "accessible name": "Shipment notices" });
+    expect(choice.getAttribute("aria-label")).toBe("Shipment notices");
+    h.setChoiceAccessibleName({ widget: "choice", "accessible name": "" });
+    expect(choice.getAttribute("aria-label")).toBeNull();
+    h.subscribeToEvent({ widget: "choice", event: "check" });
+    label.click();
+    expect(choice.checked).toBe(true);
+    expect(h.events.map(event => event.type)).toEqual(["check"]);
 });

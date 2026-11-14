@@ -552,19 +552,22 @@ public class AllWidgets {
         final Section row = variantRow();
         card.add(row);
         final CheckBox unchecked = new CheckBox();
+        unchecked.setAccessibleName("Notifications");
         final TextWidget uncheckedResult = feedback("Notifications disabled");
-        unchecked.onClick(event -> uncheckedResult.setText(
-            "Notifications " + (unchecked.isChecked() ? "enabled" : "disabled")
+        unchecked.getCheckedStateModel().addListener(selected -> uncheckedResult.setText(
+            "Notifications " + (selected ? "enabled" : "disabled")
         ));
         row.add(variant("Default", unchecked, uncheckedResult));
         final CheckBox checked = new CheckBox();
+        checked.setAccessibleName("Automatic updates");
         checked.check();
         final TextWidget checkedResult = feedback("Automatic updates enabled");
-        checked.onClick(event -> checkedResult.setText(
-            "Automatic updates " + (checked.isChecked() ? "enabled" : "disabled")
+        checked.getCheckedStateModel().addListener(selected -> checkedResult.setText(
+            "Automatic updates " + (selected ? "enabled" : "disabled")
         ));
         row.add(variant("Checked", checked, checkedResult));
         final CheckBox disabled = new CheckBox();
+        disabled.setAccessibleName("Disabled notifications");
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
@@ -582,11 +585,14 @@ public class AllWidgets {
         card.add(row);
         final RadioButton first = new RadioButton();
         final RadioButton second = new RadioButton();
+        first.setAccessibleName("First option");
+        second.setAccessibleName("Second option");
         second.check();
         new RadioGroup(first, second);
         row.add(variant("First option", first));
         row.add(variant("Second option — selected", second));
         final RadioButton disabled = new RadioButton();
+        disabled.setAccessibleName("Disabled option");
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
@@ -598,7 +604,7 @@ public class AllWidgets {
      */
     private static void addLabeledChoices(final RootWidget root) {
         final Panel card = addCard(root, "CheckBoxWithText / RadioButtonWithText",
-            "Click an icon or its caption. Disable choices to see their captions turn gray.");
+            "Tab, Space and arrow keys work on these choices; captions also activate them.");
         final BooleanModel disabled = new BooleanModel(false);
         final BooleanModel subscribed = new BooleanModel(true);
         final StringModel caption = new StringModel("Receive product news");
@@ -616,6 +622,11 @@ public class AllWidgets {
         pickup.setDisabledStateModel(disabled);
         card.add(new Section(delivery));
         card.add(new Section(pickup));
+        final CheckBoxWithText longCaption = new CheckBoxWithText(
+            "Send a copy of the detailed delivery notice and tracking information "
+                + "for every package, including orders shipped in several parts."
+        );
+        card.add(new Section(longCaption));
         card.add(new Section(new CheckBoxWithText(new StringModel("Disable choices"), disabled)));
         final InputField text = new InputField();
         text.setTextModel(caption);
@@ -780,6 +791,7 @@ public class AllWidgets {
             );
             popup.setCloseOnOutsideClick(true);
             final CheckBox enabled = new CheckBox();
+            enabled.setAccessibleName("Allow closing by tapping outside");
             enabled.setCheckedStateModel(popup.getCloseOnOutsideClickModel());
             popup.add(new Section(enabled, new TextWidget("Allow closing by tapping outside")));
             close.onClick(closeEvent -> popup.remove());

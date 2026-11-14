@@ -19,7 +19,7 @@ import java.util.Objects;
 public final class RadioButton extends InlineWidget<RadioButtonStyle>
         implements HasCheckedState, HasDisabledState, HasColor, HasBgColor, HasAbsoluteWidth,
         HasAbsoluteHeight, HasMargin, HasSelectableImage, HasOpacity, HandlesPointerEvents,
-        HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
+        HasBoxShadow, HasCursor, HasTransition, HasBoxSizing, HasAccessibleName {
     /**
      * Groups observing this button. Used to keep their model subscriptions current.
      */
@@ -73,6 +73,7 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
      */
     void attach(final RadioGroup group) {
         this.groups.add(group);
+        this.refreshNativeGroup();
     }
 
     /**
@@ -82,6 +83,15 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
      */
     void detach(final RadioGroup group) {
         this.groups.remove(group);
+        this.refreshNativeGroup();
+    }
+
+    /**
+     * Publishes the primary group without changing existing server-side membership.
+     */
+    private void refreshNativeGroup() {
+        final String name = this.groups.isEmpty() ? "" : this.groups.getFirst().clientName();
+        this.getModel(State.ANY, Property.RADIO_GROUP).setData(name);
     }
 
     @Override

@@ -19,6 +19,7 @@ export default defineConfig({
                 "event-validation.spec.js",
                 "event-ack.spec.js",
                 "live-event-targets.spec.js",
+                "labeled-choices.spec.js",
                 "modal-visibility.spec.js",
                 "upload-lifecycle.spec.js"
             ],

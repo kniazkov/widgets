@@ -79,6 +79,8 @@ const handlerNames = [
     "setStickySide",
     "setCellSpacing",
     "setCheckedFlag",
+    "setChoiceAccessibleName",
+    "setRadioGroupName",
     "setMultipleInput",
     "setAcceptedFiles"
 ];

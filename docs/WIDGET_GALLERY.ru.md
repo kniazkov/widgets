@@ -150,6 +150,9 @@
 
 ![CheckBox: Начальное состояние; варианты подписаны внутри карточки.](images/widgets/check-box.png)
 
+![Фокус CheckBox после нажатия Space; справа серый отключённый чекбокс.](images/widgets/checkbox-keyboard-focus.png)
+*CheckBox: синяя рамка фокуса, состояние checked и отключённый вариант.*
+
 <a id="radio-button"></a>
 ### RadioButton
 
@@ -157,12 +160,24 @@
 
 ![RadioButton: Начальное состояние; варианты подписаны внутри карточки.](images/widgets/radio-button.png)
 
+![Радиокнопка в фокусе после выбора стрелкой; отключённый вариант справа.](images/widgets/radio-keyboard-focus.png)
+*RadioButton: выбор стрелкой и видимый фокус.*
+
 <a id="labeled-choices"></a>
 ### CheckBoxWithText / RadioButtonWithText
 
 Начальное состояние; варианты подписаны внутри карточки.
 
 ![CheckBoxWithText / RadioButtonWithText: Начальное состояние; варианты подписаны внутри карточки.](images/widgets/labeled-choices.png)
+
+Подписи активируют нативные поля, а длинный текст переносится рядом с контролом.
+См. [клавиатурный контракт и API доступных имён](CHOICE_ACCESSIBILITY.ru.md).
+
+![Подписанные чекбоксы и радиокнопки на ширине 320 px; длинная подпись перенесена.](images/widgets/labeled-choices-320.png)
+*Ширина 320 px: длинная подпись и рамка фокуса не обрезаны.*
+
+![Подписанные контролы при масштабе Chromium 200%, длинная подпись видна целиком.](images/widgets/labeled-choices-200-percent.png)
+*Фактический масштаб Chromium 200%: длинная подпись читается рядом с полем.*
 
 <a id="drop-down-list"></a>
 ### DropDownList
