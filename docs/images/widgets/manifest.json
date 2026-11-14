@@ -562,6 +562,58 @@
         243
       ],
       "sha256": "b099a1795ba3ea438f742b203951ef3d8f97a3dcd6900956f5e0d567ff9950b2"
+    },
+    "modal-focus-desktop": {
+      "file": "modal-focus-desktop.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Начальный фокус в широком диалоге; фон затемнён.",
+      "sourceScreenshot": "R10/desktop-open.jpg",
+      "crop": [
+        390,
+        240,
+        368,
+        270
+      ],
+      "sha256": "be2593677738a41266e9d56657850bad88bd0d9fccc076bf4af0839cf0dc6d30"
+    },
+    "modal-nested-desktop": {
+      "file": "modal-nested-desktop.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Переднее вложенное окно принимает клавиатурный фокус.",
+      "sourceScreenshot": "R10/desktop-restored.jpg",
+      "crop": [
+        385,
+        240,
+        380,
+        275
+      ],
+      "sha256": "13e0e2611cbad9f44993fd45bc6420d4cc6989d8a6a422a8d0d16291a7ff3d1b"
+    },
+    "modal-empty-mobile": {
+      "file": "modal-empty-mobile.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Диалог без контролов удерживает фокус на самом окне при ширине 320 px.",
+      "sourceScreenshot": "R10/mobile-open.jpg",
+      "crop": [
+        0,
+        266,
+        305,
+        130
+      ],
+      "sha256": "94ecfa2a72d92f939bd99079039825bcec0edf1e8ef025bf2e6226f477e29edc"
+    },
+    "modal-nested-mobile": {
+      "file": "modal-nested-mobile.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Вложенное окно на ширине 320 px, видны края и фокус.",
+      "sourceScreenshot": "R10/mobile-restored.jpg",
+      "crop": [
+        4,
+        216,
+        296,
+        235
+      ],
+      "sha256": "030e33bc307445a9a0438c476fff7018ca63dde25ad3d3ca5db70e7595e36185"
     }
   },
   "widgets": {
@@ -686,7 +738,11 @@
       "modal-lifecycle-desktop-open",
       "modal-lifecycle-desktop-restored",
       "modal-lifecycle-mobile-open",
-      "modal-lifecycle-mobile-restored"
+      "modal-lifecycle-mobile-restored",
+      "modal-focus-desktop",
+      "modal-nested-desktop",
+      "modal-empty-mobile",
+      "modal-nested-mobile"
     ]
   },
   "modalLifecycleCapture": {

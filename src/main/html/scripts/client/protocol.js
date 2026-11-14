@@ -35,7 +35,7 @@ function createEvent(widget, type, data) {
 }
 
 // Dispatches updates in server order and tracks the last ID acknowledged by the browser.
-function processUpdates(updates) {
+function processUpdates(updates, modalActivation = null) {
     if (!updates || updates.length == 0) {
         return;
     }
@@ -63,7 +63,10 @@ function processUpdates(updates) {
         }
         lastProcessedUpdateId = id;
     }
-    if (!clientDisposed) trimDetachedWidgets();
+    if (!clientDisposed) {
+        trimDetachedWidgets();
+        refreshModalStack(modalActivation);
+    }
 }
 
 // Drops every queued event through the last ID acknowledged by the server.
@@ -141,6 +144,8 @@ const actionHandlers = {
     "set bg color": setBgColor,
     "set backdrop color": setBackdropColor,
     "set close on outside click": setCloseOnOutsideClick,
+    "set close on escape": setCloseOnEscape,
+    "set accessible description": setModalAccessibleDescription,
     "set opacity": setOpacity,
     "set width": setWidth,
     "set max width": setMaxWidth,
@@ -172,14 +177,22 @@ const actionHandlers = {
     "set sticky side": setStickySide,
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
-    "set accessible name": setChoiceAccessibleName,
+    "set accessible name": setWidgetAccessibleName,
     "set radio group": setRadioGroupName,
     "set multiple input": setMultipleInput,
     "set accepted files": setAcceptedFiles
 };
 
 // These events are client-side protocol primitives and do not require an explicit subscription.
-const ALWAYS_ALLOWED_EVENTS = ["text input", "check", "select", "upload", "reorder", "dismiss"];
+const ALWAYS_ALLOWED_EVENTS = [
+    "text input",
+    "check",
+    "select",
+    "upload",
+    "reorder",
+    "dismiss",
+    "dismiss by escape"
+];
 
 function sendEventToServer(widget, type, data) {
     if (clientDisposed) {
@@ -190,6 +203,7 @@ function sendEventToServer(widget, type, data) {
         const handler = actionHandlers[clientAction.action];
         if (handler) {
             handler(clientAction);
+            refreshModalStack(widget);
         } else {
             log("Unknown client action: '" + clientAction.action + "'.");
         }

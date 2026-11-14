@@ -194,3 +194,30 @@ input.widgets-choice:focus-visible {
         outline-color: Highlight !important;
     }
 }
+
+/* Preserve room for the dialog's keyboard outline at narrow viewport widths. */
+.modal-popup[data-intrinsic-width] {
+    max-width: calc(100% - 24px);
+    overflow-wrap: anywhere;
+}
+
+.modal-popup button {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+/* Form controls suppress the default outline; dialogs provide an explicit keyboard indicator. */
+.modal-return-focus:focus-visible,
+.modal-popup[aria-modal="true"]:focus-visible,
+.modal-popup[aria-modal="true"] :is(button, a[href], input, textarea, select, [tabindex]):focus-visible {
+    outline: 2px solid #1d4ed8 !important;
+    outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+    .modal-return-focus:focus-visible,
+    .modal-popup[aria-modal="true"]:focus-visible,
+    .modal-popup[aria-modal="true"] :is(button, a[href], input, textarea, select, [tabindex]):focus-visible {
+        outline-color: Highlight !important;
+    }
+}

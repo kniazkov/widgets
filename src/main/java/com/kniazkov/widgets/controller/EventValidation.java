@@ -68,6 +68,9 @@ final class EventValidation {
         if (event == Event.DISMISS) {
             return widget instanceof ModalPopup popup && popup.isCloseOnOutsideClick();
         }
+        if (event == Event.DISMISS_BY_ESCAPE) {
+            return widget instanceof ModalPopup popup && popup.isCloseOnEscape();
+        }
         if (event == Event.FOCUS || event == Event.BLUR) {
             return widget instanceof HandlesFocusEvents;
         }

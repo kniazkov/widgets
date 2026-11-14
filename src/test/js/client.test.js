@@ -48,6 +48,9 @@ const handlerNames = [
     "setBgColor",
     "setBackdropColor",
     "setCloseOnOutsideClick",
+    "setCloseOnEscape",
+    "setModalAccessibleDescription",
+    "refreshModalStack",
     "setOpacity",
     "setWidth",
     "setMaxWidth",
@@ -79,7 +82,7 @@ const handlerNames = [
     "setStickySide",
     "setCellSpacing",
     "setCheckedFlag",
-    "setChoiceAccessibleName",
+    "setWidgetAccessibleName",
     "setRadioGroupName",
     "setMultipleInput",
     "setAcceptedFiles"

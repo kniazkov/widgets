@@ -141,7 +141,9 @@ function insertChildWidget(data) {
     const index = data.index;
     if (!canAttachWidgets(widget, container)) return false;
     const host = container._childHost || container;
-    const children = Array.from(host.children).filter(child => !child._isWidgetBackdrop);
+    const children = Array.from(host.children).filter(
+        child => !child._isWidgetBackdrop && !child._isModalDescription
+    );
     if (!Number.isInteger(index) || index < 0 || index > children.length) return false;
     const next = children[index];
     host.insertBefore(widget, next?._backdrop?.parentNode === host ? next._backdrop : next || null);

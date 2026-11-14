@@ -236,6 +236,28 @@ public abstract class Event<T> {
     };
 
     /**
+     * Escape activation requesting dismissal of a modal that allows keyboard closing.
+     */
+    public static final Event<Void> DISMISS_BY_ESCAPE = new Event<Void>() {
+        @Override
+        public String getName() {
+            return "dismiss by escape";
+        }
+
+        @Override
+        public Void parseData(final JsonObject object) {
+            return null;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Void data) {
+            if (widget instanceof ModalPopup popup && popup.isCloseOnEscape()) {
+                popup.remove();
+            }
+        }
+    };
+
+    /**
      * Event triggered when a widget receives focus.
      */
     public static final Event<Void> FOCUS = new Event<Void>() {
@@ -373,6 +395,7 @@ public abstract class Event<T> {
                 SELECT,
                 REORDER,
                 DISMISS,
+                DISMISS_BY_ESCAPE,
                 FOCUS,
                 BLUR,
                 CLICK,

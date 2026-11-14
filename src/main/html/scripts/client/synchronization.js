@@ -143,7 +143,10 @@ function sendSynchronizeRequest(callback) {
             }
             try {
                 sampleCountdownClock(json.serverNow);
-                processUpdates(json.updates);
+                const activation = sentEvents
+                    .slice(0, removed)
+                    .findLast(event => event.type === "click");
+                processUpdates(json.updates, widgets[activation?.widget]);
                 reconcileTextInputs();
                 recordRequestSuccess();
                 if (pageContext) {

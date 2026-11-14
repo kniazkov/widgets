@@ -7,6 +7,7 @@ function setWidth(data) {
     const value = data.width;
     if (widget && typeof value == "string") {
         widget.style.width = value || widget._defaultWidth || "";
+        if (widget._backdrop) widget.toggleAttribute("data-intrinsic-width", !value);
         log("The width of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }

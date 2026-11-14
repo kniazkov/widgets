@@ -21,6 +21,7 @@ export default defineConfig({
                 "live-event-targets.spec.js",
                 "labeled-choices.spec.js",
                 "modal-visibility.spec.js",
+                "modal-accessibility.spec.js",
                 "upload-lifecycle.spec.js"
             ],
             use: { browserName: "webkit" }

@@ -70,9 +70,13 @@ function createPopup(modal) {
     widget._refreshPosition();
 
     if (modal) {
+        widget.setAttribute("role", "dialog");
+        widget.setAttribute("aria-label", "Dialog");
+        widget.tabIndex = -1;
         // Auto margins center a shrink-wrapped panel; explicit Widget widths/heights
         // still override these defaults through setWidth/setHeight.
         widget.style.width = widget._defaultWidth = "fit-content";
+        widget.setAttribute("data-intrinsic-width", "");
         widget.style.height = widget._defaultHeight = "fit-content";
         const backdrop = document.createElement("div");
         backdrop.className = "popup-backdrop";
@@ -85,6 +89,7 @@ function createPopup(modal) {
         backdrop.setAttribute("aria-hidden", "true");
         widget._backdrop = backdrop;
         widget._closeOnOutsideClick = false;
+        widget._closeOnEscape = false;
         let pressedOutside = false;
         listenWidget(
             widget,
@@ -97,6 +102,8 @@ function createPopup(modal) {
             false,
             backdrop
         );
+        // Clicking the backdrop must not transfer focus to the document body.
+        listenWidget(widget, "mousedown", event => event.preventDefault(), false, backdrop);
         listenWidget(
             widget,
             "pointercancel",
@@ -115,12 +122,15 @@ function createPopup(modal) {
                 const activate = pressedOutside || event.detail === 0;
                 pressedOutside = false;
                 if (
+                    activeModal === widget &&
                     widget._closeOnOutsideClick &&
                     event.target === backdrop &&
                     event.button === 0 &&
                     activate
                 ) {
                     sendEventToServer(widget, "dismiss", {});
+                } else if (activeModal === widget && !widget.contains(document.activeElement)) {
+                    focusModal(widget);
                 }
             },
             false,
@@ -160,5 +170,213 @@ function setCloseOnOutsideClick(data) {
     const enabled = data["close on outside click"];
     if (!widget?._backdrop || typeof enabled !== "boolean") return false;
     widget._closeOnOutsideClick = enabled;
+    return true;
+}
+
+let activeModal = null;
+let modalListeners = null;
+const isolatedModalSiblings = new Map();
+
+function modalRoot() {
+    return (typeof pageContext === "undefined" ? null : pageContext?.root) || document.body;
+}
+
+function visibleModalElement(element) {
+    return (
+        element?.isConnected &&
+        element.getClientRects().length > 0 &&
+        getComputedStyle(element).visibility === "visible"
+    );
+}
+
+function modalTabStops(modal) {
+    const elements = Array.from(
+        modal.querySelectorAll(
+            "a[href],button,input,select,textarea,[tabindex],summary,[contenteditable=true]"
+        )
+    ).filter(
+        node =>
+            node.tabIndex >= 0 &&
+            !node.matches(":disabled") &&
+            !node.closest("[inert]") &&
+            visibleModalElement(node)
+    );
+    const stops = elements.filter(node => {
+        if (node.type !== "radio" || !node.name) return true;
+        const peers = elements.filter(
+            peer => peer.type === "radio" && peer.name === node.name && peer.form === node.form
+        );
+        return (peers.find(peer => peer.checked) || peers[0]) === node;
+    });
+    // Positive tabindex precedes normal DOM order, just as it does outside a dialog.
+    return stops.sort(
+        (a, b) => (a.tabIndex || Number.MAX_SAFE_INTEGER) - (b.tabIndex || Number.MAX_SAFE_INTEGER)
+    );
+}
+
+function focusModalElement(element) {
+    if (!visibleModalElement(element) || element.matches(":disabled") || element.closest("[inert]"))
+        return false;
+    element.focus({ preventScroll: true });
+    return document.activeElement === element;
+}
+
+function focusModal(modal) {
+    for (const element of modalTabStops(modal)) {
+        if (focusModalElement(element)) return;
+    }
+    focusModalElement(modal);
+}
+
+function handleModalKeys(event) {
+    const modal = activeModal;
+    if (!modal || event.defaultPrevented || event.isComposing) return;
+    if (event.key === "Escape") {
+        // A child interaction (for example a suggestions list) may consume Escape first.
+        event.preventDefault();
+        event.stopPropagation();
+        if (modal._closeOnEscape && !event.repeat)
+            sendEventToServer(modal, "dismiss by escape", {});
+        return;
+    }
+    if (event.key !== "Tab" || event.ctrlKey || event.altKey || event.metaKey) return;
+    const stops = modalTabStops(modal);
+    const index = stops.indexOf(document.activeElement);
+    event.preventDefault();
+    const next = event.shiftKey ? (index <= 0 ? stops.length - 1 : index - 1) : index + 1;
+    if (!focusModalElement(stops[next % stops.length])) focusModalElement(modal);
+}
+
+function refreshModalStack(activation = null) {
+    const root = modalRoot();
+    const modals = Array.from(root.querySelectorAll(".modal-popup")).filter(
+        node => widgets[node._id] === node && !node._treePaused && visibleModalElement(node)
+    );
+    const top = modals.at(-1) || null;
+    const previous = activeModal;
+    const before = document.activeElement;
+    activeModal = top;
+    const isolated = new Set();
+    // A nested modal keeps its ancestors alive. Only their off-path branches become inert.
+    for (let node = top; node && node !== root && node.parentElement; node = node.parentElement) {
+        for (const sibling of node.parentElement.children) {
+            if (sibling !== node && sibling !== top._backdrop) isolated.add(sibling);
+        }
+    }
+    for (const [node, wasInert] of isolatedModalSiblings) {
+        if (!isolated.has(node)) {
+            node.inert = wasInert;
+            isolatedModalSiblings.delete(node);
+        }
+    }
+    for (const node of isolated) {
+        if (!isolatedModalSiblings.has(node)) isolatedModalSiblings.set(node, node.inert);
+        node.inert = true;
+    }
+    for (const modal of modals) {
+        // Global ARIA attributes would defeat the ancestor's presentation role.
+        const coveredAncestor = modal !== top && modal.contains(top);
+        modal.setAttribute("role", coveredAncestor ? "presentation" : "dialog");
+        if (modal === top) modal.setAttribute("aria-modal", "true");
+        else modal.removeAttribute("aria-modal");
+        if (coveredAncestor) modal.removeAttribute("aria-label");
+        else modal.setAttribute("aria-label", modal._modalAccessibleName || "Dialog");
+        if (!coveredAncestor && modal._modalDescription) {
+            modal.setAttribute("aria-describedby", modal._modalDescription.id);
+        } else {
+            modal.removeAttribute("aria-describedby");
+        }
+    }
+    if (previous && !modals.includes(previous)) previous.removeAttribute("aria-modal");
+    if (top && !modalListeners) {
+        modalListeners = new AbortController();
+        const { signal } = modalListeners;
+        root.addEventListener("keydown", handleModalKeys, { signal });
+        root.addEventListener(
+            "focusin",
+            event => {
+                if (activeModal && !activeModal.contains(event.target)) focusModal(activeModal);
+            },
+            { signal }
+        );
+    } else if (!top && modalListeners) {
+        modalListeners.abort();
+        modalListeners = null;
+    }
+    if (!root.isConnected) return;
+    if (top && previous !== top && (!previous || modals.includes(previous))) {
+        const opener =
+            (activation && activation.tabIndex >= 0 && (!previous || previous.contains(activation))
+                ? activation
+                : null) || (before !== document.body && before !== root ? before : null);
+        top._modalReturnFocus ??= opener || null;
+        focusModal(top);
+    } else if (previous && previous !== top) {
+        const opener = previous._modalReturnFocus;
+        previous._modalReturnFocus = null;
+        if ((!top || top.contains(opener)) && focusModalElement(opener)) {
+            opener.classList.add("modal-return-focus");
+            opener.addEventListener("blur", () => opener.classList.remove("modal-return-focus"), {
+                once: true
+            });
+            return;
+        }
+        if (top) focusModal(top);
+        else {
+            if (!root.hasAttribute("tabindex")) root.tabIndex = -1;
+            focusModalElement(root);
+        }
+    } else if (
+        top &&
+        (!top.contains(before) ||
+            !visibleModalElement(before) ||
+            before.matches(":disabled") ||
+            before.closest("[inert]"))
+    ) {
+        focusModal(top);
+    }
+}
+
+function setCloseOnEscape(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._backdrop || typeof data["close on escape"] !== "boolean") return false;
+    widget._closeOnEscape = data["close on escape"];
+    return true;
+}
+
+function setModalAccessibleDescription(data) {
+    const widget = widgets[data.widget];
+    const description = data["accessible description"];
+    if (!widget?._backdrop || typeof description !== "string") return false;
+    if (description.trim()) {
+        if (!widget._modalDescription) {
+            const label = document.createElement("span");
+            label.hidden = true;
+            label._isModalDescription = true;
+            label.id = "widgets-dialog-description-" + data.widget;
+            widget.appendChild(label);
+            widget._modalDescription = label;
+        }
+        widget._modalDescription.textContent = description.trim();
+        if (widget.getAttribute("role") !== "presentation") {
+            widget.setAttribute("aria-describedby", widget._modalDescription.id);
+        }
+    } else {
+        widget.removeAttribute("aria-describedby");
+        widget._modalDescription?.remove();
+        widget._modalDescription = null;
+    }
+    return true;
+}
+
+function setWidgetAccessibleName(data) {
+    const widget = widgets[data.widget];
+    const name = data["accessible name"];
+    if (!widget?._backdrop) return setChoiceAccessibleName(data);
+    if (typeof name !== "string") return false;
+    widget._modalAccessibleName = name.trim();
+    if (widget.getAttribute("role") !== "presentation") {
+        widget.setAttribute("aria-label", widget._modalAccessibleName || "Dialog");
+    }
     return true;
 }

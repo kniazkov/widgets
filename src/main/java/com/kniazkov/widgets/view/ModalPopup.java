@@ -3,15 +3,18 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.model.Model;
+
 /**
  * A popup window with a backdrop that blocks interaction with the underlying page.
  * By default only application actions close the popup. Enable
  * {@link #setCloseOnOutsideClick(boolean)} to remove it from the server widget tree when
  * the backdrop is clicked or tapped. Clicking its contents does not dismiss it.
- * The window and its backdrop are hidden and shown together.
+ * The window and its backdrop are hidden and shown together. Set an accessible name and optional
+ * description for screen readers. The frontmost modal owns keyboard focus until it closes.
  */
 public class ModalPopup extends Popup
-        implements HasBackdropColor, HasCloseOnOutsideClick, HasHiddenState {
+        implements HasBackdropColor, HasCloseOnOutsideClick, HasHiddenState, HasAccessibleName {
     /**
      * Returns the global default modal popup style.
      *
@@ -54,6 +57,38 @@ public class ModalPopup extends Popup
      */
     public ModalPopup(final ModalPopupStyle style, final BlockWidget<?>... children) {
         super(style, children);
+    }
+
+    /**
+     * Checks whether Escape may dismiss this modal. Disabled by default.
+     * @return true if Escape closes the modal
+     */
+    public final boolean isCloseOnEscape() {
+        return this.getModel(State.ANY, Property.CLOSE_ON_ESCAPE).getData();
+    }
+
+    /**
+     * Enables Escape dismissal without changing backdrop dismissal.
+     * @param enabled true to enable Escape
+     */
+    public final void setCloseOnEscape(final boolean enabled) {
+        this.getModel(State.ANY, Property.CLOSE_ON_ESCAPE).setData(enabled);
+    }
+
+    /**
+     * Returns the plain-text description model.
+     * @return description model
+     */
+    public final Model<String> getAccessibleDescriptionModel() {
+        return this.getModel(State.ANY, Property.ACCESSIBLE_DESCRIPTION);
+    }
+
+    /**
+     * Assigns a plain-text description; empty text removes it.
+     * @param description accessible description
+     */
+    public final void setAccessibleDescription(final String description) {
+        this.getAccessibleDescriptionModel().setData(description);
     }
 
     @Override
