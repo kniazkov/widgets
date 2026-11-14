@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkGalleryImage, checkImageInventory } from "./widget-gallery-evidence.mjs";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const view = join(root, "src/main/java/com/kniazkov/widgets/view");
@@ -45,24 +46,18 @@ assert.deepEqual(
 );
 for (const [name, images] of Object.entries(manifest.widgets)) {
     assert(images.length > 0, `No image for ${name}`);
-    assert(documentation.includes(`\`${name}\``), `Missing documented class: ${name}`);
+    assert(documentation.includes(`| \`${name}\` |`), `Missing class in coverage table: ${name}`);
     for (const id of images) assert(manifest.images[id], `Unknown image ${id} for ${name}`);
 }
+checkImageInventory(manifest.images, await readdir(imageDirectory), documentation);
 for (const [id, image] of Object.entries(manifest.images)) {
-    assert(/^[a-z0-9-]+\.png$/.test(image.file), `Invalid image filename: ${id}`);
     const bytes = await readFile(join(imageDirectory, image.file));
-    assert.equal(bytes.subarray(1, 4).toString(), "PNG", `Not a PNG: ${id}`);
     assert.equal(
         createHash("sha256").update(bytes).digest("hex"),
         image.sha256,
         `Stale hash: ${id}`
     );
-    assert(documentation.includes(`](images/widgets/${image.file})`), `Image not embedded: ${id}`);
-    assert(image.states && image.sourceScreenshot, `Missing capture description: ${id}`);
-    assert(
-        image.crop.length === 4 && image.crop[2] > 0 && image.crop[3] > 0,
-        `Invalid crop: ${id}`
-    );
+    checkGalleryImage(id, image, bytes, manifest.captures ?? {});
 }
 console.log(
     `Gallery coverage: ${visible.length} widget classes, ${Object.keys(manifest.images).length} images.`

@@ -254,15 +254,16 @@
     "popup-launchers": {
       "file": "popup-launchers.png",
       "title": "Popup",
-      "states": "Начальное состояние; варианты подписаны внутри карточки.",
-      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "states": "Актуальная панель: обычные и модальные окна, восстановление и отсутствующий инициатор.",
+      "sourceScreenshot": "popup-current.jpg",
       "crop": [
-        24,
-        3791,
-        1316,
-        213
+        44,
+        332,
+        930,
+        456
       ],
-      "sha256": "f0c3e493ae26b85cffe1fe588e8558d9b1b4853369a95330355ebf7b0ba62945"
+      "sha256": "9d2c766d7cd47a190a15ec266533794a96e02f57ce2a80cf4ffb0ca746780593",
+      "captureId": "r19-desktop"
     },
     "file-loader": {
       "file": "file-loader.png",
@@ -666,6 +667,34 @@
         381
       ],
       "sha256": "3b50003bd92256dcbcb25c27cee8bd0238f861fb7eeb608f0aaa9408f316e4b2"
+    },
+    "file-loader-upload-complete": {
+      "file": "file-loader-upload-complete.png",
+      "title": "FileLoader: completed upload",
+      "states": "Java подтвердила завершение загрузки синтетического файла размером 7 байт.",
+      "sourceScreenshot": "upload-complete.jpg",
+      "crop": [
+        44,
+        334,
+        633,
+        232
+      ],
+      "sha256": "7af51373e31bdb3dad507c233a57fc678cef1770ab1f74c85965574cfd5ea508",
+      "captureId": "r19-desktop"
+    },
+    "message-popup-narrow": {
+      "file": "message-popup-narrow.png",
+      "title": "MessagePopup: narrow layout",
+      "states": "Сообщение открыто в узком окне; кнопка Close в фокусе.",
+      "sourceScreenshot": "narrow-popup.jpg",
+      "crop": [
+        48,
+        394,
+        424,
+        148
+      ],
+      "sha256": "03f6297019c501f8483edc17cad33d3173df030e2271b856a3f3a508a1e5268d",
+      "captureId": "r19-narrow"
     }
   },
   "widgets": {
@@ -737,7 +766,8 @@
       "semantics-icon-mobile"
     ],
     "FileLoader": [
-      "file-loader"
+      "file-loader",
+      "file-loader-upload-complete"
     ],
     "ImageWidget": [
       "image-widget",
@@ -788,7 +818,8 @@
       "carousel-selected"
     ],
     "MessagePopup": [
-      "message-popup"
+      "message-popup",
+      "message-popup-narrow"
     ],
     "Popup": [
       "popup"
@@ -825,5 +856,41 @@
       "583 × 374 (browser zoom 200%)"
     ],
     "method": "Real cloud browser screenshots, cropped without retouching or resizing."
+  },
+  "captures": {
+    "r19-desktop": {
+      "date": "2026-11-14",
+      "commit": "29106ee49eb61f6d141b55921543e9577c621eec",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "e33c305908c95178e004fe26e098f4a8daff29b1ab739b29de31e272eb972f48",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "upload-complete.jpg": [
+          1212,
+          886
+        ],
+        "popup-current.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r19-narrow": {
+      "date": "2026-11-14",
+      "commit": "29106ee49eb61f6d141b55921543e9577c621eec",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈485 × 740 CSS px",
+      "allWidgetsSourceSha256": "e33c305908c95178e004fe26e098f4a8daff29b1ab739b29de31e272eb972f48",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "narrow-popup.jpg": [
+          532,
+          869
+        ]
+      }
+    }
   }
 }

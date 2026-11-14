@@ -269,6 +269,9 @@ compatibility changes, cancellation semantics and examples.
 - [Review implementation checklist](docs/REVIEW_CHECKLIST.ru.md) — 43 prioritized issues with
   detailed Russian scope, dependencies, testing and acceptance criteria.
 - [Cloud verification record](docs/CLOUD_VERIFICATION.ru.md) — build, browser checks and limitations.
+  For new gallery entries, capture the exact built revision in a real cloud browser, keep an
+  unscaled crop with state, source frame, viewport and version metadata, add alt text, and run
+  `npm run check:gallery`.
 
 - [Document head](docs/DOCUMENT_HEAD.md) — browser title, favicon, language and search metadata
   configured through immutable application options.
