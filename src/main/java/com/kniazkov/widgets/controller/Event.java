@@ -311,6 +311,13 @@ public abstract class Event<T> {
         public Void parseData(final JsonObject object) {
             return null;
         }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Void data) {
+            if (widget instanceof InputField editor) {
+                editor.markFormEditorTouched();
+            }
+        }
     };
 
     /**

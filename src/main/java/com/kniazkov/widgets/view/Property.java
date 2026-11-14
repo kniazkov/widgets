@@ -408,6 +408,42 @@ public abstract class Property<T> {
     static final Property<Boolean> READ_ONLY = boolProperty("read only");
 
     /**
+     * Native label target widget.
+     */
+    static final Property<String> LABEL_TARGET = stringProperty("label target");
+    /**
+     * Native editor field name.
+     */
+    static final Property<String> FORM_NAME = stringProperty("form name");
+    /**
+     * Native autocomplete hint.
+     */
+    static final Property<String> AUTOCOMPLETE = stringProperty("autocomplete");
+    /**
+     * Native and server required field flag.
+     */
+    static final Property<Boolean> REQUIRED = boolProperty("required");
+    /**
+     * UTF-16 limit for an editor in a form.
+     */
+    static final Property<Integer> MAX_LENGTH = of(
+        "max length", Integer.class, () -> new IntegerModel(-1), JsonNumber::of
+    );
+    /**
+     * Form error flag independent of the editor model validity.
+     */
+    static final Property<Boolean> FORM_ERROR = boolProperty("form error");
+    /**
+     * Whether a form is awaiting a submission result.
+     */
+    static final Property<Boolean> FORM_BUSY = boolProperty("form busy");
+
+    /**
+     * Turns a text widget into a polite form-result live region.
+     */
+    static final Property<Boolean> FORM_STATUS = boolProperty("form status");
+
+    /**
      * Property controlling whether the widget is hidden.
      */
     public static final Property<Boolean> HIDDEN = boolProperty("hidden");

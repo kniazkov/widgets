@@ -195,3 +195,74 @@ function initKeyboardShortcuts(widget) {
     listenWidget(widget, "keydown", event => send(event, "DOWN"));
     listenWidget(widget, "keyup", event => send(event, "UP"));
 }
+
+function setFormEditorAttribute(data, property) {
+    const widget = widgets[data.widget];
+    const value = data[property];
+    if (!widget?._applyDeferredText) return false;
+    if (property === "required" && typeof value === "boolean") {
+        widget.required = value;
+    } else if (
+        property === "max length" &&
+        Number.isInteger(value) &&
+        (value === -1 || (value >= 1 && value <= 65536))
+    ) {
+        if (value < 0) widget.removeAttribute("maxlength");
+        else widget.maxLength = value;
+    } else if (
+        property === "form name" &&
+        typeof value === "string" &&
+        (value === "" || /^[a-zA-Z][a-zA-Z0-9_.-]{0,63}$/.test(value))
+    ) {
+        assignSemanticAttribute(widget, "name", value);
+    } else if (
+        property === "autocomplete" &&
+        typeof value === "string" &&
+        /^[a-zA-Z0-9_ -]{0,128}$/.test(value)
+    ) {
+        assignSemanticAttribute(widget, "autocomplete", value);
+    } else {
+        return false;
+    }
+    return true;
+}
+
+function setFormEditorError(data) {
+    const widget = widgets[data.widget];
+    const flag = data["form error"];
+    if (!widget?._applyDeferredText || typeof flag !== "boolean") return false;
+    widget._formError = flag;
+    refreshEditorValidity(widget);
+    return true;
+}
+
+function setFormBusy(data) {
+    const widget = widgets[data.widget];
+    const flag = data["form busy"];
+    if (widget?._widgetType !== "form" || typeof flag !== "boolean") return false;
+    assignSemanticAttribute(widget, "aria-busy", flag ? "true" : null);
+    return true;
+}
+
+function setFormStatus(data) {
+    const widget = widgets[data.widget];
+    const flag = data["form status"];
+    if (widget?._widgetType !== "text" || typeof flag !== "boolean") return false;
+    assignSemanticAttribute(widget, "role", flag ? "status" : null);
+    if (flag) widget.classList.add("widgets-form-status");
+    return true;
+}
+
+function focusFormEditor(data) {
+    const widget = widgets[data.widget];
+    if (!widget?._applyDeferredText) return false;
+    if (
+        widget.isConnected &&
+        !widget._treePaused &&
+        !widget.disabled &&
+        !widget.closest("[hidden]")
+    ) {
+        widget.focus();
+    }
+    return true;
+}

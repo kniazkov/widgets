@@ -294,7 +294,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * @param property relationship property
      * @param target referenced widget, or null
      */
-    private void setAccessibleReference(final Property<String> property, final Widget<?> target) {
+    final void setAccessibleReference(final Property<String> property, final Widget<?> target) {
         final Widget<?> source = this.accessibleTarget();
         if (target == this || target == source) {
             throw new IllegalArgumentException("The label target cannot be its own source");

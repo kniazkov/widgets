@@ -723,6 +723,48 @@
       ],
       "sha256": "d869bfa6cd1220df0d40ecaeada7e83527946780edd427cabf070cb289a4ca57",
       "captureId": "r44-narrow"
+    },
+    "form-desktop": {
+      "file": "form-desktop.png",
+      "title": "Демонстрационная форма",
+      "states": "Успешная отправка учебной заявки мышью.",
+      "sourceScreenshot": "form-desktop.jpg",
+      "crop": [
+        46,
+        214,
+        642,
+        445
+      ],
+      "sha256": "0173101326ae6bba65eb706a594f0efdacfebac3e8fd3da63acf4b6f1bd8d7da",
+      "captureId": "r20-1280"
+    },
+    "form-narrow-error": {
+      "file": "form-narrow-error.png",
+      "title": "Демонстрационная форма",
+      "states": "Перенос длинных подписей, help и ошибки обязательных полей после Enter.",
+      "sourceScreenshot": "form-narrow-error.jpg",
+      "crop": [
+        46,
+        193,
+        244,
+        507
+      ],
+      "sha256": "bce05b939492fa4810bc1ed08c9c1dad57db87b98b6fff32433d62314d0ddc6a",
+      "captureId": "r20-320"
+    },
+    "form-mobile-busy": {
+      "file": "form-mobile-busy.png",
+      "title": "Демонстрационная форма",
+      "states": "Ожидание ответа: ввод остаётся видимым, кнопка временно недоступна.",
+      "sourceScreenshot": "form-mobile-busy.jpg",
+      "crop": [
+        46,
+        193,
+        315,
+        629
+      ],
+      "sha256": "aff04689c0224d8726157faf804ebc051e05678ac14d9d26808c13378cc4214c",
+      "captureId": "r20-390"
     }
   },
   "widgets": {
@@ -868,6 +910,21 @@
       "modal-nested-desktop",
       "modal-empty-mobile",
       "modal-nested-mobile"
+    ],
+    "Form": [
+      "form-desktop",
+      "form-narrow-error",
+      "form-mobile-busy"
+    ],
+    "FormField": [
+      "form-desktop",
+      "form-narrow-error",
+      "form-mobile-busy"
+    ],
+    "Label": [
+      "form-desktop",
+      "form-narrow-error",
+      "form-mobile-busy"
     ]
   },
   "modalLifecycleCapture": {
@@ -953,6 +1010,51 @@
         "keyboard-demo-narrow.jpg": [
           532,
           868
+        ]
+      }
+    },
+    "r20-1280": {
+      "date": "2026-11-14",
+      "commit": "7e4faef8afeafe02f8be89c775feb3e7fe8edf57",
+      "page": "Standalone AllWidgets / inside local viewport frame",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "1280 × 780 CSS px",
+      "allWidgetsSourceSha256": "514df1e8028b529f1d107e156d3230d157edd2561bce98855fd672a61578499c",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "form-desktop.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r20-320": {
+      "date": "2026-11-14",
+      "commit": "7e4faef8afeafe02f8be89c775feb3e7fe8edf57",
+      "page": "Standalone AllWidgets / inside local viewport frame",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "320 × 780 CSS px",
+      "allWidgetsSourceSha256": "514df1e8028b529f1d107e156d3230d157edd2561bce98855fd672a61578499c",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "form-narrow-error.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r20-390": {
+      "date": "2026-11-14",
+      "commit": "7e4faef8afeafe02f8be89c775feb3e7fe8edf57",
+      "page": "Standalone AllWidgets / inside local viewport frame",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "514df1e8028b529f1d107e156d3230d157edd2561bce98855fd672a61578499c",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "form-mobile-busy.jpg": [
+          1212,
+          886
         ]
       }
     }

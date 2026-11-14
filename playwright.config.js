@@ -30,7 +30,8 @@ export default defineConfig({
                 "image-processing.spec.js",
                 "protocol-backpressure.spec.js",
                 "cloud-verification.spec.js",
-                "keyboard-shortcuts.spec.js"
+                "keyboard-shortcuts.spec.js",
+                "forms.spec.js"
             ],
             use: { browserName: "webkit" }
         }
