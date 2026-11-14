@@ -407,9 +407,7 @@ public final class Client implements Comparable<Client> {
             final RMId id = RMId.parse(lastUpdate);
             this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
         }
-        for (final Widget<?> widget : this.root) {
-            widget.getUpdates(this.updates);
-        }
+        this.root.collectBrowserUpdates(this.updates);
     }
 
     /**

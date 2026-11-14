@@ -104,9 +104,9 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
          * Construction establishes the required parent link before this instance is published.
          */
         super(style);
+        Objects.requireNonNull(child, "widget").validateAttachment(this);
         this.child = child;
-        this.child.setParent(this);
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
+        child.attachTo(this, () -> new SetChild(child.getId(), this.getId()));
     }
 
     @Override
@@ -116,26 +116,23 @@ public class Button extends InlineWidget<ButtonStyle> implements Decorator<Inlin
 
     @Override
     public void put(final InlineWidget<?> widget) {
-        if (this.child == widget) {
+        if (this.child == widget && widget != null) {
             return;
         }
-        this.child.setParent(null);
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
+        final InlineWidget<?> old = this.child;
+        if (old != null) {
+            old.detachFrom(this);
+        }
         this.child = widget;
-        widget.setParent(this);
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
+        widget.attachTo(this, () -> new SetChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
-        if (widget != this.child) {
-            return;
+        if (widget != null && widget == this.child) {
+            this.put(new TextWidget());
         }
-        final InlineWidget<?> old = this.child;
-        this.child = null;
-        old.setParent(null);
-        this.child = new TextWidget();
-        this.child.setParent(this);
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
     @Override

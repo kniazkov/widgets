@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.common.RMId;
+import java.util.Objects;
 
 /**
  * Represents a logical view of a table column.
@@ -56,17 +57,33 @@ public class Column implements TypedContainer<Cell> {
 
     @Override
     public void add(final Cell cell) {
-        final Row row = new Row();
+        Objects.requireNonNull(cell, "cell").validateAttachment(this.table);
+        final Row row = this.table.createDefaultRow();
         for (int index = 0; index < this.number; index++) {
-            row.add(new Cell());
+            row.add(new Cell(this.table.getDefaultCellStyle(index)));
         }
+        this.table.add(row);
         row.add(cell);
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         for (int index = 0; index < this.table.getChildCount(); index++) {
-            this.table.getChild(index).remove(widget);
+            final Row row = this.table.getChild(index);
+            if (this.number < row.getChildCount() && row.getChild(this.number) == widget) {
+                row.remove(widget);
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void removeAll() {
+        for (int index = 0; index < this.table.getChildCount(); index++) {
+            final Row row = this.table.getChild(index);
+            if (this.number < row.getChildCount()) {
+                row.remove(row.getChild(this.number));
+            }
         }
     }
 

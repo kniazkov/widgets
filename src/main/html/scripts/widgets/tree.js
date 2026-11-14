@@ -113,16 +113,32 @@ function canAttachWidgets(widget, container) {
     return false;
 }
 
+// State-preserving native reparenting when the runtime supports it.
+function placeWidget(widget, host, before = null) {
+    if (widget.parentNode && widget.isConnected && host.isConnected && host.moveBefore) {
+        host.moveBefore(widget, before);
+    } else {
+        host.insertBefore(widget, before);
+    }
+}
+
 function setChildWidget(data) {
     const widget = widgets[data.widget];
     const container = widgets[data.container];
     if (!canAttachWidgets(widget, container)) return false;
     const host = container._childHost || container;
+    // Move out first in case the replacement is nested in the old child.
+    // Otherwise retaining the old subtree could suspend or evict the replacement too.
+    if (widget.parentNode !== host) placeWidget(widget, host);
     for (const old of Array.from(host.children)) {
         if (old !== widget && widgets[old._id] === old) retainDetachedWidget(old);
     }
     if (container._setChild) container._setChild(widget);
-    else host.replaceChildren(widget);
+    else {
+        for (const old of Array.from(host.childNodes)) {
+            if (old !== widget) old.remove();
+        }
+    }
     finishWidgetAttachment(widget);
     log("Widget " + data.widget + " is set as a child of widget " + data.container + ".");
     return true;
@@ -132,7 +148,7 @@ function appendChildWidget(data) {
     const widget = widgets[data.widget];
     const container = widgets[data.container];
     if (!canAttachWidgets(widget, container)) return false;
-    (container._childHost || container).appendChild(widget);
+    placeWidget(widget, container._childHost || container);
     container._layoutChild?.(widget);
     finishWidgetAttachment(widget);
     log("Widget " + data.widget + " is added as a child of widget " + data.container + ".");
@@ -150,7 +166,7 @@ function insertChildWidget(data) {
     );
     if (!Number.isInteger(index) || index < 0 || index > children.length) return false;
     const next = children[index];
-    host.insertBefore(widget, next?._backdrop?.parentNode === host ? next._backdrop : next || null);
+    placeWidget(widget, host, next?._backdrop?.parentNode === host ? next._backdrop : next || null);
     container._layoutChild?.(widget);
     finishWidgetAttachment(widget);
     log(

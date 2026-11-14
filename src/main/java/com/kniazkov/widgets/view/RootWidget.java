@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The root widget of a user interface hierarchy.
@@ -116,6 +117,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      */
     public RootWidget(final BlockWidget<?>... children) {
         this();
+        this.validateChildren(children);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);
         }
@@ -268,16 +270,21 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         this.resetRobots();
     }
 
-    @Override
-    public Optional<RootWidget> getRootWidget() {
-        return Optional.of(this);
+    /**
+     * Collects outgoing updates and records that this runtime owns every exported widget.
+     *
+     * @param pending destination for updates, in protocol order
+     */
+    public void collectBrowserUpdates(final Set<Update> pending) {
+        for (final Widget<?> widget : this) {
+            widget.markExported(this.getId());
+            widget.getUpdates(pending);
+        }
     }
 
     @Override
-    void setParent(final Container container) {
-        if (container != null) {
-            throw new IllegalArgumentException("The root widget cannot have a parent");
-        }
+    public Optional<RootWidget> getRootWidget() {
+        return Optional.of(this);
     }
 
     @Override
@@ -301,16 +308,16 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * @param widget the child widget
      */
     private void appendChild(final BlockWidget<?> widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 

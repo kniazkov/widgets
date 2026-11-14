@@ -581,3 +581,13 @@ are not overridden.
 
 Run `com.kniazkov.widgets.example.NoWrapExample` for a live width/price demo.
 A compact example is also included in `AllWidgets`.
+
+### Moving an existing widget
+
+Adding an existing child to another built-in container transfers ownership.
+Use `destination.add(child)`, `decorator.put(child)`, or
+`table.insertRow(index, row)` without calling `remove()` first. A same-page move
+retains the DOM node and its local values. Browsers without native state-preserving
+DOM moves may reset focus. Cycles, an invalid destination or index, and transfers
+of already exported widgets between browser roots are rejected before the move.
+See the [contract and integration example](WIDGET_REPARENTING.ru.md).
