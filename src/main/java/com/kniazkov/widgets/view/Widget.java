@@ -13,6 +13,7 @@ import com.kniazkov.widgets.controller.HandlesEvents;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.CreateWidget;
+import com.kniazkov.widgets.protocol.DisposeWidget;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.SetClientEventAction;
 import com.kniazkov.widgets.protocol.SetProperty;
@@ -210,6 +211,21 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      */
     public void remove() {
         this.setParent(null);
+    }
+
+    /**
+     * Removes and permanently releases this attached widget's browser subtree.
+     * The retired instance and its descendants must not be reattached. Use
+     * {@link #remove()} instead when the application will reuse the same instance.
+     * This method does not close application-owned model subscriptions.
+     */
+    public final void dispose() {
+        if (this instanceof RootWidget) {
+            throw new IllegalStateException("The page owns its root widget lifecycle");
+        }
+        final Optional<RootWidget> root = this.getRootWidget();
+        this.remove();
+        root.ifPresent(owner -> owner.pushUpdate(new DisposeWidget(this.id)));
     }
 
     /**

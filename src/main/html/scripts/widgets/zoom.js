@@ -89,7 +89,8 @@ function createZoomDecorator() {
         scale = next;
         render();
     }
-    widget.addEventListener(
+    listenWidget(
+        widget,
         "wheel",
         event => {
             event.preventDefault();
@@ -102,7 +103,7 @@ function createZoomDecorator() {
         },
         { passive: false }
     );
-    widget.addEventListener("pointerdown", event => {
+    listenWidget(widget, "pointerdown", event => {
         if (event.button !== 0 || pointers.size >= 2) return;
         if (!pointers.size) moved = false;
         pointers.set(event.pointerId, localPoint(event));
@@ -110,7 +111,7 @@ function createZoomDecorator() {
         captures.set(event.pointerId, target);
         target.setPointerCapture?.(event.pointerId);
     });
-    widget.addEventListener("pointermove", event => {
+    listenWidget(widget, "pointermove", event => {
         const previous = pointers.get(event.pointerId);
         if (!previous) return;
         const point = localPoint(event);
@@ -144,9 +145,9 @@ function createZoomDecorator() {
         releaseGesturePointer(target, event.pointerId);
     }
     for (const type of ["pointerup", "pointercancel", "lostpointercapture"]) {
-        widget.addEventListener(type, finish);
+        listenWidget(widget, type, finish);
     }
-    widget.addEventListener("load", render, true);
+    listenWidget(widget, "load", render, true);
     const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(render);
     widget._onAttached = () => {
         observer?.observe(widget);

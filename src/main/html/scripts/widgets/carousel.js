@@ -89,7 +89,7 @@ function initCarouselGestures(widget) {
         widget._showSelectedImage();
     }
 
-    addEvent(widget, "pointerdown", function (event) {
+    listenWidget(widget, "pointerdown", function (event) {
         if (pointerId != null || event.isPrimary === false || (event.button ?? 0) != 0) {
             return;
         }
@@ -105,7 +105,7 @@ function initCarouselGestures(widget) {
         }
     });
 
-    addEvent(widget, "pointermove", function (event) {
+    listenWidget(widget, "pointermove", function (event) {
         if (pointerId == null || (event.pointerId ?? 1) != pointerId) {
             return;
         }
@@ -159,6 +159,9 @@ function initCarouselGestures(widget) {
         direction = null;
     }
 
-    addEvent(widget, "pointerup", event => finish(event, false));
-    addEvent(widget, "pointercancel", event => finish(event, true));
+    listenWidget(widget, "pointerup", event => finish(event, false));
+    listenWidget(widget, "pointercancel", event => finish(event, true));
+    widget._onDetached = () => {
+        if (pointerId !== null) finish({ pointerId }, true);
+    };
 }
