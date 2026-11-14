@@ -8,6 +8,7 @@ import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
 import com.kniazkov.widgets.controller.KeyboardEvent;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.protocol.FocusEditor;
 import com.kniazkov.widgets.protocol.SetKeyboardShortcuts;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -27,6 +28,11 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
      * Active, explicitly registered key handlers.
      */
     private final Map<KeyboardEvent, KeyBinding> keyBindings = new LinkedHashMap<>();
+
+    /**
+     * Unconfigured editors retain the standard input limit.
+     */
+    private int maxLength = 65536;
 
     /**
 
@@ -111,6 +117,40 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
     public void setTextModel(Model<String> model) {
         this.setModel(State.ANY, Property.TEXT, model);
         this.setModel(State.ANY, Property.VALID, model.getValidFlagModel());
+    }
+
+    @Override
+    public int getMaxInputLength() {
+        return this.maxLength;
+    }
+
+    /**
+     * Changes the editor's native and server length limit, in UTF-16 code units.
+     * @param length new limit
+     */
+    final void setFormMaxLength(final int length) {
+        this.maxLength = length;
+        this.getModel(State.ANY, Property.MAX_LENGTH).setData(length);
+    }
+
+    /**
+     * Queues a one-shot focus request for a live invalid form editor.
+     */
+    final void focusFormEditor() {
+        if (this.getRootWidget().isPresent() && this.isInteractionEnabled()) {
+            this.pushUpdate(new FocusEditor(this.getId()));
+        }
+    }
+
+    /**
+     * Updates form touch state before the independent application blur callback.
+     */
+    public final void markFormEditorTouched() {
+        if (this.getParent().orElse(null) instanceof Widget<?> row
+                && row.getParent().orElse(null) instanceof FormField field
+                && field.getEditor() == this) {
+            field.markTouched();
+        }
     }
 
     /**

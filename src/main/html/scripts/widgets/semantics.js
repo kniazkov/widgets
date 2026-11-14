@@ -39,6 +39,9 @@ function refreshAccessibleRelationsFor(widget) {
     const error =
         covered || !widget._states?.invalid ? null : semanticTarget(widget, "accessible error");
     assignSemanticAttribute(widget, "aria-labelledby", label);
+    if (widget.tagName === "LABEL") {
+        assignSemanticAttribute(widget, "for", semanticTarget(widget, "label target"));
+    }
     // Include active errors in describedby for assistive technology without errormessage support.
     const descriptions = new Set([help, ownDescription, error].filter(Boolean));
     assignSemanticAttribute(widget, "aria-describedby", [...descriptions].join(" "));

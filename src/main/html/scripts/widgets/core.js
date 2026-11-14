@@ -219,6 +219,24 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    form: function () {
+        const widget = document.createElement("div");
+        widget.className = "widgets-form";
+        widget.setAttribute("role", "form");
+        initPointerEvents(widget, true);
+        return widget;
+    },
+    "form field": function () {
+        const widget = document.createElement("div");
+        widget.className = "widgets-form-field";
+        initPointerEvents(widget, true);
+        return widget;
+    },
+    label: function () {
+        const widget = document.createElement("label");
+        widget.className = "widgets-form-label";
+        return widget;
+    },
     "horizontal line": function () {
         const widget = document.createElement("hr");
         // Use currentColor so the regular reactive color property paints the line.
@@ -551,9 +569,8 @@ function setValidFlag(data) {
     const widget = widgets[data.widget];
     const flag = data.valid;
     if (widget && typeof flag == "boolean") {
-        widget._states.invalid = !flag;
-        assignSemanticAttribute(widget, "aria-invalid", flag ? null : "true");
-        if (widget._accessibleReferences) refreshAccessibleRelationsFor(widget);
+        widget._modelValid = flag;
+        refreshEditorValidity(widget);
         log(
             "The widget " +
                 data.widget +
@@ -561,10 +578,17 @@ function setValidFlag(data) {
                 (flag ? "valid" : "invalid") +
                 "."
         );
-        refreshWidget(widget);
         return true;
     }
     return false;
+}
+
+function refreshEditorValidity(widget) {
+    const invalid = widget._modelValid === false || widget._formError === true;
+    widget._states.invalid = invalid;
+    assignSemanticAttribute(widget, "aria-invalid", invalid ? "true" : null);
+    if (widget._accessibleReferences) refreshAccessibleRelationsFor(widget);
+    refreshWidget(widget);
 }
 
 function setDisabledFlag(data) {

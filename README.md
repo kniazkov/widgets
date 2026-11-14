@@ -266,10 +266,11 @@ compatibility changes, cancellation semantics and examples.
 
 - [Visual widget gallery](docs/WIDGET_GALLERY.ru.md) — real cloud-browser screenshot crops for
   every concrete visible widget, with a coverage matrix and capture metadata.
-- [Review implementation checklist](docs/REVIEW_CHECKLIST.ru.md) — 43 prioritized issues with
+- [Review implementation checklist](docs/REVIEW_CHECKLIST.ru.md) — prioritized issues with
   detailed Russian scope, dependencies, testing and acceptance criteria.
 - [Editor keyboard shortcuts](docs/KEYBOARD_SHORTCUTS.ru.md) — explicitly opt in to key events
   or use one Enter action for the same application validation as a button.
+- [Forms](docs/FORMS.ru.md) — native labels, accessible field errors and asynchronous submit using R44.
 - [Cloud verification record](docs/CLOUD_VERIFICATION.ru.md) — build, browser checks and limitations.
   For new gallery entries, capture the exact built revision in a real cloud browser, keep an
   unscaled crop with state, source frame, viewport and version metadata, add alt text, and run

@@ -31,6 +31,8 @@ import com.kniazkov.widgets.view.CheckBoxWithText;
 import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.Form;
+import com.kniazkov.widgets.view.FormField;
 import com.kniazkov.widgets.view.HeadingLevel;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.ImageWidgetStyle;
@@ -75,6 +77,9 @@ import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.TextWidgetStyle;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -190,6 +195,7 @@ public class AllWidgets {
         addNumericHints(root);
         addSuggestionFields(root);
         addKeyboardLogin(root);
+        addFormDemo(root);
         addPasswordInputs(root);
         addTextAreas(root);
         addCheckBoxes(root);
@@ -662,6 +668,51 @@ public class AllWidgets {
         submit.onClick(event -> attempt.run());
         card.add(new Section(variant("Demo user", user), variant("Demo code", code), submit));
         card.add(new Section(result));
+    }
+
+    /**
+     * Shows a locally simulated server refusal and a successful retry with fictional data.
+     * @param root page root
+     */
+    private static void addFormDemo(final RootWidget root) {
+        final Panel card = addCard(root, "Демонстрационная форма",
+            "Учебные данные: введите «Бумага» дважды. Образец «Занято» демонстрирует отказ.");
+        final Form form = new Form("Заявка с учебными данными", "Отправить заявку");
+        form.setMessages(new Form.Messages("Проверяем заявку…", "Учебная заявка принята.",
+            "Проверьте отмеченные поля.", "Не удалось отправить учебную заявку. Повторите."));
+        final FormField name = new FormField("title",
+            "Полное название учебного предмета для демонстрационной заявки");
+        final FormField confirm = new FormField("confirm",
+            "Повторите то же название, чтобы проверить связь между двумя полями");
+        final FormField reference = new FormField("reference", "Номер учебного образца");
+        for (final FormField field : List.of(name, confirm, reference)) {
+            field.setConstraintMessages("Заполните это поле.", "Проверьте значение поля.");
+            form.addField(field);
+        }
+        name.setRequired(true);
+        name.setMaxLength(40);
+        name.setAutocomplete("off");
+        name.setHelp("Можно использовать только вымышленные данные. Не более 40 символов.");
+        confirm.setRequired(true);
+        confirm.setMaxLength(40);
+        reference.getEditor().setText("ДЕМО-20");
+        reference.markPristine();
+        reference.setReadOnly(true);
+        reference.setHelp("Номер доступен только для чтения и отправляется вместе с заявкой.");
+        form.setValidator(values -> values.get("title").equals(values.get("confirm"))
+            ? Form.Result.success()
+            : new Form.Result(Map.of("confirm", "Названия в двух полях должны совпадать."), ""));
+        final AtomicInteger attempts = new AtomicInteger();
+        final TextWidget count = feedback("Учебных отправок: 0");
+        form.onSubmit(values -> {
+            count.setText("Учебных отправок: " + attempts.incrementAndGet());
+            return CompletableFuture.supplyAsync(() -> "Занято".equals(values.get("title"))
+                ? new Form.Result(Map.of("title", "Этот образец уже зарезервирован."),
+                    "Сервер отклонил учебную заявку.")
+                : Form.Result.success(), CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS));
+        });
+        card.add(form);
+        card.add(new Section(count));
     }
 
     /**

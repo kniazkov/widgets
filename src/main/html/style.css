@@ -265,3 +265,32 @@ button[aria-label]:has(> img):focus-visible {
         outline-color: Highlight !important;
     }
 }
+
+.widgets-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
+    max-width: 42rem;
+    min-width: 0;
+}
+
+.widgets-form-field {
+    margin-block-end: 0.8rem;
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+.widgets-form-label {
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.widgets-form-field :is(input, textarea) {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.widgets-form-status {
+    overflow-wrap: anywhere;
+}

@@ -49,10 +49,13 @@
 | `Countdown` | [Countdown](#countdown) |
 | `DropDownList` | [DropDownList](#drop-down-list) |
 | `FileLoader` | [FileLoader](#file-loader), [загрузка завершена](#file-loader-complete) |
+| `Form` | [Демонстрационная форма](#form) |
+| `FormField` | [Демонстрационная форма](#form) |
 | `HorizontalLine` | [HorizontalLine](#horizontal-line) |
 | `ImageWidget` | [ImageWidget](#image-widget) |
 | `InlineBlock` | [Layout composition](#layout-composition) |
 | `InputField` | [InputField](#input-field), [демо Enter](#keyboard-login-demo) |
+| `Label` | [Демонстрационная форма](#form) |
 | `Link` | [Link](#link) |
 | `MarginDecorator` | [Layout composition](#layout-composition) |
 | `Markdown` | [Markdown](#markdown) |
@@ -171,6 +174,24 @@
 ![Демо в узком окне: замаскированный код, фокус в поле кода и успешный результат по Enter.](images/widgets/keyboard-demo-narrow.png)
 
 *Узкое окно: поля и кнопка переносятся на отдельные строки.*
+
+<a id="form"></a>
+
+### Form, FormField, Label
+
+Учебная заявка показывает доступные подписи, подсказки, ошибки, состояние ожидания и отдельное поле только для чтения. Ввод не сбрасывается после имитированного отказа сервера. См. [договор API](FORMS.ru.md).
+
+![Форма на 1280 px: длинные подписи, два заполненных поля, номер только для чтения и подтверждение учебной заявки.](images/widgets/form-desktop.png)
+
+*1280 px: кнопка успешно отправила учебную заявку.*
+
+![Форма на 320 px: длинные русские подписи и сообщения двух обязательных полей помещаются в ширину.](images/widgets/form-narrow-error.png)
+
+*320 px: пустые обязательные поля после Enter. Фокус возвращается к первому полю.*
+
+![Форма на 390 px: учебный ввод сохранился, кнопка временно недоступна и показан статус проверки.](images/widgets/form-mobile-busy.png)
+
+*390 px: асинхронная проверка учебной заявки.*
 
 <a id="password-input"></a>
 ### PasswordInput
