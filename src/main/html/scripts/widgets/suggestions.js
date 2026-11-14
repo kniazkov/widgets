@@ -202,7 +202,8 @@ function createSuggestionField() {
 
     function render() {
         close();
-        if (widget.disabled || document.activeElement !== widget || composing) return;
+        if (widget.disabled || widget.readOnly || document.activeElement !== widget || composing)
+            return;
         const current = token();
         if (!current) return;
         const query = current.query.toLowerCase();
@@ -349,6 +350,7 @@ function createSuggestionField() {
         if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) render();
     });
     widget._closeSuggestions = close;
+    widget._isSuggestionOpen = () => list !== null;
     widget._onDetached = close;
     listenWidget(widget, "focus", render);
     listenWidget(widget, "click", render);

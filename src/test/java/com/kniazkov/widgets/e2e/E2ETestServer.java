@@ -9,6 +9,7 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.base.StaticSource;
 import com.kniazkov.widgets.common.Listener;
+import com.kniazkov.widgets.controller.KeyboardEvent;
 import com.kniazkov.widgets.images.ImageDecodeLimits;
 import com.kniazkov.widgets.images.ImageLoader;
 import com.kniazkov.widgets.view.ImageWidget;
@@ -149,6 +150,7 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        addKeyboardShortcutsPage(application);
         application.addPage("all-widgets", com.kniazkov.widgets.example.AllWidgets.galleryPage());
         application.addPage("connection-recovery", (root, context) -> {
             final TextWidget count = new TextWidget("Accepted actions: 0");
@@ -518,6 +520,40 @@ public final class E2ETestServer {
             final TextWidget status = new TextWidget("Cleanup count not read");
             read.onClick(event -> status.setText("Closed pages " + closed.get()));
             root.add(new Section(clear, read, status));
+        });
+    }
+
+    /**
+     * Registers an ordinary editor demo for keyboard action and state retention tests.
+     * @param application test application
+     */
+    private static void addKeyboardShortcutsPage(final Application application) {
+        application.addPage("keyboard-shortcuts", (root, context) -> {
+            final TextWidget status = new TextWidget("Keyboard actions: 0");
+            final var actions = new java.util.concurrent.atomic.AtomicInteger();
+            final Runnable invoke = () -> status.setText(
+                "Keyboard actions: " + actions.incrementAndGet()
+            );
+            final TextArea area = new TextArea();
+            area.setAccessibleName("Multiline draft");
+            area.onKeyDown(new KeyboardEvent.Shortcut(KeyboardEvent.Key.ENTER,
+                true, false, false, false), true, event -> invoke.run());
+            final SuggestionField suggestion = new SuggestionField(List.of("Silver", "Gold"));
+            suggestion.setAccessibleName("Keyboard suggestion");
+            suggestion.onEnter(event -> invoke.run());
+            final InputField locked = new InputField("Read-only test value");
+            locked.setAccessibleName("Read-only editor");
+            locked.onEnter(event -> invoke.run());
+            locked.setReadOnly(true);
+            final InputField disabled = new InputField("Disabled test value");
+            disabled.setAccessibleName("Disabled editor");
+            disabled.onEnter(event -> invoke.run());
+            disabled.disable();
+            final Button dispose = new Button("Dispose suggestion");
+            dispose.onClick(event -> suggestion.dispose());
+            root.add(new Section(area, suggestion));
+            root.add(new Section(locked, disabled, dispose, status));
+            root.add(new Section(new Link("Open other keyboard page", "/")));
         });
     }
 

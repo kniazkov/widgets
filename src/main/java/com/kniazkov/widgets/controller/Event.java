@@ -5,6 +5,7 @@ package com.kniazkov.widgets.controller;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.ModalPopup;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
@@ -137,6 +138,31 @@ public abstract class Event<T> {
         public void updateWidget(final Widget<?> widget, final String data) {
             if (widget instanceof HasTextInput) {
                 ((HasTextInput) widget).getTextModel().setData(data);
+            }
+        }
+    };
+
+    /**
+
+     * An explicitly subscribed press or release from an editable field.
+
+     */
+    public static final Event<KeyboardEvent> KEYBOARD = new Event<KeyboardEvent>() {
+        @Override
+        public String getName() {
+            return "keyboard";
+        }
+
+        @Override
+        public KeyboardEvent parseData(final JsonObject object) {
+            return KeyboardEvent.parse(object);
+        }
+
+        @Override
+        public void process(final Widget<?> widget, final JsonObject object) {
+            if (widget instanceof InputField input
+                    && this.rejectionReason(widget, object).isEmpty()) {
+                input.dispatchKeyboardEvent(this.parseData(object));
             }
         }
     };
@@ -391,6 +417,7 @@ public abstract class Event<T> {
         Collections.unmodifiableMap(
             Stream.of(
                 TEXT_INPUT,
+                KEYBOARD,
                 CHECK,
                 SELECT,
                 REORDER,

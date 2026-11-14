@@ -189,6 +189,7 @@ public class AllWidgets {
         addInputFields(root);
         addNumericHints(root);
         addSuggestionFields(root);
+        addKeyboardLogin(root);
         addPasswordInputs(root);
         addTextAreas(root);
         addCheckBoxes(root);
@@ -635,6 +636,32 @@ public class AllWidgets {
         final InputField text = new InputField();
         text.setTextModel(caption);
         card.add(new Section(new TextWidget("Edit the shared caption: "), text));
+    }
+
+    /**
+     * Shows one shared application action with fake inputs; this is not authentication.
+     * @param root gallery root
+     */
+    private static void addKeyboardLogin(final RootWidget root) {
+        final Panel card = addCard(root, "Keyboard login demo",
+            "Test data only: user demo and code blue. Enter or Sign in runs the same validation.");
+        final InputField user = new InputField();
+        user.setAccessibleName("Demo user");
+        final PasswordInput code = new PasswordInput();
+        code.setAccessibleName("Demo code");
+        final Button submit = new Button(ButtonStyle.PRIMARY, "Sign in demo");
+        final TextWidget result = feedback("No attempts yet");
+        final var attempts = new java.util.concurrent.atomic.AtomicInteger();
+        final Runnable attempt = () -> {
+            final boolean valid = user.getText().equals("demo") && code.getText().equals("blue");
+            result.setText("Attempt " + attempts.incrementAndGet()
+                + (valid ? ": demo accepted" : ": check the test data"));
+        };
+        user.onEnter(event -> attempt.run());
+        code.onEnter(event -> attempt.run());
+        submit.onClick(event -> attempt.run());
+        card.add(new Section(variant("Demo user", user), variant("Demo code", code), submit));
+        card.add(new Section(result));
     }
 
     /**

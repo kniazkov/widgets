@@ -29,7 +29,8 @@ export default defineConfig({
                 "upload-boundary.spec.js",
                 "image-processing.spec.js",
                 "protocol-backpressure.spec.js",
-                "cloud-verification.spec.js"
+                "cloud-verification.spec.js",
+                "keyboard-shortcuts.spec.js"
             ],
             use: { browserName: "webkit" }
         }

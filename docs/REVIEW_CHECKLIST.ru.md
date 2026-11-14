@@ -32,7 +32,7 @@
 - [x] **R17 · P1** — [#121: Ограничить очереди протокола и добавить backpressure](https://github.com/kniazkov/widgets/issues/121)
 - [x] **R18 · P1** — [#122: Сделать воспроизводимую облачную сборку и проверку браузера](https://github.com/kniazkov/widgets/issues/122)
 - [x] **R19 · P1** — [#123: Добавить скриншоты всех существующих видимых виджетов в документацию](https://github.com/kniazkov/widgets/issues/123)
-- [ ] **R44 · P2** — [#154: Добавить клавиатурные события виджетов и действие по Enter](https://github.com/kniazkov/widgets/issues/154)
+- [x] **R44 · P2** — [#154: Добавить клавиатурные события виджетов и действие по Enter](https://github.com/kniazkov/widgets/issues/154)
 - [ ] **R20 · P2** — [#124: Добавить Form, FormField и Label с согласованной валидацией](https://github.com/kniazkov/widgets/issues/124)
 - [ ] **R21 · P2** — [#125: Добавить адаптивные Stack, ResponsiveGrid и FormLayout](https://github.com/kniazkov/widgets/issues/125)
 - [ ] **R22 · P2** — [#126: Добавить типизированные Select, ComboBox и MultiSelect](https://github.com/kniazkov/widgets/issues/126)

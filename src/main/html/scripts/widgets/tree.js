@@ -46,6 +46,7 @@ function disposeWidgetSubtree(widget, preserveElement = false) {
         node._onDisposed?.();
         node._listenerScope?.abort();
         node._events = {};
+        node._keyboardShortcuts?.clear();
         node._clientActions = {};
         discardWidgetUploads(node);
         detachedWidgets.delete(node);
