@@ -294,3 +294,57 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-form-status {
     overflow-wrap: anywhere;
 }
+
+.widgets-adaptive-layout {
+    --widgets-layout-gap: 12px;
+    --widgets-grid-min: 160px;
+    --widgets-grid-max: 1fr;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    overflow-wrap: anywhere;
+}
+
+.widgets-adaptive-layout > * {
+    min-inline-size: 0;
+    max-inline-size: 100%;
+}
+
+.widgets-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--widgets-layout-gap, 12px);
+}
+
+.widgets-stack[data-inline-axis] {
+    flex-flow: row wrap;
+}
+
+.widgets-stack[data-inline-axis][data-no-wrap] {
+    flex-wrap: nowrap;
+}
+
+.widgets-responsive-grid {
+    display: grid;
+    gap: var(--widgets-layout-gap, 12px);
+    grid-template-columns: repeat(
+        auto-fit,
+        minmax(min(100%, var(--widgets-grid-min, 160px)), var(--widgets-grid-max, 1fr))
+    );
+}
+
+.widgets-form-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--widgets-layout-gap, 12px);
+}
+
+.widgets-form-layout[data-label-columns] > .widgets-form-field {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    column-gap: var(--widgets-layout-gap, 12px);
+}
+
+.widgets-form-layout[data-label-columns] > .widgets-form-field > :not(:first-child) {
+    grid-column: 2;
+}

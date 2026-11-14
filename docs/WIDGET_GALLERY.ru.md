@@ -51,6 +51,7 @@
 | `FileLoader` | [FileLoader](#file-loader), [загрузка завершена](#file-loader-complete) |
 | `Form` | [Демонстрационная форма](#form) |
 | `FormField` | [Демонстрационная форма](#form) |
+| `FormLayout` | [Адаптивный пример](#adaptive-form) |
 | `HorizontalLine` | [HorizontalLine](#horizontal-line) |
 | `ImageWidget` | [ImageWidget](#image-widget) |
 | `InlineBlock` | [Layout composition](#layout-composition) |
@@ -68,10 +69,12 @@
 | `Popup` | [Popup](#popup) |
 | `RadioButton` | [RadioButton](#radio-button) |
 | `RadioButtonWithText` | [CheckBoxWithText / RadioButtonWithText](#labeled-choices) |
+| `ResponsiveGrid` | [Адаптивный пример](#adaptive-layouts) |
 | `RootWidget` | [All widgets](#root-widget) |
 | `Row` | [Table](#table) |
 | `Section` | [Layout composition](#layout-composition) |
 | `SortableSection` | [SortableSection](#sortable-section) |
+| `Stack` | [Адаптивный пример](#adaptive-layouts) |
 | `StickyPanel` | [StickyPanel — scroll the page to see this block stick to the top.](#sticky-panel) |
 | `SuggestionField` | [SuggestionField](#suggestion-field), [SuggestionField — раскрытый список](#suggestion-open) |
 | `Table` | [Table](#table) |
@@ -174,6 +177,26 @@
 ![Демо в узком окне: замаскированный код, фокус в поле кода и успешный результат по Enter.](images/widgets/keyboard-demo-narrow.png)
 
 *Узкое окно: поля и кнопка переносятся на отдельные строки.*
+
+<a id="adaptive-layouts"></a>
+
+### Stack и ResponsiveGrid
+
+![Горизонтальный Stack из двух плиток, широкая сетка из трёх колонок и вложенная узкая сетка из двух строк.](images/widgets/adaptive-layouts-wide.png)
+
+*Широкий экран: вложенная сетка учитывает свои 225 px, а не ширину экрана. Длинное слово переносится внутри широкой сетки.*
+
+<a id="adaptive-form"></a>
+
+### FormLayout
+
+![Широкая форма: длинные подписи слева, фокус первого поля и подсказка справа.](images/widgets/adaptive-form-wide.png)
+
+*Широкая форма: две колонки, тестовый ввод остаётся в поле.*
+
+![Форма 390 px: длинная подпись над первым полем, необходимая подсказка, ошибка и фокус после Enter.](images/widgets/adaptive-form-narrow.png)
+
+*Узкая форма: подпись над полем; Enter использует прежнюю проверку. См. [договор адаптивной компоновки](ADAPTIVE_LAYOUT.ru.md).*
 
 <a id="form"></a>
 

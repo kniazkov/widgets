@@ -444,6 +444,49 @@ public abstract class Property<T> {
     static final Property<Boolean> FORM_STATUS = boolProperty("form status");
 
     /**
+     * Common spacing for adaptive layout widgets.
+     */
+    static final Property<Integer> LAYOUT_GAP = of(
+        "layout gap", Integer.class, () -> new IntegerModel(12), JsonNumber::of
+    );
+    /**
+     * Main direction of a Stack.
+     */
+    static final Property<String> STACK_DIRECTION = of(
+        "stack direction", String.class, () -> new StringModel("vertical"), JsonString::new
+    );
+    /**
+     * Cross-axis alignment of a Stack.
+     */
+    static final Property<String> STACK_ALIGNMENT = of(
+        "stack alignment", String.class, () -> new StringModel("stretch"), JsonString::new
+    );
+    /**
+     * Wrapping policy of a horizontal Stack.
+     */
+    static final Property<Boolean> STACK_WRAP = of(
+        "stack wrap", Boolean.class, () -> new BooleanModel(true), JsonBoolean::of
+    );
+    /**
+     * Preferred minimum track size of a ResponsiveGrid.
+     */
+    static final Property<Integer> GRID_MIN_WIDTH = of(
+        "grid min width", Integer.class, () -> new IntegerModel(160), JsonNumber::of
+    );
+    /**
+     * Maximum size of a ResponsiveGrid track, or zero for flexible tracks.
+     */
+    static final Property<Integer> GRID_MAX_WIDTH = of(
+        "grid max width", Integer.class, () -> new IntegerModel(0), JsonNumber::of
+    );
+    /**
+     * Width at which FormLayout aligns labels and controls in two columns.
+     */
+    static final Property<Integer> FORM_BREAKPOINT = of(
+        "form breakpoint", Integer.class, () -> new IntegerModel(520), JsonNumber::of
+    );
+
+    /**
      * Property controlling whether the widget is hidden.
      */
     public static final Property<Boolean> HIDDEN = boolProperty("hidden");

@@ -142,3 +142,79 @@ function setCellSpacing(data) {
     }
     return false;
 }
+
+function createAdaptiveLayout(kind) {
+    const widget = document.createElement("div");
+    widget.className = "widgets-adaptive-layout widgets-" + kind;
+    initPointerEvents(widget, true);
+    if (kind !== "form-layout") return widget;
+    let width = 0;
+    let frame = null;
+    widget._formLayoutBreakpoint = 520;
+    function render() {
+        widget.toggleAttribute(
+            "data-label-columns",
+            widget.isConnected && !widget._treePaused && width >= widget._formLayoutBreakpoint
+        );
+    }
+    const observer =
+        typeof ResizeObserver === "undefined"
+            ? null
+            : new ResizeObserver(entries => {
+                  if (!widget.isConnected || widget._treePaused) return;
+                  const next = entries[0].contentRect.width;
+                  if (next === width) return;
+                  width = next;
+                  // Reflow changes height; do not mutate geometry inside ResizeObserver delivery.
+                  if (frame === null) {
+                      frame = requestAnimationFrame(() => {
+                          frame = null;
+                          render();
+                      });
+                  }
+              });
+    widget._renderFormLayout = render;
+    widget._onAttached = () => observer?.observe(widget);
+    widget._onDetached = () => {
+        observer?.disconnect();
+        if (frame !== null) cancelAnimationFrame(frame);
+        frame = null;
+        width = 0;
+        render();
+    };
+    return widget;
+}
+
+function setAdaptiveLayout(data, property) {
+    const widget = widgets[data.widget];
+    const value = data[property];
+    const type = widget?._widgetType;
+    const within = (v, low, high) => Number.isInteger(v) && v >= low && v <= high;
+    if (property === "layout gap" && ["stack", "responsive grid", "form layout"].includes(type)) {
+        if (!within(value, 0, 128)) return false;
+        widget.style.setProperty("--widgets-layout-gap", value + "px");
+    } else if (property === "stack direction" && type === "stack") {
+        if (!["vertical", "horizontal"].includes(value)) return false;
+        widget.toggleAttribute("data-inline-axis", value === "horizontal");
+    } else if (property === "stack alignment" && type === "stack") {
+        if (!["start", "center", "end", "stretch"].includes(value)) return false;
+        widget.style.alignItems = value;
+    } else if (property === "stack wrap" && type === "stack") {
+        if (typeof value !== "boolean") return false;
+        widget.toggleAttribute("data-no-wrap", !value);
+    } else if (property === "grid min width" && type === "responsive grid") {
+        if (!within(value, 40, 2048)) return false;
+        widget.style.setProperty("--widgets-grid-min", value + "px");
+    } else if (property === "grid max width" && type === "responsive grid") {
+        if (value !== 0 && !within(value, 40, 2048)) return false;
+        const max = value === 0 ? "1fr" : "max(var(--widgets-grid-min, 160px), " + value + "px)";
+        widget.style.setProperty("--widgets-grid-max", max);
+    } else if (property === "form breakpoint" && type === "form layout") {
+        if (!within(value, 240, 2048)) return false;
+        widget._formLayoutBreakpoint = value;
+        widget._renderFormLayout();
+    } else {
+        return false;
+    }
+    return true;
+}

@@ -31,7 +31,8 @@ export default defineConfig({
                 "protocol-backpressure.spec.js",
                 "cloud-verification.spec.js",
                 "keyboard-shortcuts.spec.js",
-                "forms.spec.js"
+                "forms.spec.js",
+                "adaptive-layout.spec.js"
             ],
             use: { browserName: "webkit" }
         }

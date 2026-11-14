@@ -37,6 +37,7 @@ const handlerNames = [
     "setFormEditorAttribute",
     "setFormEditorError",
     "setFormBusy",
+    "setAdaptiveLayout",
     "setFormStatus",
     "focusFormEditor",
     "setAccessibleReference",
