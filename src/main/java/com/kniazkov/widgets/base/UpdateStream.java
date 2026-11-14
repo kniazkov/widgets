@@ -6,7 +6,12 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.protocol.Update;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
+import java.util.logging.Logger;
 import java.util.NavigableMap;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -38,7 +43,58 @@ final class UpdateStream {
     /**
      * Published but unacknowledged updates, keyed by stable channel sequence.
      */
-    private final NavigableMap<Long, Update> pending = new TreeMap<>();
+    private final NavigableMap<Long, Entry> pending = new TreeMap<>();
+
+    /**
+     * Bounded response and retention policy.
+     */
+    private final ProtocolLimits limits;
+
+    /**
+     * Monotonic clock shared by retention checks.
+     */
+    private final LongSupplier clock;
+
+    /**
+     * Aggregate diagnostics contain no widget names or payload values.
+     */
+    private static final Logger LOGGER = Logger.getLogger(UpdateStream.class.getName());
+
+    /**
+     * Exact retained object JSON bytes with bounded per-entry sequence framing.
+     */
+    private long pendingBytes;
+
+    /**
+     * Number of updates resent in the same epoch.
+     */
+    private long replays;
+
+    /**
+     * Largest sequence actually supplied in a batch, distinct from the enqueued sequence.
+     */
+    private long sentThrough;
+
+    /**
+     * Terminal overflow or expiration.
+     */
+    private boolean resync;
+
+    /**
+     * Uses default budgets for ordinary in-process use.
+     */
+    UpdateStream() {
+        this(ProtocolLimits.defaults(), System::nanoTime);
+    }
+
+    /**
+     * @param limits configured budgets
+     * @param clock monotonic time source
+     */
+    UpdateStream(final ProtocolLimits limits, final LongSupplier clock) {
+        this.limits = limits;
+        this.clock = clock;
+    }
 
     /**
      * Highest published checkpoint.
@@ -79,11 +135,13 @@ final class UpdateStream {
             return false;
         }
         final long sequence = Long.parseLong(checkpoint.substring(1));
-        if (sequence > this.published) {
+        if (sequence > this.sentThrough) {
             return false;
         }
         if (sequence > this.acknowledged) {
-            this.pending.headMap(sequence, true).clear();
+            final var released = this.pending.headMap(sequence, true);
+            released.values().forEach(entry -> this.pendingBytes -= entry.bytes);
+            released.clear();
             this.acknowledged = sequence;
         }
         return true;
@@ -95,30 +153,102 @@ final class UpdateStream {
      * @param updates model updates ready for this browser
      */
     void publish(final Collection<Update> updates) {
+        if (this.requiresResync()) {
+            return;
+        }
+        final long now = this.clock.getAsLong();
         for (final Update update : updates) {
-            if (this.published == MAX_SEQUENCE) {
-                throw new IllegalStateException("Widget update stream exhausted");
+            final Object key = update.coalescingKey();
+            final var last = this.pending.lastEntry();
+            if (key != null && last != null && last.getKey() > this.sentThrough
+                    && Objects.equals(key, last.getValue().key)) {
+                this.pendingBytes -= this.pending.pollLastEntry().getValue().bytes;
+                this.published--;
             }
-            this.pending.put(++this.published, update);
+            final JsonObject wire = new JsonObject();
+            update.serialize(wire);
+            wire.addNumber("sequence", this.published + 1);
+            final long bytes = wire.toString().getBytes(StandardCharsets.UTF_8).length + 1L;
+            if (this.published == MAX_SEQUENCE || bytes > this.limits.updateBytesPerBatch()
+                    || this.pending.size() >= this.limits.pendingUpdates()
+                    || this.pendingBytes + bytes > this.limits.pendingBytes()) {
+                this.requestResync();
+                return;
+            }
+            this.pending.put(++this.published, new Entry(wire, key, bytes, now));
+            this.pendingBytes += bytes;
         }
     }
 
     /**
-     * Serializes the unacknowledged suffix. A fresh runtime's first prefix is its snapshot.
+     * @return whether this runtime requires a fresh snapshot
+     */
+    boolean requiresResync() {
+        final var first = this.pending.firstEntry();
+        if (first != null && this.clock.getAsLong() - first.getValue().created
+                >= TimeUnit.MILLISECONDS.toNanos(this.limits.updateLifetimeMillis())) {
+            this.requestResync();
+        }
+        return this.resync;
+    }
+
+    /**
+     * Ends replay for this epoch. The next page instance gets a new epoch and snapshot.
+     */
+    void requestResync() {
+        if (!this.resync) {
+            LOGGER.info("Update queue resync; depth=" + this.pending.size()
+                + "; bytes=" + this.pendingBytes + "; replays=" + this.replays);
+            this.resync = true;
+            this.pending.clear();
+            this.pendingBytes = 0;
+        }
+    }
+
+    /**
+     * Serializes only one bounded prefix; each batch retains the current epoch.
      *
      * @param response browser-visible response object
      */
     void serialize(final JsonObject response) {
+        if (this.requiresResync()) {
+            response.addBoolean("updateResyncRequired", true);
+            response.addBoolean("snapshotUnavailable", this.sentThrough == 0);
+            return;
+        }
         response.addString("updateEpoch", this.epoch);
         response.addNumber("updateBase", this.acknowledged);
-        response.addNumber("updateThrough", this.published);
         response.addBoolean("snapshot", this.acknowledged == 0);
         final JsonArray updates = response.createArray("updates");
-        this.pending.forEach((sequence, update) -> {
-            final JsonObject object = updates.createObject();
-            update.serialize(object);
-            object.addNumber("sequence", sequence);
-        });
+        long through = this.acknowledged;
+        long bytes = 0;
+        for (final var item : this.pending.entrySet()) {
+            final Entry entry = item.getValue();
+            if (through - this.acknowledged >= this.limits.updatesPerBatch()
+                    || bytes + entry.bytes > this.limits.updateBytesPerBatch()) {
+                break;
+            }
+            updates.addElement(entry.wire);
+            through = item.getKey();
+            if (through <= this.sentThrough) {
+                this.replays++;
+            }
+            bytes += entry.bytes;
+        }
+        this.sentThrough = Math.max(this.sentThrough, through);
+        response.addNumber("updateThrough", through);
+        response.addBoolean("moreUpdates", through < this.published);
+    }
+
+    /**
+     * Retained update and its budget charge.
+     *
+     * @param wire published representation
+     * @param key identity if eligible to coalesce before sending
+     * @param bytes encoded budget charge
+     * @param created monotonic arrival time
+     */
+    private record Entry(JsonObject wire, Object key, long bytes, long created) {
     }
 
     /**

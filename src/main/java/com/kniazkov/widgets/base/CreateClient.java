@@ -118,6 +118,8 @@ final class CreateClient extends ActionHandler {
         obj.addString("serverId", this.application.getServerId().toString());
         obj.addString("updateVersion", UpdateStream.VERSION);
         obj.addString("updateCapability", UpdateStream.CAPABILITY);
+        obj.addNumber("eventBatchCount", this.application.protocolLimits().eventsPerBatch());
+        obj.addNumber("eventBatchBytes", this.application.protocolLimits().eventBytesPerBatch());
         obj.addString("updateEpoch", this.application.updateEpoch(
             com.kniazkov.widgets.common.RMId.parse(id)));
 

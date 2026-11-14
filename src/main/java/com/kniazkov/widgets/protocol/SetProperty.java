@@ -50,6 +50,16 @@ public class SetProperty<T> extends Update {
     }
 
     @Override
+    public Object coalescingKey() {
+        /*
+         * Envelopes have ordering effects; only pure visual setters may combine.
+         */
+        return this.getClass() == SetProperty.class && (this.property == Property.COLOR
+            || this.property == Property.BG_COLOR || this.property == Property.OPACITY)
+            ? java.util.List.of(this.getWidgetId(), this.state, this.property) : null;
+    }
+
+    @Override
     public Update clone() {
         return new SetProperty<>(this.getWidgetId(), this.state, this.property, this.value);
     }

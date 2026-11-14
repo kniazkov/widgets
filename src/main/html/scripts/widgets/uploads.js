@@ -178,13 +178,14 @@ function loadFiles(widget, descriptions) {
         };
         pendingUploads.push(file);
         selected.push(file);
-        createEvent(widget, "upload", {
+        const enqueued = createEvent(widget, "upload", {
             fileId: file.id,
             name: file.name,
             type: file.type,
             size: file.size,
             totalChunks: file.totalChunks
         });
+        if (enqueued === false) return;
     }
     if (selected.length > 0) {
         acknowledgeSelections(selected);

@@ -23,18 +23,81 @@ function parseId(str) {
     return num;
 }
 
-function createEvent(widget, type, data) {
-    const eventId = "#" + ++lastEventId;
-    const obj = {
-        id: eventId,
-        widget: widget._id,
-        type: type
-    };
-    if (data) {
-        obj.data = data;
+// An independent unsent queue is bounded even while the transport is unavailable.
+const maxPendingEvents = 256;
+const maxPendingEventBytes = 512 * 1024;
+const maxPendingEventAge = 120_000;
+const eventCharges = new WeakMap();
+let pendingEventBytes = 0;
+let eventBatchCount = 64;
+let eventBatchBytes = 512 * 1024;
+
+function protocolEventBytes(value) {
+    let bytes = 0;
+    for (const codepoint of value) {
+        const code = codepoint.codePointAt(0);
+        bytes += code <= 127 ? 1 : code <= 2047 ? 2 : code <= 65535 ? 3 : 4;
     }
-    log("The widget " + widget._id + " triggered the event " + eventId + " '" + type + "'.");
+    return bytes;
+}
+
+function eventCharge(event) {
+    return eventCharges.get(event)?.bytes ?? protocolEventBytes(JSON.stringify(event)) + 1;
+}
+
+function configureEventBatches(count, bytes) {
+    if (Number.isInteger(count) && count >= 1 && count <= 128) eventBatchCount = count;
+    if (Number.isInteger(bytes) && bytes >= 16 && bytes <= 512 * 1024) eventBatchBytes = bytes;
+}
+
+function failEventQueue(reason) {
+    console.warn("Widgets event queue stopped", reason, events.length, pendingEventBytes);
+    events.length = 0;
+    pendingEventBytes = 0;
+    showClientError(
+        undefined,
+        "backpressure",
+        "Input queue could not be delivered safely. Reload this page; unsent actions are not replayed."
+    );
+}
+
+function selectEventBatch() {
+    const since = events[0] && eventCharges.get(events[0])?.at;
+    if (since != null && Date.now() - since >= maxPendingEventAge) {
+        failEventQueue("age");
+        return null;
+    }
+    let bytes = 2;
+    const selected = [];
+    for (const event of events) {
+        const charge = eventCharge(event);
+        if (selected.length >= eventBatchCount || bytes + charge > eventBatchBytes) break;
+        selected.push(event);
+        bytes += charge;
+    }
+    return selected;
+}
+
+function createEvent(widget, type, data) {
+    if (typeof clientDisposed !== "undefined" && (clientDisposed || clientFailed)) return false;
+    const eventId = "#" + (lastEventId + 1);
+    const obj = { id: eventId, widget: widget._id, type };
+    if (data) obj.data = data;
+    const bytes = eventCharge(obj);
+    if (
+        bytes + 2 > eventBatchBytes ||
+        events.length >= maxPendingEvents ||
+        pendingEventBytes + bytes > maxPendingEventBytes
+    ) {
+        failEventQueue("capacity");
+        return false;
+    }
+    lastEventId++;
+    eventCharges.set(obj, { bytes, at: Date.now() });
+    pendingEventBytes += bytes;
     events.push(obj);
+    log("The widget " + widget._id + " triggered the event " + eventId + " '" + type + "'.");
+    return true;
 }
 
 // A rejected batch stops the runtime. Only a fresh channel can supply a new snapshot.
@@ -137,7 +200,10 @@ function removeProcessedEvents(id, sentThrough = lastEventId) {
         throw new Error("Invalid event acknowledgement");
     }
     let count = 0;
-    while (count < events.length && parseId(events[count].id) <= ack) count++;
+    while (count < events.length && parseId(events[count].id) <= ack) {
+        pendingEventBytes -= eventCharges.get(events[count])?.bytes ?? 0;
+        count++;
+    }
     events.splice(0, count);
     lastAcknowledgedEventId = ack;
     return count;
