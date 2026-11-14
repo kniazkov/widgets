@@ -186,6 +186,7 @@ function startClient(address, data) {
             channelToken = json.channelToken;
             updateEpoch = json.updateEpoch;
             lastAppliedUpdateSequence = 0;
+            configureEventBatches(json.eventBatchCount, json.eventBatchBytes);
             log("Client created, id: " + clientId + ".");
             mainCycleTask = setInterval(mainCycle, period);
             mainCycle();

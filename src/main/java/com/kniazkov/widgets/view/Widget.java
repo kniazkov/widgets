@@ -60,6 +60,22 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
     private List<Update> updates;
 
     /**
+     * Size charged for this widget's pending updates.
+     */
+    private long bufferedBytes;
+
+    /**
+     * Whether some changes were dropped before collection.
+     */
+    private boolean bufferOverflow;
+
+    /**
+     * Default per-widget budget before the widget is attached to a page.
+     */
+    private static final com.kniazkov.widgets.base.ProtocolLimits DETACHED_LIMITS =
+        com.kniazkov.widgets.base.ProtocolLimits.defaults();
+
+    /**
      * The parent container that contains this widget.
      */
     private Container parent;
@@ -79,9 +95,45 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      *
      * @param root owning page
      */
-    final void setLifecycleOwner(final RootWidget root) {
+    final synchronized void setLifecycleOwner(final RootWidget root) {
         if (!this.belongsTo(root)) {
             this.lifecycleOwner = new WeakReference<>(root);
+        }
+        this.setBufferOwner(root);
+    }
+
+    /**
+     * Root charged for these updates only while physically mounted.
+     */
+    private WeakReference<RootWidget> bufferOwner;
+
+    /**
+     * Transfers the raw buffer's charge without retaining detached widgets.
+     *
+     * @param root mounted owner, null on detach
+     */
+    private synchronized void setBufferOwner(final RootWidget root) {
+        final RootWidget old = this.bufferOwner == null ? null : this.bufferOwner.get();
+        if (old == root) {
+            return;
+        }
+        this.releaseBudget();
+        this.bufferOwner = root == null ? null : new WeakReference<>(root);
+        if (root != null && (this.bufferOverflow || this.updates != null
+                && !root.retainBuffered(this.updates.size(), this.bufferedBytes))) {
+            root.markBufferOverflow();
+            this.updates = null;
+            this.bufferedBytes = 0;
+        }
+    }
+
+    /**
+     * Returns this widget's pending charge to its mounted owner.
+     */
+    private void releaseBudget() {
+        final RootWidget owner = this.bufferOwner == null ? null : this.bufferOwner.get();
+        if (owner != null && this.updates != null) {
+            owner.releaseBuffered(this.updates.size(), this.bufferedBytes);
         }
     }
 
@@ -135,8 +187,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
     public Widget(final S style) {
         this.id = RMId.create();
         this.style = style;
-        this.updates = new ArrayList<>();
-        this.updates.add(new CreateWidget(this.id, this.getType()));
+        this.pushUpdate(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(State.class);
         this.controllers = new HashMap<>();
 
@@ -399,7 +450,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
             }
             this.retired = true;
             this.controllers.clear();
+            this.releaseBudget();
             this.updates = null;
+            this.bufferedBytes = 0;
             actions = new ArrayList<>(this.cleanup);
             this.cleanup.clear();
             this.bindings.values().forEach(properties -> {
@@ -429,7 +482,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
                 return;
             }
             pending = this.updates;
+            this.releaseBudget();
             this.updates = null;
+            this.bufferedBytes = 0;
         }
         set.addAll(pending);
     }
@@ -563,6 +618,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
     final void detachFrom(final Container owner) {
         if (this.parent == owner) {
             this.parent = null;
+            this.visitSubtree(widget -> widget.setBufferOwner(null));
         }
     }
 
@@ -607,13 +663,26 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * @param update the update to add
      */
     protected synchronized void pushUpdate(final Update update) {
-        if (this.retired) {
+        if (this.retired || this.bufferOverflow) {
+            return;
+        }
+        final RootWidget owner = this.bufferOwner == null ? null : this.bufferOwner.get();
+        final long bytes = update.encodedBytes();
+        final int count = this.updates == null ? 0 : this.updates.size();
+        if (owner != null ? !owner.retainBuffered(1, bytes)
+                : count >= DETACHED_LIMITS.pendingUpdates()
+                    || this.bufferedBytes + bytes > DETACHED_LIMITS.pendingBytes()) {
+            this.releaseBudget();
+            this.bufferOverflow = true;
+            this.updates = null;
+            this.bufferedBytes = 0;
             return;
         }
         if (this.updates == null) {
             this.updates = new ArrayList<>();
         }
         this.updates.add(update);
+        this.bufferedBytes += bytes;
     }
 
     /**

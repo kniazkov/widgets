@@ -65,6 +65,75 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     private final Set<Widget<?>> owned = Collections.newSetFromMap(new WeakHashMap<>());
 
     /**
+     * Shared budget lock does not hold model or page monitors.
+     */
+    private final Object bufferBudget = new Object();
+
+    /**
+     * Counts pending raw updates before collection.
+     */
+    private int bufferedCount;
+
+    /**
+     * Charged bytes awaiting collection.
+     */
+    private long bufferedSize;
+
+    /**
+     * An update was dropped; partial replay is no longer safe.
+     */
+    private boolean bufferOverflow;
+
+    /**
+     * @param updates additional raw updates
+     * @param bytes their budget cost
+     * @return whether the budget accepted the additions
+     */
+    boolean retainBuffered(final int updates, final long bytes) {
+        synchronized (this.bufferBudget) {
+            final var limits = this.options.getProtocolLimits();
+            if (this.bufferOverflow
+                    || updates > limits.pendingUpdates() - this.bufferedCount
+                    || bytes > limits.pendingBytes() - this.bufferedSize) {
+                this.bufferOverflow = true;
+                return false;
+            }
+            this.bufferedCount += updates;
+            this.bufferedSize += bytes;
+            return true;
+        }
+    }
+
+    /**
+     * @param updates removed raw updates
+     * @param bytes removed budget cost
+     */
+    void releaseBuffered(final int updates, final long bytes) {
+        synchronized (this.bufferBudget) {
+            this.bufferedCount -= updates;
+            this.bufferedSize -= bytes;
+        }
+    }
+
+    /**
+     * Includes overflow that occurred while a subtree had no root.
+     */
+    void markBufferOverflow() {
+        synchronized (this.bufferBudget) {
+            this.bufferOverflow = true;
+        }
+    }
+
+    /**
+     * @return whether the raw buffer needs a fresh page snapshot
+     */
+    public boolean hasBufferOverflow() {
+        synchronized (this.bufferBudget) {
+            return this.bufferOverflow;
+        }
+    }
+
+    /**
      * Records ownership of an attached widget without prolonging its lifetime.
      *
      * @param widget owned widget
@@ -141,6 +210,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         super(getDefaultStyle());
         this.uploadRegistry = Objects.requireNonNull(registry);
         this.options = Objects.requireNonNull(options, "Options must not be null");
+        this.setLifecycleOwner(this);
         this.resetMetadata();
     }
 

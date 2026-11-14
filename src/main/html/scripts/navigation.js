@@ -70,6 +70,9 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         });
     }
 
+    // Expire hidden entries even when the active page remains open indefinitely.
+    window.setInterval(prune, Math.min(PAGE_CACHE_TTL, 15_000));
+
     function clearCache(broadcast = true) {
         for (const entry of pages.values()) {
             if (entry !== active) {

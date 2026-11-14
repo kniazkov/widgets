@@ -260,6 +260,13 @@ public final class Application implements AutoCloseable {
     }
 
     /**
+     * @return queue configuration negotiated by all page runtimes in this application
+     */
+    ProtocolLimits protocolLimits() {
+        return this.options.getProtocolLimits();
+    }
+
+    /**
      * Returns a still-registered client for the initial response.
      *
      * @param id newly created client identity

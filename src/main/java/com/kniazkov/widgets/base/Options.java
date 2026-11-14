@@ -132,6 +132,11 @@ public final class Options {
     private final int uploadQueueCapacity;
 
     /**
+     * Queue budgets for each page protocol runtime.
+     */
+    private final ProtocolLimits protocolLimits;
+
+    /**
      * Whether browser and server debug logging is enabled.
      */
     private final boolean debug;
@@ -168,6 +173,7 @@ public final class Options {
         this.maxFileSize = builder.maxFileSize;
         this.uploadLimits = builder.uploadLimits;
         this.uploadWorkers = builder.uploadWorkers;
+        this.protocolLimits = builder.protocolLimits;
         this.uploadQueueCapacity = builder.uploadQueueCapacity == 0
             ? Math.min(1024, builder.uploadLimits.filesPerApplication())
             : builder.uploadQueueCapacity;
@@ -277,6 +283,13 @@ public final class Options {
      */
     public int getUploadQueueCapacity() {
         return this.uploadQueueCapacity;
+    }
+
+    /**
+     * @return per-runtime transport and retention budgets
+     */
+    public ProtocolLimits getProtocolLimits() {
+        return this.protocolLimits;
     }
 
     /**
@@ -440,6 +453,22 @@ public final class Options {
          * Explicit queue cap, or zero to retain the existing upload reservation cap.
          */
         private int uploadQueueCapacity;
+
+        /**
+         * Queue budgets for each page runtime.
+         */
+        private ProtocolLimits protocolLimits = ProtocolLimits.defaults();
+
+        /**
+         * Configures limits for protocol backpressure and replay.
+         *
+         * @param limits per-runtime budgets
+         * @return this builder
+         */
+        public Builder setProtocolLimits(final ProtocolLimits limits) {
+            this.protocolLimits = java.util.Objects.requireNonNull(limits);
+            return this;
+        }
 
         /**
          * Sets bounded background file processing capacity independently of upload reservations.

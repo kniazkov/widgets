@@ -27,7 +27,8 @@ export default defineConfig({
                 "update-stream.spec.js",
                 "upload-lifecycle.spec.js",
                 "upload-boundary.spec.js",
-                "image-processing.spec.js"
+                "image-processing.spec.js",
+                "protocol-backpressure.spec.js"
             ],
             use: { browserName: "webkit" }
         }

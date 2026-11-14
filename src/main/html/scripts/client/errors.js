@@ -126,6 +126,18 @@ function responseHasClientError(response) {
         showClientError(undefined, "session");
         return true;
     }
+    if (response?.updateResyncRequired === true) {
+        if (response.snapshotUnavailable === true) {
+            showClientError(
+                undefined,
+                "backpressure",
+                "This page exceeds the initial update budget. Contact the application owner."
+            );
+        } else {
+            reloadCurrentPage();
+        }
+        return true;
+    }
     if (response?.updateProtocolMismatch === true) {
         showUpdateProtocolError();
         return true;

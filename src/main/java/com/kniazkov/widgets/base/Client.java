@@ -63,7 +63,12 @@ public final class Client implements Comparable<Client>, AutoCloseable {
     /**
      * Outgoing independently sequenced browser channel.
      */
-    private final UpdateStream updates = new UpdateStream();
+    private final UpdateStream updates;
+
+    /**
+     * Limits for parsing event batches and replaying widget updates.
+     */
+    private final ProtocolLimits protocolLimits;
 
     /**
      * Scratch set keeps model update order while each widget transfers its own queue.
@@ -110,6 +115,8 @@ public final class Client implements Comparable<Client>, AutoCloseable {
     Client(final Options options, final TabContext tabContext,
             final com.kniazkov.widgets.view.UploadRegistry uploads) {
         this.tabContext = tabContext;
+        this.protocolLimits = options.getProtocolLimits();
+        this.updates = new UpdateStream(this.protocolLimits, System::nanoTime);
         this.id = RMId.create();
         this.root = new RootWidget(options, uploads);
     }
@@ -205,6 +212,10 @@ public final class Client implements Comparable<Client>, AutoCloseable {
                 UpdateStream.markMismatch(response);
                 return;
             }
+            if (this.needsUpdateResync()) {
+                this.serializeUpdates(response);
+                return;
+            }
             this.processEvents(request, response);
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
@@ -260,6 +271,12 @@ public final class Client implements Comparable<Client>, AutoCloseable {
             if (!this.updates.acknowledge(epoch, lastUpdate, requireEpoch)) {
                 return UpdateStream.mismatch();
             }
+            if (this.needsUpdateResync()) {
+                final JsonObject response = new JsonObject();
+                response.addBoolean("result", false);
+                this.serializeUpdates(response);
+                return response;
+            }
             for (final Widget<?> widget : this.root) {
                 if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
                     final JsonObject response = ((FileLoader) widget).handleUploadChunk(
@@ -307,9 +324,20 @@ public final class Client implements Comparable<Client>, AutoCloseable {
         if (!request.containsKey("events")) {
             return;
         }
+        final String encoded = request.get("events");
+        if (encoded.length() > this.protocolLimits.eventBytesPerBatch()
+                || encoded.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                    > this.protocolLimits.eventBytesPerBatch()) {
+            this.rejectEventBatch(response, "bytes");
+            return;
+        }
         try {
-            final JsonElement element = Json.parse(request.get("events"), JsonParsingMode.STRICT);
+            final JsonElement element = Json.parse(encoded, JsonParsingMode.STRICT);
             final JsonArray events = element.toJsonArray().orElse(null);
+            if (events != null && events.size() > this.protocolLimits.eventsPerBatch()) {
+                this.rejectEventBatch(response, "count");
+                return;
+            }
             if (events == null || !validEventSequence(events)) {
                 response.addBoolean("eventResyncRequired", true);
                 return;
@@ -326,6 +354,18 @@ public final class Client implements Comparable<Client>, AutoCloseable {
         } catch (final JsonException ignored) {
             response.addBoolean("eventResyncRequired", true);
         }
+    }
+
+    /**
+     * Rejects the whole batch without dispatching any its events.
+     *
+     * @param response envelope to mark
+     * @param reason aggregate budget category only
+     */
+    private void rejectEventBatch(final JsonObject response, final String reason) {
+        java.util.logging.Logger.getLogger(Client.class.getName()).info(
+            "Event batch rejected; limit=" + reason);
+        response.addBoolean("eventBackpressure", true);
     }
 
     /**
@@ -455,8 +495,20 @@ public final class Client implements Comparable<Client>, AutoCloseable {
      */
     private void collectUpdates() {
         this.root.collectBrowserUpdates(this.collecting);
-        this.updates.publish(this.collecting);
+        if (!this.needsUpdateResync()) {
+            this.updates.publish(this.collecting);
+        }
         this.collecting.clear();
+    }
+
+    /**
+     * @return whether a raw buffer or replay window stopped accepting new work
+     */
+    private boolean needsUpdateResync() {
+        if (this.root.hasBufferOverflow()) {
+            this.updates.requestResync();
+        }
+        return this.updates.requiresResync();
     }
 
     /**

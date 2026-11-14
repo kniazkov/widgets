@@ -156,6 +156,7 @@ function createHarness() {
             openPageInNewTab,
             sendEventToServer,
             createEvent,
+            configureEventBatches,
             sendSynchronizeRequest,
             mainCycle,
             disposeClient,
@@ -379,6 +380,38 @@ describe("event delivery acknowledgements", () => {
         };
         return harness;
     }
+
+    it("batches input under negotiated limits and does not approve a later upload early", () => {
+        const harness = deliveryHarness();
+        const status = [];
+        harness.configureEventBatches(2, 1024);
+        harness.enqueue();
+        harness.enqueue();
+        harness.enqueue();
+        harness.sync(answer => status.push(answer));
+
+        expect(harness.requests[0].request.events.map(event => event.id)).toEqual(["#1", "#2"]);
+        harness.respond("#2");
+        expect(status).toEqual([]);
+        expect(harness.requests[1].request.events.map(event => event.id)).toEqual(["#3"]);
+        harness.respond("#3", { moreUpdates: true });
+        expect(status).toEqual([true]);
+        expect(harness.requests[2].request.events).toHaveLength(0);
+    });
+
+    it("caps offline input without attempting to replay any of it", () => {
+        const harness = deliveryHarness();
+        for (let index = 0; index < 256; index++) {
+            expect(harness.enqueue()).toBe(true);
+        }
+        expect(harness.enqueue()).toBe(false);
+        expect(harness.events).toHaveLength(0);
+        harness.sync();
+        expect(harness.requests).toHaveLength(0);
+        expect(
+            dom.window.document.querySelector('[data-reason="backpressure"]')?.textContent
+        ).toContain("unsent actions are not replayed");
+    });
 
     it("consumes rejected/obsolete events and leaves subsequent in-flight input queued", () => {
         const harness = deliveryHarness();

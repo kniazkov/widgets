@@ -37,7 +37,7 @@ function cancelSynchronization() {
     clearTimeout(synchronizationRetryTask);
     synchronizationRetryTask = null;
     synchronizationStopped = true;
-    for (const done of synchronizationCallbacks.splice(0)) done(false);
+    for (const entry of synchronizationCallbacks.splice(0)) entry.done(false);
 }
 
 // Rebuild the same URL/tab without replaying actions whose delivery is uncertain.
@@ -53,22 +53,32 @@ function sendSynchronizeRequest(callback) {
         return;
     }
     if (callback) {
-        synchronizationCallbacks.push(callback);
+        if (synchronizationCallbacks.length >= 256) {
+            failEventQueue("callbacks");
+            callback(false);
+            return;
+        }
+        synchronizationCallbacks.push({ done: callback, through: lastEventId });
     }
     if (synchronizationInFlight || synchronizationRetryTask !== null) {
         return;
     }
+    const sentEvents = selectEventBatch();
+    if (!sentEvents) return;
     if (navigator.onLine === false) {
         recordRequestFailure();
         scheduleSynchronization(transportRetryDelay(++synchronizationFailures));
         return;
     }
     synchronizationInFlight = true;
-    const sentEvents = events.slice();
     const sentThrough = sentEvents.length ? parseId(sentEvents.at(-1).id) : lastAcknowledgedEventId;
     let stalled = false;
     let transportFailed = false;
-    const callbacks = synchronizationCallbacks.splice(0);
+    const callbacks = [];
+    let moreUpdates = false;
+    while (synchronizationCallbacks.length && synchronizationCallbacks[0].through <= sentThrough) {
+        callbacks.push(synchronizationCallbacks.shift().done);
+    }
     callback = function (accepted) {
         synchronizationInFlight = false;
         if (clientDisposed || synchronizationStopped) {
@@ -83,7 +93,11 @@ function sendSynchronizeRequest(callback) {
             scheduleSynchronization(period);
         }
         for (const done of callbacks) done(accepted && !stalled);
-        if (!stalled && accepted && (synchronizationCallbacks.length > 0 || events.length > 0)) {
+        if (
+            !stalled &&
+            accepted &&
+            (synchronizationCallbacks.length > 0 || events.length > 0 || moreUpdates)
+        ) {
             sendSynchronizeRequest();
         }
     };
@@ -121,6 +135,12 @@ function sendSynchronizeRequest(callback) {
                 }
                 return;
             }
+            moreUpdates = json.moreUpdates === true;
+            if (json.eventBackpressure === true) {
+                failEventQueue("server batch");
+                for (const done of callbacks) done(false);
+                return;
+            }
             if (json.eventResyncRequired === true) {
                 resynchronizeEvents(callbacks);
                 return;
@@ -149,7 +169,7 @@ function sendSynchronizeRequest(callback) {
                 if (!processUpdates(json, widgets[activation?.widget])) return;
                 reconcileTextInputs();
                 recordRequestSuccess();
-                if (pageContext) {
+                if (pageContext && !moreUpdates) {
                     pageContext.ready();
                 }
             } catch (error) {
