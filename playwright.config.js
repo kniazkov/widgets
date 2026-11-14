@@ -28,7 +28,8 @@ export default defineConfig({
                 "upload-lifecycle.spec.js",
                 "upload-boundary.spec.js",
                 "image-processing.spec.js",
-                "protocol-backpressure.spec.js"
+                "protocol-backpressure.spec.js",
+                "cloud-verification.spec.js"
             ],
             use: { browserName: "webkit" }
         }
