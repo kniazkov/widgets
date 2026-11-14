@@ -22,13 +22,15 @@ function semanticTarget(source, property) {
         target._treePaused
     )
         return null;
-    if (!target.id) target.id = "widgets-semantic-" + target._id;
-    return target.id;
+    const element = target._semanticTargetElement || target;
+    if (!element.id) element.id = "widgets-semantic-" + target._id;
+    return element.id;
 }
 
 function assignSemanticAttribute(widget, attribute, value) {
-    if (value) widget.setAttribute(attribute, value);
-    else widget.removeAttribute(attribute);
+    const target = widget._semanticTargetElement || widget;
+    if (value) target.setAttribute(attribute, value);
+    else target.removeAttribute(attribute);
 }
 
 function refreshAccessibleRelationsFor(widget) {

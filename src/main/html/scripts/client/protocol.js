@@ -244,6 +244,7 @@ const actionHandlers = {
     "set countdown deadline": setCountdownDeadline,
     "set text": setText,
     "set suggestions": setSuggestions,
+    "set choice state": setChoiceState,
     "set placeholder color": setPlaceholderColor,
     "set placeholder": setPlaceholder,
     "set document title": data => setDocumentMetadata(data, "title"),

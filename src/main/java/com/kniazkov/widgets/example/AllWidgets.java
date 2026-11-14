@@ -27,6 +27,10 @@ import com.kniazkov.widgets.view.Carousel;
 import com.kniazkov.widgets.view.Countdown;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CheckBox;
+import com.kniazkov.widgets.view.ChoiceOption;
+import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.Select;
+import com.kniazkov.widgets.view.MultiSelect;
 import com.kniazkov.widgets.view.CheckBoxWithText;
 import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.DropDownList;
@@ -205,6 +209,7 @@ public class AllWidgets {
         addRadioButtons(root);
         addLabeledChoices(root);
         addDropDownLists(root);
+        addTypedChoices(root);
         addButtons(root);
         addAccessibleSemantics(root);
         addPopups(root);
@@ -219,6 +224,111 @@ public class AllWidgets {
         addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
+    }
+
+    /**
+     * Shows independent single, multiple, strict search and free text values.
+     * @param root gallery page
+     */
+    private static void addTypedChoices(final RootWidget root) {
+        final Panel card = addCard(root, "Типизированный выбор",
+            "Одинаковые подписи не меняют ключ; демонстрация использует учебные данные.");
+        final List<ChoiceOption<Integer>> options = List.of(
+            new ChoiceOption<>("paper-a", "Бумага", 101),
+            new ChoiceOption<>("paper-b", "Бумага", 102),
+            new ChoiceOption<>("ink", "Чернила", 103),
+            new ChoiceOption<>("archive", "Архив (недоступно)", 104, true)
+        );
+        final Select<Integer> single = new Select<>(options);
+        single.setAccessibleName("Материал: один");
+        single.setPlaceholder("Выберите материал");
+        final TextWidget result = new TextWidget("Код материала: нет");
+        single.onChoose(keys -> result.setText("Код материала: "
+            + (keys.isEmpty() ? "нет" : single.getSelectedValues().getFirst())));
+        final Button reorder = new Button("Переставить материалы");
+        reorder.onClick(event -> single.setOptions(options.reversed()));
+        final Button remove = new Button("Убрать вторую бумагу");
+        remove.onClick(event -> {
+            single.setOptions(options.stream().filter(item -> !item.key().equals("paper-b"))
+                .toList());
+            result.setText("Код материала: "
+                + (single.getSelectedValues().isEmpty() ? "нет"
+                    : single.getSelectedValues().getFirst()));
+        });
+        card.add(new Section(single, result, reorder, remove));
+
+        final MultiSelect<Integer> multi = new MultiSelect<>(options);
+        multi.setAccessibleName("Материалы: несколько");
+        multi.setPlaceholder("Выберите один или несколько");
+        multi.getSelectionModel().setData(List.of("paper-a", "ink"));
+        final Button clear = new Button("Очистить материалы");
+        clear.onClick(event -> multi.clear());
+        final Select<Integer> disabled = new Select<>(options);
+        disabled.setAccessibleName("Недоступный выбор");
+        disabled.setPlaceholder("Выбор недоступен");
+        disabled.disable();
+        card.add(new Section(multi, clear, disabled));
+
+        final ComboBox<Integer> search = new ComboBox<>(List.of(), false);
+        search.setAccessibleName("Поиск склада");
+        search.setPlaceholder("Например, медленно или быстро");
+        final TextWidget outcome = new TextWidget("Склад не выбран");
+        search.onChoose(keys -> outcome.setText(keys.isEmpty() ? "Склад не выбран"
+            : "Код склада: " + search.getSelectedValues().getFirst()));
+        search.setProvider(AllWidgets::findWarehouse);
+        card.add(new Section(search, outcome));
+
+        final ComboBox<Integer> free = new ComboBox<>(options, true);
+        free.setAccessibleName("Примечание или материал");
+        free.setPlaceholder("Текст либо существующий материал");
+        free.setValidState(false);
+        card.add(new Section(free, new TextWidget("Пример свободного текста (неверное поле)")));
+    }
+
+    /**
+     * Sample async provider includes a task that observes cancellation but finishes anyway.
+     * @param query current search
+     * @param cursor opaque page cursor
+     * @return future with only fabricated catalogue items
+     */
+    private static CompletableFuture<ComboBox.Page<Integer>> findWarehouse(final String query,
+            final String cursor) {
+        final CompletableFuture<ComboBox.Page<Integer>> result = new CompletableFuture<>() {
+            @Override
+            public boolean cancel(final boolean interrupt) {
+                /*
+             * This demo models a provider that cannot abort already-started I/O.
+             */
+                return false;
+            }
+        };
+        final long delay = query.equals("медленно") ? 3000 : 140;
+        CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS).execute(() -> {
+            if (query.equals("ошибка")) {
+                result.completeExceptionally(new IllegalStateException("Demo provider failed"));
+                return;
+            }
+            final List<ChoiceOption<Integer>> items;
+            if (query.equals("нет")) {
+                items = List.of();
+            } else if (query.equals("медленно")) {
+                items = List.of(new ChoiceOption<>("slow", "Медленный результат", 201));
+            } else if (query.equals("быстро")) {
+                items = List.of(new ChoiceOption<>("fast", "Быстрый результат", 202));
+            } else if (cursor.isEmpty()) {
+                items = List.of(new ChoiceOption<>("main", "Основной склад", 203),
+                    new ChoiceOption<>("long",
+                        "ОченьДлиннаяПодписьСкладаБезПробеловДляПроверкиМобильногоПереноса", 204),
+                    new ChoiceOption<>("disabled", "Закрытый склад", 205, true));
+            } else {
+                items = java.util.stream.IntStream.rangeClosed(1, 20)
+                    .mapToObj(number -> new ChoiceOption<>("extra-" + number,
+                        "Резервный склад " + number, 300 + number)).toList();
+            }
+            final String next = cursor.isEmpty() && items.size() == 3 ? "more" : "";
+            result.complete(new ComboBox.Page<>(items, next));
+        });
+        return result;
     }
 
     /**

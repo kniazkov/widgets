@@ -5,7 +5,9 @@ package com.kniazkov.widgets.controller;
 
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.view.ComboBox;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.TypedChoice;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
 import com.kniazkov.widgets.view.HasTextInput;
@@ -72,6 +74,12 @@ final class EventValidation {
         if (event == Event.SELECT) {
             return widget instanceof HasSelectedIndex;
         }
+        if (event == Event.CHOOSE_KEYS) {
+            return widget instanceof TypedChoice<?>;
+        }
+        if (event == Event.CHOICE_SEARCH) {
+            return widget instanceof ComboBox<?>;
+        }
         if (event == Event.REORDER) {
             return widget instanceof SortableSection;
         }
@@ -106,6 +114,20 @@ final class EventValidation {
         if (event == Event.SELECT) {
             return fields(data, "index") && integer(data.get("index"), -1, Integer.MAX_VALUE)
                 && ((HasSelectedIndex) widget).acceptsSelectedIndex(data.get("index").intValue());
+        }
+        if (event == Event.CHOOSE_KEYS) {
+            return fields(data, "keys") && data.get("keys").toJsonArray()
+                .filter(array -> array.size() <= 512
+                    && array.stream().allMatch(value -> text(value, 128)))
+                .filter(array -> ((TypedChoice<?>) widget).acceptsKeys(Event.choiceKeys(data)))
+                .isPresent();
+        }
+        if (event == Event.CHOICE_SEARCH) {
+            return fields(data, "action", "text", "serial") && text(data.get("action"), 6)
+                && text(data.get("text"), 256) && integer(data.get("serial"), 1, Integer.MAX_VALUE)
+                && (data.get("action").stringValue().equals("query")
+                    || (Set.of("cancel", "more").contains(data.get("action").stringValue())
+                        && data.get("text").stringValue().isEmpty()));
         }
         if (event == Event.REORDER) {
             return fields(data, "revision", "child", "before")

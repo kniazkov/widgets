@@ -291,6 +291,9 @@ const widgetsLibrary = {
         return createInputField();
     },
     "suggestion field": createSuggestionField,
+    "typed select": () => createTypedSelect(false),
+    "typed multi select": () => createTypedSelect(true),
+    "typed combo box": createTypedComboBox,
     "password input": function () {
         const widget = createInputField();
         widget.type = "password";

@@ -32,7 +32,8 @@ export default defineConfig({
                 "cloud-verification.spec.js",
                 "keyboard-shortcuts.spec.js",
                 "forms.spec.js",
-                "adaptive-layout.spec.js"
+                "adaptive-layout.spec.js",
+                "typed-choices.spec.js"
             ],
             use: { browserName: "webkit" }
         }

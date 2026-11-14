@@ -18,6 +18,7 @@
         "widgets/layout.js",
         "widgets/inputs.js",
         "widgets/suggestions.js",
+        "widgets/choices.js",
         "widgets/sortable.js",
         "widgets/zoom.js",
         "widgets/markdown.js"

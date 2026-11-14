@@ -807,6 +807,34 @@
       ],
       "sha256": "e9563d0c8e276c4edab2178fdfba8a8764022a082ffaf569be111c2b7dc70b9d",
       "captureId": "r21-narrow"
+    },
+    "typed-choices-wide": {
+      "file": "typed-choices-wide.png",
+      "title": "Типизированный выбор",
+      "states": "Две одинаковые подписи с разными ключами, множественный, отключённый и неверный выбор.",
+      "sourceScreenshot": "typed-choices-wide.jpg",
+      "crop": [
+        44,
+        442,
+        847,
+        328
+      ],
+      "sha256": "4800c8a36e6c5c7ee9779a0815f3144f3b4c32fd8d2abb49c76a18420af3c870",
+      "captureId": "r22-wide"
+    },
+    "typed-choices-narrow": {
+      "file": "typed-choices-narrow.png",
+      "title": "ComboBox",
+      "states": "Открытый список, перенос длинной подписи, недоступная строка и следующая страница.",
+      "sourceScreenshot": "typed-choices-narrow.jpg",
+      "crop": [
+        45,
+        450,
+        317,
+        225
+      ],
+      "sha256": "0d53533dee0eabd3ec51f8a0cce2dd8a5a27d22facbd66b60d60659782f55dea",
+      "captureId": "r22-narrow"
     }
   },
   "widgets": {
@@ -977,6 +1005,16 @@
     "FormLayout": [
       "adaptive-form-wide",
       "adaptive-form-narrow"
+    ],
+    "ComboBox": [
+      "typed-choices-wide",
+      "typed-choices-narrow"
+    ],
+    "MultiSelect": [
+      "typed-choices-wide"
+    ],
+    "Select": [
+      "typed-choices-wide"
     ]
   },
   "modalLifecycleCapture": {
@@ -1139,6 +1177,36 @@
       "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
       "screenshots": {
         "adaptive-form-narrow.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r22-wide": {
+      "date": "2026-11-14",
+      "commit": "da9ff003f543c368e82d1bcf652b18a7c59b4f40",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "a6092a46b9f5e8efb2c11c0e408daf34f35b3ce46e1719f786977a2080a4ab1b",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "typed-choices-wide.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r22-narrow": {
+      "date": "2026-11-14",
+      "commit": "da9ff003f543c368e82d1bcf652b18a7c59b4f40",
+      "page": "Standalone AllWidgets / within fixed-width local preview",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "a6092a46b9f5e8efb2c11c0e408daf34f35b3ce46e1719f786977a2080a4ab1b",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "typed-choices-narrow.jpg": [
           1212,
           886
         ]

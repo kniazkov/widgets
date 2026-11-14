@@ -3,7 +3,11 @@
  */
 package com.kniazkov.widgets.controller;
 
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.TypedChoice;
+import java.util.List;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.ModalPopup;
@@ -211,6 +215,60 @@ public abstract class Event<T> {
             }
         }
     };
+
+    /**
+     * Stable selection keys for typed widgets. Typed values are only looked up server-side.
+     */
+    public static final Event<JsonObject> CHOOSE_KEYS = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "choose keys";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof TypedChoice<?> choice) {
+                choice.choose(choiceKeys(data));
+            }
+        }
+    };
+
+    /**
+     * Search, cancel or fetch the next page of one dated combo-box query.
+     */
+    public static final Event<JsonObject> CHOICE_SEARCH = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "choice search";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof ComboBox<?> combo) {
+                combo.search(data.get("action").stringValue(), data.get("text").stringValue(),
+                    data.get("serial").intValue());
+            }
+        }
+    };
+
+    /**
+     * @param data validated selection payload
+     * @return immutable key list
+     */
+    static List<String> choiceKeys(final JsonObject data) {
+        return data.get("keys").toJsonArray().orElseThrow().stream()
+            .map(JsonElement::stringValue).toList();
+    }
 
     /**
      * Versioned child move. Invalid requests must not invoke application controllers.
@@ -427,6 +485,8 @@ public abstract class Event<T> {
                 KEYBOARD,
                 CHECK,
                 SELECT,
+                CHOOSE_KEYS,
+                CHOICE_SEARCH,
                 REORDER,
                 DISMISS,
                 DISMISS_BY_ESCAPE,
