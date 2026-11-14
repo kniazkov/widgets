@@ -85,6 +85,27 @@ describe("widget subtree lifecycle", () => {
         expect(dom.window.document.body.childElementCount).toBe(0);
     });
 
+    it("extracts a replacement from the old subtree before pausing it", () => {
+        const h = harness();
+        h.createWidget({ widget: "section", type: "section" });
+        h.createWidget({ widget: "old", type: "no-wrap" });
+        h.createWidget({ widget: "input", type: "input field" });
+        h.appendChildWidget({ widget: "section", container: "root" });
+        h.setChildWidget({ widget: "old", container: "section" });
+        h.appendChildWidget({ widget: "input", container: "old" });
+        const input = h.widgets.input;
+        let pauses = 0;
+        input._onDetached = () => pauses++;
+        input.value = "unsent draft";
+        h.setChildWidget({ widget: "input", container: "section" });
+        h.removeChildWidget({ widget: "input", container: "old" });
+        h.disposeWidget({ widget: "old" });
+        expect(h.widgets.input).toBe(input);
+        expect(input.parentElement).toBe(h.widgets.section);
+        expect(input.value).toBe("unsent draft");
+        expect(pauses).toBe(0);
+    });
+
     it("pauses nested observers and releases retired picker and upload resources", () => {
         const h = harness();
         h.createWidget({ widget: "section", type: "section" });

@@ -8,6 +8,7 @@ import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a table cell widget capable of containing {@link BlockWidget}s.
@@ -66,6 +67,7 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
          * Construction attaches the initial children before this instance is published.
          */
         super(style);
+        this.validateChildren(children);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);
         }
@@ -92,16 +94,16 @@ public class Cell extends Widget<CellStyle> implements BlockContainer,
      * @param widget the child widget
      */
     private void appendChild(final BlockWidget<?> widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 

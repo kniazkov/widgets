@@ -14,7 +14,6 @@ import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.DisposeWidget;
-import com.kniazkov.widgets.protocol.RemoveChild;
 import com.kniazkov.widgets.protocol.SetClientEventAction;
 import com.kniazkov.widgets.protocol.SetProperty;
 import com.kniazkov.widgets.protocol.Subscribe;
@@ -22,11 +21,16 @@ import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.TreeMap;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Abstract base class for all UI widgets. A widget represents a single element in the view tree.
@@ -56,6 +60,16 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * The parent container that contains this widget.
      */
     private Container parent;
+
+    /**
+     * Identity of the first browser root to which this widget was exported.
+     */
+    private RMId ownerRootId;
+
+    /**
+     * Whether this widget is permanently retired.
+     */
+    private boolean retired;
 
     /**
      * Two-dimensional mapping: {@link State} → ({@link Property} → {@link Binding}).
@@ -291,7 +305,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      * is considered "detached" - it will no longer receive updates or events from the client.
      */
     public void remove() {
-        this.setParent(null);
+        if (this.parent != null) {
+            this.parent.remove(this);
+        }
     }
 
     /**
@@ -306,6 +322,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
         }
         final Optional<RootWidget> root = this.getRootWidget();
         this.remove();
+        this.visitSubtree(widget -> widget.retired = true);
         root.ifPresent(owner -> owner.pushUpdate(new DisposeWidget(this.id)));
     }
 
@@ -351,72 +368,126 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
     }
 
     /**
-     * Sets the parent container of this widget.
-     * <p>
-     * If the widget was previously attached to another container, a {@link RemoveChild}
-     * update is queued to notify the client about the removal of that relationship.
-     * Afterward, the parent reference is updated to the new container.
-     * </p>
+     * Validates a destination before it modifies a collection, replacement slot or update queue.
      *
-     * <b>Handling pending updates</b>
-     * <p>
-     * When a widget (or an entire subtree of widgets) has been detached from the hierarchy,
-     * it may still have accumulated updates — for example, content changes or style updates.
-     * Such updates are not sent to the client immediately because the widget is not part
-     * of the active UI tree at that time.
-     * </p>
-     *
-     * <p>
-     * However, when reattaching that widget later, all previously accumulated updates
-     * become <em>stale</em>: their {@link RMId} values are older than those already processed
-     * by the client. The client will reject them to preserve strict chronological consistency,
-     * which would lead to a desynchronized state.
-     * </p>
-     *
-     * <b>Solution</b>
-     * <p>
-     * To prevent this inconsistency, this method performs the following steps:
-     * </p>
-     * <ol>
-     *   <li>Collects all pending updates from this widget and all its descendants
-     *       (if it is a {@link Container}) using a depth-first traversal;</li>
-     *   <li>Clones each update using {@link Update#clone()} to assign
-     *       a fresh unique identifier;</li>
-     *   <li>Adds these newly cloned updates to the outgoing update queue.</li>
-     * </ol>
-     *
-     * <p>
-     * As a result, the client receives a valid, up-to-date sequence of updates:
-     * the widget (and its subtree) are created and displayed as if they had just
-     * been constructed on the server at the time of attachment.
-     * </p>
-     *
-     * @param container the new parent container (may be {@code null})
+     * @param destination destination container widget
      */
-    void setParent(final Container container) {
-        if (container == null) {
-            if (this.parent != null) {
-                final Container exParent = this.parent;
-                this.parent = null;
-                exParent.remove(this);
-            }
-            return;
+    final void validateAttachment(final Widget<?> destination) {
+        if (this instanceof RootWidget || this.parent == destination) {
+            throw new IllegalArgumentException("A root or duplicate child cannot be attached");
         }
-        Set<Update> pending = new TreeSet<>();
-        if (this instanceof Container) {
-            for (final Widget<?> child : (Container) this) {
-                child.getUpdates(pending);
+        for (Widget<?> ancestor = destination; ancestor != null;
+                ancestor = ancestor.parent instanceof Widget<?> node ? node : null) {
+            if (ancestor == this) {
+                throw new IllegalArgumentException("A widget cannot contain itself or an ancestor");
+            }
+            if (ancestor.retired) {
+                throw new IllegalArgumentException("The destination has been disposed");
+            }
+        }
+        this.validateSubtreeOwner(destination.attachmentRootId());
+    }
+
+    /**
+     * Returns the actual or previously acquired root identity for accepting children.
+     *
+     * @return root identity, or null for an unused container
+     */
+    private RMId attachmentRootId() {
+        return this.getRootWidget().map(RootWidget::getId).orElse(this.ownerRootId);
+    }
+
+    /**
+     * Before batch construction, validates all arguments without changing their current parents.
+     *
+     * @param children children in constructor order
+     */
+    final void validateChildren(final Widget<?>[] children) {
+        final Set<RMId> seen = new HashSet<>();
+        for (final Widget<?> child : children) {
+            Objects.requireNonNull(child, "widget").validateAttachment(this);
+            if (!seen.add(child.getId())) {
+                throw new IllegalArgumentException("Duplicate child in constructor");
+            }
+        }
+    }
+
+    /**
+     * Checks that this subtree is available for the specified browser runtime.
+     *
+     * @param rootId required root identity, or null if not yet known
+     */
+    private void validateSubtreeOwner(final RMId rootId) {
+        this.visitSubtree(widget -> {
+            if (widget.retired || rootId != null
+                    && widget.ownerRootId != null && !rootId.equals(widget.ownerRootId)) {
+                throw new IllegalArgumentException("A disposed or foreign-root widget cannot move");
+            }
+        });
+    }
+
+    /**
+     * Adds the destination update before the former owner removes the child. A same-root
+     * browser first moves the existing element and then ignores removal from its old host.
+     * A detached subtree's buffered updates are refreshed before attachment.
+     *
+     * @param destination destination container widget
+     * @param attachment destination attachment update factory
+     * @param <C> structural destination widget type
+     */
+    final <C extends Widget<?> & Container> void attachTo(final C destination,
+            final Supplier<Update> attachment) {
+        final Container previous = this.parent;
+        final Optional<RootWidget> oldRoot = this.getRootWidget();
+        if (oldRoot.isEmpty() || !oldRoot.equals(destination.getRootWidget())) {
+            final Map<Update, Widget<?>> pending = new TreeMap<>();
+            this.visitSubtree(widget -> {
+                final Set<Update> updates = new TreeSet<>();
+                widget.getUpdates(updates);
+                updates.forEach(update -> pending.put(update, widget));
+            });
+            pending.forEach((update, widget) -> widget.pushUpdate(update.clone()));
+        }
+        destination.pushUpdate(attachment.get());
+        if (previous != null) {
+            previous.remove(this);
+        }
+        this.parent = destination;
+    }
+
+    /**
+     * Records the runtime to which the first widget creation is published.
+     *
+     * @param owner browser root identity
+     */
+    final void markExported(final RMId owner) {
+        this.ownerRootId = owner;
+    }
+
+    /**
+     * Clears the backlink after the current owner has removed the child from its storage.
+     *
+     * @param owner container doing the removal
+     */
+    final void detachFrom(final Container owner) {
+        if (this.parent == owner) {
+            this.parent = null;
+        }
+    }
+
+    /**
+     * Visits this widget and its structural descendants exactly once.
+     *
+     * @param visitor operation to apply
+     */
+    private void visitSubtree(final Consumer<Widget<?>> visitor) {
+        if (this instanceof Container container) {
+            for (final Widget<?> widget : container) {
+                visitor.accept(widget);
             }
         } else {
-            this.getUpdates(pending);
+            visitor.accept(this);
         }
-        if (this.parent != null) {
-            this.pushUpdate(new RemoveChild(this.id, this.parent.getId()));
-        }
-        for (Update update : pending) {
-            this.pushUpdate(update.clone());
-        }
-        this.parent = container;
     }
 
     /**

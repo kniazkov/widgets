@@ -10,6 +10,7 @@ import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Inline container that places all of its children into the same visual area.
@@ -73,6 +74,7 @@ public final class OverlayStack extends InlineWidget<InlineBlockStyle>
         final Widget<?>... children
     ) {
         super(style);
+        this.validateChildren(children);
         for (final Widget<?> child : children) {
             this.appendChild(child);
         }
@@ -138,16 +140,16 @@ public final class OverlayStack extends InlineWidget<InlineBlockStyle>
      * @param widget new top layer
      */
     private void appendChild(final Widget<?> widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        this.pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 
