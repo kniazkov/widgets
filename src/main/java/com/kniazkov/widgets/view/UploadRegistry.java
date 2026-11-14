@@ -18,6 +18,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 import java.util.logging.Level;
@@ -100,8 +101,9 @@ public final class UploadRegistry implements AutoCloseable {
     UploadRegistry(final Options options, final LongSupplier clock) {
         this.options = options;
         this.clock = clock;
-        this.callbacks = new ThreadPoolExecutor(4, 4, 30, TimeUnit.SECONDS,
-            new ArrayBlockingQueue<>(options.getUploadLimits().filesPerApplication()), task -> {
+        this.callbacks = new ThreadPoolExecutor(options.getUploadWorkers(),
+            options.getUploadWorkers(), 30, TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(options.getUploadQueueCapacity()), task -> {
                 final Thread thread = new Thread(task, "widgets-upload-handler");
                 thread.setDaemon(true);
                 return thread;
@@ -148,23 +150,38 @@ public final class UploadRegistry implements AutoCloseable {
             }
             file = this.files.get(key);
         }
-        if (file == null || !file.handleUploadChunk(index, data)) {
+        if (file == null) {
             return UploadProtocol.rejected();
         }
-        return acknowledgement(file.getNextMissingChunk(), file.isComplete());
+        synchronized (file) {
+            if (!file.handleUploadChunk(index, data)) {
+                return file.isProcessingBusy() ? UploadProtocol.processingBusy()
+                    : UploadProtocol.rejected();
+            }
+            return acknowledgement(file.getNextMissingChunk(), file.isComplete());
+        }
     }
 
     /**
      * Stores only the completing chunk's hash and schedules exactly one bounded callback.
      */
-    synchronized void completed(final UploadingFile file, final int index, final byte[] data) {
+    synchronized boolean completed(final UploadingFile file, final int index,
+            final byte[] data) {
+        if (this.closed || file.owner().areUploadsClosed()) {
+            return false;
+        }
+        try {
+            file.setTask(this.callbacks.submit(file::deliver));
+        } catch (final RejectedExecutionException busy) {
+            return false;
+        }
         final Key key = new Key(file.owner(), file.loader(), file.id());
         this.receipts.put(key, new Receipt(index, data.length, UploadingFile.digest(data),
             file.getNextMissingChunk(), this.clock.getAsLong()));
         while (this.receipts.size() > this.options.getUploadLimits().receipts()) {
             this.receipts.remove(this.receipts.keySet().iterator().next());
         }
-        file.setTask(this.callbacks.submit(file::deliver));
+        return true;
     }
 
     /**

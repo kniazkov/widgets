@@ -75,16 +75,22 @@ public class LoadFiles {
                 section.add(percent);
                 section.add(new TextWidget("%"));
                 descriptor.onLoad(file -> {
-                    section.add(new TextWidget(", size: "));
-                    final TextWidget size = new TextWidget(String.valueOf(file.getSize()));
-                    size.setFontWeight(FontWeight.BOLD);
-                    section.add(size);
-                    loading.setText("Loaded");
-                    percent.setColor(Color.BLUE);
                     try {
                         file.copyTo(Paths.get(file.getName()));
-                    } catch (IOException ignored) {
+                    } catch (final IOException ignored) {
+                        /*
+                         * This example still reports successful upload if local copying fails.
+                         */
                     }
+                    final String sizeText = String.valueOf(file.getSize());
+                    descriptor.executeOnRoot(() -> {
+                        section.add(new TextWidget(", size: "));
+                        final TextWidget size = new TextWidget(sizeText);
+                        size.setFontWeight(FontWeight.BOLD);
+                        section.add(size);
+                        loading.setText("Loaded");
+                        percent.setColor(Color.BLUE);
+                    });
                 });
             });
         };

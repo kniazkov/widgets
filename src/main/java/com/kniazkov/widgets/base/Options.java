@@ -122,6 +122,16 @@ public final class Options {
     private final com.kniazkov.widgets.common.UploadLimits uploadLimits;
 
     /**
+     * Maximum number of concurrent file processing callbacks.
+     */
+    private final int uploadWorkers;
+
+    /**
+     * Maximum queued callbacks before upload backpressure.
+     */
+    private final int uploadQueueCapacity;
+
+    /**
      * Whether browser and server debug logging is enabled.
      */
     private final boolean debug;
@@ -157,6 +167,10 @@ public final class Options {
         this.chunkSize = builder.chunkSize;
         this.maxFileSize = builder.maxFileSize;
         this.uploadLimits = builder.uploadLimits;
+        this.uploadWorkers = builder.uploadWorkers;
+        this.uploadQueueCapacity = builder.uploadQueueCapacity == 0
+            ? Math.min(1024, builder.uploadLimits.filesPerApplication())
+            : builder.uploadQueueCapacity;
         this.debug = builder.debug;
         this.webFonts = List.copyOf(builder.webFonts);
         this.staticSources = List.copyOf(builder.staticSources);
@@ -250,6 +264,20 @@ public final class Options {
         return this.uploadLimits;
     }
 
+
+    /**
+     * @return maximum concurrently executing upload callbacks
+     */
+    public int getUploadWorkers() {
+        return this.uploadWorkers;
+    }
+
+    /**
+     * @return maximum pending upload callbacks
+     */
+    public int getUploadQueueCapacity() {
+        return this.uploadQueueCapacity;
+    }
 
     /**
      * Returns whether browser and server debug logging is enabled.
@@ -402,6 +430,32 @@ public final class Options {
          */
         private com.kniazkov.widgets.common.UploadLimits uploadLimits =
             com.kniazkov.widgets.common.UploadLimits.defaults();
+
+        /**
+         * Concurrent processing callbacks per application.
+         */
+        private int uploadWorkers = 4;
+
+        /**
+         * Explicit queue cap, or zero to retain the existing upload reservation cap.
+         */
+        private int uploadQueueCapacity;
+
+        /**
+         * Sets bounded background file processing capacity independently of upload reservations.
+         *
+         * @param workers concurrent callbacks, 1 to 32
+         * @param queued queued callbacks, 1 to 1024
+         * @return this builder
+         */
+        public Builder setUploadProcessing(final int workers, final int queued) {
+            if (workers < 1 || workers > 32 || queued < 1 || queued > 1024) {
+                throw new IllegalArgumentException("Invalid upload processing capacity");
+            }
+            this.uploadWorkers = workers;
+            this.uploadQueueCapacity = queued;
+            return this;
+        }
 
         /**
          * Whether browser and server debug logging is enabled.

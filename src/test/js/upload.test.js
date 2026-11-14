@@ -177,3 +177,14 @@ it("distinguishes a permanent chunk-size rejection from the next valid upload", 
     expect(harness.requests[1].query.fileId).toBe(2);
     expect(harness.requests[1].query.chunkIndex).toBe(0);
 });
+
+it("does not retry a full processing queue and opens the next file", () => {
+    const harness = createHarness();
+    dom.window.loadFiles(harness.widget, [file("busy.bin", 3), file("remaining.bin", 3)]);
+    harness.requests[0].callback(JSON.stringify({ result: false, uploadError: "processingBusy" }));
+    expect(dom.window.document.querySelector(".widgets-upload-error").textContent).toContain(
+        "File processing is busy"
+    );
+    expect(harness.requests).toHaveLength(2);
+    expect(harness.requests[1].query.fileId).toBe(2);
+});

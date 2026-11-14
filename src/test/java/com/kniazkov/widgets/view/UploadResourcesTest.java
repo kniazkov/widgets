@@ -6,6 +6,7 @@ package com.kniazkov.widgets.view;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.common.UploadLimits;
 import com.kniazkov.widgets.common.UploadedFile;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.controller.UploadEvent;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -364,6 +365,104 @@ public final class UploadResourcesTest {
         } finally {
             root.closeUploads();
             release.countDown();
+        }
+    }
+
+    /**
+     * A full processing queue rejects further final chunks and discards their storage.
+     */
+    @Test
+    public void configuredQueueAppliesBackpressureAcrossManyFiles() throws Exception {
+        final Options options = new Options.Builder().setChunkSize(4).setUploadProcessing(1, 1)
+            .setUploadLimits(this.options(16, 16, 100, 16).getUploadLimits()).build();
+        final RootWidget root = new RootWidget(options);
+        final var registry = root.getUploadRegistry();
+        final FileLoader loader = new FileLoader();
+        root.add(new Section(loader));
+        final CountDownLatch entered = new CountDownLatch(1);
+        final CountDownLatch release = new CountDownLatch(1);
+        final AtomicInteger active = new AtomicInteger();
+        final AtomicInteger peak = new AtomicInteger();
+        final AtomicInteger calls = new AtomicInteger();
+        loader.onSelect(descriptor -> descriptor.onLoad(file -> {
+            calls.incrementAndGet();
+            peak.accumulateAndGet(active.incrementAndGet(), Math::max);
+            entered.countDown();
+            try {
+                release.await(5, TimeUnit.SECONDS);
+            } catch (final InterruptedException expected) {
+                Thread.currentThread().interrupt();
+            } finally {
+                active.decrementAndGet();
+            }
+        }));
+        try {
+            loader.handleUploadEvent(event(1, 4, 1));
+            assertTrue(loader.handleUploadChunk(1, 0, new byte[4]).get("result").booleanValue());
+            assertTrue(entered.await(5, TimeUnit.SECONDS));
+
+            loader.handleUploadEvent(event(2, 4, 1));
+            assertTrue(loader.handleUploadChunk(2, 0, new byte[4]).get("result").booleanValue());
+            for (int id = 3; id <= 12; id++) {
+                loader.handleUploadEvent(event(id, 4, 1));
+                final var busy = loader.handleUploadChunk(id, 0, new byte[4]);
+                assertFalse(busy.get("result").booleanValue());
+                assertEquals("processingBusy", busy.get("uploadError").stringValue());
+            }
+            assertEquals(1, calls.get());
+            assertEquals(2, registry.getActiveCount());
+            assertEquals(2, this.files());
+            release.countDown();
+            await(() -> registry.getActiveCount() == 0);
+            assertEquals(2, calls.get());
+            assertEquals(1, peak.get());
+            assertEquals(0, this.files());
+        } finally {
+            release.countDown();
+            root.closePage();
+            registry.close();
+        }
+    }
+
+    /**
+     * Processing results enter the root after progress and cannot update a closed page.
+     */
+    @Test
+    public void resultHandoffIsSerializedWithProgressAndClose() throws Exception {
+        final RootWidget root = new RootWidget(this.options(2, 4, 100, 4));
+        final FileLoader loader = new FileLoader();
+        root.add(new Section(loader));
+        final var log = new ArrayList<String>();
+        final CountDownLatch result = new CountDownLatch(1);
+        final var selected = new AtomicReference<UploadingFile>();
+        final Listener<Integer> progress = count -> log.add("progress " + count);
+        loader.onSelect(descriptor -> {
+            selected.set(descriptor);
+            descriptor.getLoadingPercentageModel().addListener(progress);
+            descriptor.onLoad(file -> {
+                descriptor.executeOnRoot(() -> {
+                    assertTrue(Thread.holdsLock(root));
+                    log.add("result");
+                });
+                result.countDown();
+            });
+        });
+        try {
+            assertTrue(root.execute(() -> {
+                loader.handleUploadEvent(event(1, 8, 2));
+                loader.handleUploadChunk(1, 0, new byte[4]);
+                loader.handleUploadChunk(1, 1, new byte[4]);
+                assertEquals(List.of("progress 50", "progress 100"), log);
+            }));
+            assertTrue(result.await(5, TimeUnit.SECONDS));
+            assertEquals(List.of("progress 50", "progress 100", "result"), log);
+            root.closePage();
+            assertFalse(root.execute(() -> log.add("late root")));
+            assertFalse(selected.get().executeOnRoot(() -> log.add("late file")));
+        } finally {
+            root.closePage();
+            root.getUploadRegistry().close();
+            java.lang.ref.Reference.reachabilityFence(progress);
         }
     }
 

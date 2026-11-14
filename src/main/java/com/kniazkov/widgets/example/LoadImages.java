@@ -11,6 +11,7 @@ import com.kniazkov.widgets.common.BorderStyle;
 import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.common.Color;
 import com.kniazkov.widgets.images.CircleProgressBarCreator;
+import com.kniazkov.widgets.images.ImageDecodeLimits;
 import com.kniazkov.widgets.images.ImageLoader;
 import com.kniazkov.widgets.images.ImageProcessor;
 import com.kniazkov.widgets.images.ImageSource;
@@ -19,10 +20,6 @@ import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.Section;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A demonstration program that allows uploading and displaying multiple images.
@@ -53,8 +50,7 @@ public class LoadImages {
      * @param args program arguments
      */
     public static void main(String[] args) {
-        final Set<Listener<Integer>> listeners = ConcurrentHashMap.newKeySet();
-        final ExecutorService imageProcessors = Executors.newFixedThreadPool(3);
+        final ImageDecodeLimits limits = ImageDecodeLimits.defaults();
         final Page page = (root, parameters) -> {
             final Section main = new Section();
             root.add(main);
@@ -84,31 +80,30 @@ public class LoadImages {
                 widget.setMargin(5);
                 final Listener<Integer> listener =
                     percent -> widget.setSource(progress.getImageSource(percent));
-                listeners.add(listener);
                 descriptor.getLoadingPercentageModel().addListener(listener);
                 descriptor.onLoad(file -> {
-                    widget.setSource(progress.getWaitingImageSource());
-                    final byte[] content = file.getContent();
-                    final String contentType = file.getType();
-                    imageProcessors.execute(() -> {
-                        try {
-                            final BufferedImage original = ImageLoader.load(
-                                contentType,
-                                content
-                            );
-                            final BufferedImage cropped = ImageProcessor.cropToSquare(original);
-                            final BufferedImage resized = ImageProcessor.resizeToFit(
-                                cropped,
-                                300
-                            );
-                            widget.setSource(ImageSource.fromImage(resized));
-                            widget.setBorderStyle(BorderStyle.SOLID);
-                        } catch (final IOException ignored) {
-                            images.remove(widget);
-                        } finally {
-                            listeners.remove(listener);
+                    if (!descriptor.executeOnRoot(() -> {
+                        descriptor.getLoadingPercentageModel().removeListener(listener);
+                        widget.setSource(progress.getWaitingImageSource());
+                    })) {
+                        return;
+                    }
+                    try {
+                        if (file.getSize() > limits.maxEncodedBytes()) {
+                            throw new IOException("Encoded image exceeds size limit");
                         }
-                    });
+                        final BufferedImage original = ImageLoader.load(
+                            file.getType(), file.getContent(), limits);
+                        final BufferedImage cropped = ImageProcessor.cropToSquare(original);
+                        final BufferedImage resized = ImageProcessor.resizeToFit(cropped, 300);
+                        final ImageSource source = ImageSource.fromImage(resized);
+                        descriptor.executeOnRoot(() -> {
+                            widget.setSource(source);
+                            widget.setBorderStyle(BorderStyle.SOLID);
+                        });
+                    } catch (final IOException ex) {
+                        descriptor.executeOnRoot(() -> widget.dispose());
+                    }
                 });
             });
         };
