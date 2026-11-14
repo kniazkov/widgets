@@ -24,15 +24,16 @@ function createHarness() {
         window.__processedUpdates = [];
         let clientId = "#1";
         let clientDisposed = false;
-        let lastProcessedUpdateId = 0;
+        let lastAppliedUpdateSequence = 0;
         function createEvent(widget, type, data) {
             window.__uploadEvents.push({ widget, type, data });
         }
-        function processUpdates(updates) {
+        function processUpdates({ updates }) {
             if (updates && updates.length) {
                 window.__processedUpdates.push(...updates);
-                lastProcessedUpdateId = Number(updates[updates.length - 1].id.slice(1));
+                lastAppliedUpdateSequence = Number(updates[updates.length - 1].id.slice(1));
             }
+            return true;
         }
         function sendSynchronizeRequest(callback) {
             callback(true);

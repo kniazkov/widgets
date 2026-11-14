@@ -6,7 +6,10 @@
 const events = [];
 let lastEventId = 0;
 let lastAcknowledgedEventId = 0;
-let lastProcessedUpdateId = 0;
+let lastAppliedUpdateSequence = 0;
+const updateStreamVersion = "2";
+const updateStreamCapability = "sequenced-updates";
+const updateOutcome = Object.freeze({ applied: "applied", noop: "noop", failure: "failure" });
 
 // IDs travel over the wire as "#<number>" strings.
 function parseId(str) {
@@ -34,39 +37,94 @@ function createEvent(widget, type, data) {
     events.push(obj);
 }
 
-// Dispatches updates in server order and tracks the last ID acknowledged by the browser.
-function processUpdates(updates, modalActivation = null) {
-    if (!updates || updates.length == 0) {
-        return;
-    }
-    if (updates.length == 1) {
-        log("Received 1 update.");
-    } else {
-        log("Received " + updates.length + " updates.");
-    }
-    for (let i = 0; i < updates.length && !clientDisposed; i++) {
-        let result = false;
-        const update = updates[i];
-        const id = parseId(update.id);
-        if (id <= lastProcessedUpdateId) {
-            log("Update " + update.id + " skipped.");
-            continue;
-        }
-        const handler = actionHandlers[update.action];
-        if (handler) {
-            result = handler(update);
-            if (!result) {
-                log("Update " + update.id + " was not processed due to incorrect data.");
+// A rejected batch stops the runtime. Only a fresh channel can supply a new snapshot.
+function processUpdates(receipt, modalActivation = null) {
+    if (clientDisposed || clientFailed) return false;
+    try {
+        validateUpdateEnvelope(receipt);
+        for (const update of receipt.updates) {
+            if (clientDisposed) break;
+            if (update.sequence <= lastAppliedUpdateSequence) continue;
+            const outcome = applyUpdate(update);
+            if (outcome === updateOutcome.failure) {
+                throw new Error("Unapplied widget update at sequence " + update.sequence);
             }
-        } else {
-            log("Unknown action: '" + update.action + "'.");
+            lastAppliedUpdateSequence = update.sequence;
         }
-        lastProcessedUpdateId = id;
+        if (!clientDisposed) {
+            trimDetachedWidgets();
+            refreshModalStack(modalActivation);
+        }
+        return !clientDisposed;
+    } catch (error) {
+        showUpdateProtocolError(error);
+        return false;
     }
-    if (!clientDisposed) {
-        trimDetachedWidgets();
-        refreshModalStack(modalActivation);
+}
+
+// Validate the entire range before any DOM mutation. Delayed replies may replay older prefixes.
+function validateUpdateEnvelope(receipt) {
+    if (!updateEpoch || receipt.updateEpoch !== updateEpoch) {
+        throw new Error("Unexpected widget update epoch");
     }
+    const { updateBase, updateThrough, snapshot, updates } = receipt;
+    if (
+        !Number.isSafeInteger(updateBase) ||
+        updateBase < 0 ||
+        updateBase > lastAppliedUpdateSequence ||
+        !Number.isSafeInteger(updateThrough) ||
+        updateThrough < updateBase ||
+        snapshot !== (updateBase === 0) ||
+        !Array.isArray(updates) ||
+        updates.length !== updateThrough - updateBase
+    ) {
+        throw new Error("Invalid widget update checkpoint");
+    }
+    let expected = updateBase;
+    for (const update of updates) {
+        if (
+            !update ||
+            !Number.isSafeInteger(update.sequence) ||
+            update.sequence !== ++expected ||
+            typeof update.action !== "string"
+        ) {
+            throw new Error("Missing or reordered widget update");
+        }
+    }
+}
+
+// Existing widget handlers return boolean; wire dispatch distinguishes intentional no-ops.
+function applyUpdate(update) {
+    if (!Object.hasOwn(actionHandlers, update.action)) return updateOutcome.failure;
+    if (
+        (update.action === "go to page" || update.action === "open page in new tab") &&
+        typeof update.href !== "string"
+    )
+        return updateOutcome.failure;
+    const widget = widgets[update.widget];
+    if (update.action === "create widget" && widget) {
+        return widget._widgetType === update.type ? updateOutcome.noop : updateOutcome.failure;
+    }
+    if (update.action === "dispose widget") {
+        if (!validUpdateWidgetId(update.widget)) return updateOutcome.failure;
+        if (!widget) return updateOutcome.noop;
+    }
+    if (update.action === "remove child") {
+        if (!validUpdateWidgetId(update.widget) || !validUpdateWidgetId(update.container)) {
+            return updateOutcome.failure;
+        }
+        const former = widgets[update.container];
+        if (!widget || !former || widget.parentNode !== (former._childHost || former)) {
+            return updateOutcome.noop;
+        }
+    }
+    return actionHandlers[update.action](update) === true
+        ? updateOutcome.applied
+        : updateOutcome.failure;
+}
+
+function validUpdateWidgetId(id) {
+    return typeof id === "string" && /^#[1-9][0-9]*$/.test(id);
 }
 
 // Drops every queued event through the last ID acknowledged by the server.
@@ -202,7 +260,7 @@ const ALWAYS_ALLOWED_EVENTS = [
 ];
 
 function sendEventToServer(widget, type, data) {
-    if (clientDisposed) {
+    if (clientDisposed || clientFailed) {
         return;
     }
     const clientAction = widget._clientActions[type];

@@ -5,10 +5,12 @@
 function subscribeToEvent(data) {
     const widget = widgets[data.widget];
     const event = data.event;
-    if (widget && event) {
+    if (widget && typeof event === "string" && event.length > 0) {
         log("Server subscribed to the '" + event + "' event of widget " + widget._id + ".");
         widget._events[event] = true;
+        return true;
     }
+    return false;
 }
 
 function setClientEventAction(data) {

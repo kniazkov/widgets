@@ -57,6 +57,11 @@ final class CreateClient extends ActionHandler {
             return invalidRequest();
         }
 
+        if (this.access != null && (!UpdateStream.VERSION.equals(data.get("updateVersion"))
+                || !UpdateStream.CAPABILITY.equals(data.get("updateCapability")))) {
+            return UpdateStream.mismatch();
+        }
+
         /*
          * Prepare a collection of parameters that are passed through the address line
          */
@@ -69,6 +74,9 @@ final class CreateClient extends ActionHandler {
         parameters.remove("channelToken");
         parameters.remove("serverId");
         parameters.remove("csrfToken");
+        parameters.remove("updateVersion");
+        parameters.remove("updateCapability");
+        parameters.remove("updateEpoch");
 
         /*
          * Prepare a container for request-specific settings passed to a page
@@ -108,6 +116,10 @@ final class CreateClient extends ActionHandler {
             com.kniazkov.widgets.common.RMId.parse(id)));
         obj.addString("tabId", context.tabContext.getId().toString());
         obj.addString("serverId", this.application.getServerId().toString());
+        obj.addString("updateVersion", UpdateStream.VERSION);
+        obj.addString("updateCapability", UpdateStream.CAPABILITY);
+        obj.addString("updateEpoch", this.application.updateEpoch(
+            com.kniazkov.widgets.common.RMId.parse(id)));
 
         /*
          * Log creation for debugging or monitoring

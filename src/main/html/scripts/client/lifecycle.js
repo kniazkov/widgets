@@ -8,6 +8,7 @@ const tabContext = pageContext?.tab || { id: null };
 let clientDisposed = false;
 let clientId = null;
 let serverId = null;
+let updateEpoch = null;
 let channelToken = null;
 let browserId = null;
 const period = 2500;
@@ -47,7 +48,7 @@ function sendClientRequest(query, callback, method, files, channel) {
         callback,
         method,
         files,
-        channel || { token: channelToken, epoch: serverId }
+        channel || { token: channelToken, epoch: serverId, updateEpoch }
     );
 }
 
@@ -104,6 +105,8 @@ function startClient(address, data) {
     request.address = address;
     request.browserId = browserId;
     request.mobile = isMobileDevice();
+    request.updateVersion = updateStreamVersion;
+    request.updateCapability = updateStreamCapability;
     // Query parameters must never select a context, including during retries.
     delete request.tabId;
     if (tabContext.id) {
@@ -154,9 +157,13 @@ function startClient(address, data) {
             if (
                 typeof json.id !== "string" ||
                 typeof json.serverId !== "string" ||
-                typeof json.channelToken !== "string"
+                typeof json.channelToken !== "string" ||
+                json.updateVersion !== updateStreamVersion ||
+                json.updateCapability !== updateStreamCapability ||
+                typeof json.updateEpoch !== "string" ||
+                json.updateEpoch.length === 0
             ) {
-                showClientError(undefined, "protocol");
+                showUpdateProtocolError();
                 return;
             }
             if (typeof json.tabId === "string") {
@@ -177,6 +184,8 @@ function startClient(address, data) {
             clientId = json.id;
             serverId = json.serverId;
             channelToken = json.channelToken;
+            updateEpoch = json.updateEpoch;
+            lastAppliedUpdateSequence = 0;
             log("Client created, id: " + clientId + ".");
             mainCycleTask = setInterval(mainCycle, period);
             mainCycle();

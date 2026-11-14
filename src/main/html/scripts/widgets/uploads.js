@@ -224,7 +224,7 @@ function sendNextUploadChunk() {
             widget: file.widget._id,
             fileId: file.id,
             chunkIndex: file.nextChunk,
-            lastUpdate: "#" + lastProcessedUpdateId
+            lastUpdate: "#" + lastAppliedUpdateSequence
         },
         function (data) {
             if (
@@ -250,8 +250,8 @@ function sendNextUploadChunk() {
                 return;
             }
             uploadNetworkFailures = 0;
+            if (receipt.result === true && !processUpdates(receipt)) return;
             recordRequestSuccess();
-            processUpdates(receipt.updates);
             if (file.source === null) {
                 sendNextUploadChunk();
                 return;

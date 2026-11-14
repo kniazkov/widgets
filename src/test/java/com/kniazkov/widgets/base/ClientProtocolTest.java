@@ -131,8 +131,8 @@ public class ClientProtocolTest {
         final JsonObject first = new JsonObject();
         client.synchronize(Collections.emptyMap(), first);
         final JsonArray updates = first.get("updates").arrayValueOrThrow();
-        final String lastUpdate = updates.get(updates.size() - 1)
-            .objectValueOrThrow().get("id").stringValue();
+        final String lastUpdate = "#" + updates.get(updates.size() - 1)
+            .objectValueOrThrow().get("sequence");
         final JsonObject second = new JsonObject();
 
         client.synchronize(Collections.singletonMap("lastUpdate", lastUpdate), second);
@@ -167,11 +167,10 @@ public class ClientProtocolTest {
         final JsonObject initial = new JsonObject();
         client.synchronize(Collections.emptyMap(), initial);
         final JsonArray initialUpdates = initial.get("updates").arrayValueOrThrow();
-        final String initialLastUpdate = initialUpdates
+        final String initialLastUpdate = "#" + initialUpdates
             .get(initialUpdates.size() - 1)
             .objectValueOrThrow()
-            .get("id")
-            .stringValue();
+            .get("sequence");
 
         final JsonObject first = client.uploadChunk(
             loader.getId(),
@@ -185,11 +184,10 @@ public class ClientProtocolTest {
         assertFalse(first.get("updates").arrayValueOrThrow().isEmpty());
         assertTrue(first.toString().contains("50%"));
         final JsonArray firstUpdates = first.get("updates").arrayValueOrThrow();
-        final String firstLastUpdate = firstUpdates
+        final String firstLastUpdate = "#" + firstUpdates
             .get(firstUpdates.size() - 1)
             .objectValueOrThrow()
-            .get("id")
-            .stringValue();
+            .get("sequence");
 
         final JsonObject second = client.uploadChunk(
             loader.getId(),

@@ -42,26 +42,44 @@ function harness(head = "") {
         );
         expect(item, `pending ${action} for ${client}`).toBeTruthy();
         item.answered = true;
-        item.callback(JSON.stringify(body));
+        item.callback(JSON.stringify(typeof body === "function" ? body(item.request) : body));
         return item.request;
     }
     function updates(client, values = [], extra = {}) {
         answer(
             "synchronize",
-            {
-                serverId: "server",
-                channelToken: "test-channel",
-                clientAlive: true,
-                result: true,
-                lastEvent: "#0",
-                updates: values,
-                ...extra
+            request => {
+                const base = Number(request.lastUpdate.slice(1));
+                return {
+                    serverId: "server",
+                    channelToken: "test-channel",
+                    clientAlive: true,
+                    result: true,
+                    lastEvent: "#0",
+                    updateEpoch: "stream-" + client,
+                    updateBase: base,
+                    updateThrough: base + values.length,
+                    snapshot: base === 0,
+                    updates: values.map((update, index) => ({
+                        ...update,
+                        sequence: base + index + 1
+                    })),
+                    ...extra
+                };
             },
             client
         );
     }
     function created(id, text = id, tabId) {
-        answer("new instance", { id, serverId: "server", channelToken: "test-channel", tabId });
+        answer("new instance", {
+            id,
+            serverId: "server",
+            channelToken: "test-channel",
+            tabId,
+            updateVersion: "2",
+            updateCapability: "sequenced-updates",
+            updateEpoch: "stream-" + id
+        });
         updates(id, [
             { id: "#1", action: "create widget", type: "root", widget: "#1" },
             { id: "#2", action: "create widget", type: "text", widget: "#2" },

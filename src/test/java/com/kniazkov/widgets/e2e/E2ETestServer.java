@@ -248,6 +248,7 @@ public final class E2ETestServer {
         };
         application.addPage("widget-lifecycle", WidgetLifecyclePage.create());
         application.addPage("widget-reparenting", WidgetReparentingPage.create());
+        application.addPage("update-stream", UpdateStreamPage.create());
         application.addPage("countdown",
             com.kniazkov.widgets.example.CountdownExample.createPage("/countdown-next"));
         application.addPage("countdown-next",

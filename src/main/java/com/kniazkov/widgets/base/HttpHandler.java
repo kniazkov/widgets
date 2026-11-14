@@ -147,6 +147,11 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     .setHeader("Cache-Control", "no-store").build();
             }
             final ChannelAccess access = this.authorize(request);
+            parameters.remove("updateEpoch");
+            final String updateEpoch = ProtocolSecurity.header(request, "X-Widgets-Update-Epoch");
+            if (updateEpoch != null) {
+                parameters.put("updateEpoch", updateEpoch);
+            }
             final JsonElement result;
             try {
                 switch (action) {
@@ -444,6 +449,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 chunkIndex,
                 chunk.readAllBytes(),
                 parameters.get("lastUpdate"),
+                parameters.get("updateEpoch"),
                 access
             );
         } catch (final NumberFormatException | NullPointerException ignored) {

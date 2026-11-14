@@ -92,7 +92,7 @@ function sendSynchronizeRequest(callback) {
             action: "synchronize",
             client: clientId,
             events: sentEvents,
-            lastUpdate: "#" + lastProcessedUpdateId
+            lastUpdate: "#" + lastAppliedUpdateSequence
         },
         function (data) {
             if (clientDisposed || synchronizationStopped) {
@@ -146,7 +146,7 @@ function sendSynchronizeRequest(callback) {
                 const activation = sentEvents
                     .slice(0, removed)
                     .findLast(event => event.type === "click");
-                processUpdates(json.updates, widgets[activation?.widget]);
+                if (!processUpdates(json, widgets[activation?.widget])) return;
                 reconcileTextInputs();
                 recordRequestSuccess();
                 if (pageContext) {

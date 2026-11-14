@@ -83,3 +83,12 @@ revocation, application authorization responsibilities and tests.
 
 For transient HTTP errors, session refresh, and event ACK behavior, see the
 [connection recovery contract](CONNECTION_RECOVERY.ru.md).
+
+### Sequenced browser updates
+
+The browser negotiates the update stream independently of the transport version.
+The initial snapshot begins at sequence one, and reconnect replays an unacknowledged
+suffix in the same epoch. The browser acknowledges only applied updates or explicit
+no-ops. An unsupported action or broken sequence stops the current page visibly;
+reloading opens a fresh stream rather than replaying ambiguous events.
+See the [update protocol and integration example](UPDATE_STREAM.ru.md).

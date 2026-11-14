@@ -86,6 +86,9 @@ function sendRequest(query, callback, method, files, channel) {
         if (channel) {
             req.setRequestHeader("X-Widgets-Channel", channel.token);
             req.setRequestHeader("X-Widgets-Epoch", channel.epoch);
+            if (channel.updateEpoch) {
+                req.setRequestHeader("X-Widgets-Update-Epoch", channel.updateEpoch);
+            }
         }
     }
     let completed = false;

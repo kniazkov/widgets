@@ -61,9 +61,14 @@ public final class Client implements Comparable<Client> {
     private final RootWidget root;
 
     /**
-     * Set of updates collected from widgets but not processed by the client.
+     * Outgoing independently sequenced browser channel.
      */
-    private final Set<Update> updates;
+    private final UpdateStream updates = new UpdateStream();
+
+    /**
+     * Scratch set keeps model update order while each widget transfers its own queue.
+     */
+    private final Set<Update> collecting = new TreeSet<>();
 
     /**
      * The identifier of the last event processed.
@@ -107,7 +112,6 @@ public final class Client implements Comparable<Client> {
         this.tabContext = tabContext;
         this.id = RMId.create();
         this.root = new RootWidget(options, uploads);
-        this.updates = new TreeSet<>();
     }
 
     /**
@@ -124,6 +128,15 @@ public final class Client implements Comparable<Client> {
      */
     String channelToken() {
         return this.channelToken;
+    }
+
+    /**
+     * Returns the sequence epoch independently of the server instance and channel token.
+     *
+     * @return outgoing stream epoch
+     */
+    String updateEpoch() {
+        return this.updates.epoch();
     }
 
     /**
@@ -168,11 +181,28 @@ public final class Client implements Comparable<Client> {
      *  processed event ID
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
+        this.synchronize(request, response, false);
+    }
+
+    /**
+     * Processes synchronization with optional mandatory stream credentials.
+     *
+     * @param request browser request
+     * @param response target response
+     * @param requireEpoch whether this is an authenticated HTTP request
+     */
+    void synchronize(final Map<String, String> request, final JsonObject response,
+            final boolean requireEpoch) {
         synchronized (this.root) {
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
                 this.root.closeUploads();
                 response.addBoolean("tabContextExpired", true);
+                return;
+            }
+            if (!this.updates.acknowledge(request.get("updateEpoch"), request.get("lastUpdate"),
+                    requireEpoch)) {
+                UpdateStream.markMismatch(response);
                 return;
             }
             this.processEvents(request, response);
@@ -182,7 +212,7 @@ public final class Client implements Comparable<Client> {
                 response.addBoolean("tabContextExpired", true);
                 return;
             }
-            this.collectUpdates(request.get("lastUpdate"));
+            this.collectUpdates();
             this.serializeUpdates(response);
         }
     }
@@ -203,11 +233,32 @@ public final class Client implements Comparable<Client> {
             final int chunkIndex,
             final byte[] data,
             final String lastUpdate) {
+        return this.uploadChunk(widgetId, fileId, chunkIndex, data, lastUpdate, null, false);
+    }
+
+    /**
+     * Delivers one chunk with the browser's outgoing-update acknowledgement.
+     *
+     * @param widgetId upload target
+     * @param fileId browser-local file identifier
+     * @param chunkIndex chunk index
+     * @param data chunk bytes
+     * @param lastUpdate last applied sequence
+     * @param epoch outgoing stream generation
+     * @param requireEpoch whether this is an authenticated HTTP request
+     * @return upload receipt or protocol failure
+     */
+    JsonObject uploadChunk(final RMId widgetId, final int fileId, final int chunkIndex,
+            final byte[] data, final String lastUpdate, final String epoch,
+            final boolean requireEpoch) {
         synchronized (this.root) {
             this.requireLiveSession();
             if (!this.tabContext.isActive()) {
                 this.root.closeUploads();
                 return UploadProtocol.rejected();
+            }
+            if (!this.updates.acknowledge(epoch, lastUpdate, requireEpoch)) {
+                return UpdateStream.mismatch();
             }
             for (final Widget<?> widget : this.root) {
                 if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
@@ -224,7 +275,7 @@ public final class Client implements Comparable<Client> {
                         this.root.closeUploads();
                         return UploadProtocol.rejected();
                     }
-                    this.collectUpdates(lastUpdate);
+                    this.collectUpdates();
                     this.serializeUpdates(response);
                     return response;
                 }
@@ -397,17 +448,12 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Collects updates from widgets, adding them to the set.
-     * Removes from the set any updates that have already been processed by the client.
-     *
-     * @param lastUpdate last update applied by the browser, or null
+     * Collects new model updates in creation order and assigns stable channel sequences.
      */
-    private void collectUpdates(final String lastUpdate) {
-        if (lastUpdate != null) {
-            final RMId id = RMId.parse(lastUpdate);
-            this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
-        }
-        this.root.collectBrowserUpdates(this.updates);
+    private void collectUpdates() {
+        this.root.collectBrowserUpdates(this.collecting);
+        this.updates.publish(this.collecting);
+        this.collecting.clear();
     }
 
     /**
@@ -417,10 +463,7 @@ public final class Client implements Comparable<Client> {
      */
     private void serializeUpdates(final JsonObject response) {
         response.addString("lastEvent", this.lastHandledEventId.toString());
-        final JsonArray updates = response.createArray("updates");
-        for (final Update update : this.updates) {
-            update.serialize(updates.createObject());
-        }
+        this.updates.serialize(response);
     }
 
     /**
