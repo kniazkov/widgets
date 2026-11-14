@@ -76,10 +76,12 @@ public final class Server {
             new com.kniazkov.webserver.Options.Builder()
                 .setPort(source.getPort())
                 .setBacklog(WebServerDefaults.BACKLOG)
-                .setMaxRequestSize(WebServerDefaults.MAX_REQUEST_SIZE)
+                .setMaxRequestSize(WebServerDefaults.uploadBudget(
+                    WebServerDefaults.MAX_REQUEST_SIZE, source.getChunkSize()))
                 .setMaxFileSize(WebServerDefaults.MAX_FILE_SIZE)
                 .setMaxInMemoryBodySize(WebServerDefaults.MAX_IN_MEMORY_BODY_SIZE)
-                .setMaxFormSize(WebServerDefaults.MAX_FORM_SIZE)
+                .setMaxFormSize(WebServerDefaults.uploadBudget(
+                    WebServerDefaults.MAX_FORM_SIZE, source.getChunkSize()))
                 .setMaxMultipartParts(WebServerDefaults.MAX_MULTIPART_PARTS)
                 .setMaxMultipartHeaderSize(WebServerDefaults.MAX_MULTIPART_HEADER_SIZE)
                 .setMaxHeaderSize(WebServerDefaults.MAX_HEADER_SIZE)

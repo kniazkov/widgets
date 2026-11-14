@@ -13,6 +13,40 @@ let uploadRequestInFlight = false;
 let nextUploadIndex = 0;
 let uploadNetworkFailures = 0;
 let uploadNetworkRetry = null;
+let uploadErrorNotice = null;
+
+function clearUploadError() {
+    uploadErrorNotice?.remove();
+    uploadErrorNotice = null;
+}
+
+function showUploadError(code, limitBytes) {
+    const host = (typeof pageContext !== "undefined" && pageContext?.root) || document.body;
+    if (!host) return;
+    if (!uploadErrorNotice) {
+        uploadErrorNotice = document.createElement("div");
+        uploadErrorNotice.className = "widgets-upload-error";
+        uploadErrorNotice.setAttribute("role", "status");
+        host.append(uploadErrorNotice);
+    }
+    uploadErrorNotice.dataset.uploadError = code;
+    const limit = Number.isSafeInteger(limitBytes) && limitBytes >= 0 ? limitBytes : null;
+    if (code === "fileTooLarge" && limit !== null) {
+        uploadErrorNotice.textContent =
+            "File is too large. Maximum file size: " + limit + " bytes.";
+    } else if (code === "chunkTooLarge" && limit !== null) {
+        uploadErrorNotice.textContent =
+            "Upload chunk is too large. Maximum chunk size: " + limit + " bytes.";
+    } else if (code === "requestTooLarge") {
+        uploadErrorNotice.textContent =
+            "The server rejected this upload because the request is too large.";
+    } else if (code === "invalidFileName") {
+        uploadErrorNotice.textContent =
+            "File name is not supported. Use at most 255 characters without path separators.";
+    } else {
+        uploadErrorNotice.textContent = "The server rejected this upload.";
+    }
+}
 
 function scheduleUploadNetworkRetry() {
     if (uploadNetworkRetry !== null) return;
@@ -44,6 +78,7 @@ function disposeUploads() {
     for (const task of uploadRetryTasks) clearTimeout(task);
     uploadRetryTasks.clear();
     clearTimeout(uploadNetworkRetry);
+    clearUploadError();
     uploadNetworkRetry = null;
     uploadNetworkFailures = 0;
     for (const file of [...pendingUploads, ...activeUploads]) {
@@ -106,6 +141,7 @@ function setAcceptedFiles(data) {
 // Registers all selected files before the binary scheduler starts sending their chunks.
 function loadFiles(widget, descriptions) {
     const selected = [];
+    if (descriptions.length) clearUploadError();
     for (let index = 0; index < descriptions.length; index++) {
         const descr = descriptions[index];
         if (
@@ -113,7 +149,18 @@ function loadFiles(widget, descriptions) {
             descr.size < 0 ||
             descr.size > uploadProtocol.maxFileSize
         ) {
-            log("The selected file '" + descr.name + "' is too large to upload.");
+            showUploadError("fileTooLarge", uploadProtocol.maxFileSize);
+            continue;
+        }
+        if (
+            typeof descr.name !== "string" ||
+            descr.name.length === 0 ||
+            descr.name.length > 255 ||
+            descr.name.includes("/") ||
+            descr.name.includes("\\") ||
+            descr.name.includes("\0")
+        ) {
+            showUploadError("invalidFileName");
             continue;
         }
         const file = {
@@ -272,7 +319,10 @@ function sendNextUploadChunk() {
                 return;
             }
             if (receipt.result === false) {
-                log("The server rejected upload '" + file.name + "'.");
+                const code = ["chunkTooLarge", "requestTooLarge"].includes(receipt.uploadError)
+                    ? receipt.uploadError
+                    : "rejected";
+                showUploadError(code, receipt.limitBytes);
                 removeActiveUpload(file);
                 sendNextUploadChunk();
                 return;

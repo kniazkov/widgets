@@ -25,7 +25,8 @@ export default defineConfig({
                 "widget-semantics.spec.js",
                 "widget-reparenting.spec.js",
                 "update-stream.spec.js",
-                "upload-lifecycle.spec.js"
+                "upload-lifecycle.spec.js",
+                "upload-boundary.spec.js"
             ],
             use: { browserName: "webkit" }
         }

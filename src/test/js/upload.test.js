@@ -148,3 +148,32 @@ it("releases browser files and stops retries on disposal", async () => {
     await new Promise(resolve => setTimeout(resolve, 350));
     expect(harness.requests).toHaveLength(1);
 });
+
+it("reports size errors without sending a file and clears feedback on the next selection", () => {
+    const harness = createHarness();
+    const notice = () => dom.window.document.querySelector(".widgets-upload-error");
+    dom.window.loadFiles(harness.widget, [{ name: "large.bin", size: 128 * 1024 * 1024 + 1 }]);
+    expect(notice().getAttribute("role")).toBe("status");
+    expect(notice().dataset.uploadError).toBe("fileTooLarge");
+    expect(harness.requests).toHaveLength(0);
+    dom.window.loadFiles(harness.widget, [file("x".repeat(256), 1)]);
+    expect(notice().dataset.uploadError).toBe("invalidFileName");
+    expect(harness.events).toHaveLength(0);
+    dom.window.loadFiles(harness.widget, [file("small.bin", 1)]);
+    expect(notice()).toBeNull();
+    expect(harness.requests).toHaveLength(1);
+});
+
+it("distinguishes a permanent chunk-size rejection from the next valid upload", () => {
+    const harness = createHarness();
+    dom.window.loadFiles(harness.widget, [file("bad.bin", 3), file("next.bin", 3)]);
+    harness.requests[0].callback(
+        JSON.stringify({ result: false, uploadError: "chunkTooLarge", limitBytes: 2 })
+    );
+    expect(dom.window.document.querySelector(".widgets-upload-error").textContent).toContain(
+        "Maximum chunk size: 2 bytes."
+    );
+    expect(harness.requests).toHaveLength(2);
+    expect(harness.requests[1].query.fileId).toBe(2);
+    expect(harness.requests[1].query.chunkIndex).toBe(0);
+});

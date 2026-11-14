@@ -33,13 +33,15 @@ describe("sendRequest", () => {
         [504, {}, null],
         [500, { "X-Widgets-Protocol-Error": "application" }, '{"clientError":true}'],
         [401, {}, '{"accessDenied":true}'],
+        [413, {}, '{"clientError":true}'],
+        [413, {}, '{"result":false,"uploadError":"requestTooLarge"}', "upload chunk"],
         [426, {}, '{"protocolMismatch":true}'],
         [200, { "X-Widgets-Protocol-Version": "2" }, '{"protocolMismatch":true}'],
         [200, { "X-Widgets-Protocol-Version": "1" }, "private body"],
         [200, {}, "private body"]
     ])(
         "classifies HTTP %i and protocol headers without leaking error bodies",
-        (status, headers, expected) => {
+        (status, headers, expected, action = "synchronize") => {
             let request;
             class MockXmlHttpRequest {
                 constructor() {
@@ -59,7 +61,7 @@ describe("sendRequest", () => {
             vi.spyOn(dom.window.console, "error").mockImplementation(() => {});
             dom.window.eval(source);
             const callback = vi.fn();
-            dom.window.sendRequest({ action: "synchronize" }, callback);
+            dom.window.sendRequest({ action }, callback);
             request.readyState = 4;
             request.status = status;
             request.responseText = "private body";

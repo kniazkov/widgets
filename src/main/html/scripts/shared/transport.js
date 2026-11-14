@@ -134,6 +134,8 @@ function sendRequest(query, callback, method, files, channel) {
                 complete(
                     JSON.stringify(expired ? { sessionExpired: true } : { accessDenied: true })
                 );
+            } else if (query.action === "upload chunk" && req.status === 413) {
+                complete(JSON.stringify({ result: false, uploadError: "requestTooLarge" }));
             } else if (protocolAction && req.status === 401) {
                 complete(JSON.stringify({ accessDenied: true }));
             } else if (protocolAction && (req.status === 426 || req.status === 505)) {
