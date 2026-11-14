@@ -33,6 +33,8 @@ import com.kniazkov.widgets.view.Select;
 import com.kniazkov.widgets.view.MultiSelect;
 import com.kniazkov.widgets.view.CheckBoxWithText;
 import com.kniazkov.widgets.view.RadioButtonWithText;
+import com.kniazkov.widgets.view.DataProvider;
+import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Form;
@@ -210,6 +212,7 @@ public class AllWidgets {
         addLabeledChoices(root);
         addDropDownLists(root);
         addTypedChoices(root);
+        addDataTable(root);
         addButtons(root);
         addAccessibleSemantics(root);
         addPopups(root);
@@ -224,6 +227,106 @@ public class AllWidgets {
         addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
+    }
+
+    /**
+     * Demonstrates paged synthetic records, stable row identity and real asynchronous updates.
+     * @param root gallery page
+     */
+    private static void addDataTable(final RootWidget root) {
+        final Panel card = addCard(root, "Таблица данных",
+            "Учебный архив: сортировка, фильтры и выбор по стабильным ключам.");
+        final List<DataProvider.DataRow> archive = new java.util.concurrent.CopyOnWriteArrayList<>(
+            java.util.stream.IntStream.rangeClosed(1, 125).mapToObj(number ->
+                demoOrder(number, "Завершён")).toList());
+        final DataTable table = new DataTable("Архив учебных заказов", List.of(
+            new DataTable.DataColumn("order-name", "Название заказа", true),
+            new DataTable.DataColumn("phase", "Состояние", true),
+            new DataTable.DataColumn("comment", "Комментарий для проверяющего", false)), 5,
+            query -> loadDemoOrders(archive, query),
+            new DataTable.Messages("Фильтр заказов", "Выбрать", "Назад", "Далее",
+                "Повторить", "Загружаем строки…", "Подходящих заказов нет.",
+                "Архив временно недоступен.", "Страница"));
+        final Button update = new Button("Обновить первую запись");
+        update.onClick(event -> {
+            if (!archive.isEmpty() && archive.getFirst().key().equals("order-1")) {
+                final var changed = demoOrder(1, "Обновлён");
+                archive.set(0, changed);
+                CompletableFuture.delayedExecutor(1400, TimeUnit.MILLISECONDS).execute(
+                    () -> root.execute(() -> {
+                        if (table.getRootWidget().orElse(null) == root) {
+                            table.updateRow(changed);
+                        }
+                    }));
+            }
+        });
+        final Button remove = new Button("Удалить первый заказ");
+        remove.onClick(event -> {
+            archive.removeIf(row -> row.key().equals("order-1"));
+            table.removeRow("order-1");
+            table.reload();
+        });
+        final Button disable = new Button("Включить / отключить таблицу");
+        disable.onClick(event -> table.setDisabledFlag(!table.isDisabled()));
+        card.add(new Section(update, remove, disable));
+        card.add(table);
+    }
+
+    /**
+     * Builds a synthetic archive record with separate stable key and visible values.
+     * @param number logical identifier
+     * @param phase display state
+     * @return demo row
+     */
+    private static DataProvider.DataRow demoOrder(final int number, final String phase) {
+        return new DataProvider.DataRow("order-" + number, Map.of(
+            "order-name", "Учебный заказ №" + number, "phase", phase,
+            "comment", "История: демонстрационная запись " + number));
+    }
+
+    /**
+     * Reads and sorts a local synthetic list; nondeterministic work is represented by futures.
+     * @param archive backing collection
+     * @param query provider query
+     * @return bounded asynchronous page
+     */
+    private static CompletableFuture<DataProvider.Page> loadDemoOrders(
+            final List<DataProvider.DataRow> archive, final DataProvider.Query query) {
+        final String filter = query.filter().strip().toLowerCase(java.util.Locale.ROOT);
+        final List<DataProvider.DataRow> filtered = new ArrayList<>(archive.stream().filter(row ->
+            switch (filter) {
+                case "активные" -> false;
+                case "медленно" -> row.key().equals("order-1");
+                case "быстро" -> row.key().equals("order-2");
+                default -> row.cells().get("order-name").toLowerCase(java.util.Locale.ROOT)
+                    .contains(filter);
+            }).toList());
+        if (!query.sortKey().isEmpty()) {
+            final java.util.Comparator<DataProvider.DataRow> order =
+                java.util.Comparator.comparing(row -> row.cells().get(query.sortKey()));
+            filtered.sort(query.descending() ? order.reversed() : order);
+        }
+        final int first = (int) Math.min(query.offset(), filtered.size());
+        final int last = Math.min(first + query.size(), filtered.size());
+        final var result = new CompletableFuture<DataProvider.Page>() {
+            @Override
+            public boolean cancel(final boolean interrupt) {
+                /*
+                 * The slow simulated request finishes despite best-effort cancellation.
+                 */
+                return false;
+            }
+        };
+        CompletableFuture.delayedExecutor(filter.equals("медленно") ? 2700 : 220,
+            TimeUnit.MILLISECONDS).execute(() -> {
+                if (filter.equals("ошибка")) {
+                    result.completeExceptionally(new IllegalArgumentException("Demo failure"));
+                } else {
+                    result.complete(new DataProvider.Page(filtered.subList(first, last),
+                        filtered.size()));
+                }
+            });
+        return result;
     }
 
     /**

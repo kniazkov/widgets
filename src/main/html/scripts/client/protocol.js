@@ -245,6 +245,7 @@ const actionHandlers = {
     "set text": setText,
     "set suggestions": setSuggestions,
     "set choice state": setChoiceState,
+    "set data table": setDataTable,
     "set placeholder color": setPlaceholderColor,
     "set placeholder": setPlaceholder,
     "set document title": data => setDocumentMetadata(data, "title"),

@@ -6,6 +6,7 @@ package com.kniazkov.widgets.controller;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.TypedChoice;
 import com.kniazkov.widgets.view.HasCheckedState;
@@ -80,6 +81,9 @@ final class EventValidation {
         if (event == Event.CHOICE_SEARCH) {
             return widget instanceof ComboBox<?>;
         }
+        if (event == Event.DATA_TABLE) {
+            return widget instanceof DataTable;
+        }
         if (event == Event.REORDER) {
             return widget instanceof SortableSection;
         }
@@ -128,6 +132,12 @@ final class EventValidation {
                 && (data.get("action").stringValue().equals("query")
                     || (Set.of("cancel", "more").contains(data.get("action").stringValue())
                         && data.get("text").stringValue().isEmpty()));
+        }
+        if (event == Event.DATA_TABLE) {
+            return fields(data, "action", "value", "checked") && text(data.get("action"), 8)
+                && text(data.get("value"), 120) && data.get("checked").isBoolean()
+                && ((DataTable) widget).acceptsCommand(data.get("action").stringValue(),
+                    data.get("value").stringValue());
         }
         if (event == Event.REORDER) {
             return fields(data, "revision", "child", "before")

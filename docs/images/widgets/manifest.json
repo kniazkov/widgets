@@ -835,6 +835,48 @@
       ],
       "sha256": "0d53533dee0eabd3ec51f8a0cce2dd8a5a27d22facbd66b60d60659782f55dea",
       "captureId": "r22-narrow"
+    },
+    "data-table-wide": {
+      "file": "data-table-wide.png",
+      "title": "DataTable",
+      "states": "Сортировка, выбор первой строки и первая страница 125 записей.",
+      "sourceScreenshot": "data-table-wide.jpg",
+      "crop": [
+        58,
+        305,
+        1064,
+        520
+      ],
+      "sha256": "0765e1d186f2c0f9a9d51d8f020d9e95c5393bac35e6c3c2365b2a86ebcce0a3",
+      "captureId": "r23-desktop"
+    },
+    "data-table-empty": {
+      "file": "data-table-empty.png",
+      "title": "DataTable",
+      "states": "Пустой фильтр по активным заказам оставляет ранее выбранный ключ.",
+      "sourceScreenshot": "data-table-empty.jpg",
+      "crop": [
+        58,
+        305,
+        1064,
+        333
+      ],
+      "sha256": "7d15907c25e9b3e7335d08b334910e03dee6de7fc64082f848a12d76879a27c1",
+      "captureId": "r23-desktop"
+    },
+    "data-table-narrow": {
+      "file": "data-table-narrow.png",
+      "title": "DataTable",
+      "states": "Один результат, горизонтальная прокрутка только области таблицы.",
+      "sourceScreenshot": "data-table-narrow.jpg",
+      "crop": [
+        45,
+        169,
+        316,
+        581
+      ],
+      "sha256": "0fddad306424828f51488bc9486e892c82ea1e1e0920145325ad9fdc51bec8cf",
+      "captureId": "r23-narrow"
     }
   },
   "widgets": {
@@ -1015,6 +1057,11 @@
     ],
     "Select": [
       "typed-choices-wide"
+    ],
+    "DataTable": [
+      "data-table-wide",
+      "data-table-empty",
+      "data-table-narrow"
     ]
   },
   "modalLifecycleCapture": {
@@ -1207,6 +1254,40 @@
       "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
       "screenshots": {
         "typed-choices-narrow.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r23-desktop": {
+      "date": "2026-11-14",
+      "commit": "7c39f5135ca82708e9525eecd0dd7b0b4ecd5ab5",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "a4f23fe60054bfa9ad4ca358ee4f34b4c198e02e5c4317f333b9cee842452bea",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "data-table-wide.jpg": [
+          1212,
+          886
+        ],
+        "data-table-empty.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r23-narrow": {
+      "date": "2026-11-14",
+      "commit": "7c39f5135ca82708e9525eecd0dd7b0b4ecd5ab5",
+      "page": "Standalone AllWidgets / in 390px local preview",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "a4f23fe60054bfa9ad4ca358ee4f34b4c198e02e5c4317f333b9cee842452bea",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "data-table-narrow.jpg": [
           1212,
           886
         ]

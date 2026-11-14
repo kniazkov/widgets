@@ -1,6 +1,6 @@
 # Widget catalog
 
-See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all 46 concrete visual
+See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all 47 concrete visual
 widget classes, including open popups and composed layout widgets. The [review checklist](REVIEW_CHECKLIST.ru.md)
 tracks remaining defects and planned components; planned widgets are not part of the current API.
 
@@ -47,6 +47,7 @@ classDiagram
     BlockWidget <|-- Popup
     Popup <|-- ModalPopup
     ModalPopup <|-- MessagePopup
+    BlockWidget <|-- DataTable
     BlockWidget <|-- Table
 ```
 
@@ -183,6 +184,7 @@ position reactively.
 | Widget | Client type | Allowed children | Purpose |
 | --- | --- | --- | --- |
 | `Table` | `table` | `Row` | Block-level table. Missing rows and cells can be created on demand through `getRow` and `getCell`; `insertRow` inserts a new or unattached row at any valid position, and `removeRow` removes a row by index. Default row and cell styles apply to newly created elements. |
+| `DataTable` | `data table` | None | Provider-backed native table: keyed rows, sort, filter, pages and selection. |
 | `Row` | `row` | `Cell` | Table row with pointer-aware visual states. `getCell` grows the row on demand and uses the parent table's column-specific defaults when available. |
 | `Cell` | `cell` | `BlockWidget` | Table cell that hosts block content and supports background, border, size, padding, alignment, and pointer events. |
 
