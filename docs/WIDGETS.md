@@ -365,7 +365,11 @@ permanently. A later modal in the same CSS stacking context covers earlier windo
 nested inside another can also cover the viewport. If outside dismissal is enabled, only the
 top visible backdrop receives that click or tap. Custom transformed or isolated CSS ancestors
 still constrain normal fixed positioning and stacking; use a root-level container in that case.
-This change does not add focus trapping, Escape dismissal, or keyboard isolation of the page.
+The top visible modal exposes a dialog role and isolates background controls from interaction
+and assistive technology. It focuses its first eligible control (or the dialog itself), wraps
+Tab/Shift+Tab and restores focus when hidden or removed. Use `setAccessibleName` and
+`setAccessibleDescription` to label it, and opt into Escape with `setCloseOnEscape(true)`;
+this setting is independent of outside dismissal. See the [accessibility contract and example](MODAL_ACCESSIBILITY.ru.md).
 See the [interactive gallery and screenshots](WIDGET_GALLERY.ru.md#modal-popup).
 
 ## Editable suggestions

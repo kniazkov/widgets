@@ -832,6 +832,11 @@ public class AllWidgets {
         root.add(host);
         final ModalPopup outer = new ModalPopup();
         outer.setBackdropColor(new Color(30, 64, 175, 112));
+        outer.setAccessibleName("Lifecycle modal");
+        outer.setAccessibleDescription(
+            "Use Tab to move between actions; Escape closes this dialog."
+        );
+        outer.setCloseOnEscape(true);
         outer.hide();
         host.add(outer);
         final Button launcher = new Button("Open lifecycle modal");
@@ -841,6 +846,9 @@ public class AllWidgets {
         clickPage.onClick(event -> count.setText("Page clicks: " + pageClicks.incrementAndGet()));
         launcher.onClick(event -> {
             host.show();
+            if (outer.getParent().isEmpty()) {
+                host.add(outer);
+            }
             outer.show();
         });
         final Button hide = new Button("Hide lifecycle modal");
@@ -852,10 +860,22 @@ public class AllWidgets {
             final ModalPopup inner = new ModalPopup();
             inner.setBackdropColor(new Color(15, 23, 42, 128));
             inner.setCloseOnOutsideClick(true);
+            inner.setCloseOnEscape(true);
+            inner.setAccessibleName("Nested lifecycle modal");
+            inner.setAccessibleDescription("Keyboard focus stays in this nested dialog.");
             final Button close = new Button("Close nested modal");
+            final Button toggle = new Button("Toggle nested Escape");
+            toggle.onClick(click -> inner.setCloseOnEscape(!inner.isCloseOnEscape()));
+            final Button remove = new Button("Remove opener and close");
+            remove.onClick(click -> {
+                nested.dispose();
+                inner.dispose();
+            });
             close.onClick(click -> inner.dispose());
             inner.add(new Section(new TextWidget("Nested lifecycle modal")));
             inner.add(new Section(close));
+            inner.add(new Section(toggle));
+            inner.add(new Section(remove));
             outer.add(inner);
         });
         outer.add(new Section(new TextWidget("Lifecycle modal")));
@@ -864,6 +884,39 @@ public class AllWidgets {
         outer.add(new Section(nested));
         row.add(variant("Hide and reopen", launcher));
         row.add(variant("Page interaction", clickPage, count));
+        addEmptyModalExamples(root, row);
+    }
+
+    /**
+     * Demonstrates dialog fallback focus with and without an available opener.
+     * @param root the page root
+     * @param row gallery variant row
+     */
+    private static void addEmptyModalExamples(final RootWidget root, final Section row) {
+        final Button empty = new Button("Open text-only dialog");
+        empty.onClick(click -> root.add(textOnlyModal()));
+        final Button disappearing = new Button("Open and remove launcher");
+        disappearing.onClick(click -> {
+            disappearing.dispose();
+            root.add(textOnlyModal());
+        });
+        row.add(variant("No interactive content", empty));
+        row.add(variant("Missing opener", disappearing));
+    }
+
+    /**
+     * Creates a dialog that can only be dismissed by the backdrop or Escape.
+     * @return text-only example
+     */
+    private static ModalPopup textOnlyModal() {
+        final ModalPopup popup = new ModalPopup(
+            new Section(new TextWidget("This dialog has no interactive controls."))
+        );
+        popup.setAccessibleName("Text-only dialog");
+        popup.setAccessibleDescription("Press Escape or select the backdrop to close.");
+        popup.setCloseOnEscape(true);
+        popup.setCloseOnOutsideClick(true);
+        return popup;
     }
 
     /**

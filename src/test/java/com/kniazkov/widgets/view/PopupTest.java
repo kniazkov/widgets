@@ -197,4 +197,35 @@ public final class PopupTest {
         assertTrue(ordinary.getParent().isPresent());
     }
 
+    /**
+     * Dialog metadata is reactive and Escape policy is independent of backdrop policy.
+     */
+    @Test
+    public void modalAccessibilityAndEscapeUseDedicatedProperties() {
+        final ModalPopup popup = new ModalPopup();
+        final WidgetSandbox<ModalPopup> sandbox = WidgetSandbox.open(popup);
+        assertFalse(popup.isCloseOnEscape());
+        popup.setCloseOnOutsideClick(true);
+        sandbox.fire(Event.DISMISS_BY_ESCAPE, new JsonObject());
+        assertTrue(popup.getParent().isPresent());
+
+        sandbox.clearUpdates();
+        popup.setAccessibleName("Address");
+        popup.setAccessibleDescription("Confirm before sending.");
+        popup.setCloseOnEscape(true);
+        final List<JsonObject> updates = sandbox.drainUpdates();
+        assertEquals("Address", WidgetSandbox.findUpdates(updates, "set accessible name", popup)
+            .getLast().get("accessible name").stringValue());
+        assertEquals("Confirm before sending.", WidgetSandbox.findUpdates(
+            updates, "set accessible description", popup
+        ).getLast().get("accessible description").stringValue());
+        assertTrue(WidgetSandbox.findUpdates(updates, "set close on escape", popup)
+            .getLast().get("close on escape").booleanValue());
+        assertSame(Event.DISMISS_BY_ESCAPE, Event.getByName("dismiss by escape"));
+
+        popup.setCloseOnOutsideClick(false);
+        sandbox.fire(Event.DISMISS_BY_ESCAPE, new JsonObject());
+        assertTrue(popup.getParent().isEmpty());
+    }
+
 }

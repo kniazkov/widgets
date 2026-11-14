@@ -389,6 +389,17 @@ public abstract class Property<T> {
         boolProperty("close on outside click");
 
     /**
+     * Whether Escape dismisses the active modal.
+     */
+    public static final Property<Boolean> CLOSE_ON_ESCAPE = boolProperty("close on escape");
+
+    /**
+     * Optional plain-text description of a modal dialog.
+     */
+    public static final Property<String> ACCESSIBLE_DESCRIPTION =
+        stringProperty("accessible description");
+
+    /**
      * Sizes an overlay stack from its first child only.
      */
     public static final Property<Boolean> FIT_TO_FIRST_CHILD = boolProperty("fit to first child");
@@ -747,7 +758,7 @@ public abstract class Property<T> {
     public static final Property<Boolean> CHECKED = boolProperty("checked");
 
     /**
-     * Accessible name of a choice without a visible label.
+     * Explicit accessible name of a control or dialog.
      */
     public static final Property<String> ACCESSIBLE_NAME = stringProperty("accessible name");
 
