@@ -157,6 +157,29 @@ public abstract class Property<T> {
     }
 
     /**
+     * Binds a local cascade of a shared style source.
+     *
+     * @param state property state
+     * @param model shared style model
+     * @param widget receiving widget
+     * @return binding responsible for the local cascade
+     */
+    Binding<T> bindStyleModel(final State state, final Model<?> model, final Widget<?> widget) {
+        return Binding.ofStyle(
+            this.cast(model), new Widget.PropertyListener<>(widget, state, this));
+    }
+
+    /**
+     * Replaces the binding with a locally owned cascade.
+     *
+     * @param binding target binding
+     * @param model shared style model
+     */
+    void rebindStyleModel(final Binding<?> binding, final Model<?> model) {
+        this.cast(binding).setStyleModel(this.cast(model));
+    }
+
+    /**
      * Safely casts a generic {@link Binding} to a typed {@link Binding}.
      *
      * @param binding the binding to cast

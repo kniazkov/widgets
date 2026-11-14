@@ -14,6 +14,8 @@ import com.kniazkov.widgets.protocol.ResetClient;
 import com.kniazkov.widgets.protocol.ClearPageCache;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.WeakHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -56,6 +58,46 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * Terminal upload disposal flag, visible to the resource sweeper.
      */
     private volatile boolean uploadsClosed;
+
+    /**
+     * Client-owned widget instances, including detached subtrees still in application use.
+     */
+    private final Set<Widget<?>> owned = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * Records ownership of an attached widget without prolonging its lifetime.
+     *
+     * @param widget owned widget
+     */
+    synchronized void trackOwned(final Widget<?> widget) {
+        this.owned.add(widget);
+        widget.setLifecycleOwner(this);
+    }
+
+    /**
+     * Registers a page-owned cleanup, also run if the page fails during creation.
+     *
+     * @param action operation that releases a page resource
+     */
+    public void onClose(final Runnable action) {
+        this.onRetire(action);
+    }
+
+    /**
+     * Ends this page's subscriptions, queued updates and uploads.
+     */
+    public void closePage() {
+        final List<Widget<?>> widgets;
+        synchronized (this) {
+            this.uploadsClosed = true;
+            widgets = List.copyOf(this.owned);
+            this.owned.clear();
+            this.children.clear();
+        }
+        this.closeUploads();
+        this.retire();
+        widgets.stream().filter(widget -> widget.belongsTo(this)).forEach(Widget::retire);
+    }
 
     /**
      * Constructor.
@@ -277,6 +319,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      */
     public void collectBrowserUpdates(final Set<Update> pending) {
         for (final Widget<?> widget : this) {
+            this.trackOwned(widget);
             widget.markExported(this.getId());
             widget.getUpdates(pending);
         }

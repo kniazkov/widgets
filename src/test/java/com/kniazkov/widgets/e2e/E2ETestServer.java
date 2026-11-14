@@ -255,6 +255,7 @@ public final class E2ETestServer {
             root.add(new Section(mode, enter, exit));
             root.add(new Section(new Link("Next tab page", "/tab-context-next")));
         };
+        addApplicationLifecyclePages(application);
         application.addPage("widget-lifecycle", WidgetLifecyclePage.create());
         application.addPage("widget-reparenting", WidgetReparentingPage.create());
         application.addPage("update-stream", UpdateStreamPage.create());
@@ -449,6 +450,33 @@ public final class E2ETestServer {
             root.add(new Section(reset, limit, clicks));
         });
         Server.start(application, options);
+    }
+
+    /**
+     * Registers a pair of pages for testing terminal client cleanup over the live browser.
+     *
+     * @param application test application
+     */
+    private static void addApplicationLifecyclePages(final Application application) {
+        final var opened = new java.util.concurrent.atomic.AtomicInteger();
+        final var closed = new java.util.concurrent.atomic.AtomicInteger();
+        application.addPage("application-lifecycle", (root, context) -> {
+            final Link next = new Link("Open lifecycle monitor");
+            next.setHref("/application-lifecycle-monitor");
+            final InputField draft = new InputField();
+            draft.setAccessibleName("Page draft");
+            root.add(new Section(new TextWidget("Opened page " + opened.incrementAndGet()),
+                draft, next));
+            root.onClose(closed::incrementAndGet);
+        });
+        application.addPage("application-lifecycle-monitor", (root, context) -> {
+            final Button clear = new Button("Release cached pages");
+            clear.onClick(event -> root.clearPageCache());
+            final Button read = new Button("Read cleanup count");
+            final TextWidget status = new TextWidget("Cleanup count not read");
+            read.onClick(event -> status.setText("Closed pages " + closed.get()));
+            root.add(new Section(clear, read, status));
+        });
     }
 
     /**

@@ -94,6 +94,7 @@ public class SuggestionField extends InputField implements HasSuggestionSeparato
         super(style, "");
         this.suggestionListener = text -> this.publishSuggestions();
         this.setSuggestionModels(suggestions);
+        this.onRetire(this::unsubscribeSuggestions);
     }
 
     /**
@@ -131,6 +132,7 @@ public class SuggestionField extends InputField implements HasSuggestionSeparato
      * @param models ordered, non-null suggestion models
      */
     public void setSuggestionModels(final Iterable<Model<String>> models) {
+        this.requireUsable();
         final List<Model<String>> updated = new ArrayList<>();
         for (final Model<String> model : Objects.requireNonNull(models, "models")) {
             updated.add(Objects.requireNonNull(model, "suggestion model"));
@@ -143,6 +145,16 @@ public class SuggestionField extends InputField implements HasSuggestionSeparato
             model.addListener(this.suggestionListener);
         }
         this.publishSuggestions();
+    }
+
+    /**
+     * Removes the current model subscriptions at terminal widget disposal.
+     */
+    private void unsubscribeSuggestions() {
+        for (final Model<String> model : uniqueModels(this.suggestions)) {
+            model.removeListener(this.suggestionListener);
+        }
+        this.suggestions = List.of();
     }
 
     @Override

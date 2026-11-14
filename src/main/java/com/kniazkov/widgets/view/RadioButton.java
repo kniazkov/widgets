@@ -41,6 +41,7 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
     public RadioButton() {
         super(getDefaultStyle());
         this.uncheck();
+        this.onRetire(this::leaveGroups);
     }
 
     /**
@@ -52,6 +53,7 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
     public RadioButton(final Model<Boolean> checked) {
         super(getDefaultStyle());
         this.setCheckedStateModel(Objects.requireNonNull(checked, "checked"));
+        this.onRetire(this::leaveGroups);
     }
 
     @Override
@@ -83,7 +85,18 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
      */
     void detach(final RadioGroup group) {
         this.groups.remove(group);
-        this.refreshNativeGroup();
+        if (!this.isRetired()) {
+            this.refreshNativeGroup();
+        }
+    }
+
+    /**
+     * Drops only this member's subscriptions, leaving shared groups usable.
+     */
+    private void leaveGroups() {
+        for (final RadioGroup group : List.copyOf(this.groups)) {
+            group.remove(this);
+        }
     }
 
     /**

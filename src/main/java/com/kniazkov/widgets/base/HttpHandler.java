@@ -93,6 +93,11 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     @Override
     public Response handle(final Request request, final Environment environment)
             throws ServerException {
+        if (this.application.isClosed()) {
+            return environment.getResponseFactory().custom(HttpStatus.SERVICE_UNAVAILABLE,
+                ContentType.TEXT_PLAIN, new byte[0])
+                .setHeader("Cache-Control", "no-store").build();
+        }
         try {
             return this.route(request, environment);
         } catch (final ProtocolAccessException denied) {

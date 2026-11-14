@@ -5,6 +5,8 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Handler;
 import com.kniazkov.webserver.ServerException;
+import java.net.InetAddress;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,7 +42,7 @@ public final class Server {
     public static com.kniazkov.webserver.Server start(
             final Application application, final Options options) {
         final Handler handler = new HttpHandler(application, options);
-        application.setOptions(options);
+        application.beginStart(options);
 
         /*
          * Start the underlying HTTP server
@@ -51,15 +53,73 @@ public final class Server {
                 getWebServerOptions(options, handler)
             );
         } catch (final ServerException exception) {
+            application.close();
             LOGGER.log(Level.SEVERE, "Unable to start the web server", exception);
             throw new IllegalStateException("Unable to start the web server", exception);
+        } catch (final RuntimeException | Error failure) {
+            application.close();
+            throw failure;
         }
 
         /*
          * Log startup
          */
         LOGGER.info("Server started.");
-        return server;
+        final ManagedServer managed = new ManagedServer(server, application);
+        try {
+            application.onClose(managed::stopAfterApplication);
+        } catch (final IllegalStateException closed) {
+            managed.stopAfterApplication();
+            throw closed;
+        }
+        return managed;
+    }
+
+    /**
+     * Keeps the existing public server interface while joining its lifecycle to the application.
+     */
+    private record ManagedServer(com.kniazkov.webserver.Server delegate,
+            Application application, AtomicBoolean stopped)
+            implements com.kniazkov.webserver.Server {
+        /**
+         * @param delegate transport listener
+         * @param application owned application
+         */
+        ManagedServer(final com.kniazkov.webserver.Server delegate, final Application application) {
+            this(delegate, application, new AtomicBoolean());
+        }
+
+        @Override
+        public void stop() throws ServerException {
+            if (this.stopped.compareAndSet(false, true)) {
+                try {
+                    this.application.close();
+                } finally {
+                    this.delegate.stop();
+                }
+            }
+        }
+
+        /**
+         * Stops the listener after an independently closed application.
+         */
+        void stopAfterApplication() {
+            try {
+                this.stop();
+            } catch (final ServerException failure) {
+                throw new IllegalStateException("Unable to stop the web server", failure);
+            }
+        }
+
+        @Override
+        public int getPort() {
+            return this.delegate.getPort();
+        }
+
+        @Override
+        public InetAddress getBindAddress() {
+            return this.delegate.getBindAddress();
+        }
     }
 
     /**
