@@ -32,6 +32,8 @@ const handlerNames = [
     "setInputMode",
     "setSuggestions",
     "setSuggestionSeparator",
+    "setKeyboardShortcuts",
+    "setInputReadOnly",
     "setOptions",
     "setOption",
     "setCarouselSources",

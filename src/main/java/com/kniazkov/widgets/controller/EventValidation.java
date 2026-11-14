@@ -9,6 +9,7 @@ import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
 import com.kniazkov.widgets.view.HasTextInput;
+import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.ModalPopup;
 import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.SortableSection;
@@ -37,6 +38,17 @@ final class EventValidation {
         if (!widget.isInteractionEnabled()) {
             return Optional.of("inactiveWidget");
         }
+        if (event == Event.KEYBOARD) {
+            if (!(widget instanceof InputField input)) {
+                return Optional.of("unsupportedEvent");
+            }
+            final KeyboardEvent key = KeyboardEvent.parse(data);
+            if (key == null) {
+                return Optional.of("invalidPayload");
+            }
+            return input.acceptsKeyboardEvent(key)
+                ? Optional.empty() : Optional.of("inactiveShortcut");
+        }
         if (!supports(event, widget)) {
             return Optional.of("unsupportedEvent");
         }
@@ -51,7 +63,8 @@ final class EventValidation {
      */
     private static boolean supports(final Event<?> event, final Widget<?> widget) {
         if (event == Event.TEXT_INPUT) {
-            return widget instanceof HasTextInput;
+            return widget instanceof HasTextInput
+                && (!(widget instanceof InputField input) || !input.isReadOnly());
         }
         if (event == Event.CHECK) {
             return widget instanceof HasCheckedState;

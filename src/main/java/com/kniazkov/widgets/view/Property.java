@@ -401,6 +401,13 @@ public abstract class Property<T> {
     public static final Property<Boolean> DISABLED = boolProperty("disabled");
 
     /**
+
+     * Whether a text field is read-only.
+
+     */
+    static final Property<Boolean> READ_ONLY = boolProperty("read only");
+
+    /**
      * Property controlling whether the widget is hidden.
      */
     public static final Property<Boolean> HIDDEN = boolProperty("hidden");

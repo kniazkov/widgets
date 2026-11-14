@@ -695,6 +695,34 @@
       ],
       "sha256": "03f6297019c501f8483edc17cad33d3173df030e2271b856a3f3a508a1e5268d",
       "captureId": "r19-narrow"
+    },
+    "keyboard-demo-desktop": {
+      "file": "keyboard-demo-desktop.png",
+      "title": "Keyboard login demo",
+      "states": "Фокус в поле имени; цифровой Enter запустил ту же проверку.",
+      "sourceScreenshot": "keyboard-demo-desktop.jpg",
+      "crop": [
+        45,
+        442,
+        1107,
+        217
+      ],
+      "sha256": "983c839a9d091e6aa1650adbf63e908bab36eabfb6fb6c294026b4c38725d1dc",
+      "captureId": "r44-desktop"
+    },
+    "keyboard-demo-narrow": {
+      "file": "keyboard-demo-narrow.png",
+      "title": "Keyboard login demo",
+      "states": "Узкая раскладка; повторная попытка по Enter успешна, код замаскирован.",
+      "sourceScreenshot": "keyboard-demo-narrow.jpg",
+      "crop": [
+        45,
+        432,
+        427,
+        388
+      ],
+      "sha256": "d869bfa6cd1220df0d40ecaeada7e83527946780edd427cabf070cb289a4ca57",
+      "captureId": "r44-narrow"
     }
   },
   "widgets": {
@@ -727,14 +755,18 @@
       "input-field",
       "semantics-desktop",
       "semantics-field-updated",
-      "semantics-field-mobile"
+      "semantics-field-mobile",
+      "keyboard-demo-desktop",
+      "keyboard-demo-narrow"
     ],
     "SuggestionField": [
       "suggestion-field",
       "suggestion-open"
     ],
     "PasswordInput": [
-      "password-input"
+      "password-input",
+      "keyboard-demo-desktop",
+      "keyboard-demo-narrow"
     ],
     "TextArea": [
       "text-area"
@@ -763,7 +795,9 @@
     "Button": [
       "button",
       "semantics-desktop",
-      "semantics-icon-mobile"
+      "semantics-icon-mobile",
+      "keyboard-demo-desktop",
+      "keyboard-demo-narrow"
     ],
     "FileLoader": [
       "file-loader",
@@ -889,6 +923,36 @@
         "narrow-popup.jpg": [
           532,
           869
+        ]
+      }
+    },
+    "r44-desktop": {
+      "date": "2026-11-14",
+      "commit": "5eee747b6fcfd0865cbe65eac05eb8e67edc5aa1",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "8c51424fad657b1d659d96c788f289fe3ae76aacb2b230195b5c0afa9b80755a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "keyboard-demo-desktop.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r44-narrow": {
+      "date": "2026-11-14",
+      "commit": "5eee747b6fcfd0865cbe65eac05eb8e67edc5aa1",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈485 × 740 CSS px",
+      "allWidgetsSourceSha256": "8c51424fad657b1d659d96c788f289fe3ae76aacb2b230195b5c0afa9b80755a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "keyboard-demo-narrow.jpg": [
+          532,
+          868
         ]
       }
     }

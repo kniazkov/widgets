@@ -41,7 +41,7 @@
 | --- | --- |
 | `ActiveImage` | [ActiveImage](#active-image) |
 | `ActiveText` | [ActiveText](#active-text) |
-| `Button` | [Button](#button) |
+| `Button` | [Button](#button), [демо Enter](#keyboard-login-demo) |
 | `Carousel` | [Carousel](#carousel), [Carousel — второй слайд](#carousel-selected) |
 | `Cell` | [Table](#table) |
 | `CheckBox` | [CheckBox](#check-box) |
@@ -52,7 +52,7 @@
 | `HorizontalLine` | [HorizontalLine](#horizontal-line) |
 | `ImageWidget` | [ImageWidget](#image-widget) |
 | `InlineBlock` | [Layout composition](#layout-composition) |
-| `InputField` | [InputField](#input-field) |
+| `InputField` | [InputField](#input-field), [демо Enter](#keyboard-login-demo) |
 | `Link` | [Link](#link) |
 | `MarginDecorator` | [Layout composition](#layout-composition) |
 | `Markdown` | [Markdown](#markdown) |
@@ -61,7 +61,7 @@
 | `NoWrap` | [NoWrap](#no-wrap) |
 | `OverlayStack` | [OverlayStack](#overlay-stack) |
 | `Panel` | [Layout composition](#layout-composition) |
-| `PasswordInput` | [PasswordInput](#password-input) |
+| `PasswordInput` | [PasswordInput](#password-input), [демо Enter](#keyboard-login-demo) |
 | `Popup` | [Popup](#popup) |
 | `RadioButton` | [RadioButton](#radio-button) |
 | `RadioButtonWithText` | [CheckBoxWithText / RadioButtonWithText](#labeled-choices) |
@@ -157,6 +157,20 @@
 Начальное состояние; варианты подписаны внутри карточки.
 
 ![SuggestionField: Начальное состояние; варианты подписаны внутри карточки.](images/widgets/suggestion-field.png)
+
+<a id="keyboard-login-demo"></a>
+
+### Keyboard login demo
+
+Композиция `InputField`, `PasswordInput` и `Button`: Enter в любом из полей и нажатие кнопки запускают одну и ту же проверку вымышленных данных.
+
+![Демо в широком окне: видимый фокус на имени и успешный результат после цифрового Enter.](images/widgets/keyboard-demo-desktop.png)
+
+*Широкое окно: поля и кнопка в одну строку.*
+
+![Демо в узком окне: замаскированный код, фокус в поле кода и успешный результат по Enter.](images/widgets/keyboard-demo-narrow.png)
+
+*Узкое окно: поля и кнопка переносятся на отдельные строки.*
 
 <a id="password-input"></a>
 ### PasswordInput

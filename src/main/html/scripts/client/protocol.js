@@ -252,6 +252,8 @@ const actionHandlers = {
 
     "set input mode": setInputMode,
     "set suggestion separator": setSuggestionSeparator,
+    "set keyboard shortcuts": setKeyboardShortcuts,
+    "set read only": setInputReadOnly,
     "set options": setOptions,
     "set option": setOption,
     "set carousel sources": setCarouselSources,
