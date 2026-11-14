@@ -427,7 +427,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         }
         final UploadedFile chunk = files.get(0);
         if (chunk.getSize() > this.options.getChunkSize()) {
-            return UploadProtocol.rejected();
+            return UploadProtocol.chunkTooLarge(this.options.getChunkSize());
         }
         final String client = parameters.get("client");
         final String widget = parameters.get("widget");

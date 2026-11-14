@@ -8,6 +8,7 @@ import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.base.StaticSource;
+import com.kniazkov.widgets.common.Listener;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.SortableSection;
@@ -93,16 +94,24 @@ public final class E2ETestServer {
                 final TextWidget upload = new TextWidget(
                     "Selected " + descriptor.getName() + " 0%"
                 );
-                descriptor.getLoadingPercentageModel().addListener(
-                    percent -> upload.setText(
-                        "Selected " + descriptor.getName() + " " + percent + "%"
-                    )
+                final var progressModel = descriptor.getLoadingPercentageModel();
+                /*
+                 * The model holds listeners weakly; the fixture owns this one until completion
+                 * or cancellation so GC cannot hide progress from the browser.
+                 */
+                final Listener<Integer> progress = percent -> upload.setText(
+                    "Selected " + descriptor.getName() + " " + percent + "%"
                 );
-                descriptor.onLoad(file -> upload.setText(
-                    "Loaded " + file.getName() + " 100% " + sha256(file.getContent())
-                ));
+                progressModel.addListener(progress);
+                descriptor.onLoad(file -> {
+                    progressModel.removeListener(progress);
+                    upload.setText(
+                        "Loaded " + file.getName() + " 100% " + sha256(file.getContent())
+                    );
+                });
                 final Button cancelUpload = new Button("Cancel " + descriptor.getName());
                 cancelUpload.onClick(event -> {
+                    progressModel.removeListener(progress);
                     descriptor.cancel();
                     upload.setText("Cancelled " + descriptor.getName());
                 });

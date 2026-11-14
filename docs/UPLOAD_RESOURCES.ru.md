@@ -113,3 +113,6 @@ final Options options = new Options.Builder()
 `upload-lifecycle.spec.js`: прогресс 50%, отмена, следующий файл; потеря последнего ответа
 и успешный повтор после освобождения ресурсов. Выполняется в Chromium и WebKit.
 `upload.test.js`: освобождение браузерных ссылок и прекращение повторов после disposal.
+
+Лимиты целого файла, бинарного чанка и полного multipart-запроса описаны
+отдельно: [Лимиты загрузки и multipart](UPLOAD_MULTIPART_LIMITS.ru.md).

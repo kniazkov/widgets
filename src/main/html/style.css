@@ -66,6 +66,23 @@ img, textarea, button {
     text-shadow: none;
 }
 
+/* Per-page feedback for a rejected upload, without replacing the application. */
+.widgets-upload-error {
+    position: fixed;
+    z-index: 1000;
+    inset: auto 16px 16px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: calc(100% - 32px);
+    padding: 12px 16px;
+    color: #731c13;
+    background: #fff6f2;
+    border: 1px solid #a84230;
+    border-radius: 8px;
+    font: 16px/1.4 Arial, sans-serif;
+}
+
 /* An editable combobox keeps its suggestion list outside clipping containers. */
 .suggestion-list {
     position: fixed;

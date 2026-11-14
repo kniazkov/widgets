@@ -11,9 +11,6 @@ const projectRoot = dirname(dirname(fileURLToPath(import.meta.url)));
 const isWindows = process.platform === "win32";
 const classpathFile = join(projectRoot, "target", "e2e-classpath.txt");
 
-// The runner owns this process so every exit path can clean it up.
-let javaServer;
-
 function executableFromHome(environmentVariable, executable) {
     const home = process.env[environmentVariable];
     if (home) {
@@ -64,7 +61,7 @@ async function findFreePort() {
     });
 }
 
-async function waitForServer(baseURL) {
+async function waitForServer(baseURL, javaServer) {
     const deadline = Date.now() + 30_000;
     let lastError;
 
@@ -89,7 +86,7 @@ async function waitForServer(baseURL) {
     throw new Error(`The Java E2E server did not become ready: ${lastError}`);
 }
 
-async function stopServer() {
+async function stopServer(javaServer) {
     if (!javaServer || javaServer.exitCode !== null) {
         return;
     }
@@ -128,37 +125,42 @@ async function main() {
     ]
         .filter(Boolean)
         .join(delimiter);
-    const port = await findFreePort();
-    const baseURL = `http://127.0.0.1:${port}`;
     const javaExecutable = executableFromHome("JAVA_HOME", isWindows ? "java.exe" : "java");
 
-    javaServer = spawn(
-        javaExecutable,
-        ["-cp", classpath, "com.kniazkov.widgets.e2e.E2ETestServer", String(port)],
-        {
+    async function launch(className) {
+        const port = await findFreePort();
+        const baseURL = `http://127.0.0.1:${port}`;
+        const process = spawn(javaExecutable, ["-cp", classpath, className, String(port)], {
             cwd: projectRoot,
             stdio: "inherit",
             windowsHide: true
-        }
-    );
-    javaServer.once("error", error => {
-        console.error("Unable to start the Java E2E server:", error);
-    });
+        });
+        process.once("error", error => {
+            console.error("Unable to start the Java E2E server:", error);
+        });
+        return { process, baseURL };
+    }
 
+    let primary;
+    let upload;
     try {
-        await waitForServer(baseURL);
+        primary = await launch("com.kniazkov.widgets.e2e.E2ETestServer");
+        await waitForServer(primary.baseURL, primary.process);
+        upload = await launch("com.kniazkov.widgets.e2e.UploadBoundaryServer");
+        await waitForServer(upload.baseURL, upload.process);
         await run(
             process.execPath,
             [join(projectRoot, "node_modules", "@playwright", "test", "cli.js"), "test"],
             {
                 env: {
                     ...process.env,
-                    WIDGETS_E2E_BASE_URL: baseURL
+                    WIDGETS_E2E_BASE_URL: primary.baseURL,
+                    WIDGETS_UPLOAD_LIMIT_BASE_URL: upload.baseURL
                 }
             }
         );
     } finally {
-        await stopServer();
+        await Promise.all([stopServer(primary?.process), stopServer(upload?.process)]);
     }
 }
 

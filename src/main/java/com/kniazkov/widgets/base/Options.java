@@ -607,7 +607,8 @@ public final class Options {
         }
 
         /**
-         * Sets the binary upload chunk size.
+         * Sets the binary upload chunk size. The HTTP server budgets the multipart envelope
+         * separately. A complete file may be smaller than the chunk size.
          *
          * @param value positive chunk size in bytes
          * @return this builder
