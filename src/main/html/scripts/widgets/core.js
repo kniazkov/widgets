@@ -508,6 +508,7 @@ function setHiddenFlag(data) {
     if (widget && typeof flag == "boolean") {
         if (flag) widget._closeSuggestions?.();
         widget.style.display = flag ? "none" : widget._display;
+        widget._setBackdropHidden?.(flag);
         log("The widget " + data.widget + " is" + (flag ? "" : " not") + " hidden.");
         return true;
     }

@@ -71,6 +71,29 @@ public final class PopupTest {
     }
 
     /**
+     * Verifies the modal's reactive hidden state and matching protocol updates.
+     */
+    @Test
+    public void modalPopupVisibilityIsReactive() {
+        final ModalPopupStyle style = ModalPopupStyle.DEFAULT.derive();
+        style.hide();
+        final ModalPopup popup = new ModalPopup(style);
+        assertTrue(popup.isHidden());
+        final WidgetSandbox<ModalPopup> sandbox = WidgetSandbox.open(popup);
+
+        sandbox.clearUpdates();
+        popup.show();
+        popup.hide();
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set hidden", popup
+        );
+        assertEquals(2, updates.size());
+        assertFalse(updates.get(0).get("hidden").booleanValue());
+        assertTrue(updates.get(1).get("hidden").booleanValue());
+        assertTrue(style.isHidden());
+    }
+
+    /**
      * Verifies the one- and two-button message layouts.
      */
     @Test

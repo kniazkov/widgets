@@ -18,6 +18,7 @@ export default defineConfig({
                 "event-validation.spec.js",
                 "event-ack.spec.js",
                 "live-event-targets.spec.js",
+                "modal-visibility.spec.js",
                 "upload-lifecycle.spec.js"
             ],
             use: { browserName: "webkit" }

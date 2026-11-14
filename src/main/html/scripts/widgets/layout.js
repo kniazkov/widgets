@@ -6,7 +6,7 @@ function setWidth(data) {
     const widget = widgets[data.widget];
     const value = data.width;
     if (widget && typeof value == "string") {
-        widget.style.width = value;
+        widget.style.width = value || widget._defaultWidth || "";
         log("The width of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
@@ -37,7 +37,7 @@ function setHeight(data) {
     const widget = widgets[data.widget];
     const value = data.height;
     if (widget && typeof value == "string") {
-        widget.style.height = value;
+        widget.style.height = value || widget._defaultHeight || "";
         log("The height of the widget " + data.widget + ' has been set to "' + value + '".');
         return true;
     }
