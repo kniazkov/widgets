@@ -614,6 +614,58 @@
         235
       ],
       "sha256": "030e33bc307445a9a0438c476fff7018ca63dde25ad3d3ca5db70e7595e36185"
+    },
+    "semantics-desktop": {
+      "file": "semantics-desktop.png",
+      "title": "Shared accessibility semantics",
+      "states": "Фокус иконки, отключённое действие, информативная/декоративная картинки и поле с ошибкой.",
+      "sourceScreenshot": "R11/desktop-open.jpg",
+      "crop": [
+        30,
+        235,
+        665,
+        366
+      ],
+      "sha256": "248ecc5c79e276b5fa6376dbd4321853eab1e1af6c61330b56589d33dde13866"
+    },
+    "semantics-field-updated": {
+      "file": "semantics-field-updated.png",
+      "title": "Shared accessibility semantics",
+      "states": "Подпись поля изменена, после валидации ошибка исчезла.",
+      "sourceScreenshot": "R11/desktop-restored.jpg",
+      "crop": [
+        43,
+        248,
+        527,
+        142
+      ],
+      "sha256": "fd5141760a9dc3a6b55fabaf5e9717b440fb9639510776d47b958b362a257e00"
+    },
+    "semantics-icon-mobile": {
+      "file": "semantics-icon-mobile.png",
+      "title": "Shared accessibility semantics",
+      "states": "Иконка и отключённое действие на ширине 320 px.",
+      "sourceScreenshot": "R11/mobile-open.jpg",
+      "crop": [
+        26,
+        130,
+        253,
+        500
+      ],
+      "sha256": "16232db231230c778b24f9a1429b96bb921c5314a06052cb4904a03cffb5338a"
+    },
+    "semantics-field-mobile": {
+      "file": "semantics-field-mobile.png",
+      "title": "Shared accessibility semantics",
+      "states": "Декоративная картинка и поле с подсказкой и ошибкой на ширине 320 px.",
+      "sourceScreenshot": "R11/mobile-restored.jpg",
+      "crop": [
+        27,
+        161,
+        251,
+        381
+      ],
+      "sha256": "3b50003bd92256dcbcb25c27cee8bd0238f861fb7eeb608f0aaa9408f316e4b2"
     }
   },
   "widgets": {
@@ -627,7 +679,8 @@
       "horizontal-line"
     ],
     "TextWidget": [
-      "text-widget"
+      "text-widget",
+      "semantics-desktop"
     ],
     "Markdown": [
       "markdown"
@@ -642,7 +695,10 @@
       "link"
     ],
     "InputField": [
-      "input-field"
+      "input-field",
+      "semantics-desktop",
+      "semantics-field-updated",
+      "semantics-field-mobile"
     ],
     "SuggestionField": [
       "suggestion-field",
@@ -676,13 +732,17 @@
       "drop-down-list"
     ],
     "Button": [
-      "button"
+      "button",
+      "semantics-desktop",
+      "semantics-icon-mobile"
     ],
     "FileLoader": [
       "file-loader"
     ],
     "ImageWidget": [
-      "image-widget"
+      "image-widget",
+      "semantics-desktop",
+      "semantics-field-mobile"
     ],
     "ActiveImage": [
       "active-image"

@@ -31,6 +31,7 @@ import com.kniazkov.widgets.view.CheckBoxWithText;
 import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.HeadingLevel;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.ImageWidgetStyle;
 import com.kniazkov.widgets.view.InlineBlock;
@@ -195,6 +196,7 @@ public class AllWidgets {
         addLabeledChoices(root);
         addDropDownLists(root);
         addButtons(root);
+        addAccessibleSemantics(root);
         addPopups(root);
         addFileLoaders(root);
         addImages(root);
@@ -313,9 +315,11 @@ public class AllWidgets {
         final Panel panel = new Panel(cardStyle());
         panel.setMargin(24, 24, 24, 12);
         root.add(panel);
-        panel.add(new Section(new TextWidget(
+        final TextWidget heading = new TextWidget(
             textStyle(TEXT, "30px", FontWeight.BOLD), "All widgets"
-        )));
+        );
+        heading.setHeadingLevel(HeadingLevel.H1);
+        panel.add(new Section(heading));
         panel.add(new Section(new TextWidget(
             textStyle(MUTED, "15px", FontWeight.NORMAL),
             "A gallery of visible widgets, their states and common variations."
@@ -739,7 +743,7 @@ public class AllWidgets {
         final TextWidget customResult = feedback("Not clicked yet");
         custom.onClick(event -> customResult.setText("Custom action clicked"));
         row.add(variant("Fully custom", custom, customResult));
-        final Button icon = new Button(ButtonStyle.PRIMARY, addIcon());
+        final Button icon = Button.icon(ButtonStyle.PRIMARY, addIcon(), "Add item");
         final TextWidget iconResult = feedback("Not clicked yet");
         icon.onClick(event -> iconResult.setText("Icon action clicked"));
         row.add(variant("Image child", icon, iconResult));
@@ -920,6 +924,88 @@ public class AllWidgets {
     }
 
     /**
+     * Shows accessible relationships, image alternatives and native icon buttons.
+     * @param root gallery root
+     */
+    private static void addAccessibleSemantics(final RootWidget root) {
+        final Panel card = addCard(root, "Accessible widgets",
+            "Named icon actions, linked field text and decorative images.");
+        final Section row = variantRow();
+        card.add(row);
+        final Button refresh = Button.icon(accessibilityIcon(), "Refresh preview");
+        final Button unavailable = Button.icon(accessibilityIcon(), "Refresh unavailable");
+        unavailable.disable();
+        final TextWidget status = feedback("Preview not refreshed");
+        final AtomicInteger count = new AtomicInteger();
+        refresh.onClick(event -> status.setText("Refresh count: " + count.incrementAndGet()));
+        row.add(variant("Icon action", refresh, status));
+        row.add(variant("Disabled action", unavailable));
+
+        final ImageWidget informative = new ImageWidget(demoImage("#2563eb", "#1e40af", "N"));
+        informative.setWidth(64);
+        informative.setHeight(64);
+        informative.setAlternativeText("North marker");
+        final ImageWidget decorative = new ImageWidget(demoImage("#059669", "#047857", "✦"));
+        decorative.setWidth(64);
+        decorative.setHeight(64);
+        decorative.setDecorative(true);
+        row.add(variant("Informative image", informative));
+        row.add(variant("Decorative image", decorative));
+        addAccessibleField(card);
+    }
+
+    /**
+     * Creates a small decorative icon for a native button.
+     * @return image shown inside the button
+     */
+    private static ImageWidget accessibilityIcon() {
+        final ImageWidget icon = new ImageWidget(new SvgImageSource() {
+            @Override
+            protected String getSvg() {
+                return "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' "
+                    + "viewBox='0 0 20 20'><path d='M16 8a6 6 0 1 0 0 4M16 4v4h-4' "
+                    + "fill='none' stroke='#1d4ed8' stroke-width='2' "
+                    + "stroke-linecap='round' stroke-linejoin='round'/></svg>";
+            }
+        });
+        icon.setWidth(20);
+        icon.setHeight(20);
+        return icon;
+    }
+
+    /**
+     * Demonstrates reactive accessible name, help and validation error references.
+     * @param card enclosing gallery panel
+     */
+    private static void addAccessibleField(final Panel card) {
+        final TextWidget label = new TextWidget("Delivery code");
+        final TextWidget help = new TextWidget("Use four digits.");
+        final TextWidget error = new TextWidget("The code is incomplete.");
+        final InputField field = new InputField();
+        field.setAccessibleName("Shipping code");
+        field.setMaxWidth("100%");
+        field.setAccessibleLabel(label);
+        field.setAccessibleDescriptionWidget(help);
+        field.setAccessibleError(error);
+        field.setValidState(false);
+        card.add(new Section(label));
+        card.add(new Section(field));
+        card.add(new Section(help));
+        card.add(new Section(error));
+        final Button rename = new Button("Rename field label");
+        rename.onClick(event -> label.setText("Updated delivery code"));
+        final Button remove = new Button("Remove field label");
+        remove.onClick(event -> label.dispose());
+        final Button valid = new Button("Toggle field validity");
+        valid.onClick(event -> {
+            final boolean nowValid = !field.isValid();
+            field.setValidState(nowValid);
+            error.setText(nowValid ? "" : "The code is incomplete.");
+        });
+        card.add(new Section(rename, remove, valid));
+    }
+
+    /**
      * Adds file loader variations and upload feedback.
      *
      * @param root page root
@@ -1059,9 +1145,11 @@ public class AllWidgets {
         final Panel card = new Panel(cardStyle());
         card.setMargin(24, 12);
         root.add(card);
-        card.add(new Section(new TextWidget(
+        final TextWidget heading = new TextWidget(
             textStyle(TEXT, "22px", FontWeight.BOLD), title
-        )));
+        );
+        heading.setHeadingLevel(HeadingLevel.H2);
+        card.add(new Section(heading));
         final Section descriptionLine = new Section(new TextWidget(
             textStyle(MUTED, "14px", FontWeight.NORMAL), description
         ));

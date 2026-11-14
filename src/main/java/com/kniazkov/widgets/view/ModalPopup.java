@@ -3,7 +3,6 @@
  */
 package com.kniazkov.widgets.view;
 
-import com.kniazkov.widgets.model.Model;
 
 /**
  * A popup window with a backdrop that blocks interaction with the underlying page.
@@ -14,7 +13,7 @@ import com.kniazkov.widgets.model.Model;
  * description for screen readers. The frontmost modal owns keyboard focus until it closes.
  */
 public class ModalPopup extends Popup
-        implements HasBackdropColor, HasCloseOnOutsideClick, HasHiddenState, HasAccessibleName {
+        implements HasBackdropColor, HasCloseOnOutsideClick, HasHiddenState {
     /**
      * Returns the global default modal popup style.
      *
@@ -73,22 +72,6 @@ public class ModalPopup extends Popup
      */
     public final void setCloseOnEscape(final boolean enabled) {
         this.getModel(State.ANY, Property.CLOSE_ON_ESCAPE).setData(enabled);
-    }
-
-    /**
-     * Returns the plain-text description model.
-     * @return description model
-     */
-    public final Model<String> getAccessibleDescriptionModel() {
-        return this.getModel(State.ANY, Property.ACCESSIBLE_DESCRIPTION);
-    }
-
-    /**
-     * Assigns a plain-text description; empty text removes it.
-     * @param description accessible description
-     */
-    public final void setAccessibleDescription(final String description) {
-        this.getAccessibleDescriptionModel().setData(description);
     }
 
     @Override

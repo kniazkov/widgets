@@ -250,7 +250,9 @@ const widgetsLibrary = {
     countdown: createCountdown,
     markdown: createMarkdown,
     text: function () {
-        return document.createElement("span");
+        const widget = document.createElement("span");
+        widget._headingCapable = true;
+        return widget;
     },
     "active text": function () {
         const widget = document.createElement("span");
@@ -349,10 +351,13 @@ const widgetsLibrary = {
         return widget;
     },
     image: function () {
-        return document.createElement("img");
+        const widget = document.createElement("img");
+        widget.alt = "";
+        return widget;
     },
     "active image": function () {
         const widget = document.createElement("img");
+        widget.alt = "";
         widget._sources = {
             normal: "#",
             hovered: "#",
@@ -546,6 +551,8 @@ function setValidFlag(data) {
     const flag = data.valid;
     if (widget && typeof flag == "boolean") {
         widget._states.invalid = !flag;
+        assignSemanticAttribute(widget, "aria-invalid", flag ? null : "true");
+        if (widget._accessibleReferences) refreshAccessibleRelationsFor(widget);
         log(
             "The widget " +
                 data.widget +

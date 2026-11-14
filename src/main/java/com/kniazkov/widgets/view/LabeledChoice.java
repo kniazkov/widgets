@@ -39,6 +39,11 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
         }
     };
 
+    @Override
+    protected final Widget<?> accessibleTarget() {
+        return this.control;
+    }
+
     /**
      * Builds the composition without copying the supplied models.
      * @param control selection control

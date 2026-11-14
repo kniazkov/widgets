@@ -281,11 +281,7 @@ function refreshModalStack(activation = null) {
         else modal.removeAttribute("aria-modal");
         if (coveredAncestor) modal.removeAttribute("aria-label");
         else modal.setAttribute("aria-label", modal._modalAccessibleName || "Dialog");
-        if (!coveredAncestor && modal._modalDescription) {
-            modal.setAttribute("aria-describedby", modal._modalDescription.id);
-        } else {
-            modal.removeAttribute("aria-describedby");
-        }
+        refreshAccessibleRelationsFor(modal);
     }
     if (previous && !modals.includes(previous)) previous.removeAttribute("aria-modal");
     if (top && !modalListeners) {
@@ -358,22 +354,15 @@ function setModalAccessibleDescription(data) {
             widget._modalDescription = label;
         }
         widget._modalDescription.textContent = description.trim();
-        if (widget.getAttribute("role") !== "presentation") {
-            widget.setAttribute("aria-describedby", widget._modalDescription.id);
-        }
     } else {
-        widget.removeAttribute("aria-describedby");
         widget._modalDescription?.remove();
         widget._modalDescription = null;
     }
+    refreshAccessibleRelationsFor(widget);
     return true;
 }
 
-function setWidgetAccessibleName(data) {
-    const widget = widgets[data.widget];
-    const name = data["accessible name"];
-    if (!widget?._backdrop) return setChoiceAccessibleName(data);
-    if (typeof name !== "string") return false;
+function setModalAccessibleName(widget, name) {
     widget._modalAccessibleName = name.trim();
     if (widget.getAttribute("role") !== "presentation") {
         widget.setAttribute("aria-label", widget._modalAccessibleName || "Dialog");

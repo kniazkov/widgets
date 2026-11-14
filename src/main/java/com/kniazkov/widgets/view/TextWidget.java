@@ -64,6 +64,14 @@ public class TextWidget extends InlineWidget<TextWidgetStyle> implements HasStyl
         this.setTextModel(model);
     }
 
+    /**
+     * Changes heading semantics without changing the text widget's typography or layout.
+     * @param level heading level, or {@link HeadingLevel#PLAIN} for ordinary text
+     */
+    public final void setHeadingLevel(final HeadingLevel level) {
+        this.getModel(State.ANY, Property.HEADING_LEVEL).setData(level.getValue());
+    }
+
     @Override
     public String getType() {
         return "text";
