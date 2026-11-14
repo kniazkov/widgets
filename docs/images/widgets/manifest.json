@@ -510,6 +510,58 @@
         365
       ],
       "sha256": "d5db360d77bdf56d0e10f319e06b468283a679d1e7118b4ed90caaab397915cc"
+    },
+    "checkbox-keyboard-focus": {
+      "file": "checkbox-keyboard-focus.png",
+      "title": "CheckBox",
+      "states": "Клавиатурный фокус на CheckBox после Space; справа виден disabled.",
+      "sourceScreenshot": "desktop-open.jpg",
+      "crop": [
+        26,
+        247,
+        505,
+        205
+      ],
+      "sha256": "74e5111beaa9771606b5a4c598bfb0fef3b0642f88e80f24a3142c1f3f6f8235"
+    },
+    "radio-keyboard-focus": {
+      "file": "radio-keyboard-focus.png",
+      "title": "RadioButton",
+      "states": "Выбранная стрелкой радиокнопка в фокусе; справа виден disabled.",
+      "sourceScreenshot": "desktop-restored.jpg",
+      "crop": [
+        26,
+        462,
+        565,
+        181
+      ],
+      "sha256": "747ad08bd3bb773da75a66aea6d28b6aa8470e5be7bb75d18244d31a4cff8218"
+    },
+    "labeled-choices-320": {
+      "file": "labeled-choices-320.png",
+      "title": "CheckBoxWithText / RadioButtonWithText",
+      "states": "На ширине 320 px длинная подпись переносится рядом с фокусом.",
+      "sourceScreenshot": "mobile-open.jpg",
+      "crop": [
+        32,
+        78,
+        242,
+        270
+      ],
+      "sha256": "091a27982ed14e759f9ea01d040971f0e5f817564cb3c85ca212860b19ce9150"
+    },
+    "labeled-choices-200-percent": {
+      "file": "labeled-choices-200-percent.png",
+      "title": "CheckBoxWithText / RadioButtonWithText",
+      "states": "При масштабе 200% подпись читается целиком, рамка фокуса видна.",
+      "sourceScreenshot": "mobile-restored.jpg",
+      "crop": [
+        29,
+        52,
+        518,
+        243
+      ],
+      "sha256": "b099a1795ba3ea438f742b203951ef3d8f97a3dcd6900956f5e0d567ff9950b2"
     }
   },
   "widgets": {
@@ -551,16 +603,22 @@
       "text-area"
     ],
     "CheckBox": [
-      "check-box"
+      "check-box",
+      "checkbox-keyboard-focus"
     ],
     "RadioButton": [
-      "radio-button"
+      "radio-button",
+      "radio-keyboard-focus"
     ],
     "CheckBoxWithText": [
-      "labeled-choices"
+      "labeled-choices",
+      "labeled-choices-320",
+      "labeled-choices-200-percent"
     ],
     "RadioButtonWithText": [
-      "labeled-choices"
+      "labeled-choices",
+      "labeled-choices-320",
+      "labeled-choices-200-percent"
     ],
     "DropDownList": [
       "drop-down-list"
@@ -638,6 +696,17 @@
     "viewports": [
       "1165 × 747",
       "390 × 680"
+    ],
+    "method": "Real cloud browser screenshots, cropped without retouching or resizing."
+  },
+  "choiceAccessibilityCapture": {
+    "date": "2026-11-14",
+    "page": "AllWidgets /all-widgets",
+    "browser": "Cloud Chromium",
+    "viewports": [
+      "1165 × 747",
+      "320 × 680",
+      "583 × 374 (browser zoom 200%)"
     ],
     "method": "Real cloud browser screenshots, cropped without retouching or resizing."
   }

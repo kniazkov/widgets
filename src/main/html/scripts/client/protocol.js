@@ -172,6 +172,8 @@ const actionHandlers = {
     "set sticky side": setStickySide,
     "set cell spacing": setCellSpacing,
     "set checked": setCheckedFlag,
+    "set accessible name": setChoiceAccessibleName,
+    "set radio group": setRadioGroupName,
     "set multiple input": setMultipleInput,
     "set accepted files": setAcceptedFiles
 };

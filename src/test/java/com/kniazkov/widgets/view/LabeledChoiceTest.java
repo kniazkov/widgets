@@ -81,6 +81,8 @@ public final class LabeledChoiceTest {
             assertFalse(choice.isChecked());
             disabled.setData(false);
             choice.getTextWidget().getController(Event.CLICK).handleEvent(null);
+            assertFalse(choice.isChecked());
+            choice.check();
             assertTrue(choice.isChecked());
             assertEquals(Color.RED, choice.getTextWidget().getColor());
             final BooleanModel replacement = new BooleanModel(true);
@@ -96,20 +98,24 @@ public final class LabeledChoiceTest {
     }
 
     /**
-     * Caption clicks toggle checkboxes, while radio captions obey group exclusivity.
+     * The native control, not the caption event, owns changes to the model.
      */
     @Test
-    public void captionActionsMatchTheirSelectionControls() {
+    public void captionsDoNotDuplicateNativeChangeEvents() {
         final CheckBoxWithText checkbox = new CheckBoxWithText("News");
+        final CheckBox control = checkbox.getCheckBox();
+        final var data = new com.kniazkov.json.JsonObject();
+        data.addBoolean("state", true);
+        final WidgetSandbox<CheckBoxWithText> sandbox = WidgetSandbox.open(checkbox);
+        control.handleEvent(Event.CHECK, data);
         checkbox.getTextWidget().getController(Event.CLICK).handleEvent(null);
         assertTrue(checkbox.isChecked());
-        checkbox.getTextWidget().getController(Event.CLICK).handleEvent(null);
-        assertFalse(checkbox.isChecked());
+        assertFalse(sandbox.drainUpdates().isEmpty());
         final RadioButtonWithText first = new RadioButtonWithText("First");
         final RadioButtonWithText second = new RadioButtonWithText("Second");
         try (RadioGroup group = new RadioGroup(first.getRadioButton(), second.getRadioButton())) {
             first.check();
-            second.getTextWidget().getController(Event.CLICK).handleEvent(null);
+            second.getRadioButton().handleEvent(Event.CHECK, data);
             assertFalse(first.isChecked());
             assertTrue(second.isChecked());
             second.getTextWidget().getController(Event.CLICK).handleEvent(null);
@@ -122,4 +128,5 @@ public final class LabeledChoiceTest {
             assertEquals(2, group.getButtons().size());
         }
     }
+
 }

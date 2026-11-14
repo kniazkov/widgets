@@ -272,9 +272,11 @@ public final class E2ETestServer {
             final CheckBoxWithText box = new CheckBoxWithText("Receive news");
             final RadioButtonWithText first = new RadioButtonWithText("Delivery");
             final RadioButtonWithText second = new RadioButtonWithText("Pickup");
+            final RadioButtonWithText unavailable = new RadioButtonWithText("Unavailable option");
+            unavailable.disable();
             first.check();
             new com.kniazkov.widgets.view.RadioGroup(
-                first.getRadioButton(), second.getRadioButton());
+                first.getRadioButton(), unavailable.getRadioButton(), second.getRadioButton());
             final com.kniazkov.widgets.model.BooleanModel disabled =
                 new com.kniazkov.widgets.model.BooleanModel(false);
             box.setDisabledStateModel(disabled);
@@ -282,6 +284,7 @@ public final class E2ETestServer {
             second.setDisabledStateModel(disabled);
             root.add(new Section(box));
             root.add(new Section(first));
+            root.add(new Section(unavailable));
             root.add(new Section(second));
             final Button toggle = new Button("Toggle disabled");
             toggle.onClick(event -> disabled.setData(!disabled.getData()));

@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * Coordinates checked-state models of radio buttons so that at most one is selected.
@@ -49,6 +50,11 @@ public final class RadioGroup implements AutoCloseable {
      * Buttons in insertion order and their model subscriptions.
      */
     private final Map<RadioButton, Membership> buttons = new LinkedHashMap<>();
+
+    /**
+     * Stable identity for the browser's native grouping.
+     */
+    private final String clientName = UUID.randomUUID().toString();
 
     /**
      * Prevents notifications caused by clearing peers from recursively restarting selection.
@@ -94,6 +100,14 @@ public final class RadioGroup implements AutoCloseable {
         if (model.getData()) {
             this.changed(item, true);
         }
+    }
+
+    /**
+     * Returns this group's stable native identity.
+     * @return client-side group name
+     */
+    String clientName() {
+        return this.clientName;
     }
 
     /**

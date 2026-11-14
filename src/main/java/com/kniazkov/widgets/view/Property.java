@@ -747,6 +747,16 @@ public abstract class Property<T> {
     public static final Property<Boolean> CHECKED = boolProperty("checked");
 
     /**
+     * Accessible name of a choice without a visible label.
+     */
+    public static final Property<String> ACCESSIBLE_NAME = stringProperty("accessible name");
+
+    /**
+     * Internal identity of the primary native radio group.
+     */
+    static final Property<String> RADIO_GROUP = stringProperty("radio group");
+
+    /**
      * Property controlling whether a widget accepts multiple selections.
      */
     public static final Property<Boolean> MULTIPLE_INPUT = boolProperty("multiple input");

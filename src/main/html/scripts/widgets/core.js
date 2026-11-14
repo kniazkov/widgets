@@ -12,6 +12,112 @@ function listenWidget(widget, type, listener, options, target = widget) {
     target.addEventListener(type, listener, { ...config, signal: widget._listenerScope.signal });
 }
 
+// Native state drives both browser accessibility and the existing SVG artwork.
+function createChoice(type) {
+    const widget = document.createElement("input");
+    widget.type = type;
+    widget.className = "widgets-choice";
+    widget._choiceType = type;
+    widget._selected = false;
+    widget._selSrc = "#";
+    widget._unselSrc = "#";
+    widget._usesSvgColors = true;
+    widget._refreshChoiceName = () => {
+        const name =
+            widget._choiceName?.trim() ||
+            (!widget._choiceLabel?.textContent.trim()
+                ? type === "radio"
+                    ? "Radio button"
+                    : "Checkbox"
+                : "");
+        if (name) widget.setAttribute("aria-label", name);
+        else widget.removeAttribute("aria-label");
+    };
+    widget._refresh = () => {
+        widget._selected = widget.checked;
+        const source = widget.checked ? widget._selSrc : widget._unselSrc;
+        const image =
+            source === "#"
+                ? ""
+                : replaceColorsInSvg(
+                      source,
+                      getWidgetProperty(widget, "color"),
+                      getWidgetProperty(widget, "backgroundColor")
+                  );
+        widget.style.backgroundImage = image ? "url(" + JSON.stringify(image) + ")" : "";
+        return true;
+    };
+    widget._refreshChoiceName();
+    widget._onAttached = () => {
+        widget.parentElement?._layoutChild?.();
+        refreshChoiceGroup(widget);
+    };
+    widget._onDetached = () => {
+        widget._choiceLabel = null;
+        widget._refreshChoiceName();
+    };
+    initPointerEvents(widget, true);
+    initFocusEvents(widget);
+    listenWidget(widget, "change", () => {
+        if (widget.disabled) return;
+        refreshChoiceGroup(widget);
+        sendEventToServer(widget, "check", { state: widget.checked });
+    });
+    if (type === "radio") {
+        listenWidget(widget, "keydown", event => navigateRadioChoices(widget, event));
+    }
+    return widget;
+}
+
+// Native tab stops remain intact; the arrow handler normalizes wrapping across engines.
+function navigateRadioChoices(widget, event) {
+    let direction;
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") direction = -1;
+    else if (event.key === "ArrowRight" || event.key === "ArrowDown") direction = 1;
+    else return;
+    if (
+        event.defaultPrevented ||
+        !widget.name ||
+        widget.disabled ||
+        event.altKey ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.shiftKey
+    )
+        return;
+    const peers = Array.from(widget.getRootNode().querySelectorAll('input[type="radio"]')).filter(
+        peer =>
+            peer._choiceType === "radio" &&
+            peer.name === widget.name &&
+            !peer.disabled &&
+            peer.getClientRects().length > 0 &&
+            getComputedStyle(peer).visibility === "visible"
+    );
+    const index = peers.indexOf(widget);
+    if (index < 0) return;
+    event.preventDefault();
+    if (peers.length < 2) return;
+    const next = peers[(index + direction + peers.length) % peers.length];
+    next.focus();
+    next.click();
+}
+
+function refreshChoiceGroup(widget) {
+    widget._refresh();
+    if (widget.type !== "radio" || !widget.name || !widget.isConnected) return;
+    for (const peer of Object.values(widgets)) {
+        if (
+            peer !== widget &&
+            peer._choiceType === "radio" &&
+            peer.name === widget.name &&
+            peer.isConnected &&
+            peer._selected !== peer.checked
+        ) {
+            peer._refresh();
+        }
+    }
+}
+
 // Protocol widget type names map to factories that initialize the matching DOM element.
 const widgetsLibrary = {
     root: function () {
@@ -21,7 +127,29 @@ const widgetsLibrary = {
         const widget = widgetsLibrary.section();
         widget.className = "widgets-labeled-choice-row";
         widget.style.flexWrap = "nowrap";
+        widget._layoutChild = () => {
+            const control = Array.from(widget.children).find(child => child._choiceType);
+            const label = Array.from(widget.children).find(child => child._choiceLabelElement);
+            if (!control || !label) return;
+            label.htmlFor = control.id;
+            label._choiceWidgetId = control._id;
+            control._choiceLabel = label;
+            control._refreshChoiceName();
+        };
         return widget;
+    },
+    "choice label": function () {
+        const label = document.createElement("label");
+        label._choiceLabelElement = true;
+        label._onDetached = () => {
+            const control = widgets[label._choiceWidgetId];
+            if (control?._choiceLabel === label) {
+                control._choiceLabel = null;
+                control._refreshChoiceName();
+            }
+        };
+        label._onAttached = () => label.parentElement?._layoutChild?.();
+        return label;
     },
     "text flow": function () {
         const widget = document.createElement("div");
@@ -316,60 +444,8 @@ const widgetsLibrary = {
     "margin decorator": function () {
         return document.createElement("span");
     },
-    checkbox: function () {
-        const widget = document.createElement("img");
-        widget._selected = false;
-        widget._selSrc = "#";
-        widget._unselSrc = "#";
-        widget._usesSvgColors = true;
-        widget._refresh = function () {
-            const color = getWidgetProperty(widget, "color");
-            const bgColor = getWidgetProperty(widget, "backgroundColor");
-            if (widget._selected) {
-                widget.src = replaceColorsInSvg(widget._selSrc, color, bgColor);
-            } else {
-                widget.src = replaceColorsInSvg(widget._unselSrc, color, bgColor);
-            }
-            return true;
-        };
-        initPointerEvents(widget, true);
-        widget._onClick = function () {
-            if (widget._states.disabled) {
-                return;
-            }
-            widget._selected = !widget._selected;
-            widget._refresh();
-            sendEventToServer(widget, "check", { state: widget._selected });
-        };
-        return widget;
-    },
-    "radio button": function () {
-        const widget = document.createElement("img");
-        widget._selected = false;
-        widget._selSrc = "#";
-        widget._unselSrc = "#";
-        widget._usesSvgColors = true;
-        widget._refresh = function () {
-            const color = getWidgetProperty(widget, "color");
-            const bgColor = getWidgetProperty(widget, "backgroundColor");
-            if (widget._selected) {
-                widget.src = replaceColorsInSvg(widget._selSrc, color, bgColor);
-            } else {
-                widget.src = replaceColorsInSvg(widget._unselSrc, color, bgColor);
-            }
-            return true;
-        };
-        initPointerEvents(widget, true);
-        widget._onClick = function () {
-            if (widget._states.disabled || widget._selected) {
-                return;
-            }
-            widget._selected = true;
-            widget._refresh();
-            sendEventToServer(widget, "check", { state: true });
-        };
-        return widget;
-    }
+    checkbox: () => createChoice("checkbox"),
+    "radio button": () => createChoice("radio")
 };
 
 // State precedence must stay aligned with refreshWidget so custom renderers see the same value.
@@ -380,7 +456,7 @@ function getWidgetProperty(widget, name) {
     if (states.hovered) {
         value = properties.hovered[name];
     }
-    if (states.focused) {
+    if (states.focused && Object.hasOwn(properties.focused, name)) {
         value = properties.focused[name];
     }
     if (states.active) {
@@ -437,6 +513,7 @@ function createWidget(data) {
     if (widgets[id]) return true;
     const widget = ctor();
     widget._id = id;
+    if (widget._choiceType) widget.id = "widgets-choice-" + id;
     widget._events = {};
     widget._clientActions = {};
     widget._properties = {

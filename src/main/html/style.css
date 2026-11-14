@@ -164,3 +164,33 @@ input::placeholder {
 .widgets-markdown hr { border: 0; border-top: 1px solid currentColor; }
 .widgets-markdown > :first-child { margin-top: 0; }
 .widgets-markdown > :last-child, .widgets-markdown blockquote > :last-child { margin-bottom: 0; }
+
+
+/* Native selection behavior with existing Widgets artwork and visible keyboard focus. */
+input.widgets-choice {
+    appearance: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: middle;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 100% 100%;
+}
+
+input.widgets-choice:focus-visible {
+    outline: 2px solid #1d4ed8 !important;
+    outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+    input.widgets-choice {
+        appearance: auto;
+        background-image: none !important;
+    }
+
+    input.widgets-choice:focus-visible {
+        outline-color: Highlight !important;
+    }
+}
