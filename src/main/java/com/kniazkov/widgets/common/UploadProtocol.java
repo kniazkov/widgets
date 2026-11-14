@@ -37,6 +37,15 @@ public final class UploadProtocol {
     }
 
     /**
+     * @return negative acknowledgement for a full processing queue
+     */
+    public static JsonObject processingBusy() {
+        final JsonObject response = createRejected();
+        response.addString("uploadError", "processingBusy");
+        return response;
+    }
+
+    /**
      * Creates the singleton during class initialization.
      */
     private static JsonObject createRejected() {

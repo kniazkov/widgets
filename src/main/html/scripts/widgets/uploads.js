@@ -40,6 +40,8 @@ function showUploadError(code, limitBytes) {
     } else if (code === "requestTooLarge") {
         uploadErrorNotice.textContent =
             "The server rejected this upload because the request is too large.";
+    } else if (code === "processingBusy") {
+        uploadErrorNotice.textContent = "File processing is busy. Select the file again later.";
     } else if (code === "invalidFileName") {
         uploadErrorNotice.textContent =
             "File name is not supported. Use at most 255 characters without path separators.";
@@ -319,7 +321,9 @@ function sendNextUploadChunk() {
                 return;
             }
             if (receipt.result === false) {
-                const code = ["chunkTooLarge", "requestTooLarge"].includes(receipt.uploadError)
+                const code = ["chunkTooLarge", "requestTooLarge", "processingBusy"].includes(
+                    receipt.uploadError
+                )
                     ? receipt.uploadError
                     : "rejected";
                 showUploadError(code, receipt.limitBytes);

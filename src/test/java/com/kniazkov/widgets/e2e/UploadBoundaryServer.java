@@ -7,10 +7,12 @@ import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.base.StaticSource;
+import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.net.InetAddress;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Dedicated browser fixture for the largest supported upload chunk and a one-chunk file limit.
@@ -41,20 +43,50 @@ public final class UploadBoundaryServer {
             final FileLoader loader = new FileLoader("Upload sample file");
             loader.onSelect(descriptor -> {
                 result.setText("Selected " + descriptor.getName());
-                descriptor.onLoad(file -> result.setText(
+                descriptor.onLoad(file -> descriptor.executeOnRoot(() -> result.setText(
                     "Loaded " + file.getName() + " (" + file.getSize() + " bytes)"
-                ));
+                )));
             });
             root.add(new Section(loader));
             root.add(new Section(result));
         });
+        addQueuePage(app);
         Server.start(app, new Options.Builder()
             .setPort(Integer.parseInt(args[0]))
+            .setUploadProcessing(1, 1)
             .setBindAddress(InetAddress.getLoopbackAddress())
             .setChunkSize(MEBIBYTE)
             .setMaxFileSize(MEBIBYTE)
             .addStaticSource(StaticSource.classpath(
                 "/upload-fixture", UploadBoundaryServer.class, "/upload-boundary"))
             .build());
+    }
+
+    /**
+     * Uses one worker plus one queue slot and an explicit, user-controlled release.
+     *
+     * @param app local test server application
+     */
+    private static void addQueuePage(final Application app) {
+        app.addPage("bounded-processing-queue", (root, context) -> {
+            final CountDownLatch release = new CountDownLatch(1);
+            root.onClose(release::countDown);
+            final var status = new TextWidget("No callback running");
+            final var releaseButton = new Button("Release processor");
+            releaseButton.onClick(event -> release.countDown());
+            final var loader = new FileLoader("Choose queue sample");
+            loader.setMultipleInputFlag(true);
+            loader.onSelect(descriptor -> descriptor.onLoad(file -> {
+                descriptor.executeOnRoot(() -> status.setText("Active " + file.getName()));
+                try {
+                    release.await();
+                } catch (final InterruptedException stopped) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                descriptor.executeOnRoot(() -> status.setText("Processed " + file.getName()));
+            }));
+            root.add(new Section(loader, releaseButton, status));
+        });
     }
 }

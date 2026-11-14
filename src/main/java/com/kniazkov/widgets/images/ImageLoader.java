@@ -13,7 +13,11 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Locale;
+import java.util.Objects;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.MemoryCacheImageInputStream;
 import openize.heic.decoder.HeicImage;
 import openize.heic.decoder.PixelFormat;
 import openize.io.IOSeekMode;
@@ -41,88 +45,141 @@ public final class ImageLoader {
      * @throws IOException if an error occurs during reading or decoding the image
      */
     public static BufferedImage load(final String type, final byte[] data) throws IOException {
-        final BufferedImage result;
-        if (type.equals("image/heic")) {
-            final ByteArrayIOStream inputStream = new ByteArrayIOStream(data);
-            final HeicImage image = HeicImage.load(inputStream);
-            final int width = (int) image.getWidth();
-            final int height = (int) image.getHeight();
-            final int[] pixels = image.getInt32Array(PixelFormat.Argb32);
-            result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-            result.setRGB(0, 0, width, height, pixels, 0, width);
-        } else {
-            final ByteArrayInputStream inputStream = new ByteArrayInputStream(data);
-            final BufferedImage image = ImageIO.read(inputStream);
-            int orientation = 1;
-            try (final ByteArrayInputStream metaIn = new ByteArrayInputStream(data)) {
-                final Metadata metadata = ImageMetadataReader.readMetadata(metaIn);
-                final ExifIFD0Directory dir = metadata.getFirstDirectoryOfType(
-                    ExifIFD0Directory.class
-                );
-                if (dir != null && dir.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
-                    orientation = dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
-                }
-            } catch (final Exception ignore) {
-            }
-            result = applyExifOrientation(image, orientation);
-        }
-        return result;
+        return load(type, data, ImageDecodeLimits.defaults());
     }
 
     /**
-     * Loads a {@link BufferedImage} from a file, preserving transparency if present.
-     * Automatically detects the MIME type based on the file extension.
+     * Checks encoded size and header dimensions before requesting decoded pixels.
      *
-     * @param file the file to load the image from
-     * @return a {@code BufferedImage} containing the decoded image with preserved transparency
-     * @throws IOException if an error occurs during reading or decoding the image
-     * @throws IllegalArgumentException if the file is null, doesn't exist, or has an
-     *  unsupported format
+     * @param type MIME hint (HEIC/HEIF use the dedicated decoder)
+     * @param data encoded image bytes
+     * @param limits decoding policy
+     * @return decoded image with orientation applied
+     * @throws IOException when a limit is exceeded or image cannot be decoded
+     */
+    public static BufferedImage load(final String type, final byte[] data,
+            final ImageDecodeLimits limits) throws IOException {
+        Objects.requireNonNull(data, "image bytes");
+        Objects.requireNonNull(limits, "limits").checkEncoded(data.length);
+        try {
+            if ("image/heic".equalsIgnoreCase(type) || "image/heif".equalsIgnoreCase(type)) {
+                return loadHeic(data, limits);
+            }
+            return loadRaster(data, limits);
+        } catch (final RuntimeException failure) {
+            throw new IOException("Unable to decode image", failure);
+        }
+    }
+
+    /**
+     * Loads a local image under the default policy.
+     *
+     * @param file local file to load
+     * @return decoded image
+     * @throws IOException when a limit is exceeded or image cannot be decoded
      */
     public static BufferedImage load(final File file) throws IOException {
-        if (file == null) {
-            throw new IllegalArgumentException("File cannot be null");
+        return load(file, ImageDecodeLimits.defaults());
+    }
+
+    /**
+     * Loads a local file without reading more than the configured byte limit plus one sentinel.
+     *
+     * @param file local file to load
+     * @param limits decoding policy
+     * @return decoded image
+     * @throws IOException when a limit is exceeded or image cannot be decoded
+     */
+    public static BufferedImage load(final File file, final ImageDecodeLimits limits)
+            throws IOException {
+        if (file == null || !file.isFile()) {
+            throw new IllegalArgumentException("Image is not a regular file");
         }
-        if (!file.exists()) {
-            throw new IllegalArgumentException("File does not exist: " + file.getPath());
+        final var path = file.toPath();
+        limits.checkEncoded(Files.size(path));
+        final String name = file.getName().toLowerCase(Locale.ROOT);
+        final String type = name.endsWith(".heic") || name.endsWith(".heif") ? "image/heic" : "";
+        try (var input = Files.newInputStream(path)) {
+            return load(type, input.readNBytes(limits.maxEncodedBytes() + 1), limits);
         }
-        if (!file.isFile()) {
-            throw new IllegalArgumentException("Path is not a file: " + file.getPath());
-        }
-        final byte[] data = Files.readAllBytes(file.toPath());
-        final String fileName = file.getName().toLowerCase();
-        final String type;
-        if (fileName.endsWith(".heic") || fileName.endsWith(".heif")) {
-            type = "image/heic";
-        } else if (fileName.endsWith(".png")) {
-            type = "image/png";
-        } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
-            type = "image/jpeg";
-        } else if (fileName.endsWith(".gif")) {
-            type = "image/gif";
-        } else if (fileName.endsWith(".bmp")) {
-            type = "image/bmp";
-        } else if (fileName.endsWith(".tif") || fileName.endsWith(".tiff")) {
-            type = "image/tiff";
-        } else if (fileName.endsWith(".webp")) {
-            type = "image/webp";
-        } else {
+    }
+
+    /**
+     * Reads headers and pixels with the same reader; an unsupported input never decodes.
+     *
+     * @param data encoded image bytes
+     * @param limits decoding policy
+     * @return decoded image
+     * @throws IOException if metadata or image decoding fails
+     */
+    private static BufferedImage loadRaster(final byte[] data, final ImageDecodeLimits limits)
+            throws IOException {
+        try (var input = new MemoryCacheImageInputStream(new ByteArrayInputStream(data))) {
+            final var readers = ImageIO.getImageReaders(input);
+            if (!readers.hasNext()) {
+                throw new IOException("Unsupported image format");
+            }
+            final ImageReader reader = readers.next();
             try {
-                final String detectedType = ImageIO.getImageReaders(
-                    ImageIO.createImageInputStream(new ByteArrayInputStream(data))
-                ).next().getFormatName().toLowerCase();
-                if (detectedType.contains("heic") || detectedType.contains("heif")) {
-                    type = "image/heic";
-                } else {
-                    type = "image/" + detectedType;
-                }
-            } catch (Exception e) {
-                throw new IllegalArgumentException(
-                    "Unsupported image format for file: " + file.getPath(), e
-                );
+                reader.setInput(input);
+                limits.checkDimensions(reader.getWidth(0), reader.getHeight(0));
+                return applyExifOrientation(reader.read(0), orientation(data));
+            } finally {
+                reader.dispose();
             }
         }
-        return load(type, data);
+    }
+
+    /**
+     * Checks metadata dimensions including source frames before asking for pixel arrays.
+     *
+     * @param data encoded image bytes
+     * @param limits decoding policy
+     * @return decoded image
+     * @throws IOException if metadata or workspace is outside the allowed limits
+     */
+    private static BufferedImage loadHeic(final byte[] data, final ImageDecodeLimits limits)
+            throws IOException {
+        final ByteArrayIOStream input = new ByteArrayIOStream(data);
+        try {
+            final HeicImage image = HeicImage.load(input);
+            limits.checkDimensions(image.getWidth(), image.getHeight());
+            long remaining = limits.workingPixels();
+            for (final var frame : image.getAllFrames().values()) {
+                remaining -= limits.checkDimensions(frame.getWidth(), frame.getHeight());
+                if (remaining < 0) {
+                    throw new IOException("HEIC frame workspace limit exceeded");
+                }
+            }
+            final int width = (int) image.getWidth();
+            final int height = (int) image.getHeight();
+            final int[] pixels = image.getInt32Array(PixelFormat.Argb32);
+            final BufferedImage result = new BufferedImage(width, height,
+                BufferedImage.TYPE_INT_ARGB);
+            result.setRGB(0, 0, width, height, pixels, 0, width);
+            return result;
+        } finally {
+            input.close();
+        }
+    }
+
+    /**
+     * @param data encoded image with optional metadata
+     * @return EXIF orientation or one if unavailable
+     */
+    private static int orientation(final byte[] data) {
+        try (final ByteArrayInputStream input = new ByteArrayInputStream(data)) {
+            final Metadata metadata = ImageMetadataReader.readMetadata(input);
+            final ExifIFD0Directory dir = metadata.getFirstDirectoryOfType(ExifIFD0Directory.class);
+            if (dir != null && dir.containsTag(ExifIFD0Directory.TAG_ORIENTATION)) {
+                return dir.getInt(ExifIFD0Directory.TAG_ORIENTATION);
+            }
+        } catch (final Exception ignored) {
+            /*
+             * Optional metadata must not prevent a valid raster from loading.
+             */
+        }
+        return 1;
     }
 
     /**

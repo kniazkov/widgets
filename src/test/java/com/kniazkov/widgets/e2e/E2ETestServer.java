@@ -9,6 +9,8 @@ import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.base.StaticSource;
 import com.kniazkov.widgets.common.Listener;
+import com.kniazkov.widgets.images.ImageDecodeLimits;
+import com.kniazkov.widgets.images.ImageLoader;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.SortableSection;
@@ -104,10 +106,11 @@ public final class E2ETestServer {
                 );
                 progressModel.addListener(progress);
                 descriptor.onLoad(file -> {
-                    progressModel.removeListener(progress);
-                    upload.setText(
-                        "Loaded " + file.getName() + " 100% " + sha256(file.getContent())
-                    );
+                    final String digest = sha256(file.getContent());
+                    descriptor.executeOnRoot(() -> {
+                        progressModel.removeListener(progress);
+                        upload.setText("Loaded " + file.getName() + " 100% " + digest);
+                    });
                 });
                 final Button cancelUpload = new Button("Cancel " + descriptor.getName());
                 cancelUpload.onClick(event -> {
@@ -255,6 +258,7 @@ public final class E2ETestServer {
             root.add(new Section(mode, enter, exit));
             root.add(new Section(new Link("Next tab page", "/tab-context-next")));
         };
+        addImageProcessingPage(application);
         addApplicationLifecyclePages(application);
         application.addPage("widget-lifecycle", WidgetLifecyclePage.create());
         application.addPage("widget-reparenting", WidgetReparentingPage.create());
@@ -450,6 +454,44 @@ public final class E2ETestServer {
             root.add(new Section(reset, limit, clicks));
         });
         Server.start(application, options);
+    }
+
+    /**
+     * Test-only ordinary image decoder under a deliberately low quota.
+     *
+     * @param application test application
+     */
+    private static void addImageProcessingPage(final Application application) {
+        final var limits = new ImageDecodeLimits(4096, 12, 144, 4096);
+        application.addPage("bounded-image-processing", (root, context) -> {
+            final FileLoader loader = new FileLoader("Choose image sample");
+            final TextWidget status = new TextWidget("No image selected");
+            final TextWidget progress = new TextWidget("Upload progress 0%");
+            loader.onSelect(descriptor -> {
+                final var model = descriptor.getLoadingPercentageModel();
+                final Listener<Integer> listener = count -> progress.setText(
+                    "Upload progress " + count + "%");
+                status.setText("Processing " + descriptor.getName());
+                progress.setText("Upload progress 0%");
+                model.addListener(listener);
+                descriptor.onLoad(file -> {
+                    String outcome;
+                    try {
+                        final var image = ImageLoader.load(file.getType(), file.getContent(),
+                            limits);
+                        outcome = "Decoded " + image.getWidth() + " x " + image.getHeight();
+                    } catch (final java.io.IOException invalid) {
+                        outcome = "Image rejected by decoder policy";
+                    }
+                    final String message = outcome;
+                    descriptor.executeOnRoot(() -> {
+                        model.removeListener(listener);
+                        status.setText(message);
+                    });
+                });
+            });
+            root.add(new Section(loader, progress, status));
+        });
     }
 
     /**

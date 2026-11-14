@@ -116,3 +116,5 @@ final Options options = new Options.Builder()
 
 Лимиты целого файла, бинарного чанка и полного multipart-запроса описаны
 отдельно: [Лимиты загрузки и multipart](UPLOAD_MULTIPART_LIMITS.ru.md).
+
+См. также [обработку файлов и лимиты декодирования](IMAGE_PROCESSING_LIMITS.ru.md).

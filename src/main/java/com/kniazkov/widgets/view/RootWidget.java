@@ -84,6 +84,22 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
+     * Applies a short UI update in the same page context as browser synchronization.
+     * Do not block, decode files or wait for another worker inside this action.
+     *
+     * @param action update of page-owned widgets or models
+     * @return false if the page is already closing
+     */
+    public synchronized boolean execute(final Runnable action) {
+        Objects.requireNonNull(action, "action");
+        if (this.uploadsClosed) {
+            return false;
+        }
+        action.run();
+        return true;
+    }
+
+    /**
      * Ends this page's subscriptions, queued updates and uploads.
      */
     public void closePage() {

@@ -159,7 +159,51 @@ public class UploadingFile {
     }
 
     /**
-     * Registers one completion callback. Late registration cannot resurrect released content.
+     * Whether the configured processor refused this upload at binary completion.
+     */
+    private boolean processingBusy;
+
+    /**
+     * Worker currently delivering this descriptor's callback, if any.
+     */
+    private Thread deliveryThread;
+
+    /**
+     * Applies a short completion update only while this delivery and page are still live.
+     * Call synchronously from onLoad, after background work and before returning.
+     *
+     * @param action page-owned widget/model changes
+     * @return whether the update was applied
+     */
+    public boolean executeOnRoot(final Runnable action) {
+        java.util.Objects.requireNonNull(action, "action");
+        final boolean[] applied = {false};
+        this.root.execute(() -> {
+            if (this.isDelivering() && this.loader.getRootWidget().orElse(null) == this.root) {
+                action.run();
+                applied[0] = true;
+            }
+        });
+        return applied[0];
+    }
+
+    /**
+     * @return whether the callback data is still owned by this live delivery
+     */
+    private synchronized boolean isDelivering() {
+        return !this.cancelled && this.deliveryThread == Thread.currentThread();
+    }
+
+    /**
+     * @return whether the business callback could not be queued
+     */
+    synchronized boolean isProcessingBusy() {
+        return this.processingBusy;
+    }
+
+    /**
+     * Registers one bounded background completion callback. For page-owned state use
+     * {@link #executeOnRoot(Runnable)} after background work; never mutate it on the worker.
      * @param ctrl callback; file access ends when it returns or the upload is cancelled/expired
      */
     public synchronized void onLoad(final Controller<UploadedFile> ctrl) {
@@ -223,7 +267,11 @@ public class UploadingFile {
                 this.complete = true;
                 this.received = new BitSet();
                 this.uploaded = new UploadedFile(this.name, this.type, this.path, this.size);
-                this.registry.completed(this, index, data);
+                if (!this.registry.completed(this, index, data)) {
+                    this.processingBusy = true;
+                    this.cancel();
+                    return false;
+                }
             }
             return true;
         } catch (final IOException error) {
@@ -277,6 +325,7 @@ public class UploadingFile {
                 return;
             }
             file = this.uploaded;
+            this.deliveryThread = Thread.currentThread();
             callback = this.onLoadCtrl;
             this.onLoadCtrl = Controller.stub();
         }
@@ -286,6 +335,7 @@ public class UploadingFile {
             UploadRegistry.LOGGER.log(Level.SEVERE, "Upload callback failed", error);
         } finally {
             synchronized (this) {
+                this.deliveryThread = null;
                 this.release();
             }
         }

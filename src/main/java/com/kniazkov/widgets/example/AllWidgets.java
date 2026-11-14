@@ -1364,10 +1364,10 @@ public class AllWidgets {
                                              final TextWidget result) {
         loader.onSelect(file -> {
             result.setText(kind + " selected: " + file.getName());
-            file.onLoad(uploaded -> result.setText(
+            file.onLoad(uploaded -> file.executeOnRoot(() -> result.setText(
                 kind + " uploaded: " + uploaded.getName() + " (" + uploaded.getSize()
                     + " bytes)"
-            ));
+            )));
         });
     }
 
