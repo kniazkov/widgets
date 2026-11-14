@@ -6,6 +6,7 @@ package com.kniazkov.widgets.controller;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.TypedChoice;
 import java.util.List;
 import com.kniazkov.widgets.view.FileLoader;
@@ -271,6 +272,29 @@ public abstract class Event<T> {
     }
 
     /**
+     * Scoped commands from the provider-backed table, not arbitrary application input.
+     */
+    public static final Event<JsonObject> DATA_TABLE = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "data table command";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof DataTable table) {
+                table.command(data.get("action").stringValue(), data.get("value").stringValue(),
+                    data.get("checked").booleanValue());
+            }
+        }
+    };
+
+    /**
      * Versioned child move. Invalid requests must not invoke application controllers.
      */
     public static final Event<ReorderEvent> REORDER = new Event<ReorderEvent>() {
@@ -487,6 +511,7 @@ public abstract class Event<T> {
                 SELECT,
                 CHOOSE_KEYS,
                 CHOICE_SEARCH,
+                DATA_TABLE,
                 REORDER,
                 DISMISS,
                 DISMISS_BY_ESCAPE,

@@ -273,6 +273,7 @@ compatibility changes, cancellation semantics and examples.
 - [Forms](docs/FORMS.ru.md) — native labels, accessible field errors and asynchronous submit using R44.
 - [Adaptive layout](docs/ADAPTIVE_LAYOUT.ru.md) — container-sized stacks, grids and labels that reflow.
 - Typed choices: [English](docs/TYPED_CHOICES.md) · [Русский](docs/TYPED_CHOICES.ru.md).
+- Provider-backed data table: [English](docs/DATA_TABLE.md) · [Русский](docs/DATA_TABLE.ru.md).
 - [Cloud verification record](docs/CLOUD_VERIFICATION.ru.md) — build, browser checks and limitations.
   For new gallery entries, capture the exact built revision in a real cloud browser, keep an
   unscaled crop with state, source frame, viewport and version metadata, add alt text, and run
