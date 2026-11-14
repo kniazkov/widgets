@@ -63,34 +63,53 @@ function createPopup(modal) {
         widget._backdrop = backdrop;
         widget._closeOnOutsideClick = false;
         let pressedOutside = false;
-        backdrop.addEventListener("pointerdown", event => {
-            pressedOutside =
-                event.target === backdrop && event.button === 0 && event.isPrimary !== false;
-            event.stopPropagation();
-        });
-        backdrop.addEventListener("pointercancel", () => {
-            pressedOutside = false;
-        });
-        backdrop.addEventListener("click", event => {
-            event.preventDefault();
-            event.stopPropagation();
-            const activate = pressedOutside || event.detail === 0;
-            pressedOutside = false;
-            if (
-                widget._closeOnOutsideClick &&
-                event.target === backdrop &&
-                event.button === 0 &&
-                activate
-            ) {
-                sendEventToServer(widget, "dismiss", {});
-            }
-        });
+        listenWidget(
+            widget,
+            "pointerdown",
+            event => {
+                pressedOutside =
+                    event.target === backdrop && event.button === 0 && event.isPrimary !== false;
+                event.stopPropagation();
+            },
+            false,
+            backdrop
+        );
+        listenWidget(
+            widget,
+            "pointercancel",
+            () => {
+                pressedOutside = false;
+            },
+            false,
+            backdrop
+        );
+        listenWidget(
+            widget,
+            "click",
+            event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const activate = pressedOutside || event.detail === 0;
+                pressedOutside = false;
+                if (
+                    widget._closeOnOutsideClick &&
+                    event.target === backdrop &&
+                    event.button === 0 &&
+                    activate
+                ) {
+                    sendEventToServer(widget, "dismiss", {});
+                }
+            },
+            false,
+            backdrop
+        );
         widget._onAttached = function () {
             if (widget.parentNode) {
                 widget.parentNode.insertBefore(backdrop, widget);
             }
         };
         widget._onDetached = function () {
+            pressedOutside = false;
             backdrop.remove();
         };
     }

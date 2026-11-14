@@ -26,10 +26,29 @@ function scheduleUploadRetry(callback) {
 function disposeUploads() {
     for (const task of uploadRetryTasks) clearTimeout(task);
     uploadRetryTasks.clear();
-    for (const file of [...pendingUploads, ...activeUploads]) file.source = null;
+    for (const file of [...pendingUploads, ...activeUploads]) {
+        file.source = null;
+        file.widget = null;
+    }
     pendingUploads.length = 0;
     activeUploads.length = 0;
     uploadRequestInFlight = false;
+}
+
+function discardWidgetUploads(widget) {
+    for (let index = pendingUploads.length - 1; index >= 0; index--) {
+        const file = pendingUploads[index];
+        if (file.widget !== widget) continue;
+        pendingUploads.splice(index, 1);
+        file.source = null;
+        file.widget = null;
+    }
+    // Remove through the scheduler so the round-robin index stays valid.
+    for (const file of activeUploads.slice()) {
+        if (file.widget !== widget) continue;
+        removeActiveUpload(file);
+        file.widget = null;
+    }
 }
 
 function setMultipleInput(data) {
@@ -108,6 +127,8 @@ function acknowledgeSelections(selected) {
     if (typeof clientDisposed !== "undefined" && clientDisposed) {
         return;
     }
+    selected = selected.filter(file => file.source !== null);
+    if (!selected.length) return;
     sendSynchronizeRequest(function (accepted) {
         if (!accepted) {
             scheduleUploadRetry(() => acknowledgeSelections(selected));
@@ -202,6 +223,10 @@ function sendNextUploadChunk() {
             }
             recordRequestSuccess();
             processUpdates(receipt.updates);
+            if (file.source === null) {
+                sendNextUploadChunk();
+                return;
+            }
             if (
                 receipt.result === true &&
                 Number.isInteger(receipt.nextChunk) &&

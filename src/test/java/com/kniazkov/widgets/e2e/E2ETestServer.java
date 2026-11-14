@@ -220,6 +220,7 @@ public final class E2ETestServer {
             root.add(new Section(mode, enter, exit));
             root.add(new Section(new Link("Next tab page", "/tab-context-next")));
         };
+        application.addPage("widget-lifecycle", WidgetLifecyclePage.create());
         application.addPage("countdown",
             com.kniazkov.widgets.example.CountdownExample.createPage("/countdown-next"));
         application.addPage("countdown-next",

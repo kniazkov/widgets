@@ -153,10 +153,12 @@ function mainCycle() {
 
 // Disposed runtimes cannot send events, retry uploads or apply late responses.
 function disposeClient() {
+    if (clientDisposed) return;
     clientDisposed = true;
     cancelSynchronization();
     if (typeof disposeUploads === "function") disposeUploads();
     disposeCountdowns();
+    disposeAllWidgets();
     clearInterval(mainCycleTask);
     if (clientId != null) {
         sendClientRequest({ action: "kill", client: clientId });
@@ -180,7 +182,7 @@ function reset() {
     clientId = null;
     channelToken = null;
     clearInterval(mainCycleTask);
-    document.body.innerHTML = "";
+    disposeAllWidgets();
     startClient();
     return true;
 }

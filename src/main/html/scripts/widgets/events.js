@@ -79,7 +79,7 @@ function resetInteractionState() {
 
 function initPointerEvents(widget, activeOnPointerDown) {
     widget._activeOnPointerDown = activeOnPointerDown;
-    addEvent(widget, "click", function (event) {
+    listenWidget(widget, "click", function (event) {
         if (
             widget.tagName === "A" &&
             (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)
@@ -98,7 +98,7 @@ function initPointerEvents(widget, activeOnPointerDown) {
             widget._onClick();
         }
     });
-    addEvent(widget, "pointerenter", function (event) {
+    listenWidget(widget, "pointerenter", function (event) {
         widget._states.hovered = true;
         if (widget._events.click || widget._clientActions.click) {
             widget.style.cursor = "pointer";
@@ -106,7 +106,7 @@ function initPointerEvents(widget, activeOnPointerDown) {
         refreshWidget(widget);
         sendEventToServer(widget, "pointer enter", processPointerEvent(widget, event));
     });
-    addEvent(widget, "pointerleave", function (event) {
+    listenWidget(widget, "pointerleave", function (event) {
         if (activeOnPointerDown) {
             widget._states.active = false;
         }
@@ -117,14 +117,14 @@ function initPointerEvents(widget, activeOnPointerDown) {
         refreshWidget(widget);
         sendEventToServer(widget, "pointer leave", processPointerEvent(widget, event));
     });
-    addEvent(widget, "pointerdown", function (event) {
+    listenWidget(widget, "pointerdown", function (event) {
         if (activeOnPointerDown) {
             widget._states.active = true;
             refreshWidget(widget);
         }
         sendEventToServer(widget, "pointer down", processPointerEvent(widget, event));
     });
-    addEvent(widget, "pointerup", function (event) {
+    listenWidget(widget, "pointerup", function (event) {
         if (activeOnPointerDown) {
             widget._states.active = false;
             refreshWidget(widget);
@@ -134,12 +134,12 @@ function initPointerEvents(widget, activeOnPointerDown) {
 }
 
 function initFocusEvents(widget) {
-    addEvent(widget, "focus", function () {
+    listenWidget(widget, "focus", function () {
         widget._states.focused = true;
         refreshWidget(widget);
         sendEventToServer(widget, "focus", {});
     });
-    addEvent(widget, "blur", function () {
+    listenWidget(widget, "blur", function () {
         widget._states.focused = false;
         refreshWidget(widget);
         sendEventToServer(widget, "blur", {});
@@ -152,14 +152,16 @@ function initGestureClicks(widget) {
     widget._suppressGestureClick = () => {
         suppressed = true;
     };
-    widget.addEventListener(
+    listenWidget(
+        widget,
         "pointerdown",
         () => {
             suppressed = false;
         },
         true
     );
-    widget.addEventListener(
+    listenWidget(
+        widget,
         "click",
         event => {
             if (suppressed) {
@@ -170,7 +172,7 @@ function initGestureClicks(widget) {
         },
         true
     );
-    widget.addEventListener("dragstart", event => event.preventDefault());
+    listenWidget(widget, "dragstart", event => event.preventDefault());
 }
 
 function releaseGesturePointer(widget, id) {

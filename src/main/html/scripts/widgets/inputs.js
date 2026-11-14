@@ -44,11 +44,11 @@ function initEditableText(widget) {
         }
         return false;
     };
-    addEvent(widget, "input", function () {
+    listenWidget(widget, "input", function () {
         widget._textInputPending = true;
         sendEventToServer(widget, "text input", { text: widget.value });
     });
-    addEvent(widget, "blur", function () {
+    listenWidget(widget, "blur", function () {
         widget._applyDeferredText();
     });
 }

@@ -63,6 +63,7 @@ function processUpdates(updates) {
         }
         lastProcessedUpdateId = id;
     }
+    if (!clientDisposed) trimDetachedWidgets();
 }
 
 // Drops every queued event through the last ID acknowledged by the server.
@@ -109,6 +110,7 @@ const actionHandlers = {
     "append child": appendChildWidget,
     "insert child": insertChildWidget,
     "remove child": removeChildWidget,
+    "dispose widget": disposeWidget,
     "set valid": setValidFlag,
     "set disabled": setDisabledFlag,
     "set hidden": setHiddenFlag,

@@ -3,7 +3,14 @@
  */
 
 // The registry connects server-side widget IDs to their browser DOM nodes.
-const widgets = {};
+const widgets = Object.create(null);
+
+// Abort removes listeners even if application or test code still retains an old node.
+function listenWidget(widget, type, listener, options, target = widget) {
+    widget._listenerScope ??= new AbortController();
+    const config = typeof options === "boolean" ? { capture: options } : { ...options };
+    target.addEventListener(type, listener, { ...config, signal: widget._listenerScope.signal });
+}
 
 // Protocol widget type names map to factories that initialize the matching DOM element.
 const widgetsLibrary = {
@@ -155,7 +162,7 @@ const widgetsLibrary = {
         widget.style.backgroundRepeat = "no-repeat";
         widget.style.backgroundSize = "12px 8px";
         widget._rightPaddingOffset = 20;
-        addEvent(widget, "change", function () {
+        listenWidget(widget, "change", function () {
             sendEventToServer(widget, "select", { index: widget.selectedIndex });
         });
         initPointerEvents(widget, true);
@@ -173,20 +180,42 @@ const widgetsLibrary = {
         widget._multiple = false;
         widget._accept = "";
         widget._onClick = function () {
+            widget._closeFilePicker();
             const input = document.createElement("input");
+            widget._filePicker = input;
+            const listenerScope = new AbortController();
+            widget._filePickerListeners = listenerScope;
             input.type = "file";
             input.style.display = "none";
             input.multiple = widget._multiple;
             input.accept = widget._accept;
             document.body.appendChild(input);
-            addEvent(input, "change", function (evt) {
-                const files = evt.target.files;
-                if (!files) return;
-                loadFiles(widget, files);
-                document.body.removeChild(input);
-            });
+            input.addEventListener(
+                "change",
+                function (evt) {
+                    const files = evt.target.files;
+                    if (widget._filePicker !== input) return;
+                    if (files) loadFiles(widget, files);
+                    widget._closeFilePicker();
+                },
+                { signal: listenerScope.signal }
+            );
+            input.addEventListener(
+                "cancel",
+                function () {
+                    if (widget._filePicker === input) widget._closeFilePicker();
+                },
+                { signal: listenerScope.signal }
+            );
             input.click();
         };
+        widget._closeFilePicker = () => {
+            widget._filePickerListeners?.abort();
+            widget._filePickerListeners = null;
+            widget._filePicker?.remove();
+            widget._filePicker = null;
+        };
+        widget._onDetached = widget._closeFilePicker;
         initPointerEvents(widget, true);
         initFocusEvents(widget);
         return widget;
@@ -402,9 +431,10 @@ function refreshWidget(widget) {
 function createWidget(data) {
     const ctor = widgetsLibrary[data.type];
     const id = data.widget;
-    if (!ctor || !id) {
+    if (!Object.hasOwn(widgetsLibrary, data.type) || !ctor || !id) {
         return false;
     }
+    if (widgets[id]) return true;
     const widget = ctor();
     widget._id = id;
     widget._events = {};
@@ -426,6 +456,7 @@ function createWidget(data) {
     };
     widget._display = widget.style.display;
     widgets[id] = widget;
+    if (data.type !== "root") detachedWidgets.set(widget, true);
     if (widget._refresh) {
         widget._refresh();
     }
