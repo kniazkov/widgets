@@ -30,6 +30,7 @@ function harness() {
         createWidget({widget: "root", type: "root"});
         window.harness = {
             widgets, createWidget, appendChildWidget, setChildWidget, removeChildWidget,
+            insertChildWidget, setHiddenFlag, setBackdropColor, setWidth, setHeight,
             disposeWidget, trimDetachedWidgets, disposeAllWidgets, detachedWidgets,
             observers, pendingUploads, activeUploads,
             get reloads() { return reloads; }
@@ -114,6 +115,78 @@ describe("widget subtree lifecycle", () => {
             expect(file.widget).toBeNull();
             expect(file.source).toBeNull();
         }
+    });
+
+    it("hides the modal backdrop with its panel and restores its color on reattachment", () => {
+        const h = harness();
+        const { createWidget, appendChildWidget, setHiddenFlag, setBackdropColor } = h;
+        createWidget({ widget: "modal", type: "modal popup" });
+        const popup = h.widgets.modal;
+        const backdrop = popup._backdrop;
+        setBackdropColor({ widget: "modal", "backdrop color": { r: 12, g: 34, b: 56 } });
+        const color = backdrop.style.backgroundColor;
+        expect(color).not.toBe("");
+        setHiddenFlag({ widget: "modal", hidden: true });
+        appendChildWidget({ widget: "modal", container: "root" });
+        const hidden = () => {
+            expect(popup.style.display).toBe("none");
+            expect(backdrop.style.display).toBe("none");
+        };
+        hidden();
+        for (let repeat = 0; repeat < 2; repeat++) {
+            setHiddenFlag({ widget: "modal", hidden: false });
+            expect(popup.style.display).not.toBe("none");
+            expect(backdrop.style.display).not.toBe("none");
+            expect(backdrop.style.backgroundColor).toBe(color);
+            setHiddenFlag({ widget: "modal", hidden: true });
+            hidden();
+        }
+        h.removeChildWidget({ widget: "modal", container: "root" });
+        h.removeChildWidget({ widget: "modal", container: "root" });
+        expect(backdrop.isConnected).toBe(false);
+        appendChildWidget({ widget: "modal", container: "root" });
+        expect(backdrop.nextElementSibling).toBe(popup);
+        hidden();
+        h.disposeWidget({ widget: "modal" });
+        h.disposeWidget({ widget: "modal" });
+        expect(popup.isConnected).toBe(false);
+        expect(backdrop.isConnected).toBe(false);
+    });
+
+    it("preserves pair order and treats a modal backdrop as decoration, not a widget index", () => {
+        const h = harness();
+        h.createWidget({ widget: "outer", type: "modal popup" });
+        h.createWidget({ widget: "inner", type: "modal popup" });
+        h.createWidget({ widget: "first", type: "panel" });
+        h.createWidget({ widget: "ancestor", type: "panel" });
+        h.appendChildWidget({ widget: "ancestor", container: "root" });
+        h.appendChildWidget({ widget: "outer", container: "ancestor" });
+        h.appendChildWidget({ widget: "inner", container: "outer" });
+        expect(h.insertChildWidget({ widget: "first", container: "ancestor", index: 2 })).toBe(
+            false
+        );
+        expect(h.insertChildWidget({ widget: "first", container: "ancestor", index: 0 })).toBe(
+            true
+        );
+        const { outer, inner, first, ancestor } = h.widgets;
+        expect(Array.from(ancestor.children)).toEqual([first, outer._backdrop, outer]);
+        expect(Array.from(outer.children)).toEqual([inner._backdrop, inner]);
+        expect(outer._backdrop.style.zIndex).toBe(outer.style.zIndex);
+        expect(outer.style.transform).toBe("");
+        h.setWidth({ widget: "outer", width: "250px" });
+        expect(outer.style.width).toBe("250px");
+        h.setWidth({ widget: "outer", width: "" });
+        h.setHeight({ widget: "outer", height: "" });
+        expect(outer.style.width).toBe("fit-content");
+        expect(outer.style.height).toBe("fit-content");
+        h.setHiddenFlag({ widget: "ancestor", hidden: true });
+        for (const node of [outer, inner, outer._backdrop, inner._backdrop]) {
+            expect(node.closest('[style*="display: none"]')).toBe(ancestor);
+        }
+        h.setHiddenFlag({ widget: "ancestor", hidden: false });
+        expect(inner._backdrop.closest('[style*="display: none"]')).toBeNull();
+        h.disposeWidget({ widget: "ancestor" });
+        expect(dom.window.document.querySelector(".popup-backdrop")).toBeNull();
     });
 
     it("bounds legacy detachments by registered nodes and requests recovery on an evicted attach", () => {

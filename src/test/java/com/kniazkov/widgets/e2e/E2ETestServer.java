@@ -137,6 +137,7 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("all-widgets", com.kniazkov.widgets.example.AllWidgets.galleryPage());
         final Page securityPage = (root, context) -> {
             final var session = context.browserSession;
             final var count = new java.util.concurrent.atomic.AtomicInteger();

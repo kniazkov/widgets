@@ -136,7 +136,7 @@ public class AllWidgets {
      * @param args program arguments
      */
     public static void main(final String[] args) {
-        final Page page = (root, parameters) -> buildGallery(root);
+        final Page page = galleryPage();
         final Application application = new Application(page);
         final Options options = new Options.Builder()
             .setPort(args.length == 0 ? 8080 : Integer.parseInt(args[0]))
@@ -146,6 +146,15 @@ public class AllWidgets {
             .setLanguage("en")
             .build();
         Server.start(application, options);
+    }
+
+    /**
+     * Creates the gallery page for embedding or local browser verification.
+     *
+     * @return interactive gallery page
+     */
+    public static Page galleryPage() {
+        return (root, parameters) -> buildGallery(root);
     }
 
     /**
@@ -798,6 +807,51 @@ public class AllWidgets {
             root.add(popup);
         });
         row.add(variant("Custom modal", modalLauncher));
+        addModalVisibilityExample(root, row);
+    }
+
+    /**
+     * Adds a stateful example of hide, reopen, nesting and dismissal.
+     * @param root the page root
+     * @param row gallery variant row
+     */
+    private static void addModalVisibilityExample(final RootWidget root, final Section row) {
+        final Panel host = new Panel();
+        root.add(host);
+        final ModalPopup outer = new ModalPopup();
+        outer.setBackdropColor(new Color(30, 64, 175, 112));
+        outer.hide();
+        host.add(outer);
+        final Button launcher = new Button("Open lifecycle modal");
+        final Button clickPage = new Button("Count page click");
+        final TextWidget count = feedback("Page clicks: 0");
+        final var pageClicks = new java.util.concurrent.atomic.AtomicInteger();
+        clickPage.onClick(event -> count.setText("Page clicks: " + pageClicks.incrementAndGet()));
+        launcher.onClick(event -> {
+            host.show();
+            outer.show();
+        });
+        final Button hide = new Button("Hide lifecycle modal");
+        hide.onClick(event -> outer.hide());
+        final Button hideHost = new Button("Hide modal ancestor");
+        hideHost.onClick(event -> host.hide());
+        final Button nested = new Button("Open nested modal");
+        nested.onClick(event -> {
+            final ModalPopup inner = new ModalPopup();
+            inner.setBackdropColor(new Color(15, 23, 42, 128));
+            inner.setCloseOnOutsideClick(true);
+            final Button close = new Button("Close nested modal");
+            close.onClick(click -> inner.dispose());
+            inner.add(new Section(new TextWidget("Nested lifecycle modal")));
+            inner.add(new Section(close));
+            outer.add(inner);
+        });
+        outer.add(new Section(new TextWidget("Lifecycle modal")));
+        outer.add(new Section(hide));
+        outer.add(new Section(hideHost));
+        outer.add(new Section(nested));
+        row.add(variant("Hide and reopen", launcher));
+        row.add(variant("Page interaction", clickPage, count));
     }
 
     /**

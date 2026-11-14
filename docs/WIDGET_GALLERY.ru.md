@@ -276,6 +276,24 @@
 
 ![ModalPopup: Открытое модальное окно с произвольным содержимым и полем ввода.](images/widgets/modal-popup.png)
 
+Вариант **Hide and reopen** показывает одно и то же окно до и после `hide()`.
+При скрытии окна или его предка подложка тоже перестаёт блокировать страницу. Кнопка
+**Count page click** позволяет это проверить. Внутри окна можно открыть вложенное,
+а его подложка закроет только верхнее окно. Подробности в [контракте виджетов](WIDGETS.md#temporarily-hiding-a-modal).
+
+![Открытое окно Lifecycle modal и синяя подложка в широкой версии галереи.](images/widgets/modal-lifecycle-desktop-open.png)
+*Широкий экран: открытое окно и подложка.*
+
+![Галерея без подложки, под кнопкой Count page click видно Page clicks: 1.](images/widgets/modal-lifecycle-desktop-restored.png)
+*Широкий экран: страница снова принимает клики.*
+
+![Открытое окно и подложка в галерее шириной 390 пикселей.](images/widgets/modal-lifecycle-mobile-open.png)
+*Экран 390 px: окно и подложка.*
+
+![Страница шириной 390 пикселей без подложки с обновлённым счётчиком.](images/widgets/modal-lifecycle-mobile-restored.png)
+*Экран 390 px: после скрытия окна страница снова интерактивна.*
+
+
 <a id="suggestion-open"></a>
 ### SuggestionField — раскрытый список
 

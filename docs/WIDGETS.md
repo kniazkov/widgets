@@ -339,6 +339,30 @@ setting to application state; changes take effect while the popup is open. The d
 The server checks the current setting before removing the popup and its backdrop.
 `AllWidgets` demonstrates a dismissible message with a checkbox bound to this model.
 
+### Temporarily hiding a modal
+
+Use `hide()` and `show()` to keep a modal's content and Java models while hiding or restoring
+both the window and its backdrop. You can also bind `getHiddenStateModel()` or supply a model
+with `setHiddenStateModel(...)`. `MessagePopup` inherits the same behavior. Hiding a parent
+also hides its modals, without changing their own hidden state.
+
+```java
+final Button hide = new Button("Hide");
+final ModalPopup modal = new ModalPopup(new Section(hide));
+modal.hide();
+hide.onClick(event -> modal.hide());
+openButton.onClick(event -> modal.show());
+root.add(modal);
+```
+
+`remove()` detaches both elements and allows later reattachment; `dispose()` retires them
+permanently. A later modal in the same CSS stacking context covers earlier windows; a modal
+nested inside another can also cover the viewport. If outside dismissal is enabled, only the
+top visible backdrop receives that click or tap. Custom transformed or isolated CSS ancestors
+still constrain normal fixed positioning and stacking; use a root-level container in that case.
+This change does not add focus trapping, Escape dismissal, or keyboard isolation of the page.
+See the [interactive gallery and screenshots](WIDGET_GALLERY.ru.md#modal-popup).
+
 ## Editable suggestions
 
 `SuggestionField` extends `InputField`. It preserves text binding, validation, disabled state,

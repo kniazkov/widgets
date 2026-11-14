@@ -8,8 +8,10 @@ package com.kniazkov.widgets.view;
  * By default only application actions close the popup. Enable
  * {@link #setCloseOnOutsideClick(boolean)} to remove it from the server widget tree when
  * the backdrop is clicked or tapped. Clicking its contents does not dismiss it.
+ * The window and its backdrop are hidden and shown together.
  */
-public class ModalPopup extends Popup implements HasBackdropColor, HasCloseOnOutsideClick {
+public class ModalPopup extends Popup
+        implements HasBackdropColor, HasCloseOnOutsideClick, HasHiddenState {
     /**
      * Returns the global default modal popup style.
      *

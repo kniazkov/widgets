@@ -458,6 +458,58 @@
         274
       ],
       "sha256": "2c55104bd5a3a645329f89f52cb569b6b770624133e88eef9ab7361760c5d6d2"
+    },
+    "modal-lifecycle-desktop-open": {
+      "file": "modal-lifecycle-desktop-open.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На широком экране открыто окно на синей подложке; фон недоступен.",
+      "sourceScreenshot": "desktop-open.jpg",
+      "crop": [
+        26,
+        122,
+        920,
+        360
+      ],
+      "sha256": "34748eb200812db59e7f163cbfe5ec78cdc0803bc16dbf1e0417876e61b00ab9"
+    },
+    "modal-lifecycle-desktop-restored": {
+      "file": "modal-lifecycle-desktop-restored.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На широком экране окно и подложка скрыты; кнопка страницы увеличила счётчик.",
+      "sourceScreenshot": "desktop-restored.jpg",
+      "crop": [
+        26,
+        122,
+        920,
+        340
+      ],
+      "sha256": "33055aaed25d4bececbd2bcc2fb0b0c3760f087664a7900ad61c35f9f40d6bbc"
+    },
+    "modal-lifecycle-mobile-open": {
+      "file": "modal-lifecycle-mobile-open.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На ширине 390 px окно полностью видно; подложка закрывает фон.",
+      "sourceScreenshot": "mobile-open.jpg",
+      "crop": [
+        25,
+        55,
+        326,
+        477
+      ],
+      "sha256": "8b35fa088daa6911fd5873d8494ae0a863422c6e8cedd4314d7e7e1444c05648"
+    },
+    "modal-lifecycle-mobile-restored": {
+      "file": "modal-lifecycle-mobile-restored.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На ширине 390 px окно и подложка скрыты; счётчик реагирует.",
+      "sourceScreenshot": "mobile-restored.jpg",
+      "crop": [
+        25,
+        55,
+        326,
+        365
+      ],
+      "sha256": "d5db360d77bdf56d0e10f319e06b468283a679d1e7118b4ed90caaab397915cc"
     }
   },
   "widgets": {
@@ -572,7 +624,21 @@
       "popup"
     ],
     "ModalPopup": [
-      "modal-popup"
+      "modal-popup",
+      "modal-lifecycle-desktop-open",
+      "modal-lifecycle-desktop-restored",
+      "modal-lifecycle-mobile-open",
+      "modal-lifecycle-mobile-restored"
     ]
+  },
+  "modalLifecycleCapture": {
+    "date": "2026-11-14",
+    "page": "AllWidgets /all-widgets",
+    "browser": "Cloud Chromium",
+    "viewports": [
+      "1165 × 747",
+      "390 × 680"
+    ],
+    "method": "Real cloud browser screenshots, cropped without retouching or resizing."
   }
 }

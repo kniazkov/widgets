@@ -7,10 +7,25 @@ function createPopup(modal) {
     const widget = document.createElement("div");
     widget.className = modal ? "modal-popup" : "popup";
     widget.style.position = "fixed";
-    widget.style.zIndex = "1001";
+    widget.style.zIndex = modal ? "1002" : "1001";
     widget._horzAlignment = "center";
     widget._vertAlignment = "middle";
     widget._refreshPosition = function () {
+        if (modal) {
+            // A transformed modal would turn any nested fixed backdrop into a panel-sized
+            // backdrop. Center with fixed insets and auto margins instead.
+            const left = widget._horzAlignment === "left";
+            const right = widget._horzAlignment === "right";
+            const top = widget._vertAlignment === "top";
+            const bottom = widget._vertAlignment === "bottom";
+            widget.style.left = right ? "auto" : "0px";
+            widget.style.right = left ? "auto" : "0px";
+            widget.style.top = bottom ? "auto" : "0px";
+            widget.style.bottom = top ? "auto" : "0px";
+            widget.style.marginLeft = widget.style.marginRight = left || right ? "0px" : "auto";
+            widget.style.marginTop = widget.style.marginBottom = top || bottom ? "0px" : "auto";
+            return;
+        }
         let translateX = "0";
         let translateY = "0";
         widget.style.left = "";
@@ -55,11 +70,19 @@ function createPopup(modal) {
     widget._refreshPosition();
 
     if (modal) {
+        // Auto margins center a shrink-wrapped panel; explicit Widget widths/heights
+        // still override these defaults through setWidth/setHeight.
+        widget.style.width = widget._defaultWidth = "fit-content";
+        widget.style.height = widget._defaultHeight = "fit-content";
         const backdrop = document.createElement("div");
         backdrop.className = "popup-backdrop";
         backdrop.style.position = "fixed";
         backdrop.style.inset = "0px";
-        backdrop.style.zIndex = "1000";
+        // Equal stacking levels and pair order put a later backdrop over every
+        // earlier panel in the same stacking context.
+        backdrop.style.zIndex = widget.style.zIndex;
+        backdrop._isWidgetBackdrop = true;
+        backdrop.setAttribute("aria-hidden", "true");
         widget._backdrop = backdrop;
         widget._closeOnOutsideClick = false;
         let pressedOutside = false;
@@ -107,6 +130,10 @@ function createPopup(modal) {
             if (widget.parentNode) {
                 widget.parentNode.insertBefore(backdrop, widget);
             }
+        };
+        widget._setBackdropHidden = function (hidden) {
+            if (hidden) pressedOutside = false;
+            backdrop.style.display = hidden ? "none" : "";
         };
         widget._onDetached = function () {
             pressedOutside = false;
