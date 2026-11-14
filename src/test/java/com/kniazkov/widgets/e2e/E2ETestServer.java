@@ -138,6 +138,31 @@ public final class E2ETestServer {
             .build();
         final Application application = new Application(page);
         application.addPage("all-widgets", com.kniazkov.widgets.example.AllWidgets.galleryPage());
+        application.addPage("connection-recovery", (root, context) -> {
+            final TextWidget count = new TextWidget("Accepted actions: 0");
+            final var actions = new java.util.concurrent.atomic.AtomicInteger();
+            final Button change = new Button("Count recovery action");
+            change.onClick(event -> count.setText(
+                "Accepted actions: " + actions.incrementAndGet()
+            ));
+            final Button delayed = new Button("Count delayed recovery action");
+            delayed.onClick(event -> {
+                count.setText("Accepted actions: " + actions.incrementAndGet());
+                try {
+                    /*
+                     * The browser must time out while a real server reply is pending.
+                     */
+                    Thread.sleep(11000L);
+                } catch (final InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            final InputField draft = new InputField("Editable recovery draft");
+            root.add(new Section(new TextWidget("Connection recovery fixture")));
+            root.add(new Section(draft, change, count));
+            root.add(new Section(delayed));
+            root.add(new Section(new Link("Open recovery catalog", "/catalog")));
+        });
         final Page securityPage = (root, context) -> {
             final var session = context.browserSession;
             final var count = new java.util.concurrent.atomic.AtomicInteger();

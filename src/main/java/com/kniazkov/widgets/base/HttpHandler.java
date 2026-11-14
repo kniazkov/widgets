@@ -148,28 +148,41 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             }
             final ChannelAccess access = this.authorize(request);
             final JsonElement result;
-            switch (action) {
-                case "upload chunk":
-                    result = this.handleUploadChunk(request, parameters, access);
-                    break;
-                case "report error":
-                    this.application.reportBrowserError(parameters, access);
-                    result = new JsonObject();
-                    break;
-                case "new instance":
-                    result = new CreateClient(this.application, access).process(parameters);
-                    break;
-                case "synchronize":
-                    result = new Synchronize(this.application, access).process(parameters);
-                    break;
-                case "kill":
-                    result = new KillClient(this.application, access).process(parameters);
-                    break;
-                default:
-                    return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN,
-                        new byte[0]).setHeader("Cache-Control", "no-store").build();
+            try {
+                switch (action) {
+                    case "upload chunk":
+                        result = this.handleUploadChunk(request, parameters, access);
+                        break;
+                    case "report error":
+                        this.application.reportBrowserError(parameters, access);
+                        result = new JsonObject();
+                        break;
+                    case "new instance":
+                        result = new CreateClient(this.application, access).process(parameters);
+                        break;
+                    case "synchronize":
+                        result = new Synchronize(this.application, access).process(parameters);
+                        break;
+                    case "kill":
+                        result = new KillClient(this.application, access).process(parameters);
+                        break;
+                    default:
+                        return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN,
+                            new byte[0]).setHeader("Cache-Control", "no-store").build();
+                }
+            } catch (final ProtocolAccessException denied) {
+                throw denied;
+            } catch (final RuntimeException failure) {
+                LOGGER.log(Level.SEVERE, "Widgets HTTP request failed; "
+                    + RequestDiagnostics.describe(request), failure);
+                return responses.custom(HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.APPLICATION_JSON,
+                    "{\"clientError\":true}".getBytes(StandardCharsets.UTF_8))
+                    .setHeader("X-Widgets-Protocol-Error", "application")
+                    .setHeader("Cache-Control", "no-store").build();
             }
             return responses.fromJson(result.toString())
+                .setHeader("X-Widgets-Protocol-Version", "1")
                 .setHeader("Cache-Control", "no-store").build();
         }
 

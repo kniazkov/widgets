@@ -13,6 +13,32 @@ let browserId = null;
 const period = 2500;
 let mainCycleTask = null;
 let clientCreationInProgress = false;
+let clientCreationRetryTask = null;
+let clientCreationRetry = null;
+let clientCreationFailures = 0;
+
+function resumeOnline() {
+    if (clientDisposed || clientFailed) return;
+    if (clientCreationRetry) {
+        const retry = clientCreationRetry;
+        clearTimeout(clientCreationRetryTask);
+        retry();
+    } else {
+        resumeSynchronizationOnline();
+    }
+}
+
+window.addEventListener("online", resumeOnline);
+
+function stopClientRecovery() {
+    window.removeEventListener("online", resumeOnline);
+    clearInterval(mainCycleTask);
+    clearTimeout(clientCreationRetryTask);
+    clientCreationRetryTask = null;
+    clientCreationRetry = null;
+    cancelSynchronization();
+    if (typeof disposeUploads === "function") disposeUploads();
+}
 
 // Always attach the credentials of this runtime, including cleanup of a late creation.
 function sendClientRequest(query, callback, method, files, channel) {
@@ -45,13 +71,31 @@ function initClient(sessionId, address, data) {
 }
 
 function retryClientCreation(address, data) {
-    setTimeout(function () {
+    if (clientDisposed || clientFailed || clientCreationRetryTask !== null) return;
+    clientCreationRetry = () => {
+        clientCreationRetry = null;
+        clientCreationRetryTask = null;
         startClient(address, data);
-    }, 1000);
+    };
+    clientCreationRetryTask = setTimeout(
+        clientCreationRetry,
+        transportRetryDelay(++clientCreationFailures)
+    );
 }
 
 function startClient(address, data) {
-    if (clientDisposed || clientFailed || clientId != null || clientCreationInProgress) {
+    if (
+        clientDisposed ||
+        clientFailed ||
+        clientId != null ||
+        clientCreationInProgress ||
+        clientCreationRetryTask !== null
+    ) {
+        return;
+    }
+    if (navigator.onLine === false) {
+        recordRequestFailure();
+        retryClientCreation(address, data);
         return;
     }
     clientCreationInProgress = true;
@@ -69,19 +113,23 @@ function startClient(address, data) {
         request,
         function (data) {
             clientCreationInProgress = false;
-            if (!data) {
+            if (data == null) {
                 recordRequestFailure();
                 retryClientCreation(address, request);
                 return;
             }
+            if (clientFailed) return;
             let json;
-            try {
-                json = JSON.parse(data);
-            } catch (error) {
-                recordRequestFailure();
-                retryClientCreation(address, request);
-                return;
+            if (clientDisposed) {
+                try {
+                    json = JSON.parse(data);
+                } catch {
+                    return;
+                }
+            } else {
+                json = readProtocolResponse(data);
             }
+            if (!json) return;
             if (clientDisposed) {
                 if (typeof json.id === "string") {
                     sendClientRequest({ action: "kill", client: json.id }, null, "post", null, {
@@ -108,8 +156,7 @@ function startClient(address, data) {
                 typeof json.serverId !== "string" ||
                 typeof json.channelToken !== "string"
             ) {
-                recordRequestFailure();
-                retryClientCreation(address, request);
+                showClientError(undefined, "protocol");
                 return;
             }
             if (typeof json.tabId === "string") {
@@ -124,6 +171,8 @@ function startClient(address, data) {
                 }
                 tabContext.id = json.tabId;
             }
+            clientCreationFailures = 0;
+            clearSessionRefreshAttempt();
             recordRequestSuccess();
             clientId = json.id;
             serverId = json.serverId;
@@ -155,8 +204,7 @@ function mainCycle() {
 function disposeClient() {
     if (clientDisposed) return;
     clientDisposed = true;
-    cancelSynchronization();
-    if (typeof disposeUploads === "function") disposeUploads();
+    stopClientRecovery();
     disposeCountdowns();
     disposeAllWidgets();
     clearInterval(mainCycleTask);

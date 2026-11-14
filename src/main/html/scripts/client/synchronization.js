@@ -8,6 +8,15 @@ const maxEventStalls = 3;
 let eventStalls = 0;
 let synchronizationRetryTask = null;
 let synchronizationStopped = false;
+let synchronizationFailures = 0;
+
+function resumeSynchronizationOnline() {
+    if (synchronizationFailures > 0) {
+        clearTimeout(synchronizationRetryTask);
+        synchronizationRetryTask = null;
+    }
+    sendSynchronizeRequest();
+}
 
 // All entry points (polling, new input and upload callbacks) share the same retry gate.
 function scheduleSynchronization(delay) {
@@ -49,10 +58,16 @@ function sendSynchronizeRequest(callback) {
     if (synchronizationInFlight || synchronizationRetryTask !== null) {
         return;
     }
+    if (navigator.onLine === false) {
+        recordRequestFailure();
+        scheduleSynchronization(transportRetryDelay(++synchronizationFailures));
+        return;
+    }
     synchronizationInFlight = true;
     const sentEvents = events.slice();
     const sentThrough = sentEvents.length ? parseId(sentEvents.at(-1).id) : lastAcknowledgedEventId;
     let stalled = false;
+    let transportFailed = false;
     const callbacks = synchronizationCallbacks.splice(0);
     callback = function (accepted) {
         synchronizationInFlight = false;
@@ -60,7 +75,9 @@ function sendSynchronizeRequest(callback) {
             return;
         }
         // Install the gate before callbacks: upload metadata callbacks may request another sync.
-        if (stalled) {
+        if (transportFailed) {
+            scheduleSynchronization(transportRetryDelay(++synchronizationFailures));
+        } else if (stalled) {
             scheduleSynchronization(250 * 2 ** (eventStalls - 1));
         } else if (!accepted) {
             scheduleSynchronization(period);
@@ -81,31 +98,23 @@ function sendSynchronizeRequest(callback) {
             if (clientDisposed || synchronizationStopped) {
                 return;
             }
-            if (!data) {
+            if (data == null) {
                 log("Network error.");
+                transportFailed = true;
                 recordRequestFailure();
                 if (callback) {
                     callback(false);
                 }
                 return;
             }
-            let json;
-            try {
-                json = JSON.parse(data);
-            } catch (error) {
-                recordRequestFailure();
+            const json = readProtocolResponse(data);
+            if (!json || responseHasClientError(json)) {
                 if (callback) {
                     callback(false);
                 }
                 return;
             }
-            if (responseHasClientError(json)) {
-                if (callback) {
-                    callback(false);
-                }
-                return;
-            }
-            recordRequestSuccess();
+            synchronizationFailures = 0;
             if (!serverStateIsCurrent(json)) {
                 if (callback) {
                     callback(false);
@@ -136,6 +145,7 @@ function sendSynchronizeRequest(callback) {
                 sampleCountdownClock(json.serverNow);
                 processUpdates(json.updates);
                 reconcileTextInputs();
+                recordRequestSuccess();
                 if (pageContext) {
                     pageContext.ready();
                 }

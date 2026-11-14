@@ -15,6 +15,7 @@ export default defineConfig({
             testMatch: [
                 "suggestion-field.spec.js",
                 "channel-security.spec.js",
+                "connection-recovery.spec.js",
                 "event-validation.spec.js",
                 "event-ack.spec.js",
                 "live-event-targets.spec.js",

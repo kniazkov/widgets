@@ -116,6 +116,9 @@ public final class DiagnosticsTest {
                 "address", "/", "mobile", "false", "browserId", ProtocolTestBrowser.BROWSER_ID),
                 browser.headers(null));
             assertEquals(500, response.statusCode());
+            assertEquals("application", response.headers()
+                .firstValue("X-Widgets-Protocol-Error").orElseThrow());
+            assertEquals("{\"clientError\":true}", response.body());
             assertFalse(response.body().contains("private-test-message"));
             assertEquals(1, capture.records.size());
             assertSame(failure, capture.records.get(0).getThrown());
