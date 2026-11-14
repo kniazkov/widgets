@@ -80,7 +80,7 @@ public final class Form extends Panel {
     /**
      * Current registered fields in visual order.
      */
-    private final Panel fields = new Panel();
+    private final Panel fields;
     /**
      * Button route is identical to the R44 Enter route.
      */
@@ -120,8 +120,33 @@ public final class Form extends Panel {
      * @param name accessible form name, shown by the application separately as needed
      * @param submitCaption button text
      */
-    @SuppressWarnings("this-escape")
     public Form(final String name, final String submitCaption) {
+        this(name, submitCaption, new Panel());
+    }
+
+    /**
+     * Creates a form with an adaptive visual arrangement for its registered fields.
+     * The supplied layout must be empty, unattached and not retired.
+     * @param name accessible form name
+     * @param submitCaption button text
+     * @param layout adaptive layout for the registered fields
+     */
+    public Form(final String name, final String submitCaption, final FormLayout layout) {
+        this(name, submitCaption, (Panel) layout);
+    }
+
+    /**
+     * Owns the field container without changing the validation and submission path.
+     * @param name accessible form name
+     * @param submitCaption button text
+     * @param layout block container for the registered fields
+     */
+    @SuppressWarnings("this-escape")
+    private Form(final String name, final String submitCaption, final Panel layout) {
+        this.fields = Objects.requireNonNull(layout);
+        if (layout.isRetired() || layout.getParent().isPresent() || layout.getChildCount() != 0) {
+            throw new IllegalArgumentException("Form requires an empty unattached layout");
+        }
         this.setAccessibleName(Objects.requireNonNull(name));
         this.submitButton = new Button(Objects.requireNonNull(submitCaption));
         this.submitButton.onClick(event -> this.submit());

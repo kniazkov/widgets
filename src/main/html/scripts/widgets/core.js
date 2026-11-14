@@ -219,6 +219,9 @@ const widgetsLibrary = {
         initPointerEvents(widget, true);
         return widget;
     },
+    stack: () => createAdaptiveLayout("stack"),
+    "responsive grid": () => createAdaptiveLayout("responsive-grid"),
+    "form layout": () => createAdaptiveLayout("form-layout"),
     form: function () {
         const widget = document.createElement("div");
         widget.className = "widgets-form";

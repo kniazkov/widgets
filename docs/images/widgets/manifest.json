@@ -765,6 +765,48 @@
       ],
       "sha256": "aff04689c0224d8726157faf804ebc051e05678ac14d9d26808c13378cc4214c",
       "captureId": "r20-390"
+    },
+    "adaptive-layouts-wide": {
+      "file": "adaptive-layouts-wide.png",
+      "title": "Stack и ResponsiveGrid",
+      "states": "Горизонтальный Stack, широкая сетка в три колонки и узкая вложенная сетка в одну колонку.",
+      "sourceScreenshot": "adaptive-layouts-wide.jpg",
+      "crop": [
+        45,
+        203,
+        1106,
+        303
+      ],
+      "sha256": "c1997cdbff0fae37876b59a16a212e92912ceb779eee5b4050743e948208ad56",
+      "captureId": "r21-desktop"
+    },
+    "adaptive-form-wide": {
+      "file": "adaptive-form-wide.png",
+      "title": "Адаптивная форма",
+      "states": "Две колонки: подписи слева, поля и подсказка справа; фокус и вымышленный ввод видны.",
+      "sourceScreenshot": "adaptive-form-wide.jpg",
+      "crop": [
+        45,
+        154,
+        680,
+        378
+      ],
+      "sha256": "050df93fa087146f9594b8dda505ba581714671b4517175c3b463f21827d0f0a",
+      "captureId": "r21-desktop"
+    },
+    "adaptive-form-narrow": {
+      "file": "adaptive-form-narrow.png",
+      "title": "Адаптивная форма",
+      "states": "Подписи над полями, подсказка и проверка обязательности с фокусом первого поля.",
+      "sourceScreenshot": "adaptive-form-narrow.jpg",
+      "crop": [
+        45,
+        206,
+        316,
+        493
+      ],
+      "sha256": "e9563d0c8e276c4edab2178fdfba8a8764022a082ffaf569be111c2b7dc70b9d",
+      "captureId": "r21-narrow"
     }
   },
   "widgets": {
@@ -925,6 +967,16 @@
       "form-desktop",
       "form-narrow-error",
       "form-mobile-busy"
+    ],
+    "Stack": [
+      "adaptive-layouts-wide"
+    ],
+    "ResponsiveGrid": [
+      "adaptive-layouts-wide"
+    ],
+    "FormLayout": [
+      "adaptive-form-wide",
+      "adaptive-form-narrow"
     ]
   },
   "modalLifecycleCapture": {
@@ -1053,6 +1105,40 @@
       "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
       "screenshots": {
         "form-mobile-busy.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r21-desktop": {
+      "date": "2026-11-14",
+      "commit": "2420cfa8a8b6375c1204367e313535db823b3df8",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "fc7bc8bea1a82e864613ded9054ceebc0d3cfda5b324e0cfc3ac887c0be89f6a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "adaptive-layouts-wide.jpg": [
+          1212,
+          886
+        ],
+        "adaptive-form-wide.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r21-narrow": {
+      "date": "2026-11-14",
+      "commit": "2420cfa8a8b6375c1204367e313535db823b3df8",
+      "page": "Standalone AllWidgets / within fixed-width local preview",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "fc7bc8bea1a82e864613ded9054ceebc0d3cfda5b324e0cfc3ac887c0be89f6a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "adaptive-form-narrow.jpg": [
           1212,
           886
         ]

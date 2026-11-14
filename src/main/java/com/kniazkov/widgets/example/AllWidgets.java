@@ -33,6 +33,7 @@ import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Form;
 import com.kniazkov.widgets.view.FormField;
+import com.kniazkov.widgets.view.FormLayout;
 import com.kniazkov.widgets.view.HeadingLevel;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.ImageWidgetStyle;
@@ -59,6 +60,7 @@ import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
 import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.RadioGroup;
+import com.kniazkov.widgets.view.ResponsiveGrid;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.RootWidgetStyle;
 import com.kniazkov.widgets.view.Row;
@@ -67,6 +69,7 @@ import com.kniazkov.widgets.view.SectionStyle;
 import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.SortableSection;
 import com.kniazkov.widgets.view.ZoomDecorator;
+import com.kniazkov.widgets.view.Stack;
 import com.kniazkov.widgets.view.StickyPanel;
 import com.kniazkov.widgets.view.StickyPanelStyle;
 import com.kniazkov.widgets.view.Table;
@@ -212,6 +215,8 @@ public class AllWidgets {
         addTables(root);
         addGestureWidgets(root);
         addLayoutWidgets(root);
+        addAdaptiveLayouts(root);
+        addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
     }
@@ -233,6 +238,88 @@ public class AllWidgets {
         final InlineBlock block = new InlineBlock(new Section(spaced));
         block.setBgColor(new Color(226, 232, 240));
         card.add(new Section(new TextWidget("Section:"), block, new TextWidget("InlineBlock")));
+    }
+
+    /**
+     * Shows one stack that changes direction and responsive grids in two container widths.
+     * @param root gallery root
+     */
+    private static void addAdaptiveLayouts(final RootWidget root) {
+        final Panel card = addCard(root, "Адаптивные Stack и ResponsiveGrid",
+            "Перестройка зависит от ширины контейнера, а не от типа устройства.");
+        final Stack stack = new Stack(Stack.Direction.HORIZONTAL);
+        stack.setGap(8);
+        stack.setAlignment(Stack.Alignment.START);
+        stack.add(adaptiveTile("Альфа · Stack"));
+        stack.add(adaptiveTile("Бета · Stack"));
+        final Button flip = new Button("Сменить направление Stack");
+        final AtomicInteger flips = new AtomicInteger();
+        flip.onClick(event -> stack.setDirection(flips.incrementAndGet() % 2 == 1
+            ? Stack.Direction.VERTICAL : Stack.Direction.HORIZONTAL));
+        card.add(stack);
+        card.add(new Section(flip));
+        final ResponsiveGrid grid = new ResponsiveGrid();
+        grid.setGap(10);
+        grid.setColumnWidths(138, 0);
+        grid.add(adaptiveTile("Широкая сетка А"));
+        grid.add(adaptiveTile("Широкая сетка Б"));
+        grid.add(adaptiveTile("ДлинноесловобезпробеловДляПроверкиПереносаСетки"));
+        card.add(grid);
+        final Panel narrow = new Panel();
+        final ResponsiveGrid inner = new ResponsiveGrid();
+        inner.setWidth(225);
+        inner.setGap(6);
+        inner.setColumnWidths(128, 0);
+        inner.add(adaptiveTile("Узкая сетка А"));
+        inner.add(adaptiveTile("Узкая сетка Б"));
+        narrow.add(inner);
+        card.add(new Section(feedback("Вложенная сетка: контейнер не шире 225 px.")));
+        card.add(narrow);
+    }
+
+    /**
+     * Creates a display tile with no fixed minimum content width.
+     * @param text visible label
+     * @return block used by the adaptive layout demo
+     */
+    private static Panel adaptiveTile(final String text) {
+        final TextFlow flow = new TextFlow();
+        flow.add(new TextWidget(text));
+        final Panel tile = new Panel(flow);
+        tile.setBgColor(new Color(226, 232, 240));
+        tile.setPadding(7);
+        return tile;
+    }
+
+    /**
+     * Shows the same native labeled fields in columns or rows without replacing nodes.
+     * @param root gallery root
+     */
+    private static void addAdaptiveForm(final RootWidget root) {
+        final Panel card = addCard(root, "Адаптивная форма",
+            "Широкий контейнер: подпись слева. Узкий: подпись над полем.");
+        final FormLayout layout = new FormLayout();
+        layout.setBreakpoint(480);
+        layout.setGap(10);
+        final Form form = new Form("Адаптивная учебная заявка", "Проверить макет", layout);
+        form.setMessages(new Form.Messages("Проверяем макет…", "Макет проверен.",
+            "Заполните выделенное поле.", "Не удалось проверить макет."));
+        final FormField title = new FormField("title",
+            "Полное описание учебного предмета для проверки переноса подписи");
+        title.setRequired(true);
+        title.setConstraintMessages("Заполните описание.", "Проверьте описание.");
+        title.setHelp("В режиме двух колонок эта подсказка остаётся рядом с полем.");
+        title.getEditor().setWidth(300);
+        final FormField note = new FormField("note", "Дополнительный комментарий");
+        note.getEditor().setWidth(300);
+        form.addField(title);
+        form.addField(note);
+        card.add(form);
+        final Button breakpoint = new Button("Сменить порог формы");
+        final AtomicInteger changes = new AtomicInteger();
+        breakpoint.onClick(event -> layout.setBreakpoint(changes.incrementAndGet() % 2 == 1
+            ? 800 : 480));
+        card.add(new Section(breakpoint));
     }
 
     /**

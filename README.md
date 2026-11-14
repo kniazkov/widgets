@@ -271,6 +271,7 @@ compatibility changes, cancellation semantics and examples.
 - [Editor keyboard shortcuts](docs/KEYBOARD_SHORTCUTS.ru.md) — explicitly opt in to key events
   or use one Enter action for the same application validation as a button.
 - [Forms](docs/FORMS.ru.md) — native labels, accessible field errors and asynchronous submit using R44.
+- [Adaptive layout](docs/ADAPTIVE_LAYOUT.ru.md) — container-sized stacks, grids and labels that reflow.
 - [Cloud verification record](docs/CLOUD_VERIFICATION.ru.md) — build, browser checks and limitations.
   For new gallery entries, capture the exact built revision in a real cloud browser, keep an
   unscaled crop with state, source frame, viewport and version metadata, add alt text, and run
