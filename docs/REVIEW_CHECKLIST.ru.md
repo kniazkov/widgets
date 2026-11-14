@@ -31,7 +31,7 @@
 - [x] **R16 · P1** — [#120: Ограничить обработку файлов и изображений и сериализовать изменения UI](https://github.com/kniazkov/widgets/issues/120)
 - [x] **R17 · P1** — [#121: Ограничить очереди протокола и добавить backpressure](https://github.com/kniazkov/widgets/issues/121)
 - [x] **R18 · P1** — [#122: Сделать воспроизводимую облачную сборку и проверку браузера](https://github.com/kniazkov/widgets/issues/122)
-- [ ] **R19 · P1** — [#123: Добавить скриншоты всех существующих видимых виджетов в документацию](https://github.com/kniazkov/widgets/issues/123)
+- [x] **R19 · P1** — [#123: Добавить скриншоты всех существующих видимых виджетов в документацию](https://github.com/kniazkov/widgets/issues/123)
 - [ ] **R44 · P2** — [#154: Добавить клавиатурные события виджетов и действие по Enter](https://github.com/kniazkov/widgets/issues/154)
 - [ ] **R20 · P2** — [#124: Добавить Form, FormField и Label с согласованной валидацией](https://github.com/kniazkov/widgets/issues/124)
 - [ ] **R21 · P2** — [#125: Добавить адаптивные Stack, ResponsiveGrid и FormLayout](https://github.com/kniazkov/widgets/issues/125)
