@@ -51,6 +51,21 @@ img, textarea, button {
         0 0 32px rgba(208, 0, 0, 0.35);
 }
 
+#client-error-overlay.widgets-update-protocol-error {
+    flex-direction: column;
+    gap: 16px;
+    font-size: clamp(28px, 5vw, 40px);
+}
+
+#client-error-overlay.widgets-update-protocol-error > div {
+    max-width: 34ch;
+    color: #282828;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 400;
+    line-height: 1.45;
+    text-shadow: none;
+}
+
 /* An editable combobox keeps its suggestion list outside clipping containers. */
 .suggestion-list {
     position: fixed;

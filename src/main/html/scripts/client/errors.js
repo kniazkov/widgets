@@ -52,7 +52,7 @@ function hideConnectionTerminated() {
 }
 
 // A client failure is fatal for the current page and must not be retried as a network failure.
-function showClientError(error, reason = "application") {
+function showClientError(error, reason = "application", description = null) {
     if (clientDisposed || clientFailed) {
         return;
     }
@@ -85,12 +85,26 @@ function showClientError(error, reason = "application") {
     overlay.textContent = "Client Error";
     overlay.dataset.reason = reason;
     overlay.setAttribute("role", "alert");
+    if (description) {
+        overlay.classList.add("widgets-update-protocol-error");
+        const details = document.createElement("div");
+        details.textContent = description;
+        overlay.append(details);
+    }
     (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
         overlay
     );
     if (pageContext) {
         pageContext.failure(overlay);
     }
+}
+
+function showUpdateProtocolError(error) {
+    showClientError(
+        error,
+        "protocol",
+        "Incompatible widget updates. Reload this page to continue."
+    );
 }
 
 function responseHasClientError(response) {
@@ -110,6 +124,10 @@ function responseHasClientError(response) {
             // If storage is unavailable, do not risk an unbounded reload loop.
         }
         showClientError(undefined, "session");
+        return true;
+    }
+    if (response?.updateProtocolMismatch === true) {
+        showUpdateProtocolError();
         return true;
     }
     if (response?.protocolMismatch === true) {

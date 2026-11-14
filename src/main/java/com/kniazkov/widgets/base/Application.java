@@ -125,6 +125,16 @@ public final class Application {
 
 
     /**
+     * Returns the update epoch that was just established during channel creation.
+     *
+     * @param id created client ID
+     * @return non-secret update epoch
+     */
+    String updateEpoch(final RMId id) {
+        return this.clients.get(id).updateEpoch();
+    }
+
+    /**
      * Returns the identifier shared by every client of this application instance.
      *
      * @return server-state identifier
@@ -368,11 +378,13 @@ public final class Application {
                     return client;
                 }
                 client.timer = this.options.getClientLifetime();
-                client.synchronize(request, response);
+                client.synchronize(request, response, access != null);
                 if (!client.getTabContext().isActive()) {
                     response.addBoolean("tabContextExpired", true);
                 }
-                response.addBoolean("result", true);
+                if (!response.containsKey("protocolMismatch")) {
+                    response.addBoolean("result", true);
+                }
                 response.addBoolean("clientAlive", true);
             }
             return client;
@@ -397,7 +409,8 @@ public final class Application {
             final int chunkIndex,
             final byte[] data,
             final String lastUpdate) {
-        return this.uploadChunk(clientId, widgetId, fileId, chunkIndex, data, lastUpdate, null);
+        return this.uploadChunk(clientId, widgetId, fileId, chunkIndex, data, lastUpdate,
+            null, null);
     }
 
     /**
@@ -407,12 +420,13 @@ public final class Application {
      * @param chunkIndex chunk position
      * @param data binary data
      * @param lastUpdate checkpoint
+     * @param updateEpoch outgoing update stream generation
      * @param access authenticated channel credentials
      * @return upload acknowledgement
      */
     JsonObject uploadChunk(final RMId clientId, final RMId widgetId, final int fileId,
             final int chunkIndex, final byte[] data, final String lastUpdate,
-            final ChannelAccess access) {
+            final String updateEpoch, final ChannelAccess access) {
         this.counter++;
         final JsonObject[] result = {UploadProtocol.rejected()};
         this.clients.computeIfPresent(clientId, (id, client) -> {
@@ -430,7 +444,7 @@ public final class Application {
                     fileId,
                     chunkIndex,
                     data,
-                    lastUpdate
+                    lastUpdate, updateEpoch, access != null
                 );
             }
             return client;

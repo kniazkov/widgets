@@ -24,6 +24,7 @@ export default defineConfig({
                 "modal-accessibility.spec.js",
                 "widget-semantics.spec.js",
                 "widget-reparenting.spec.js",
+                "update-stream.spec.js",
                 "upload-lifecycle.spec.js"
             ],
             use: { browserName: "webkit" }

@@ -113,7 +113,8 @@ public final class DiagnosticsTest {
         try {
             final var browser = new ProtocolTestBrowser(server.getPort());
             final HttpResponse<String> response = browser.post(Map.of("action", "new instance",
-                "address", "/", "mobile", "false", "browserId", ProtocolTestBrowser.BROWSER_ID),
+                "address", "/", "mobile", "false", "browserId", ProtocolTestBrowser.BROWSER_ID,
+                "updateVersion", UpdateStream.VERSION, "updateCapability", UpdateStream.CAPABILITY),
                 browser.headers(null));
             assertEquals(500, response.statusCode());
             assertEquals("application", response.headers()

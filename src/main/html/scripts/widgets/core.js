@@ -518,6 +518,7 @@ function createWidget(data) {
     if (widgets[id]) return true;
     const widget = ctor();
     widget._id = id;
+    widget._widgetType = data.type;
     if (widget._choiceType) widget.id = "widgets-choice-" + id;
     widget._events = {};
     widget._clientActions = {};

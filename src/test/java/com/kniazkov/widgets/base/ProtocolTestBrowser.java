@@ -87,7 +87,8 @@ final class ProtocolTestBrowser {
      */
     JsonObject create(final String tab) throws Exception {
         final Map<String, String> fields = new TreeMap<>(Map.of("action", "new instance",
-            "address", "/", "browserId", BROWSER_ID, "mobile", "false"));
+            "address", "/", "browserId", BROWSER_ID, "mobile", "false",
+            "updateVersion", UpdateStream.VERSION, "updateCapability", UpdateStream.CAPABILITY));
         if (tab != null) {
             fields.put("tabId", tab);
         }
@@ -105,6 +106,7 @@ final class ProtocolTestBrowser {
         if (channel != null) {
             headers.put("X-Widgets-Channel", channel.get("channelToken").stringValue());
             headers.put("X-Widgets-Epoch", channel.get("serverId").stringValue());
+            headers.put("X-Widgets-Update-Epoch", channel.get("updateEpoch").stringValue());
         }
         return headers;
     }

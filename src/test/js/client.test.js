@@ -143,11 +143,14 @@ function createHarness() {
             succeed: recordRequestSuccess,
             reportClientError: responseHasClientError,
             showClientError,
-            setClientId: value => { clientId = value; },
+            setClientId: value => { clientId = value; updateEpoch = "test-stream"; },
             startClient,
             requests: window.__requests,
             scheduledTasks: window.__scheduledTasks,
             setServerId: function (value) { serverId = value; },
+            processUpdates,
+            checkpoint: () => lastAppliedUpdateSequence,
+            useAction: (name, handler) => { actionHandlers[name] = handler; },
             serverStateIsCurrent: serverStateIsCurrent,
             reconcileTextInputs,
             openPageInNewTab,
@@ -365,6 +368,11 @@ describe("event delivery acknowledgements", () => {
                     clientAlive: true,
                     serverId: "server",
                     lastEvent,
+                    updateEpoch: "test-stream",
+                    updateBase: 0,
+                    updateThrough: 0,
+                    snapshot: true,
+                    updates: [],
                     ...extra
                 })
             );
@@ -494,7 +502,17 @@ describe("event delivery acknowledgements", () => {
         harness.disposeClient();
         harness.scheduledTasks[0]();
         reply(
-            JSON.stringify({ result: true, serverId: "server", clientAlive: true, lastEvent: "#1" })
+            JSON.stringify({
+                result: true,
+                serverId: "server",
+                clientAlive: true,
+                lastEvent: "#1",
+                updateEpoch: "test-stream",
+                updateBase: 0,
+                updateThrough: 0,
+                snapshot: true,
+                updates: []
+            })
         );
         expect(harness.requests.map(entry => entry.request.action)).toEqual([
             "synchronize",
@@ -502,5 +520,112 @@ describe("event delivery acknowledgements", () => {
         ]);
         expect(dom.window.__reloadCount).toBe(0);
         expect(harness.events).toHaveLength(1);
+    });
+});
+
+describe("versioned update stream", () => {
+    function frame(base, updates) {
+        return {
+            updateEpoch: "test-stream",
+            updateBase: base,
+            updateThrough: base + updates.length,
+            snapshot: base === 0,
+            updates
+        };
+    }
+
+    function command(sequence, action = "set text", id = "#" + sequence * 101) {
+        return { sequence, action, id, widget: "#9" };
+    }
+
+    function ready() {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        return harness;
+    }
+
+    it("uses a channel sequence, ignores replays and advances for an intentional no-op", () => {
+        const harness = ready();
+        let calls = 0;
+        harness.useAction("set text", () => {
+            calls++;
+            return true;
+        });
+        const snapshot = frame(0, [command(1, "set text", "#2"), command(2, "set text", "#92")]);
+        expect(harness.processUpdates(snapshot)).toBe(true);
+        expect(harness.processUpdates(snapshot)).toBe(true);
+        expect(harness.processUpdates(frame(2, [command(3, "dispose widget")]))).toBe(true);
+        expect(harness.checkpoint()).toBe(3);
+        expect(calls).toBe(2);
+        expect(dom.window.document.getElementById("client-error-overlay")).toBeNull();
+    });
+
+    it.each(["unknown command", "set text", "set hidden"])(
+        "never accepts a failed %s or a later command in its frame",
+        action => {
+            const harness = ready();
+            let laterCalls = 0;
+            harness.useAction("set text", () => false);
+            harness.useAction("set hidden", () => {
+                throw new Error("fixture handler failed");
+            });
+            harness.useAction("set width", () => {
+                laterCalls++;
+                return true;
+            });
+            expect(
+                harness.processUpdates(
+                    frame(0, [command(1, "set width"), command(2, action), command(3, "set width")])
+                )
+            ).toBe(false);
+            expect(harness.checkpoint()).toBe(1);
+            expect(laterCalls).toBe(1);
+            const requestsBefore = harness.requests.length;
+            harness.sendSynchronizeRequest();
+            expect(harness.requests).toHaveLength(requestsBefore);
+            expect(dom.window.document.getElementById("client-error-overlay").dataset.reason).toBe(
+                "protocol"
+            );
+        }
+    );
+
+    it("rejects gaps, duplicate or reordered positions, incomplete frames and expired epochs up front", () => {
+        for (const receipt of [
+            frame(0, [command(1), command(3)]),
+            frame(0, [command(2), command(1)]),
+            frame(0, [command(1), command(1)]),
+            { ...frame(0, [command(1)]), updateThrough: 2 },
+            { ...frame(0, [command(1)]), updateEpoch: "expired-stream" }
+        ]) {
+            const harness = ready();
+            let calls = 0;
+            harness.useAction("set text", () => {
+                calls++;
+                return true;
+            });
+            expect(harness.processUpdates(receipt)).toBe(false);
+            expect(harness.checkpoint()).toBe(0);
+            expect(calls).toBe(0);
+            dom.window.close();
+        }
+    });
+
+    it("does not fall back to an old update server after bootstrap negotiation", () => {
+        const harness = createHarness();
+        harness.startClient("/catalog", {});
+        expect(harness.requests[0].request.updateVersion).toBe("2");
+        expect(harness.requests[0].request.updateCapability).toBe("sequenced-updates");
+        harness.requests[0].callback(
+            JSON.stringify({
+                id: "#1",
+                serverId: "test-server",
+                channelToken: "test-channel",
+                updateVersion: "1"
+            })
+        );
+        expect(harness.requests).toHaveLength(1);
+        expect(dom.window.document.getElementById("client-error-overlay").dataset.reason).toBe(
+            "protocol"
+        );
     });
 });

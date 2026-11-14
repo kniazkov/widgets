@@ -426,7 +426,8 @@ public final class ClientChannelSecurityTest {
         assertTrue(cookie.contains("Secure"));
         final var headers = browser.headers(null);
         final Map<String, String> form = Map.of("action", "new instance", "address", "/",
-            "browserId", ProtocolTestBrowser.BROWSER_ID, "mobile", "false");
+            "browserId", ProtocolTestBrowser.BROWSER_ID, "mobile", "false",
+            "updateVersion", UpdateStream.VERSION, "updateCapability", UpdateStream.CAPABILITY);
         headers.put("Origin", "https://shop.example");
         assertEquals(200, browser.post(form, headers).statusCode());
         headers.put("Origin", "https://evil.example");
