@@ -348,3 +348,89 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-form-layout[data-label-columns] > .widgets-form-field > :not(:first-child) {
     grid-column: 2;
 }
+
+.typed-choice-select,
+.typed-choice-combo {
+    max-inline-size: 100%;
+    min-block-size: 2.75rem;
+}
+
+.typed-choice-select[multiple] {
+    min-block-size: 6rem;
+}
+
+.typed-choice-combo {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}
+
+.typed-choice-combo input {
+    box-sizing: border-box;
+    flex: 1;
+    min-inline-size: 0;
+    border: 0;
+    padding: 0.2rem;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+}
+
+.typed-choice-combo:has(input[aria-invalid="true"]),
+.typed-choice-select[aria-invalid="true"] {
+    border-color: #ad2929 !important;
+}
+
+.typed-choice-combo:focus-within {
+    outline: 2px solid Highlight !important;
+    outline-offset: 1px;
+}
+
+.typed-choice-combo input:focus {
+    outline: none;
+}
+
+.typed-choice-combo > button {
+    flex: none;
+    min-inline-size: 2rem;
+    min-block-size: 2rem;
+    border: 0;
+    border-radius: 0.25rem;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.typed-choice-popup {
+    position: absolute;
+    z-index: 2;
+    inset-inline: 0;
+    inset-block-start: calc(100% + 2px);
+    max-block-size: 14rem;
+    overflow: auto;
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid currentColor;
+    border-radius: 0.375rem;
+}
+
+.typed-choice-popup [role="option"],
+.typed-choice-popup [role="status"]:not(:empty) {
+    overflow-wrap: anywhere;
+    padding: 0.5rem;
+}
+
+.typed-choice-popup [role="option"].active {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+}
+
+.typed-choice-popup [aria-selected="true"] {
+    font-weight: bold;
+}
+
+.typed-choice-popup [aria-disabled="true"] {
+    color: GrayText;
+}

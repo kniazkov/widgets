@@ -1,6 +1,6 @@
 # Widget catalog
 
-See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all 37 concrete visual
+See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all 46 concrete visual
 widget classes, including open popups and composed layout widgets. The [review checklist](REVIEW_CHECKLIST.ru.md)
 tracks remaining defects and planned components; planned widgets are not part of the current API.
 
@@ -74,6 +74,13 @@ classDiagram
     InlineWidget <|-- CheckBox
     InlineWidget <|-- RadioButton
     InlineWidget <|-- DropDownList
+    class TypedChoice {
+        <<abstract>>
+    }
+    InlineWidget <|-- TypedChoice
+    TypedChoice <|-- Select
+    TypedChoice <|-- ComboBox
+    TypedChoice <|-- MultiSelect
     InputField <|-- SuggestionField
     InputField <|-- PasswordInput
     InputField <|-- TextArea
@@ -113,6 +120,7 @@ the root and table structures rather than the general block/inline distinction.
 | `Widget<S extends Style>` | Base of the entire view hierarchy. Owns identity, parent linkage, style bindings, event controllers, and pending browser updates. |
 | `BlockWidget<S extends Style>` | Marker base for widgets that participate in block-level layout. |
 | `InlineWidget<S extends Style>` | Marker base for widgets that participate in inline layout. |
+| `TypedChoice<T>` | Reactive choices backed by stable keys and typed server values. |
 | `BaseImageWidget<S extends Style>` | Shared inline base for images, including border, margin, absolute size, and opacity properties. |
 
 ## Root and layout widgets
@@ -152,6 +160,9 @@ dynamic collections while preserving iteration order.
 | `CheckBoxWithText` | `inline block` | Checkbox with an interactive right-hand caption and shared disabled-state model. |
 | `RadioButtonWithText` | `inline block` | Radio button with an interactive caption; exposes its button for `RadioGroup` membership. |
 | `DropDownList` | `drop down list` | Native HTML selection control with a fixed number of ordered `Model<String>` option labels, a reactive selected-index model, keyboard focus, and disabled state. |
+| `Select<T>` | `typed select` | Native single selection with replaceable keyed options. |
+| `ComboBox<T>` | `typed combo box` | Editable strict/free-text choice with optional cancellable paged provider. |
+| `MultiSelect<T>` | `typed multi select` | Native multiple choice backed by immutable selected keys. |
 
 ## Image widgets
 

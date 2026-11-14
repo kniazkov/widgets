@@ -47,6 +47,9 @@
 | `CheckBox` | [CheckBox](#check-box) |
 | `CheckBoxWithText` | [CheckBoxWithText / RadioButtonWithText](#labeled-choices) |
 | `Countdown` | [Countdown](#countdown) |
+| `ComboBox` | [Типизированный выбор](#typed-choices) |
+| `MultiSelect` | [Типизированный выбор](#typed-choices) |
+| `Select` | [Типизированный выбор](#typed-choices) |
 | `DropDownList` | [DropDownList](#drop-down-list) |
 | `FileLoader` | [FileLoader](#file-loader), [загрузка завершена](#file-loader-complete) |
 | `Form` | [Демонстрационная форма](#form) |
@@ -177,6 +180,21 @@
 ![Демо в узком окне: замаскированный код, фокус в поле кода и успешный результат по Enter.](images/widgets/keyboard-demo-narrow.png)
 
 *Узкое окно: поля и кнопка переносятся на отдельные строки.*
+
+<a id="typed-choices"></a>
+
+### Select, ComboBox и MultiSelect
+
+Одинаковые подписи могут представлять разные ключи. Демо использует только учебные
+материалы и склады. См. [договор API](TYPED_CHOICES.ru.md).
+
+![Select хранит ключ второй позиции «Бумага» со значением 102; MultiSelect показывает два отмеченных варианта, недоступный Select и неверный ComboBox.](images/widgets/typed-choices-wide.png)
+
+*Настольный режим: ключ остаётся отдельным от подписи и не зависит от позиции.*
+
+![Открытый ComboBox на 390 px: длинная подпись склада переносится на три строки, отключённый склад выделен серым, видна кнопка следующей страницы.](images/widgets/typed-choices-narrow.png)
+
+*Узкий режим: список прокручивается, пока фокус остаётся в поле поиска.*
 
 <a id="adaptive-layouts"></a>
 

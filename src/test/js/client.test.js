@@ -31,6 +31,7 @@ const handlerNames = [
     "setPlaceholderColor",
     "setInputMode",
     "setSuggestions",
+    "setChoiceState",
     "setSuggestionSeparator",
     "setKeyboardShortcuts",
     "setInputReadOnly",
