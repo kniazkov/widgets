@@ -296,6 +296,18 @@ const widgetsLibrary = {
     "time field": function () {
         return createTemporalField("time");
     },
+    "number field": function () {
+        const widget = createInputField();
+        widget.classList.add("widgets-number-field");
+        widget.type = "text";
+        return widget;
+    },
+    "quantity field": function () {
+        const widget = document.createElement("div");
+        widget.className = "widgets-form-field widgets-quantity-field";
+        initPointerEvents(widget, true);
+        return widget;
+    },
     "date range": function () {
         const widget = document.createElement("div");
         widget.classList.add("widgets-date-range");

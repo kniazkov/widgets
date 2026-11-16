@@ -454,3 +454,5 @@ Keep the resulting model alive while its reactive updates are needed.
 
 The more specific getter return types require recompilation of consumers and
 updating custom overrides that previously returned `Model<Boolean>`.
+
+Exact decimal and quantity editors: [NumberField and QuantityField](docs/NUMBER_FIELDS.ru.md).

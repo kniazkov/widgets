@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 /**
  * Text editor with a native label and optional help, error, and form constraints.
  */
-public final class FormField extends Panel {
+public class FormField extends Panel {
     /**
      * Bounded stable names, used in submission snapshots and error responses.
      */
@@ -120,6 +120,14 @@ public final class FormField extends Panel {
         if (!(editor instanceof TextArea)) {
             editor.onEnter(event -> this.submitFromEditor());
         }
+    }
+
+    /**
+     * Adds a native action beside the owned editor without changing form ownership.
+     * @param action unattached button
+     */
+    protected final void addEditorAction(final Button action) {
+        this.editorRow.add(Objects.requireNonNull(action));
     }
 
     /**
@@ -283,6 +291,11 @@ public final class FormField extends Panel {
     String constraintError(final String value) {
         if (this.required && value.isBlank()) {
             return this.requiredMessage;
+        }
+        if (this.editor instanceof NumberField number
+                && number.getValueModel().status()
+                    == com.kniazkov.widgets.model.NumberModel.Status.CONVERSION) {
+            return number.getConversionMessage();
         }
         if (value.length() > this.editor.getMaxInputLength()
                 || !this.editor.getTextModel().isValid()) {
