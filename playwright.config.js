@@ -33,6 +33,7 @@ export default defineConfig({
                 "keyboard-shortcuts.spec.js",
                 "forms.spec.js",
                 "feedback.spec.js",
+                "dialog.spec.js",
                 "adaptive-layout.spec.js",
                 "typed-choices.spec.js",
                 "data-table.spec.js"

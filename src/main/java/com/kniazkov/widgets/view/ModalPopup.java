@@ -74,6 +74,14 @@ public class ModalPopup extends Popup
         this.getModel(State.ANY, Property.CLOSE_ON_ESCAPE).setData(enabled);
     }
 
+    /**
+     * Requests dismissal after the server has checked the current modal policy.
+     * Subclasses may reject the request while an application action is pending.
+     */
+    public void dismiss() {
+        this.remove();
+    }
+
     @Override
     public String getType() {
         return "modal popup";

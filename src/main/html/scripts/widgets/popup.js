@@ -218,6 +218,9 @@ function focusModalElement(element) {
     if (!visibleModalElement(element) || element.matches(":disabled") || element.closest("[inert]"))
         return false;
     element.focus({ preventScroll: true });
+    if (document.activeElement === element && element.closest(".widgets-dialog")) {
+        element.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    }
     return document.activeElement === element;
 }
 
@@ -368,4 +371,53 @@ function setModalAccessibleName(widget, name) {
         widget.setAttribute("aria-label", widget._modalAccessibleName || "Dialog");
     }
     return true;
+}
+
+// Dialog keeps the existing modal stack and focus rules, adding a keyboard-sized scroll viewport.
+function createDialog() {
+    const widget = createPopup(true);
+    widget.classList.add("widgets-dialog");
+    const attach = widget._onAttached;
+    const detach = widget._onDetached;
+    let viewportListeners;
+    const refresh = () => {
+        const viewport = window.visualViewport;
+        const width = viewport?.width || window.innerWidth;
+        const height = viewport?.height || window.innerHeight;
+        const left = viewport?.offsetLeft || 0;
+        const top = viewport?.offsetTop || 0;
+        widget.style.setProperty("--dialog-width", width + "px");
+        widget.style.setProperty("--dialog-height", height + "px");
+        widget.style.left = left + 12 + "px";
+        widget.style.right = Math.max(0, window.innerWidth - left - width) + 12 + "px";
+        widget.style.top = top + 12 + "px";
+        widget.style.bottom = Math.max(0, window.innerHeight - top - height) + 12 + "px";
+        widget.style.margin = "auto";
+        const focused = document.activeElement;
+        if (focused?.closest(".widgets-dialog") === widget) {
+            focused.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+        }
+    };
+    const stop = () => {
+        viewportListeners?.abort();
+        viewportListeners = null;
+    };
+    widget._refreshPosition = refresh;
+    widget._onAttached = () => {
+        attach();
+        stop();
+        viewportListeners = new AbortController();
+        const options = { signal: viewportListeners.signal };
+        window.addEventListener("resize", refresh, options);
+        window.visualViewport?.addEventListener("resize", refresh, options);
+        window.visualViewport?.addEventListener("scroll", refresh, options);
+        refresh();
+    };
+    widget._onDetached = () => {
+        stop();
+        detach();
+    };
+    widget._onDisposed = stop;
+    refresh();
+    return widget;
 }

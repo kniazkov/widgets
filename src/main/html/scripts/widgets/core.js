@@ -265,6 +265,9 @@ const widgetsLibrary = {
     popup: function () {
         return createPopup(false);
     },
+    dialog: function () {
+        return createDialog();
+    },
     "modal popup": function () {
         return createPopup(true);
     },
