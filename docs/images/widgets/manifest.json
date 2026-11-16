@@ -919,6 +919,48 @@
       ],
       "sha256": "7158a5ef3c09d1e2b3bf19d4fe4fc8dd178ba4f0da042d6195feb35a10c59aaf",
       "captureId": "r24-mobile"
+    },
+    "dialog-confirm": {
+      "file": "dialog-confirm.png",
+      "title": "Подтверждение действия",
+      "states": "Подтверждение, отмена и закрытие.",
+      "sourceScreenshot": "dialog-confirm.jpg",
+      "crop": [
+        370,
+        355,
+        580,
+        220
+      ],
+      "sha256": "e7a0352a581520d42f3bd1cfd7ce605e5deb5d8722da54164549f8106d5e6eb6",
+      "captureId": "r25-desktop"
+    },
+    "dialog-error": {
+      "file": "dialog-error.png",
+      "title": "Ошибка асинхронного действия",
+      "states": "Данные сохранены, повтор доступен; длинная форма прокручивается.",
+      "sourceScreenshot": "dialog-error.jpg",
+      "crop": [
+        375,
+        5,
+        568,
+        915
+      ],
+      "sha256": "8cf436ea1a31f385ac86a98f54c957ef1daf2f7115d0791f097d385c78a9f688",
+      "captureId": "r25-desktop"
+    },
+    "dialog-mobile": {
+      "file": "dialog-mobile.png",
+      "title": "Длинная форма на 390 px",
+      "states": "Перенос кнопки, полей и подсказок; внутренний scroll.",
+      "sourceScreenshot": "dialog-mobile.jpg",
+      "crop": [
+        487,
+        20,
+        390,
+        870
+      ],
+      "sha256": "64d4bbdae801a0532106d7b31d32585f302477533f501831253c6cf92dfba211",
+      "captureId": "r25-mobile"
     }
   },
   "widgets": {
@@ -1128,6 +1170,11 @@
     "Toast": [
       "feedback-desktop",
       "feedback-mobile-operation"
+    ],
+    "Dialog": [
+      "dialog-confirm",
+      "dialog-error",
+      "dialog-mobile"
     ]
   },
   "modalLifecycleCapture": {
@@ -1388,6 +1435,40 @@
           936
         ],
         "feedback-mobile-bottom.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r25-desktop": {
+      "date": "2026-11-16",
+      "commit": "2407eb4c70897ff91726cb3e9f7a1dd01ca20cb9",
+      "allWidgetsSourceSha256": "82791c4fb8c156e749a2c838069087d994b2c013b5874d36f403102cb5020b6d",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of working tree based on commit above; cropped without scaling or retouching.",
+      "screenshots": {
+        "dialog-confirm.jpg": [
+          1348,
+          926
+        ],
+        "dialog-error.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r25-mobile": {
+      "date": "2026-11-16",
+      "commit": "2407eb4c70897ff91726cb3e9f7a1dd01ca20cb9",
+      "allWidgetsSourceSha256": "82791c4fb8c156e749a2c838069087d994b2c013b5874d36f403102cb5020b6d",
+      "page": "AllWidgets / in local 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 870 CSS px",
+      "method": "Real cloud browser screenshot of working tree based on commit above; cropped without scaling or retouching.",
+      "screenshots": {
+        "dialog-mobile.jpg": [
           1363,
           936
         ]

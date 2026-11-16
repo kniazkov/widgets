@@ -541,3 +541,22 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-feedback-error { color: #7f1d1d; background: #fef2f2; border: 1px solid #b91c1c; }
 .widgets-feedback progress { width: 100%; margin-top: 8px; accent-color: #0e7490; }
 .widgets-feedback button { max-width: 100%; min-height: 32px; white-space: normal; }
+
+/* Each dialog scrolls inside the visual viewport, including a visible mobile keyboard. */
+.widgets-dialog {
+    max-width: calc(var(--dialog-width, 100vw) - 24px);
+    max-height: calc(var(--dialog-height, 100vh) - 24px);
+    overflow: auto;
+    overflow-wrap: anywhere;
+    overscroll-behavior: contain;
+}
+.widgets-dialog input, .widgets-dialog textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+/* Dialog captions may wrap after translation or on a narrow viewport. */
+.widgets-dialog button {
+    height: auto !important;
+    min-height: 40px;
+    max-width: 100%;
+}

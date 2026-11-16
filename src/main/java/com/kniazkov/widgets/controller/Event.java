@@ -358,7 +358,7 @@ public abstract class Event<T> {
         @Override
         public void updateWidget(final Widget<?> widget, final Void data) {
             if (widget instanceof ModalPopup popup && popup.isCloseOnOutsideClick()) {
-                popup.remove();
+                popup.dismiss();
             }
         }
     };
@@ -380,7 +380,7 @@ public abstract class Event<T> {
         @Override
         public void updateWidget(final Widget<?> widget, final Void data) {
             if (widget instanceof ModalPopup popup && popup.isCloseOnEscape()) {
-                popup.remove();
+                popup.dismiss();
             }
         }
     };

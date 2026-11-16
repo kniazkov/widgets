@@ -53,6 +53,7 @@ classDiagram
     Progress <|-- Busy
     BlockWidget <|-- Popup
     Popup <|-- ModalPopup
+    ModalPopup <|-- Dialog
     ModalPopup <|-- MessagePopup
     BlockWidget <|-- DataTable
     BlockWidget <|-- Table
@@ -142,6 +143,7 @@ the root and table structures rather than the general block/inline distinction.
 | `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
+| `Dialog<T>` | `dialog` | `BlockWidget` | Typed asynchronous modal form with exactly-once result. |
 | `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The backdrop color and optional outside-click dismissal are exposed through models. Outside dismissal is disabled by default and supports mouse clicks and touch taps. |
 | `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from a string or caller-supplied `TextWidget` and one or two buttons. The text widget is exposed for later style and model changes. |
 | `MarginDecorator` | `margin decorator` | One `InlineWidget` | Wraps a single inline widget to add margin support without changing the wrapped widget. Removing its child installs an empty `TextWidget`. |
@@ -616,3 +618,10 @@ of already exported widgets between browser roots are rejected before the move.
 See the [contract and integration example](WIDGET_REPARENTING.ru.md).
 
 See [feedback API and lifecycle (Russian)](FEEDBACK.ru.md).
+
+## Typed dialogs
+
+`Dialog<T>` extends `ModalPopup` with a one-shot typed confirm/cancel/close result,
+Form validation, asynchronous busy/error/retry and guarded dismissal.
+Long content scrolls inside the visual viewport; nested dialogs reuse the modal stack.
+See [Dialog API, examples and lifecycle (Russian)](DIALOGS.ru.md).

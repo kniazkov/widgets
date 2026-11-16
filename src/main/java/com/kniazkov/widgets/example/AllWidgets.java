@@ -214,6 +214,7 @@ public class AllWidgets {
         addTypedChoices(root);
         addDataTable(root);
         addFeedback(root);
+        addDialogs(root);
         addButtons(root);
         addAccessibleSemantics(root);
         addPopups(root);
@@ -228,6 +229,68 @@ public class AllWidgets {
         addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
+    }
+
+    /**
+     * Exercises typed confirmation, a long validated form, retry and nested modal focus.
+     * @param root gallery page
+     */
+    private static void addDialogs(final RootWidget root) {
+        final Panel card = addCard(root, "Диалоги с результатом",
+            "Учебная форма: первая отправка завершится ошибкой, повтор — успешно.");
+        final var labels = new com.kniazkov.widgets.view.Dialog.Messages(
+            "Подтвердить", "Отменить", "Закрыть диалог", "Сохраняем учебную заявку…",
+            "Не удалось сохранить. Повторите попытку.", "Проверьте поля заявки.");
+        final TextWidget result = new TextWidget("Диалог ещё не завершён");
+        final Button confirm = new Button("Открыть подтверждение");
+        confirm.onClick(event -> {
+            final var dialog = com.kniazkov.widgets.view.Dialog.confirmation(
+                "Подтверждение действия", "Подтвердить учебное действие?", labels);
+            dialog.setCloseOnOutsideClick(true);
+            dialog.result().thenAccept(value -> result.setText("Результат: " + value.reason()));
+            root.add(dialog);
+        });
+        final Button edit = new Button("Открыть длинную форму");
+        edit.onClick(event -> {
+            final var attempts = new java.util.concurrent.atomic.AtomicInteger();
+            final TextWidget count = new TextWidget("Попыток сохранения: 0");
+            final var dialog = new com.kniazkov.widgets.view.Dialog<String>(
+                "Учебная заявка", labels, values -> {
+                    final int attempt = attempts.incrementAndGet();
+                    count.setText("Попыток сохранения: " + attempt);
+                    return CompletableFuture.supplyAsync(() -> {
+                        if (attempt == 1) {
+                            throw new IllegalStateException("Simulated unavailable service");
+                        }
+                        return values.get("sample");
+                    }, CompletableFuture.delayedExecutor(2, java.util.concurrent.TimeUnit.SECONDS));
+                });
+            dialog.setCloseOnOutsideClick(true);
+            dialog.getContent().add(new Section(count));
+            final Button nested = new Button("Открыть вложенное подтверждение");
+            nested.onClick(innerEvent -> {
+                final var inner = com.kniazkov.widgets.view.Dialog.confirmation(
+                    "Вложенное подтверждение", "Это отдельное учебное действие.", labels);
+                dialog.add(inner);
+            });
+            dialog.getContent().add(new Section(nested));
+            final FormField sample = new FormField("sample", "Название образца");
+            sample.setRequired(true);
+            sample.setConstraintMessages("Введите название образца.", "Проверьте название.");
+            sample.setMaxLength(80);
+            dialog.addField(sample);
+            for (int index = 1; index <= 7; index++) {
+                final FormField note = new FormField("note" + index,
+                    "Дополнительный комментарий к этапу " + index);
+                note.setHelp("Необязательное поле для проверки длинной формы и прокрутки.");
+                dialog.addField(note);
+            }
+            dialog.result().thenAccept(value -> result.setText("Результат: " + value.reason()
+                + value.value().map(text -> " · " + text).orElse("")));
+            root.add(dialog);
+        });
+        card.add(new Section(confirm, edit));
+        card.add(new Section(result));
     }
 
     /**
