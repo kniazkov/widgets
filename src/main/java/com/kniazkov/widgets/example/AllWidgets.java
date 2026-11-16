@@ -213,6 +213,7 @@ public class AllWidgets {
         addDropDownLists(root);
         addTypedChoices(root);
         addDataTable(root);
+        addFeedback(root);
         addButtons(root);
         addAccessibleSemantics(root);
         addPopups(root);
@@ -227,6 +228,75 @@ public class AllWidgets {
         addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
+    }
+
+    /**
+     * Shows localized feedback and operation state without changing keyboard focus.
+     * @param root gallery owner
+     */
+    private static void addFeedback(final RootWidget root) {
+        final Panel card = addCard(root, "Сообщения и состояние операции",
+            "Сообщения не перехватывают фокус; ошибки остаются до закрытия.");
+        final var info = new com.kniazkov.widgets.view.Alert("Изменения сохранены.");
+        info.setSeverity(com.kniazkov.widgets.view.Feedback.Severity.SUCCESS);
+        card.add(info);
+        final var warning = new com.kniazkov.widgets.view.Alert(
+            "Проверьте данные перед отправкой.");
+        warning.setSeverity(com.kniazkov.widgets.view.Feedback.Severity.WARNING);
+        card.add(warning);
+        final var error = new com.kniazkov.widgets.view.FieldError(
+            "Проверьте адрес: пример длинного сообщения об ошибке заполнения поля.");
+        card.add(error);
+        final var empty = new com.kniazkov.widgets.view.EmptyState("У вас нет активных заказов.");
+        final Button retry = new Button("Загрузить ещё раз");
+        empty.add(new Section(retry));
+        card.add(empty);
+        final var busy = new com.kniazkov.widgets.view.Busy("Проверяем наличие изделий…");
+        final Panel operation = new Panel(busy);
+        card.add(operation);
+        final Button start = new Button("Начать проверку");
+        start.onClick(event -> {
+            operation.getChild(0).dispose();
+            operation.add(new com.kniazkov.widgets.view.Busy("Проверяем наличие изделий…"));
+        });
+        final Button noData = new Button("Показать пустой результат");
+        noData.onClick(event -> {
+            empty.setText("У вас нет активных заказов.");
+            ((com.kniazkov.widgets.view.Progress) operation.getChild(0)).finish(
+                "Проверка завершена: заказов нет",
+                com.kniazkov.widgets.view.Feedback.Severity.INFO);
+        });
+        final Button fail = new Button("Ошибка проверки");
+        fail.onClick(event -> ((com.kniazkov.widgets.view.Progress) operation.getChild(0)).finish(
+            "Проверка не удалась. Попробуйте ещё раз.",
+            com.kniazkov.widgets.view.Feedback.Severity.ERROR));
+        card.add(new Section(start, noData, fail));
+        final var progress = new com.kniazkov.widgets.view.Progress("Загрузка фотографий");
+        progress.setPercentage(40);
+        progress.onCancel("Отменить загрузку", "Загрузка отменена", () ->
+            info.setText("Отмена запрошена; можно начать новую операцию."));
+        card.add(progress);
+        final var toast = new com.kniazkov.widgets.view.Toast(3, "Закрыть уведомление");
+        toast.offer("Не удалось связаться с сервером. Повторите попытку.",
+            com.kniazkov.widgets.view.Feedback.Severity.ERROR, 1000);
+        card.add(toast);
+        final Button notify = new Button("Показать уведомление");
+        notify.onClick(event -> {
+            if (!toast.offer("Изделие добавлено в список.",
+                    com.kniazkov.widgets.view.Feedback.Severity.SUCCESS, 5000)) {
+                info.setText("Очередь уведомлений заполнена.");
+            }
+        });
+        retry.onClick(event -> {
+            if (!((com.kniazkov.widgets.view.Progress) operation.getChild(0)).isRunning()) {
+                operation.getChild(0).dispose();
+                operation.add(new com.kniazkov.widgets.view.Busy("Проверяем наличие изделий…"));
+            }
+            empty.setText("Найдено изделий: 2");
+            ((com.kniazkov.widgets.view.Progress) operation.getChild(0)).finish(
+                "Проверка завершена", com.kniazkov.widgets.view.Feedback.Severity.SUCCESS);
+        });
+        card.add(new Section(notify));
     }
 
     /**

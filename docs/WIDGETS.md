@@ -44,6 +44,13 @@ classDiagram
     BlockWidget <|-- HorizontalLine
     BlockWidget <|-- Panel
     Panel <|-- StickyPanel
+    Panel <|-- Feedback
+    Panel <|-- Toast
+    Feedback <|-- Alert
+    Feedback <|-- FieldError
+    Feedback <|-- EmptyState
+    Feedback <|-- Progress
+    Progress <|-- Busy
     BlockWidget <|-- Popup
     Popup <|-- ModalPopup
     ModalPopup <|-- MessagePopup
@@ -184,6 +191,9 @@ position reactively.
 | Widget | Client type | Allowed children | Purpose |
 | --- | --- | --- | --- |
 | `Table` | `table` | `Row` | Block-level table. Missing rows and cells can be created on demand through `getRow` and `getCell`; `insertRow` inserts a new or unattached row at any valid position, and `removeRow` removes a row by index. Default row and cell styles apply to newly created elements. |
+| `Alert`, `FieldError`, `EmptyState` | `feedback` | None | Localized plain-text statuses with optional child actions. |
+| `Progress`, `Busy` | `feedback` | None | One operation, percentage/indeterminate progress and cooperative cancellation. |
+| `Toast` | `feedback` | None | Bounded notification queue; errors require explicit dismissal. |
 | `DataTable` | `data table` | None | Provider-backed native table: keyed rows, sort, filter, pages and selection. |
 | `Row` | `row` | `Cell` | Table row with pointer-aware visual states. `getCell` grows the row on demand and uses the parent table's column-specific defaults when available. |
 | `Cell` | `cell` | `BlockWidget` | Table cell that hosts block content and supports background, border, size, padding, alignment, and pointer events. |
@@ -604,3 +614,5 @@ retains the DOM node and its local values. Browsers without native state-preserv
 DOM moves may reset focus. Cycles, an invalid destination or index, and transfers
 of already exported widgets between browser roots are rejected before the move.
 See the [contract and integration example](WIDGET_REPARENTING.ru.md).
+
+See [feedback API and lifecycle (Russian)](FEEDBACK.ru.md).
