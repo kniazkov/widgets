@@ -639,3 +639,41 @@ button[aria-label]:has(> img):focus-visible {
     max-width: 100%;
     box-sizing: border-box;
 }
+
+/* Manual top-layer popovers keep their server DOM ancestry and modal ownership. */
+.widgets-anchored-overlay {
+    position: fixed;
+    inset: auto;
+    margin: 0 !important;
+    overflow: auto;
+    overscroll-behavior: contain;
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+.widgets-anchored-menu { font: 16px Arial, sans-serif; }
+.widgets-anchored-overlay::backdrop { background: transparent; pointer-events: none; }
+.widgets-anchored-overlay input, .widgets-anchored-overlay textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.widgets-anchored-menu [role="menuitem"] {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 4px;
+    padding: 10px 12px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    background: white;
+    color: #162235;
+    font: inherit;
+}
+.widgets-anchored-menu [role="menuitem"]:focus-visible,
+.widgets-anchored-menu [role="menuitem"]:hover:not(:disabled) {
+    outline: 2px solid #175f99 !important;
+    outline-offset: -2px;
+    background: #eaf2ff;
+}
+.widgets-anchored-menu [role="menuitem"]:disabled { color: #667485; }
+.widgets-anchored-tooltip { pointer-events: auto; }

@@ -151,6 +151,21 @@ public final class E2ETestServer {
             .build();
         final Application application = new Application(page);
         addKeyboardShortcutsPage(application);
+        application.addPage("anchored-lifecycle", (root, context) -> {
+            final Button anchor = new Button("Lifecycle actions");
+            final TextWidget result = new TextWidget("No actions");
+            final com.kniazkov.widgets.view.Menu menu = new com.kniazkov.widgets.view.Menu(
+                anchor, "Lifecycle menu", List.of(new com.kniazkov.widgets.view.Menu.Item(
+                    "run", "Run action", true, () -> result.setText("Action completed"))));
+            final com.kniazkov.widgets.view.Panel container =
+                new com.kniazkov.widgets.view.Panel(new Section(anchor), menu);
+            final Button hide = new Button("Hide container");
+            hide.onClick(event -> container.hide());
+            final Button show = new Button("Show container");
+            show.onClick(event -> container.show());
+            root.add(new Section(hide, show, result));
+            root.add(container);
+        });
         application.addPage("all-widgets", com.kniazkov.widgets.example.AllWidgets.galleryPage());
         application.addPage("connection-recovery", (root, context) -> {
             final TextWidget count = new TextWidget("Accepted actions: 0");

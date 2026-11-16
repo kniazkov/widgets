@@ -46,6 +46,9 @@ import com.kniazkov.widgets.model.NumberModel;
 import com.kniazkov.widgets.model.NumberValue;
 import com.kniazkov.widgets.view.NumberField;
 import com.kniazkov.widgets.view.Tabs;
+import com.kniazkov.widgets.view.Menu;
+import com.kniazkov.widgets.view.Popover;
+import com.kniazkov.widgets.view.Tooltip;
 import com.kniazkov.widgets.view.Accordion;
 import com.kniazkov.widgets.view.Breadcrumbs;
 import com.kniazkov.widgets.view.QuantityField;
@@ -219,6 +222,7 @@ public class AllWidgets {
         addSuggestionFields(root);
         addKeyboardLogin(root);
         addFormDemo(root);
+        addAnchoredOverlays(root);
         addNavigation(root);
         addNumberFields(root);
         addTemporalFields(root);
@@ -311,6 +315,78 @@ public class AllWidgets {
         card.add(new Section(locale));
         card.add(new Section(result));
         card.add(disabledRow);
+    }
+
+    /**
+     * Demonstrates anchored actions, editable popovers and supplementary descriptions.
+     * @param root gallery page
+     */
+    private static void addAnchoredOverlays(final RootWidget root) {
+        final Panel card = addCard(root, "Меню и подсказки у элемента",
+            "Escape закрывает верхний слой. Подсказка дополняет видимый текст, не заменяя его.");
+        final TextWidget result = new TextWidget("Действий: 0");
+        final java.util.concurrent.atomic.AtomicInteger count =
+            new java.util.concurrent.atomic.AtomicInteger();
+        final Button actions = new Button("Действия с изделием");
+        final Menu menu = new Menu(actions, "Действия с изделием", List.of(
+            new Menu.Item("edit", "Редактировать описание изделия", true,
+                () -> result.setText("Редактирование · Действий: " + count.incrementAndGet())),
+            new Menu.Item("archive", "Архивировать (недоступно)", false,
+                () -> result.setText("Недоступное действие не должно выполняться")),
+            new Menu.Item("copy", "Создать копию", true,
+                () -> result.setText("Копирование · Действий: " + count.incrementAndGet()))));
+        final Button longTrigger = new Button("Длинное меню");
+        final Menu longMenu = new Menu(longTrigger, "Длинное меню действий",
+            java.util.stream.IntStream.rangeClosed(1, 16).mapToObj(index ->
+                new Menu.Item("step-" + index,
+                    "Дополнительное действие с выбранным украшением №" + index, true,
+                    () -> result.setText("Выбран пункт " + index))).toList());
+        final Button settings = new Button("Настройки доставки");
+        final Popover popover = new Popover(settings, "Параметры доставки");
+        final InputField note = new InputField("Оставить у администратора");
+        note.setAccessibleName("Комментарий к доставке");
+        final TextWidget details = new TextWidget("Уточните удобное время получения.");
+        final Button grow = new Button("Подробнее");
+        grow.onClick(event -> details.setText(
+            "Длинное пояснение об условиях доставки и получении заказа. ".repeat(8)));
+        final Button close = new Button("Готово");
+        close.onClick(event -> popover.close());
+        popover.addBody(new Section(new TextWidget("Комментарий к доставке")));
+        popover.addBody(new Section(note));
+        popover.addBody(new Section(details));
+        popover.addBody(new Section(grow, close));
+        final Button help = new Button("Срок изготовления");
+        final Tooltip tooltip = new Tooltip(help,
+            "Срок зависит от наличия материалов. Точную дату согласуем перед оплатой.");
+        final Button disabled = new Button("Недоступное меню");
+        disabled.disable();
+        final Menu disabledMenu = new Menu(disabled, "Недоступное меню", List.of(
+            new Menu.Item("none", "Недоступное действие", true, () -> result.setText("Ошибка"))));
+        final Button removeAnchor = new Button("Убрать настройки");
+        removeAnchor.onClick(event -> settings.dispose());
+        final Button dialogTrigger = new Button("Меню в диалоге");
+        dialogTrigger.onClick(event -> {
+            final var dialog = com.kniazkov.widgets.view.Dialog.confirmation(
+                "Диалог со своим меню", "Escape сначала закрывает меню, затем диалог.",
+                new com.kniazkov.widgets.view.Dialog.Messages("Подтвердить", "Отмена", "Закрыть",
+                    "Сохраняем…", "Ошибка", "Проверьте данные"));
+            dialog.setCloseOnEscape(true);
+            final Button trigger = new Button("Вложенные действия");
+            final Menu nested = new Menu(trigger, "Действия внутри диалога", List.of(
+                new Menu.Item("nested", "Выбрать в диалоге", true,
+                    () -> result.setText("Действие из диалога"))));
+            dialog.getContent().add(new Section(trigger));
+            dialog.getContent().add(nested);
+            root.add(dialog);
+        });
+        card.add(new Section(actions, settings, help));
+        card.add(new Section(longTrigger, disabled, removeAnchor, dialogTrigger));
+        card.add(new Section(result));
+        card.add(menu);
+        card.add(longMenu);
+        card.add(popover);
+        card.add(tooltip);
+        card.add(disabledMenu);
     }
 
     /**

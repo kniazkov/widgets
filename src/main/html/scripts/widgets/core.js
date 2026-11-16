@@ -214,6 +214,9 @@ const widgetsLibrary = {
     },
     "sortable section": createSortableSection,
     "zoom decorator": createZoomDecorator,
+    "anchored menu": () => createAnchoredOverlay("menu"),
+    "anchored popover": () => createAnchoredOverlay("popover"),
+    "anchored tooltip": () => createAnchoredOverlay("tooltip"),
     breadcrumbs: () => createBreadcrumbs(),
     panel: function () {
         const widget = document.createElement("div");

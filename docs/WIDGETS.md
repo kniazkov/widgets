@@ -1,6 +1,6 @@
 # Widget catalog
 
-See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all 47 concrete visual
+See the [visual catalog with real screenshots](WIDGET_GALLERY.ru.md) for all concrete visual
 widget classes, including open popups and composed layout widgets. The [review checklist](REVIEW_CHECKLIST.ru.md)
 tracks remaining defects and planned components; planned widgets are not part of the current API.
 
@@ -659,3 +659,12 @@ Selection uses stable keys; removal and replacement dispose old subtrees.
 `Breadcrumbs` displays real ancestor links and a wrapping current-page label.
 See [API, keyboard behavior and ownership](NAVIGATION.ru.md) and
 [verification and cloud screenshots](R28_VERIFICATION.ru.md).
+
+## Anchored overlays
+
+`Menu` provides keyed, enabled/disabled actions, keyboard navigation and one selection per
+opening. `Popover` retains interactive content; `Tooltip` adds delayed hover/focus help and
+an accessible description. All three extend the abstract `AnchoredOverlay`, retain a
+non-owning anchor, and flip/shift in the visual viewport using the native Popover API.
+See the [API, lifecycle and compatibility contract](ANCHORED_OVERLAYS.ru.md) and
+[real screenshots](WIDGET_GALLERY.ru.md).

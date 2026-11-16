@@ -38,7 +38,10 @@ final class EventValidation {
         if (event == Event.STUB) {
             return Optional.of("unknownEvent");
         }
-        if (!widget.isInteractionEnabled()) {
+        final boolean overlayCleanup = event == Event.OVERLAY_COMMAND
+            && widget instanceof com.kniazkov.widgets.view.AnchoredOverlay && data != null
+            && valid(event, widget, data) && data.get("action").stringValue().equals("close");
+        if (!widget.isInteractionEnabled() && !overlayCleanup) {
             return Optional.of("inactiveWidget");
         }
         if (event == Event.KEYBOARD) {
@@ -80,6 +83,9 @@ final class EventValidation {
         }
         if (event == Event.CHOICE_SEARCH) {
             return widget instanceof ComboBox<?>;
+        }
+        if (event == Event.OVERLAY_COMMAND) {
+            return widget instanceof com.kniazkov.widgets.view.AnchoredOverlay;
         }
         if (event == Event.TOAST_DISMISS) {
             return widget instanceof com.kniazkov.widgets.view.Toast;
@@ -135,6 +141,13 @@ final class EventValidation {
                 && (data.get("action").stringValue().equals("query")
                     || (Set.of("cancel", "more").contains(data.get("action").stringValue())
                         && data.get("text").stringValue().isEmpty()));
+        }
+        if (event == Event.OVERLAY_COMMAND) {
+            return fields(data, "action", "key", "revision") && text(data.get("action"), 6)
+                && text(data.get("key"), 128) && integer(data.get("revision"), 0, Integer.MAX_VALUE)
+                && ((com.kniazkov.widgets.view.AnchoredOverlay) widget).acceptsOverlayCommand(
+                    data.get("action").stringValue(), data.get("key").stringValue(),
+                    data.get("revision").intValue());
         }
         if (event == Event.TOAST_DISMISS) {
             return fields(data, "id") && text(data.get("id"), 20)
