@@ -961,6 +961,62 @@
       ],
       "sha256": "64d4bbdae801a0532106d7b31d32585f302477533f501831253c6cf92dfba211",
       "captureId": "r25-mobile"
+    },
+    "temporal-desktop": {
+      "file": "temporal-desktop.png",
+      "title": "Дата, время и диапазон",
+      "states": "Заполненные поля, принятый диапазон и disabled дата.",
+      "sourceScreenshot": "temporal-desktop.jpg",
+      "crop": [
+        28,
+        210,
+        1280,
+        615
+      ],
+      "sha256": "d0bbcd02a5a6b7480d2c95d338cd2129716103bd5f0667b585c049d605527d6a",
+      "captureId": "r26-desktop"
+    },
+    "temporal-error": {
+      "file": "temporal-error.png",
+      "title": "Ошибка диапазона",
+      "states": "Начало позже конца; серверные ошибки возле обоих полей.",
+      "sourceScreenshot": "temporal-error.jpg",
+      "crop": [
+        28,
+        60,
+        1280,
+        650
+      ],
+      "sha256": "01f92a4f08ba1340de3d0d47f1705a31abd1f05585853f5e1f1a4e2148ba96ed",
+      "captureId": "r26-desktop"
+    },
+    "temporal-mobile": {
+      "file": "temporal-mobile.png",
+      "title": "Поля на 390 px",
+      "states": "Время вне границ, пустой диапазон, подписи и перенос текста.",
+      "sourceScreenshot": "temporal-mobile.jpg",
+      "crop": [
+        515,
+        220,
+        320,
+        610
+      ],
+      "sha256": "7873c78d6307fed4536b76e8dc4423d32b94c34266ecefd7ceeb4195d9a7af18",
+      "captureId": "r26-mobile"
+    },
+    "temporal-picker": {
+      "file": "temporal-picker.png",
+      "title": "Нативный календарь",
+      "states": "Февраль 2028 года, выбор 29 февраля.",
+      "sourceScreenshot": "temporal-picker-native.png",
+      "crop": [
+        48,
+        235,
+        265,
+        335
+      ],
+      "sha256": "0d9bdf835355206d9f98dce9ad993bdf7179fe60980973ab7e520554e1d6e1a6",
+      "captureId": "r26-native"
     }
   },
   "widgets": {
@@ -1175,6 +1231,22 @@
       "dialog-confirm",
       "dialog-error",
       "dialog-mobile"
+    ],
+    "DateField": [
+      "temporal-desktop",
+      "temporal-error",
+      "temporal-mobile",
+      "temporal-picker"
+    ],
+    "TimeField": [
+      "temporal-desktop",
+      "temporal-error",
+      "temporal-mobile"
+    ],
+    "DateRange": [
+      "temporal-desktop",
+      "temporal-error",
+      "temporal-mobile"
     ]
   },
   "modalLifecycleCapture": {
@@ -1471,6 +1543,55 @@
         "dialog-mobile.jpg": [
           1363,
           936
+        ]
+      }
+    },
+    "r26-desktop": {
+      "date": "2026-11-16",
+      "commit": "f0b98eaaeab603f260597334dce4bdf84a8e54e8",
+      "allWidgetsSourceSha256": "a86f584b957913d6d47bd5890b27f0c77424278fdd5ca072b39a8997e82af1b2",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of working tree based on commit above; native desktop capture for calendar popup; unscaled crop, no retouching.",
+      "screenshots": {
+        "temporal-desktop.jpg": [
+          1348,
+          926
+        ],
+        "temporal-error.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r26-mobile": {
+      "date": "2026-11-16",
+      "commit": "f0b98eaaeab603f260597334dce4bdf84a8e54e8",
+      "allWidgetsSourceSha256": "a86f584b957913d6d47bd5890b27f0c77424278fdd5ca072b39a8997e82af1b2",
+      "page": "AllWidgets / in local 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 870 CSS px",
+      "method": "Real cloud browser screenshot of working tree based on commit above; native desktop capture for calendar popup; unscaled crop, no retouching.",
+      "screenshots": {
+        "temporal-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r26-native": {
+      "date": "2026-11-16",
+      "commit": "f0b98eaaeab603f260597334dce4bdf84a8e54e8",
+      "allWidgetsSourceSha256": "a86f584b957913d6d47bd5890b27f0c77424278fdd5ca072b39a8997e82af1b2",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of working tree based on commit above; native desktop capture for calendar popup; unscaled crop, no retouching.",
+      "screenshots": {
+        "temporal-picker-native.png": [
+          1364,
+          1024
         ]
       }
     }

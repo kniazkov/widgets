@@ -126,9 +126,18 @@ public final class FormField extends Panel {
      * Resolves current ownership instead of retaining a previously owning form.
      */
     private void submitFromEditor() {
-        if (this.hasEditor() && this.getParent().orElse(null) instanceof Widget<?> fields
-                && fields.getParent().orElse(null) instanceof Form form && form.owns(this)) {
-            form.submit();
+        if (!this.hasEditor()) {
+            return;
+        }
+        Container parent = this.getParent().orElse(null);
+        while (parent instanceof Widget<?> owner) {
+            if (owner instanceof Form form) {
+                if (form.owns(this)) {
+                    form.submit();
+                }
+                return;
+            }
+            parent = owner.getParent().orElse(null);
         }
     }
 

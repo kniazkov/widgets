@@ -91,6 +91,10 @@ classDiagram
     TypedChoice <|-- ComboBox
     TypedChoice <|-- MultiSelect
     InputField <|-- SuggestionField
+    InputField <|-- TemporalField
+    TemporalField <|-- DateField
+    TemporalField <|-- TimeField
+    Panel <|-- DateRange
     InputField <|-- PasswordInput
     InputField <|-- TextArea
 ```
@@ -143,6 +147,9 @@ the root and table structures rather than the general block/inline distinction.
 | `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
+| `DateField` | `date field` | None | Native local date, typed model and inclusive server bounds. |
+| `TimeField` | `time field` | None | Native local time at minute precision, no implicit timezone. |
+| `DateRange` | `date range` | `BlockWidget` | Two owned date fields and inclusive range validation through Form.addDateRange. |
 | `Dialog<T>` | `dialog` | `BlockWidget` | Typed asynchronous modal form with exactly-once result. |
 | `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The backdrop color and optional outside-click dismissal are exposed through models. Outside dismissal is disabled by default and supports mouse clicks and touch taps. |
 | `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from a string or caller-supplied `TextWidget` and one or two buttons. The text widget is exposed for later style and model changes. |
@@ -625,3 +632,11 @@ See [feedback API and lifecycle (Russian)](FEEDBACK.ru.md).
 Form validation, asynchronous busy/error/retry and guarded dismissal.
 Long content scrolls inside the visual viewport; nested dialogs reuse the modal stack.
 See [Dialog API, examples and lifecycle (Russian)](DIALOGS.ru.md).
+
+## Local date and time fields
+
+`DateField` and `TimeField` extend `InputField` through `TemporalField<T>` and
+retain FormField labels, help, errors and keyboard submission. Native inputs
+exchange canonical ISO-like strings; typed values use LocalDate/LocalTime.
+`Form.addDateRange` registers both endpoints and validates their order.
+See [API, locale, bounds, lifecycle and explicit DST conversion (Russian)](TEMPORAL_FIELDS.ru.md).

@@ -22,7 +22,7 @@ function initEditableText(widget) {
             return false;
         }
         widget._deferredText = null;
-        if (widget.value != text) {
+        if (widget.value != text || (text === "" && widget.validity?.badInput)) {
             widget.value = text;
             return true;
         }
@@ -38,7 +38,7 @@ function initEditableText(widget) {
         }
         const text = widget._deferredText;
         widget._deferredText = null;
-        if (widget.value != text) {
+        if (widget.value != text || (text === "" && widget.validity?.badInput)) {
             widget.value = text;
             return true;
         }
@@ -46,7 +46,9 @@ function initEditableText(widget) {
     };
     listenWidget(widget, "input", function () {
         widget._textInputPending = true;
-        sendEventToServer(widget, "text input", { text: widget.value });
+        sendEventToServer(widget, "text input", {
+            text: widget._readText ? widget._readText() : widget.value
+        });
     });
     listenWidget(widget, "blur", function () {
         widget._applyDeferredText();
