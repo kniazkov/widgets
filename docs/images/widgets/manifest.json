@@ -1059,6 +1059,48 @@
       ],
       "sha256": "30de154d2b28ae76a77d0f7572c5675ffe3575ef0c759541b8e29c8f602341f4",
       "captureId": "r27-mobile"
+    },
+    "navigation-desktop": {
+      "file": "navigation-desktop.png",
+      "title": "Tabs / Accordion / Breadcrumbs",
+      "states": "Выбранная вкладка, отключённая вкладка, раскрытые single/multiple разделы и путь.",
+      "sourceScreenshot": "r28-navigation-desktop.jpg",
+      "crop": [
+        32,
+        108,
+        1269,
+        570
+      ],
+      "sha256": "b5b528e0841b490f7f2b51b8712b4b8f2e30fb87acb9c2087a3319d01ebd6716",
+      "captureId": "r28-desktop"
+    },
+    "navigation-mobile-tabs": {
+      "file": "navigation-mobile-tabs.png",
+      "title": "Tabs / Breadcrumbs",
+      "states": "Полные русские названия и поле черновика в iframe шириной 320 CSS px.",
+      "sourceScreenshot": "r28-navigation-mobile-top.jpg",
+      "crop": [
+        554,
+        77,
+        240,
+        535
+      ],
+      "sha256": "84634f56ae71c0c9923444c936906b06b3f65fdcccf12c329fb2496217f9056f",
+      "captureId": "r28-mobile"
+    },
+    "navigation-mobile-accordion": {
+      "file": "navigation-mobile-accordion.png",
+      "title": "Accordion",
+      "states": "Многострочные заголовки, один и несколько раскрытых разделов на 320 CSS px.",
+      "sourceScreenshot": "r28-navigation-mobile-accordion.jpg",
+      "crop": [
+        554,
+        143,
+        240,
+        517
+      ],
+      "sha256": "942c079b73b4d7cfb525dda15bb0aadf00074a00615d8b48e48964bb713fca65",
+      "captureId": "r28-mobile"
     }
   },
   "widgets": {
@@ -1299,6 +1341,18 @@
       "numbers-desktop",
       "numbers-error",
       "numbers-mobile"
+    ],
+    "Tabs": [
+      "navigation-desktop",
+      "navigation-mobile-tabs"
+    ],
+    "Accordion": [
+      "navigation-desktop",
+      "navigation-mobile-accordion"
+    ],
+    "Breadcrumbs": [
+      "navigation-desktop",
+      "navigation-mobile-tabs"
     ]
   },
   "modalLifecycleCapture": {
@@ -1676,6 +1730,40 @@
       "method": "Real cloud browser screenshot, cropped without scaling or retouching.",
       "screenshots": {
         "numbers-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r28-desktop": {
+      "date": "2026-11-16",
+      "commit": "1b36f2432f5761f3678a92dc1b4f6b364471ec9c",
+      "allWidgetsSourceSha256": "0a4e7db8e26136ddbb82ceec5c601f10e0ad336964cbf3045f5fe4c3fb8c10d1",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; R28 working tree identified by AllWidgets source hash and R28_VERIFICATION.ru.md.",
+      "screenshots": {
+        "r28-navigation-desktop.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r28-mobile": {
+      "date": "2026-11-16",
+      "commit": "1b36f2432f5761f3678a92dc1b4f6b364471ec9c",
+      "allWidgetsSourceSha256": "0a4e7db8e26136ddbb82ceec5c601f10e0ad336964cbf3045f5fe4c3fb8c10d1",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "320 CSS px iframe, real AllWidgets; outer 1363 × 936 CSS px",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; R28 working tree identified by AllWidgets source hash and R28_VERIFICATION.ru.md.",
+      "screenshots": {
+        "r28-navigation-mobile-top.jpg": [
+          1363,
+          936
+        ],
+        "r28-navigation-mobile-accordion.jpg": [
           1363,
           936
         ]

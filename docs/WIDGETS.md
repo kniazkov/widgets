@@ -651,3 +651,11 @@ See [API, locale, bounds, lifecycle and explicit DST conversion (Russian)](TEMPO
 `QuantityField` extends FormField and registers with `Form.addField`.
 See [numeric contracts, limits and examples](NUMBER_FIELDS.ru.md) and
 [validation results and screenshots](R27_VERIFICATION.ru.md).
+
+## Keyed navigation
+
+`Tabs` and `Accordion` lazily create owned content and retain it while hidden.
+Selection uses stable keys; removal and replacement dispose old subtrees.
+`Breadcrumbs` displays real ancestor links and a wrapping current-page label.
+See [API, keyboard behavior and ownership](NAVIGATION.ru.md) and
+[verification and cloud screenshots](R28_VERIFICATION.ru.md).

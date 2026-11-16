@@ -248,6 +248,7 @@ const actionHandlers = {
     "set data table": setDataTable,
     "set feedback": setFeedback,
     "set temporal input": setTemporalInput,
+    "set navigation": setNavigation,
     "set placeholder color": setPlaceholderColor,
     "set placeholder": setPlaceholder,
     "set document title": data => setDocumentMetadata(data, "title"),

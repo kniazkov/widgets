@@ -18,6 +18,7 @@
         "widgets/layout.js",
         "widgets/inputs.js",
         "widgets/temporal.js",
+        "widgets/navigation.js",
         "widgets/suggestions.js",
         "widgets/choices.js",
         "widgets/data-table.js",
