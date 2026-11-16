@@ -34,6 +34,7 @@ const handlerNames = [
     "setChoiceState",
     "setDataTable",
     "setFeedback",
+    "setTemporalInput",
     "setSuggestionSeparator",
     "setKeyboardShortcuts",
     "setInputReadOnly",

@@ -178,6 +178,20 @@ public final class Form extends Panel {
     }
 
     /**
+     * Registers a labelled date range as two fields with mandatory cross-field validation.
+     * @param range unattached range with both owned editors
+     */
+    public void addDateRange(final DateRange range) {
+        Objects.requireNonNull(range);
+        if (range.getParent().isPresent() || range.fields().size() != 2
+                || range.fields().stream().anyMatch(field -> this.fieldList().stream()
+                    .anyMatch(existing -> existing.getName().equals(field.getName())))) {
+            throw new IllegalArgumentException("Invalid or duplicate date range fields");
+        }
+        this.fields.add(range);
+    }
+
+    /**
      * Removes the field from this form without disposing it.
      * @param field field to remove
      */
@@ -238,7 +252,10 @@ public final class Form extends Panel {
      */
     boolean owns(final FormField field) {
         return this.fields.getParent().orElse(null) == this
-            && field.getParent().orElse(null) == this.fields;
+            && (field.getParent().orElse(null) == this.fields
+                || (field.getParent().orElse(null) instanceof DateRange range
+                    && range.getParent().orElse(null) == this.fields
+                    && range.fields().contains(field)));
     }
 
     /**
@@ -246,8 +263,15 @@ public final class Form extends Panel {
      */
     private List<FormField> fieldList() {
         return IntStream.range(0, this.fields.getChildCount())
-            .mapToObj(this.fields::getChild).filter(FormField.class::isInstance)
-            .map(FormField.class::cast).filter(this::owns).toList();
+            .mapToObj(this.fields::getChild).flatMap(child -> {
+                if (child instanceof FormField field) {
+                    return java.util.stream.Stream.of(field);
+                }
+                if (child instanceof DateRange range) {
+                    return range.fields().stream();
+                }
+                return java.util.stream.Stream.<FormField>empty();
+            }).filter(this::owns).toList();
     }
 
     /**
@@ -276,6 +300,11 @@ public final class Form extends Panel {
                 if (!error.isEmpty()) {
                     errors.put(field.getName(), error);
                 }
+            }
+        }
+        for (int index = 0; index < this.fields.getChildCount(); index++) {
+            if (this.fields.getChild(index) instanceof DateRange range) {
+                range.errors(values).forEach(errors::putIfAbsent);
             }
         }
         return errors.isEmpty() ? this.validator.apply(values) : new Result(errors, "");

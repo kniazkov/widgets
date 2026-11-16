@@ -38,6 +38,12 @@ import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Form;
+import com.kniazkov.widgets.view.DateField;
+import com.kniazkov.widgets.view.TimeField;
+import com.kniazkov.widgets.view.DateRange;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Locale;
 import com.kniazkov.widgets.view.FormField;
 import com.kniazkov.widgets.view.FormLayout;
 import com.kniazkov.widgets.view.HeadingLevel;
@@ -205,6 +211,7 @@ public class AllWidgets {
         addSuggestionFields(root);
         addKeyboardLogin(root);
         addFormDemo(root);
+        addTemporalFields(root);
         addPasswordInputs(root);
         addTextAreas(root);
         addCheckBoxes(root);
@@ -229,6 +236,71 @@ public class AllWidgets {
         addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
+    }
+
+    /**
+     * Exercises native local dates, minute precision and inclusive date ranges in Form.
+     * @param root gallery page
+     */
+    private static void addTemporalFields(final RootWidget root) {
+        final Panel card = addCard(root, "Дата, время и диапазон",
+            "Учебные даты 2028 года. Пустота не заменяется сегодняшним днём; "
+                + "зона не подставляется.");
+        final DateField date = new DateField();
+        date.setBounds(LocalDate.of(2028, 1, 1), LocalDate.of(2028, 12, 31));
+        date.setLocale(Locale.forLanguageTag("ru"));
+        final FormField dateRow = new FormField("deliveryDate", "Дата доставки", date);
+        dateRow.setRequired(true);
+        dateRow.setConstraintMessages("Укажите дату доставки.", "Нужна дата в пределах 2028 года.");
+        dateRow.setHelp("Выберите дату календарём или введите с клавиатуры.");
+        final TimeField time = new TimeField();
+        time.setBounds(LocalTime.of(9, 0), LocalTime.of(18, 0));
+        time.setLocale(Locale.forLanguageTag("ru"));
+        final FormField timeRow = new FormField("deliveryTime", "Время доставки", time);
+        timeRow.setRequired(true);
+        timeRow.setConstraintMessages("Укажите время доставки.",
+            "Время должно быть от 09:00 до 18:00.");
+        timeRow.setHelp("Местное время, точность — минуты. Это ещё не момент времени.");
+        final DateRange range = new DateRange("stay", "Начало периода", "Конец периода");
+        range.setBounds(LocalDate.of(2028, 1, 1), LocalDate.of(2028, 12, 31));
+        range.setLocale(Locale.forLanguageTag("ru"));
+        range.setErrorMessage("Заполните обе даты: начало не позже конца.");
+        range.getStartField().setConstraintMessages("Укажите начало.", "Нужна дата 2028 года.");
+        range.getEndField().setConstraintMessages("Укажите конец.", "Нужна дата 2028 года.");
+        range.getStartField().setHelp(
+            "Обе границы включены; обе пустые означают отсутствие периода.");
+        final Form form = new Form("Учебная доставка", "Проверить даты");
+        form.setMessages(new Form.Messages("Проверяем…", "Даты приняты.",
+            "Проверьте даты и время.", "Не удалось проверить."));
+        form.addField(dateRow);
+        form.addField(timeRow);
+        form.addDateRange(range);
+        final TextWidget result = new TextWidget("Даты ещё не отправлены");
+        form.onSubmit(values -> {
+            result.setText("Принято: " + date.getValue().orElseThrow() + " / "
+                + time.getValue().orElseThrow() + " / "
+                + range.getValue().map(value -> value.start() + " — " + value.end()).orElse("нет"));
+            return java.util.concurrent.CompletableFuture.completedFuture(Form.Result.success());
+        });
+        final Button locale = new Button("Сменить локаль ru/en");
+        locale.onClick(event -> {
+            final Locale next = date.getLocale().getLanguage().equals("ru")
+                ? Locale.US : Locale.forLanguageTag("ru");
+            date.setLocale(next);
+            time.setLocale(next);
+            range.setLocale(next);
+            result.setText("Локаль: " + next.toLanguageTag() + "; отображение: "
+                + date.formatValue() + " / " + time.formatValue());
+        });
+        final DateField disabled = new DateField();
+        disabled.setValue(LocalDate.of(2028, 2, 29));
+        disabled.disable();
+        final FormField disabledRow = new FormField(
+            "unavailableDate", "Недоступная дата", disabled);
+        card.add(form);
+        card.add(new Section(locale));
+        card.add(new Section(result));
+        card.add(disabledRow);
     }
 
     /**

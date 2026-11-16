@@ -273,6 +273,7 @@ compatibility changes, cancellation semantics and examples.
 - [Forms](docs/FORMS.ru.md) — native labels, accessible field errors and asynchronous submit using R44.
 - [Adaptive layout](docs/ADAPTIVE_LAYOUT.ru.md) — container-sized stacks, grids and labels that reflow.
 - Typed choices: [English](docs/TYPED_CHOICES.md) · [Русский](docs/TYPED_CHOICES.ru.md).
+- Local dates, times and inclusive ranges: [Русский](docs/TEMPORAL_FIELDS.ru.md).
 - Typed asynchronous dialogs: [Русский](docs/DIALOGS.ru.md).
 - Messages, progress and notifications: [Русский](docs/FEEDBACK.ru.md).
 - Provider-backed data table: [English](docs/DATA_TABLE.md) · [Русский](docs/DATA_TABLE.ru.md).

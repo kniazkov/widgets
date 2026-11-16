@@ -290,6 +290,17 @@ const widgetsLibrary = {
         initFocusEvents(widget);
         return widget;
     },
+    "date field": function () {
+        return createTemporalField("date");
+    },
+    "time field": function () {
+        return createTemporalField("time");
+    },
+    "date range": function () {
+        const widget = document.createElement("div");
+        widget.classList.add("widgets-date-range");
+        return widget;
+    },
     "input field": function () {
         return createInputField();
     },

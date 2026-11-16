@@ -34,6 +34,7 @@ export default defineConfig({
                 "forms.spec.js",
                 "feedback.spec.js",
                 "dialog.spec.js",
+                "temporal.spec.js",
                 "adaptive-layout.spec.js",
                 "typed-choices.spec.js",
                 "data-table.spec.js"
