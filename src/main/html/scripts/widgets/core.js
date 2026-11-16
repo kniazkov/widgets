@@ -295,6 +295,7 @@ const widgetsLibrary = {
     "typed multi select": () => createTypedSelect(true),
     "typed combo box": createTypedComboBox,
     "data table": createDataTable,
+    feedback: createFeedback,
     "password input": function () {
         const widget = createInputField();
         widget.type = "password";

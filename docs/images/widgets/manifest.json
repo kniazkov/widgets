@@ -877,6 +877,48 @@
       ],
       "sha256": "0fddad306424828f51488bc9486e892c82ea1e1e0920145325ad9fdc51bec8cf",
       "captureId": "r23-narrow"
+    },
+    "feedback-desktop": {
+      "file": "feedback-desktop.png",
+      "title": "Все шесть виджетов обратной связи",
+      "states": "SUCCESS, WARNING, FieldError, EmptyState with action, indeterminate Busy, Progress 40%, persistent error Toast",
+      "sourceScreenshot": "feedback-full.jpg",
+      "crop": [
+        32,
+        5124,
+        1298,
+        780
+      ],
+      "sha256": "ac8d10076c2c8f5301dc75d7bc3ae4b5e30207760490aada26aa3d3a000754c3",
+      "captureId": "r24-desktop"
+    },
+    "feedback-mobile-messages": {
+      "file": "feedback-mobile-messages.png",
+      "title": "Сообщения на узком экране",
+      "states": "Long localized text, Alert, FieldError, EmptyState and Busy at 390px",
+      "sourceScreenshot": "feedback-mobile-top.jpg",
+      "crop": [
+        40,
+        292,
+        311,
+        540
+      ],
+      "sha256": "0fc6fadd4a2c20ad9a163b7fe7d5df9d0328ff05162254be2ce051dd0b0e3112",
+      "captureId": "r24-mobile"
+    },
+    "feedback-mobile-operation": {
+      "file": "feedback-mobile-operation.png",
+      "title": "Операция и уведомление на узком экране",
+      "states": "Busy, cancellation, Progress 40%, persistent error Toast at 390px",
+      "sourceScreenshot": "feedback-mobile-bottom.jpg",
+      "crop": [
+        40,
+        164,
+        311,
+        608
+      ],
+      "sha256": "7158a5ef3c09d1e2b3bf19d4fe4fc8dd178ba4f0da042d6195feb35a10c59aaf",
+      "captureId": "r24-mobile"
     }
   },
   "widgets": {
@@ -1062,6 +1104,30 @@
       "data-table-wide",
       "data-table-empty",
       "data-table-narrow"
+    ],
+    "Alert": [
+      "feedback-desktop",
+      "feedback-mobile-messages"
+    ],
+    "FieldError": [
+      "feedback-desktop",
+      "feedback-mobile-messages"
+    ],
+    "EmptyState": [
+      "feedback-desktop",
+      "feedback-mobile-messages"
+    ],
+    "Busy": [
+      "feedback-desktop",
+      "feedback-mobile-operation"
+    ],
+    "Progress": [
+      "feedback-desktop",
+      "feedback-mobile-operation"
+    ],
+    "Toast": [
+      "feedback-desktop",
+      "feedback-mobile-operation"
     ]
   },
   "modalLifecycleCapture": {
@@ -1290,6 +1356,40 @@
         "data-table-narrow.jpg": [
           1212,
           886
+        ]
+      }
+    },
+    "r24-desktop": {
+      "date": "2026-11-16",
+      "commit": "f0c3e1ce1be08650dc55f261e43f6fe3f28b0133",
+      "allWidgetsSourceSha256": "1695676ded3e6813b296b8beb19a6a461aacf2ed78e9ba78fa539229a28c6c6f",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1348 × 936 CSS px",
+      "method": "Cloud browser screenshot; working tree based on commit above; unscaled crop, no retouching. AllWidgets SHA256 identifies implementation.",
+      "screenshots": {
+        "feedback-full.jpg": [
+          1348,
+          10350
+        ]
+      }
+    },
+    "r24-mobile": {
+      "date": "2026-11-16",
+      "commit": "f0c3e1ce1be08650dc55f261e43f6fe3f28b0133",
+      "allWidgetsSourceSha256": "1695676ded3e6813b296b8beb19a6a461aacf2ed78e9ba78fa539229a28c6c6f",
+      "page": "Standalone AllWidgets / in local 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 870 CSS px",
+      "method": "Cloud browser screenshot; working tree based on commit above; unscaled crop, no retouching. AllWidgets SHA256 identifies implementation.",
+      "screenshots": {
+        "feedback-mobile-top.jpg": [
+          1363,
+          936
+        ],
+        "feedback-mobile-bottom.jpg": [
+          1363,
+          936
         ]
       }
     }

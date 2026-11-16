@@ -272,6 +272,26 @@ public abstract class Event<T> {
     }
 
     /**
+     * Explicit dismissal of a retained notification owned by one outlet.
+     */
+    public static final Event<JsonObject> TOAST_DISMISS = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "toast dismiss";
+        }
+        @Override
+        public JsonObject parseData(final JsonObject data) {
+            return data;
+        }
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof com.kniazkov.widgets.view.Toast toast) {
+                toast.dismiss(data.get("id").stringValue());
+            }
+        }
+    };
+
+    /**
      * Scoped commands from the provider-backed table, not arbitrary application input.
      */
     public static final Event<JsonObject> DATA_TABLE = new Event<JsonObject>() {
@@ -512,6 +532,7 @@ public abstract class Event<T> {
                 CHOOSE_KEYS,
                 CHOICE_SEARCH,
                 DATA_TABLE,
+                TOAST_DISMISS,
                 REORDER,
                 DISMISS,
                 DISMISS_BY_ESCAPE,

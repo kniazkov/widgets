@@ -81,6 +81,9 @@ final class EventValidation {
         if (event == Event.CHOICE_SEARCH) {
             return widget instanceof ComboBox<?>;
         }
+        if (event == Event.TOAST_DISMISS) {
+            return widget instanceof com.kniazkov.widgets.view.Toast;
+        }
         if (event == Event.DATA_TABLE) {
             return widget instanceof DataTable;
         }
@@ -132,6 +135,11 @@ final class EventValidation {
                 && (data.get("action").stringValue().equals("query")
                     || (Set.of("cancel", "more").contains(data.get("action").stringValue())
                         && data.get("text").stringValue().isEmpty()));
+        }
+        if (event == Event.TOAST_DISMISS) {
+            return fields(data, "id") && text(data.get("id"), 20)
+                && ((com.kniazkov.widgets.view.Toast) widget)
+                    .contains(data.get("id").stringValue());
         }
         if (event == Event.DATA_TABLE) {
             return fields(data, "action", "value", "checked") && text(data.get("action"), 8)
