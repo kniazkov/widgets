@@ -445,7 +445,9 @@ button[aria-label]:has(> img):focus-visible {
 
 .widgets-data-table-scroll {
     max-inline-size: 100%;
-    overflow-x: auto;
+    block-size: var(--widgets-data-table-height, 20rem);
+    overflow: auto;
+    scrollbar-gutter: stable;
 }
 
 .widgets-data-table table {
@@ -513,8 +515,10 @@ button[aria-label]:has(> img):focus-visible {
     color: #64748b;
 }
 
-.widgets-data-table [role="status"]:not(:empty) {
+.widgets-data-table [role="status"] {
     display: block;
+    box-sizing: border-box;
+    min-block-size: 2.4rem;
     padding: 0.45rem;
 }
 

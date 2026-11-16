@@ -121,3 +121,84 @@ test.describe("adaptive controls on a touch viewport", () => {
         await expect(group.getByRole("status")).toHaveText("Макет проверен.");
     });
 });
+
+for (const mode of ["during", "before"]) {
+    test(`controlled table completion ${mode} pointer press`, async ({ page }, info) => {
+        let release;
+        const gate = new Promise(resolve => {
+            release = resolve;
+        });
+        let held;
+        const ready = new Promise(resolve => {
+            held = resolve;
+        });
+        await page.route("**/*", async route => {
+            if (route.request().method() !== "POST") return route.continue();
+            const response = await route.fetch();
+            const data = await response.json();
+            if (
+                data.updates?.some(
+                    u =>
+                        u.action === "set data table" &&
+                        u.snapshot?.caption === "Архив учебных заказов" &&
+                        u.snapshot.state === "ready"
+                )
+            ) {
+                held();
+                await gate;
+            }
+            await route.fulfill({ response });
+        });
+        await page.setViewportSize({ width: 1280, height: 780 });
+        await page.goto("/all-widgets");
+        await page
+            .getByRole("region", { name: "Архив учебных заказов", exact: true })
+            .scrollIntoViewIfNeeded();
+        await ready;
+        const button = page.getByRole("button", { name: "Сменить порог формы", exact: true });
+        const layout = form(page).locator(".widgets-form-layout");
+        await field(page, title).fill("Бумага");
+        await button.scrollIntoViewIfNeeded();
+        await page.evaluate(() => {
+            window.probe = [];
+            for (const type of ["mousedown", "mouseup", "click", "blur"])
+                document.addEventListener(
+                    type,
+                    e =>
+                        window.probe.push({
+                            type,
+                            tag: e.target.tagName,
+                            text: e.target.textContent?.slice(0, 70),
+                            x: e.clientX,
+                            y: e.clientY
+                        }),
+                    true
+                );
+        });
+        const before = await button.boundingBox();
+        const x = before.x + before.width / 2,
+            y = before.y + before.height / 2;
+        if (mode === "during") {
+            await page.mouse.move(x, y);
+            await page.mouse.down();
+        }
+        release();
+        await expect(
+            page.getByRole("cell", { name: "Учебный заказ №1", exact: true })
+        ).toBeAttached();
+        const after = await button.boundingBox();
+        if (mode === "during") await page.mouse.up();
+        else await button.click();
+        const events = await page.evaluate(() => window.probe);
+        console.log(JSON.stringify({ mode, before, after, events }));
+        await info.attach("controlled-evidence", {
+            body: JSON.stringify({ mode, before, after, events }, null, 2),
+            contentType: "application/json"
+        });
+        expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
+        expect(
+            events.filter(e => e.type === "click" && e.text === "Сменить порог формы")
+        ).toHaveLength(1);
+        await expect(layout).not.toHaveAttribute("data-label-columns", "");
+    });
+}
