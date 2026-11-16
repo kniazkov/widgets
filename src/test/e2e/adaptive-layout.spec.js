@@ -1,5 +1,101 @@
 import { expect, test } from "@playwright/test";
 
+// Temporary diagnostic branch: preserve successful runs too for comparison with failures.
+const diagnostics = new WeakMap();
+test.beforeEach(async ({ page }) => {
+    const data = { console: [], network: [], checkpoints: [] };
+    diagnostics.set(page, data);
+    page.on("console", message =>
+        data.console.push({ type: message.type(), text: message.text() })
+    );
+    page.on("pageerror", error => data.console.push({ type: "pageerror", text: String(error) }));
+    page.on("request", request => {
+        if (request.method() === "POST")
+            data.network.push({
+                phase: "request",
+                time: Date.now(),
+                url: request.url(),
+                body: request.postData()
+            });
+    });
+    page.on("response", async response => {
+        if (response.request().method() !== "POST") return;
+        try {
+            data.network.push({
+                phase: "response",
+                time: Date.now(),
+                url: response.url(),
+                status: response.status(),
+                body: await response.text()
+            });
+        } catch (error) {
+            data.network.push({ phase: "response-error", error: String(error) });
+        }
+    });
+    await page.addInitScript(() => {
+        window.__layoutProbe = [];
+        for (const type of [
+            "pointerdown",
+            "mousedown",
+            "pointerup",
+            "mouseup",
+            "click",
+            "focusin",
+            "focusout",
+            "resize",
+            "scroll"
+        ]) {
+            window.addEventListener(
+                type,
+                event => {
+                    const target = event.target;
+                    window.__layoutProbe.push({
+                        type,
+                        time: performance.now(),
+                        tag: target?.tagName,
+                        id: target?._id,
+                        text: target?.textContent?.slice(0, 120),
+                        x: event.clientX,
+                        y: event.clientY,
+                        scrollY,
+                        width: innerWidth,
+                        height: innerHeight
+                    });
+                },
+                true
+            );
+        }
+    });
+});
+async function checkpoint(page, phase) {
+    const state = await page.evaluate(() => ({
+        viewport: { width: innerWidth, height: innerHeight, scrollY },
+        focus: { tag: document.activeElement?.tagName, id: document.activeElement?._id },
+        layouts: [...document.querySelectorAll(".widgets-form-layout")].map(node => ({
+            id: node._id,
+            breakpoint: node._formLayoutBreakpoint,
+            rect: node.getBoundingClientRect().toJSON(),
+            columns: node.hasAttribute("data-label-columns"),
+            paused: node._treePaused
+        })),
+        events: window.__layoutProbe,
+        clientError: document.querySelector("#client-error-overlay")?.textContent
+    }));
+    diagnostics.get(page).checkpoints.push({ phase, time: Date.now(), state });
+}
+test.afterEach(async ({ page }, info) => {
+    try {
+        await checkpoint(page, "finished");
+    } catch (error) {
+        diagnostics.get(page).console.push({ error: String(error) });
+    }
+    await info.attach("layout-diagnostic", {
+        body: JSON.stringify(diagnostics.get(page), null, 2),
+        contentType: "application/json"
+    });
+    await info.attach("final-screen", { body: await page.screenshot(), contentType: "image/png" });
+});
+
 function field(page, name) {
     return page.getByRole("textbox", { name });
 }
@@ -79,7 +175,9 @@ test("form columns become rows on resize and retain input DOM identity, selectio
     await page.setViewportSize({ width: 1280, height: 780 });
     await expect(layout).toHaveAttribute("data-label-columns", "");
     await expect(editor).toBeFocused();
+    await checkpoint(page, "before-breakpoint-click");
     await page.getByRole("button", { name: "Сменить порог формы" }).click();
+    await checkpoint(page, "after-breakpoint-click");
     await expect(layout).not.toHaveAttribute("data-label-columns", "");
     await expect(editor).toHaveAttribute("data-resize-probe", "original");
     await expect(editor).toHaveValue("Бумага");
