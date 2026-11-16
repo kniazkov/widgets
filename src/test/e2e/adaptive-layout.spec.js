@@ -51,6 +51,13 @@ test.beforeEach(async ({ page }) => {
                 event => {
                     const target = event.target;
                     window.__layoutProbe.push({
+                        layouts: [...document.querySelectorAll(".widgets-form-layout")].map(
+                            node => ({
+                                id: node._id,
+                                breakpoint: node._formLayoutBreakpoint,
+                                columns: node.hasAttribute("data-label-columns")
+                            })
+                        ),
                         type,
                         time: performance.now(),
                         tag: target?.tagName,
@@ -176,9 +183,7 @@ test("form columns become rows on resize and retain input DOM identity, selectio
     await page.setViewportSize({ width: 1280, height: 780 });
     await expect(layout).toHaveAttribute("data-label-columns", "");
     await expect(editor).toBeFocused();
-    await checkpoint(page, "before-breakpoint-click");
     await page.getByRole("button", { name: "Сменить порог формы" }).click();
-    await checkpoint(page, "after-breakpoint-click");
     await expect(layout).not.toHaveAttribute("data-label-columns", "");
     await expect(editor).toHaveAttribute("data-resize-probe", "original");
     await expect(editor).toHaveValue("Бумага");
