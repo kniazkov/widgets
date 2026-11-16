@@ -70,3 +70,13 @@ jobs:
         run: npx playwright install chromium webkit
       - name: Run browser tests
         run: npm run test:browser
+      - name: Preserve browser test failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-test-failure-${{ github.run_attempt }}
+          path: |
+            target/playwright-results
+            target/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
