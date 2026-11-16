@@ -1017,6 +1017,48 @@
       ],
       "sha256": "0d9bdf835355206d9f98dce9ad993bdf7179fe60980973ab7e520554e1d6e1a6",
       "captureId": "r26-native"
+    },
+    "numbers-desktop": {
+      "file": "numbers-desktop.png",
+      "title": "NumberField / QuantityField",
+      "states": "Заполненная форма, точное длинное число, disabled и read-only.",
+      "sourceScreenshot": "numbers-desktop.jpg",
+      "crop": [
+        32,
+        62,
+        1268,
+        558
+      ],
+      "sha256": "97fada42bd2e854227b56115b382b430d476928054032b67a7e8d2c87d856136",
+      "captureId": "r27-desktop"
+    },
+    "numbers-error": {
+      "file": "numbers-error.png",
+      "title": "NumberField / QuantityField",
+      "states": "Незавершённая дробь, превышенный новый максимум и отключённые кнопки.",
+      "sourceScreenshot": "numbers-error.jpg",
+      "crop": [
+        32,
+        154,
+        1268,
+        594
+      ],
+      "sha256": "9270b22d3e1aea58ad7667521600e546326e762ec13511e413faf402f490ef12",
+      "captureId": "r27-desktop"
+    },
+    "numbers-mobile": {
+      "file": "numbers-mobile.png",
+      "title": "NumberField / QuantityField",
+      "states": "Форма при ширине iframe 390 CSS px, успешная отправка Enter, перенос кнопок.",
+      "sourceScreenshot": "numbers-mobile.jpg",
+      "crop": [
+        519,
+        62,
+        311,
+        751
+      ],
+      "sha256": "30de154d2b28ae76a77d0f7572c5675ffe3575ef0c759541b8e29c8f602341f4",
+      "captureId": "r27-mobile"
     }
   },
   "widgets": {
@@ -1247,6 +1289,16 @@
       "temporal-desktop",
       "temporal-error",
       "temporal-mobile"
+    ],
+    "NumberField": [
+      "numbers-desktop",
+      "numbers-error",
+      "numbers-mobile"
+    ],
+    "QuantityField": [
+      "numbers-desktop",
+      "numbers-error",
+      "numbers-mobile"
     ]
   },
   "modalLifecycleCapture": {
@@ -1592,6 +1644,40 @@
         "temporal-picker-native.png": [
           1364,
           1024
+        ]
+      }
+    },
+    "r27-desktop": {
+      "date": "2026-11-16",
+      "commit": "65f421a6834312c84533b528b2e3ff02630a3a41",
+      "allWidgetsSourceSha256": "293d2197222f3c806376ba2540f47fb3697dd8a30beedbb0947a602a8a9fae8c",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching.",
+      "screenshots": {
+        "numbers-desktop.jpg": [
+          1348,
+          926
+        ],
+        "numbers-error.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r27-mobile": {
+      "date": "2026-11-16",
+      "commit": "65f421a6834312c84533b528b2e3ff02630a3a41",
+      "allWidgetsSourceSha256": "293d2197222f3c806376ba2540f47fb3697dd8a30beedbb0947a602a8a9fae8c",
+      "page": "AllWidgets / in 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 920 CSS px iframe",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching.",
+      "screenshots": {
+        "numbers-mobile.jpg": [
+          1363,
+          936
         ]
       }
     }

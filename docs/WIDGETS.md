@@ -650,4 +650,4 @@ See [API, locale, bounds, lifecycle and explicit DST conversion (Russian)](TEMPO
 `NumberField` preserves raw drafts and exposes a typed `NumberModel` using BigDecimal.
 `QuantityField` extends FormField and registers with `Form.addField`.
 See [numeric contracts, limits and examples](NUMBER_FIELDS.ru.md) and
-[validation status and screenshot blocker](R27_VERIFICATION.ru.md).
+[validation results and screenshots](R27_VERIFICATION.ru.md).
