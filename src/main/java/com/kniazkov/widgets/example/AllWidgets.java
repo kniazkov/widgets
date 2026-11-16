@@ -45,6 +45,9 @@ import java.math.BigDecimal;
 import com.kniazkov.widgets.model.NumberModel;
 import com.kniazkov.widgets.model.NumberValue;
 import com.kniazkov.widgets.view.NumberField;
+import com.kniazkov.widgets.view.Tabs;
+import com.kniazkov.widgets.view.Accordion;
+import com.kniazkov.widgets.view.Breadcrumbs;
 import com.kniazkov.widgets.view.QuantityField;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -216,6 +219,7 @@ public class AllWidgets {
         addSuggestionFields(root);
         addKeyboardLogin(root);
         addFormDemo(root);
+        addNavigation(root);
         addNumberFields(root);
         addTemporalFields(root);
         addPasswordInputs(root);
@@ -307,6 +311,71 @@ public class AllWidgets {
         card.add(new Section(locale));
         card.add(new Section(result));
         card.add(disabledRow);
+    }
+
+    /**
+     * Demonstrates keyed navigation, retained drafts and native ancestor links.
+     * @param root gallery page
+     */
+    private static void addNavigation(final RootWidget root) {
+        final Panel card = addCard(root, "Навигация: вкладки и разделы",
+            "Стрелки перемещают фокус; Enter открывает. Содержимое сохраняется при переключении.");
+        final Breadcrumbs path = new Breadcrumbs("Путь к изделию", List.of(
+            new Breadcrumbs.Item("Главная", "/"),
+            new Breadcrumbs.Item("Каталог украшений ручной работы", "/all-widgets"),
+            new Breadcrumbs.Item("Подробная информация о выбранном украшении", "")));
+        card.add(path);
+        final Tabs tabs = new Tabs();
+        tabs.setAccessibleName("Карточка украшения");
+        tabs.addTab("description", "Описание украшения", () -> {
+            final InputField draft = new InputField("Мой черновик");
+            draft.setAccessibleName("Заметка об украшении");
+            return new Panel(new Section(new TextWidget("Заметка сохраняется между вкладками:")),
+                new Section(draft));
+        });
+        tabs.addTab("delivery", "Доставка и получение заказа", () ->
+            new Section(new TextWidget("Самовывоз или доставка: обсудим удобный вариант.")));
+        tabs.addTab("reviews", "Отзывы покупателей", () ->
+            new Section(new TextWidget("Здесь появятся отзывы покупателей.")));
+        tabs.setItemEnabled("reviews", false);
+        tabs.addTab("hidden", "Скрытая вкладка", () ->
+            new Section(new TextWidget("Скрытое содержимое не создаётся.")));
+        tabs.setItemVisible("hidden", false);
+        card.add(tabs);
+        final Button reorder = new Button("Порядок вкладок");
+        reorder.onClick(event ->
+            tabs.reorder(List.of("delivery", "description", "reviews", "hidden").stream()
+                .filter(tabs.getKeys()::contains).toList()));
+        final Button replace = new Button("Обновить доставку");
+        replace.onClick(event -> {
+            if (tabs.getKeys().contains("delivery")) {
+                tabs.replaceContent("delivery", () ->
+                    new Section(new TextWidget("Условия доставки обновлены сервером.")));
+            }
+        });
+        final Button remove = new Button("Удалить доставку");
+        remove.onClick(event -> {
+            if (tabs.getKeys().contains("delivery")) {
+                tabs.removeItem("delivery");
+            }
+        });
+        card.add(new Section(reorder, replace, remove));
+        final Accordion single = new Accordion(false);
+        single.setAccessibleName("Частые вопросы");
+        single.addSection("care", "Как ухаживать за украшениями ручной работы", () ->
+            new Section(new TextWidget("Храните отдельно и протирайте мягкой сухой тканью.")));
+        single.addSection("packaging", "Подарочная упаковка и пожелания к заказу", () ->
+            new Section(new TextWidget("Упакуем украшение и приложим вашу записку.")));
+        single.getExpandedKeysModel().setData(java.util.Set.of("care"));
+        card.add(single);
+        final Accordion multiple = new Accordion(true);
+        multiple.setAccessibleName("Несколько открытых разделов");
+        multiple.addSection("materials", "Материалы украшения", () ->
+            new Section(new TextWidget("Стекло, жемчуг и металлическая фурнитура.")));
+        multiple.addSection("warranty", "Гарантия и обслуживание", () ->
+            new Section(new TextWidget("Свяжитесь с нами, если украшению нужен ремонт.")));
+        multiple.getExpandedKeysModel().setData(java.util.Set.of("materials", "warranty"));
+        card.add(multiple);
     }
 
     /**

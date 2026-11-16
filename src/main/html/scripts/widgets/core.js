@@ -214,6 +214,7 @@ const widgetsLibrary = {
     },
     "sortable section": createSortableSection,
     "zoom decorator": createZoomDecorator,
+    breadcrumbs: () => createBreadcrumbs(),
     panel: function () {
         const widget = document.createElement("div");
         initPointerEvents(widget, true);

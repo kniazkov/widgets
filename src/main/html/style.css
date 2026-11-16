@@ -574,3 +574,68 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-quantity-field .widgets-number-field {
     width: 180px;
 }
+
+/* Navigation keeps full labels readable in narrow layouts. */
+.widgets-tabs, .widgets-accordion, .widgets-breadcrumbs {
+    min-width: 0;
+    max-width: 100%;
+}
+.widgets-tabs [role="tablist"] {
+    gap: 0.35rem;
+    border-bottom: 1px solid #aab7c4;
+    padding-bottom: 0.4rem;
+}
+.widgets-tabs [role="tab"], .widgets-accordion button {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+.widgets-tabs [role="tab"][aria-selected="true"] {
+    box-shadow: inset 0 -3px #175f99 !important;
+}
+.widgets-tabs [role="tabpanel"], .widgets-accordion [role="region"] {
+    padding: 0.7rem 0 !important;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+.widgets-accordion > div {
+    margin-bottom: 0.35rem;
+}
+.widgets-breadcrumbs > [role="list"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.5rem;
+}
+.widgets-breadcrumbs [role="listitem"] {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+.widgets-breadcrumbs [role="listitem"] + [role="listitem"]::before {
+    content: "/";
+    margin-right: 0.5rem;
+    color: #687480;
+}
+.widgets-breadcrumbs [role="listitem"] > * {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.widgets-accordion button[aria-expanded]::before {
+    content: "▸" / "";
+    margin-right: 0.45rem;
+}
+.widgets-accordion button[aria-expanded="true"]::before {
+    content: "▾" / "";
+}
+.widgets-tabs [role="tab"], .widgets-accordion button[aria-expanded] {
+    height: auto !important;
+    min-height: 40px;
+}
+.widgets-tabs [role="tabpanel"] input,
+.widgets-tabs [role="tabpanel"] textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+}

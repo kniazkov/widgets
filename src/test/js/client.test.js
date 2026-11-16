@@ -35,6 +35,7 @@ const handlerNames = [
     "setDataTable",
     "setFeedback",
     "setTemporalInput",
+    "setNavigation",
     "setSuggestionSeparator",
     "setKeyboardShortcuts",
     "setInputReadOnly",

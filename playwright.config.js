@@ -36,6 +36,7 @@ export default defineConfig({
                 "dialog.spec.js",
                 "temporal.spec.js",
                 "numbers.spec.js",
+                "navigation-panels.spec.js",
                 "adaptive-layout.spec.js",
                 "typed-choices.spec.js",
                 "data-table.spec.js"
