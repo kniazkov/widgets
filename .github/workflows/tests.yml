@@ -44,16 +44,12 @@ jobs:
           echo 'Acquire::https::Timeout "15";' | sudo tee -a /etc/apt/apt.conf.d/99-ci-network
       - name: Install browser system dependencies
         timeout-minutes: 5
-        run: npx playwright install-deps webkit
-      - name: Install WebKit
+        run: npx playwright install-deps chromium webkit
+      - name: Install Chromium and WebKit
         timeout-minutes: 5
-        run: npx playwright install webkit
+        run: npx playwright install chromium webkit
       - name: Run browser tests
-        run: >-
-          node scripts/run-e2e.mjs adaptive-layout.spec.js
-          --project=webkit-suggestions
-          --grep "stack direction|form columns become"
-          --repeat-each=20 --retries=0 --trace=on
+        run: node scripts/run-e2e.mjs --retries=0
       - name: Preserve diagnostic evidence
         if: always()
         uses: actions/upload-artifact@v4

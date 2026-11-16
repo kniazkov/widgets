@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // Temporary diagnostic branch: preserve successful runs too for comparison with failures.
+test.use({ trace: "on" });
 const diagnostics = new WeakMap();
 test.beforeEach(async ({ page }) => {
     const data = { console: [], network: [], checkpoints: [] };
