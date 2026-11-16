@@ -91,6 +91,8 @@ classDiagram
     TypedChoice <|-- ComboBox
     TypedChoice <|-- MultiSelect
     InputField <|-- SuggestionField
+    InputField <|-- NumberField
+    FormField <|-- QuantityField
     InputField <|-- TemporalField
     TemporalField <|-- DateField
     TemporalField <|-- TimeField
@@ -147,6 +149,8 @@ the root and table structures rather than the general block/inline distinction.
 | `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
 | `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
 | `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
+| `NumberField` | `number field` | None | Exact BigDecimal editor with locale, bounds and step. |
+| `QuantityField` | `quantity field` | FormField editor and actions | Labelled number with exact decrement/increment and live limits. |
 | `DateField` | `date field` | None | Native local date, typed model and inclusive server bounds. |
 | `TimeField` | `time field` | None | Native local time at minute precision, no implicit timezone. |
 | `DateRange` | `date range` | `BlockWidget` | Two owned date fields and inclusive range validation through Form.addDateRange. |
@@ -640,3 +644,10 @@ retain FormField labels, help, errors and keyboard submission. Native inputs
 exchange canonical ISO-like strings; typed values use LocalDate/LocalTime.
 `Form.addDateRange` registers both endpoints and validates their order.
 See [API, locale, bounds, lifecycle and explicit DST conversion (Russian)](TEMPORAL_FIELDS.ru.md).
+
+## Exact numeric editors
+
+`NumberField` preserves raw drafts and exposes a typed `NumberModel` using BigDecimal.
+`QuantityField` extends FormField and registers with `Form.addField`.
+See [numeric contracts, limits and examples](NUMBER_FIELDS.ru.md) and
+[validation results and screenshots](R27_VERIFICATION.ru.md).

@@ -41,6 +41,11 @@ import com.kniazkov.widgets.view.Form;
 import com.kniazkov.widgets.view.DateField;
 import com.kniazkov.widgets.view.TimeField;
 import com.kniazkov.widgets.view.DateRange;
+import java.math.BigDecimal;
+import com.kniazkov.widgets.model.NumberModel;
+import com.kniazkov.widgets.model.NumberValue;
+import com.kniazkov.widgets.view.NumberField;
+import com.kniazkov.widgets.view.QuantityField;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Locale;
@@ -211,6 +216,7 @@ public class AllWidgets {
         addSuggestionFields(root);
         addKeyboardLogin(root);
         addFormDemo(root);
+        addNumberFields(root);
         addTemporalFields(root);
         addPasswordInputs(root);
         addTextAreas(root);
@@ -301,6 +307,64 @@ public class AllWidgets {
         card.add(new Section(locale));
         card.add(new Section(result));
         card.add(disabledRow);
+    }
+
+    /**
+     * Demonstrates exact decimal strings, localized drafts and reactive quantity constraints.
+     * @param root gallery page
+     */
+    private static void addNumberFields(final RootWidget root) {
+        final Panel card = addCard(root, "Числа без потери точности",
+            "Десятичная запятая, точный шаг и серверная проверка количества.");
+        final NumberField amount = new NumberField();
+        amount.setLocale(Locale.forLanguageTag("ru"));
+        amount.setConversionMessage("Введите число с запятой, например 12,50.");
+        amount.setValue(new BigDecimal("9007199254740993.01"));
+        final FormField price = new FormField("amount", "Точная сумма", amount);
+        price.setHelp("Шаг 0,01. Число длиннее безопасного целого JavaScript сохраняется точно.");
+        price.setRequired(true);
+        price.setConstraintMessages("Укажите сумму.", "Проверьте точность и шаг 0,01.");
+        final QuantityField quantity = new QuantityField("quantity", "Количество");
+        quantity.setActionNames("Уменьшить количество", "Увеличить количество");
+        quantity.getEditor().getValueModel().configure(NumberValue.of(BigDecimal.ZERO),
+            NumberValue.of(new BigDecimal("5")), BigDecimal.ONE);
+        quantity.getEditor().setValue(new BigDecimal("2"));
+        quantity.getEditor().setConversionMessage("Введите целое количество.");
+        quantity.setConstraintMessages("Укажите количество.", "Количество вне текущих границ.");
+        quantity.setRequired(true);
+        quantity.setHelp("От 0 до 5, шаг 1. Одно нажатие — один шаг, без автоповтора.");
+        final Form form = new Form("Точные числа", "Проверить числа");
+        form.setMessages(new Form.Messages("Проверяем…", "Числа приняты.",
+            "Проверьте числа.", "Не удалось проверить."));
+        form.addField(price);
+        form.addField(quantity);
+        final TextWidget result = new TextWidget("Числа ещё не отправлены");
+        form.onSubmit(values -> {
+            result.setText("Точно: " + amount.getValue().orElseThrow().toPlainString()
+                + " / " + quantity.getEditor().getValue().orElseThrow().toPlainString());
+            return CompletableFuture.completedFuture(Form.Result.success());
+        });
+        final Button limit = new Button("Лимит количества: 2 / 5");
+        final boolean[] small = {false};
+        limit.onClick(event -> {
+            small[0] = !small[0];
+            quantity.getEditor().getValueModel().configure(NumberValue.of(BigDecimal.ZERO),
+                NumberValue.of(new BigDecimal(small[0] ? "2" : "5")), BigDecimal.ONE);
+            quantity.setHelp(small[0] ? "Текущий максимум: 2" : "Текущий максимум: 5");
+        });
+        final QuantityField disabled = new QuantityField(
+            "disabledQuantity", "Недоступное количество");
+        disabled.getEditor().setValue(BigDecimal.ONE);
+        disabled.getEditor().disable();
+        disabled.setActionNames("Уменьшить недоступное", "Увеличить недоступное");
+        final NumberField english = new NumberField();
+        english.setValue(new BigDecimal("1234.50"));
+        english.setReadOnly(true);
+        card.add(form);
+        card.add(new Section(limit));
+        card.add(new Section(result));
+        card.add(disabled);
+        card.add(new FormField("englishAmount", "Число en-US — только чтение", english));
     }
 
     /**
