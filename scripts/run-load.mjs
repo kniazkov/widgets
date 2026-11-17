@@ -179,6 +179,9 @@ try {
                         "channelActiveOperations"
                     ].map(key => [key, Math.max(0, ...observed.map(s => s[key]))])
                 );
+                assert(peak.pages <= details.serverPageLimit, "Live page limit exceeded");
+                assert(peak.uploadProcessing <= 1, "Upload worker limit exceeded");
+                assert(peak.uploadQueued <= 1, "Upload queue limit exceeded");
                 const result = {
                     profile: name,
                     clients: count,

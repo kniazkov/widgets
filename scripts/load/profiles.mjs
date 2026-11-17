@@ -14,7 +14,9 @@ export async function profile(name, count, api, concurrency, observe) {
                 ? Math.min(16, count) * 4
                 : name === "large-tree" || name === "uploads"
                   ? Math.min(16, count)
-                  : count + 1,
+                  : name === "slow-client"
+                    ? count + Math.min(count, concurrency)
+                    : count + 1,
         businessActions: 0,
         duplicateBatches: 0,
         resyncs: 0,
