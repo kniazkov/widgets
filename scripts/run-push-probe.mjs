@@ -220,11 +220,13 @@ try {
                             const packet = JSON.parse(event.data);
                             if (
                                 packet.type === "response" &&
+                                packet.id === this.dropRequestId &&
                                 JSON.stringify(packet.data).includes(
                                     `Count: ${window.dropPushCount}`
                                 )
                             ) {
                                 window.dropPushCount = null;
+                                window.droppedPushResponse = true;
                                 event.stopImmediatePropagation();
                                 this.close();
                             }
@@ -232,6 +234,15 @@ try {
                             /* not an application frame */
                         }
                     });
+                }
+                send(text) {
+                    if (window.dropPushCount) {
+                        const packet = JSON.parse(text);
+                        if (packet.type === "request" && packet.query.events?.length) {
+                            this.dropRequestId = packet.id;
+                        }
+                    }
+                    super.send(text);
                 }
             };
         });
@@ -341,6 +352,7 @@ try {
             await page.getByText(`Count: ${++count}`, { exact: true }).waitFor();
             await waitForGauge(g => g.effects === effects + 1);
             assert.equal((await gauges()).effects, effects + 1);
+            assert.equal(await page.evaluate(() => window.droppedPushResponse), true);
             report.checks.push("lost stream ACK resumes through HTTP without duplicate action");
             blocked = true;
             for (const socket of tunnels) socket.destroy();

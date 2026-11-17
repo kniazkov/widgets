@@ -41,7 +41,7 @@ public final class PushTestServer {
         final var background = Executors.newSingleThreadScheduledExecutor();
         final Application app = new Application(page("A", "/other", states, effects,
             pages, background));
-        app.addPage("/other", page("B", "/", states, effects, pages, background));
+        app.addPage("other", page("B", "/", states, effects, pages, background));
         Server.start(app, new Options.Builder().setPort(Integer.parseInt(args[0]))
             .setBindAddress(InetAddress.getLoopbackAddress()).setPublicOrigin(args[2]).build());
         final PushServer push = "push".equals(args[4]) ? PushServer.start(app,
