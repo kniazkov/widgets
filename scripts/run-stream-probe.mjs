@@ -1,5 +1,5 @@
 import { spawn, execFileSync } from "node:child_process";
-import { readFile, mkdir, writeFile } from "node:fs/promises";
+import { readFile, mkdir, writeFile, rm } from "node:fs/promises";
 import { createServer as tlsServer } from "node:https";
 import { request } from "node:http";
 import { createServer } from "node:net";
@@ -14,6 +14,8 @@ import WebSocket from "ws";
 // A TLS reverse proxy only: WebSocket frames travel directly to the Java adapter.
 const output = "target/stream-probe";
 await mkdir(output, { recursive: true });
+await rm(`${output}/metrics.json`, { force: true });
+const proxyDiagnostics = [];
 execFileSync(
     "openssl",
     [
@@ -97,10 +99,14 @@ proxy.on("upgrade", (req, socket, head) => {
         socket.pipe(remote).pipe(socket);
     });
     upstream.on("response", res => {
+        proxyDiagnostics.push({ upgradeStatus: res.statusCode });
         socket.end(`HTTP/1.1 ${res.statusCode} Rejected\r\nContent-Length: 0\r\n\r\n`);
         res.resume();
     });
-    upstream.on("error", () => socket.destroy());
+    upstream.on("error", error => {
+        proxyDiagnostics.push({ upstreamError: error.code });
+        socket.destroy();
+    });
     upstream.end();
 });
 await new Promise(resolve => proxy.listen(0, "127.0.0.1", resolve));
@@ -143,6 +149,7 @@ const report = {
     commit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     tls: true,
     nativeJavaWebSocket: true,
+    proxyDiagnostics,
     checks: []
 };
 try {
@@ -157,6 +164,18 @@ try {
             /* startup */
         }
         if (i === 99) throw new Error("Fixture startup timeout");
+        await delay(100);
+    }
+    // HTTP is started first; its readiness alone says nothing about the stream listener.
+    for (let i = 0; i < 100; i++) {
+        if (child.exitCode !== null) throw new Error("Fixture exited before stream readiness");
+        try {
+            const ready = JSON.parse(await readFile(`${output}/metrics.json`, "utf8"));
+            if (ready.connections === 0) break;
+        } catch {
+            /* the journal is created only after the stream listener starts */
+        }
+        if (i === 99) throw new Error("Stream listener startup timeout");
         await delay(100);
     }
     browser = await chromium.launch();
