@@ -3,7 +3,12 @@ import { readScript, readScriptGroup } from "./helpers/scripts.js";
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
-const source = readScript("shared/transport.js") + "\n" + readScriptGroup("client");
+const source =
+    readScript("shared/transport-channel.js") +
+    "\n" +
+    readScript("shared/transport.js") +
+    "\n" +
+    readScriptGroup("client");
 
 const handlerNames = [
     "log",

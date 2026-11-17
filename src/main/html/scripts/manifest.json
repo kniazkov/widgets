@@ -1,5 +1,6 @@
 {
     "shared": [
+        "shared/transport-channel.js",
         "shared/transport.js",
         "shared/dom.js",
         "shared/document.js",

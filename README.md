@@ -38,6 +38,9 @@ replacement, movement and context revocation.
 See [Load profiles and runtime metrics](docs/LOAD_TESTING.ru.md) for reproducible load tests,
 resource counters, browser round trips and measured regression budgets.
 
+See [Transport architecture (ADR R34)](docs/adr/0034-transport.ru.md) for the shared
+Transport/Channel contract, HTTP compatibility and the isolated WebSocket experiment.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,

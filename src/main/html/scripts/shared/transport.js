@@ -39,7 +39,7 @@ function getXmlHttp() {
 }
 
 // Object-valued fields are serialized as JSON; POST and file requests use multipart form data.
-function sendRequest(query, callback, method, files, channel) {
+function sendHttpRequest(query, callback, method, files, channel) {
     const req = getXmlHttp();
     const protocolAction = typeof query.action === "string";
     let form = null;
@@ -111,46 +111,7 @@ function sendRequest(query, callback, method, files, channel) {
                     "requestId=" + (req.getResponseHeader("X-Widgets-Request-Id") || "unavailable")
                 );
             }
-            if (protocolAction && req.status === 200) {
-                const version = req.getResponseHeader("X-Widgets-Protocol-Version");
-                complete(
-                    version !== null && version !== widgetsProtocolVersion
-                        ? JSON.stringify({ protocolMismatch: true })
-                        : req.responseText
-                );
-            } else if (
-                protocolAction &&
-                req.status === 500 &&
-                req.getResponseHeader("X-Widgets-Protocol-Error") === "application"
-            ) {
-                complete(JSON.stringify({ clientError: true }));
-            } else if (protocolAction && req.status === 403) {
-                let expired = false;
-                try {
-                    expired = JSON.parse(req.responseText).sessionExpired === true;
-                } catch {
-                    // An unrecognized denial is terminal, never an automatic retry loop.
-                }
-                complete(
-                    JSON.stringify(expired ? { sessionExpired: true } : { accessDenied: true })
-                );
-            } else if (query.action === "upload chunk" && req.status === 413) {
-                complete(JSON.stringify({ result: false, uploadError: "requestTooLarge" }));
-            } else if (protocolAction && req.status === 401) {
-                complete(JSON.stringify({ accessDenied: true }));
-            } else if (protocolAction && (req.status === 426 || req.status === 505)) {
-                complete(JSON.stringify({ protocolMismatch: true }));
-            } else if (
-                protocolAction &&
-                req.status >= 400 &&
-                req.status < 500 &&
-                req.status !== 408 &&
-                req.status !== 429
-            ) {
-                complete(JSON.stringify({ clientError: true }));
-            } else {
-                complete(req.status == 200 ? req.responseText : null);
-            }
+            complete(classifyHttpResponse(query, req));
         }
     };
     req.onerror = function () {
@@ -159,4 +120,72 @@ function sendRequest(query, callback, method, files, channel) {
     req.ontimeout = req.onerror;
     req.onabort = req.onerror;
     req.send(form);
+    return () => req.abort();
+}
+
+// Compatibility entry point; all existing protocol/status/security semantics stay in HTTP.
+function createHttpTransport(options) {
+    return createProtocolTransport(
+        {
+            send: (packet, done) =>
+                sendHttpRequest(packet.query, done, packet.method, packet.files, packet.channel)
+        },
+        options
+    );
+}
+let documentHttpTransport;
+function sendRequest(query, callback, method, files, channel) {
+    if (!documentHttpTransport) {
+        documentHttpTransport = createHttpTransport();
+        documentHttpTransport.connect();
+    }
+    return documentHttpTransport.send({ query, method, files, channel }, callback);
+}
+
+// Shared status mapping for HTTP and the test-only stream gateway.
+function classifyHttpResponse(query, req) {
+    const protocolAction = typeof query.action === "string";
+    let result = null;
+    const complete = value => {
+        result = value;
+    };
+    if (protocolAction && req.status === 200) {
+        const version = req.getResponseHeader("X-Widgets-Protocol-Version");
+        complete(
+            version !== null && version !== widgetsProtocolVersion
+                ? JSON.stringify({ protocolMismatch: true })
+                : req.responseText
+        );
+    } else if (
+        protocolAction &&
+        req.status === 500 &&
+        req.getResponseHeader("X-Widgets-Protocol-Error") === "application"
+    ) {
+        complete(JSON.stringify({ clientError: true }));
+    } else if (protocolAction && req.status === 403) {
+        let expired = false;
+        try {
+            expired = JSON.parse(req.responseText).sessionExpired === true;
+        } catch {
+            // An unrecognized denial is terminal, never an automatic retry loop.
+        }
+        complete(JSON.stringify(expired ? { sessionExpired: true } : { accessDenied: true }));
+    } else if (query.action === "upload chunk" && req.status === 413) {
+        complete(JSON.stringify({ result: false, uploadError: "requestTooLarge" }));
+    } else if (protocolAction && req.status === 401) {
+        complete(JSON.stringify({ accessDenied: true }));
+    } else if (protocolAction && (req.status === 426 || req.status === 505)) {
+        complete(JSON.stringify({ protocolMismatch: true }));
+    } else if (
+        protocolAction &&
+        req.status >= 400 &&
+        req.status < 500 &&
+        req.status !== 408 &&
+        req.status !== 429
+    ) {
+        complete(JSON.stringify({ clientError: true }));
+    } else {
+        complete(req.status == 200 ? req.responseText : null);
+    }
+    return result;
 }
