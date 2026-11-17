@@ -12,6 +12,18 @@ function createUploadManager() {
     const widget = widgetsLibrary["file loader"]();
     widget._managedFiles = new Map();
     widget._localUploadId = 0;
+    const disabledProperty = Object.getOwnPropertyDescriptor(
+        HTMLButtonElement.prototype,
+        "disabled"
+    );
+    Object.defineProperty(widget, "disabled", {
+        get: () => disabledProperty.get.call(widget),
+        set: flag => {
+            disabledProperty.set.call(widget, flag);
+            if (flag) widget._closeFilePicker();
+            renderManagedUploads(widget);
+        }
+    });
     widget._managedSelected = file => {
         const record = widget._selectingRecord;
         if (!record) return;

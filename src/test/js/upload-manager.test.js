@@ -95,3 +95,18 @@ test("progress updates preserve the focused action node during a pointer click",
         data: { action: "cancel", fileId: 1 }
     });
 });
+
+test("disabling the manager immediately disables list actions without awaiting progress", () => {
+    const h = harness();
+    h.manager._managedLoad([file("a.txt")]);
+    const button = h.list.querySelector("button");
+    h.manager.disabled = true;
+    expect(button.disabled).toBe(true);
+    expect(h.manager.hasAttribute("disabled")).toBe(true);
+    button.click();
+    expect(h.sent).toHaveLength(1);
+    h.manager.disabled = false;
+    expect(button.disabled).toBe(false);
+    button.click();
+    expect(h.sent).toHaveLength(2);
+});
