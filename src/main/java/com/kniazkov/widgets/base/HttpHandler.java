@@ -192,7 +192,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     .setHeader("Cache-Control", "no-store").build();
             }
             return responses.fromJson(result.toString())
-                .setHeader("X-Widgets-Protocol-Version", "1")
+                .setHeader("X-Widgets-Protocol-Version", ReleaseInfo.httpProtocol())
                 .setHeader("Cache-Control", "no-store").build();
         }
 
@@ -219,6 +219,14 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         final ContentType contentType = ContentType.fromExtension(
             dot > address.lastIndexOf('/') ? address.substring(dot + 1) : "");
         final boolean removeLogs = contentType == ContentType.TEXT_JAVASCRIPT && !options.isDebug();
+
+        final List<String> builds = request.getQuery().get("widgets-build");
+        if (!replaceAddress && isBundledWebResource(address) && builds != null
+                && (builds.size() != 1 || !ReleaseInfo.buildId().equals(builds.get(0)))) {
+            return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN,
+                "Widgets bundle changed; reload the page".getBytes(StandardCharsets.UTF_8))
+                .setHeader("Cache-Control", "no-store").build();
+        }
 
         try {
             final java.util.Optional<PublicDocument> document = replaceAddress
@@ -279,6 +287,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             );
                         }
                         if (replaceAddress) {
+                            code = code.replaceAll(
+                                "(src|href)=\"(/scripts/[^\"]+\\.js|/style\\.css)\"",
+                                "$1=\"$2?widgets-build=" + ReleaseInfo.buildId() + "\"");
                             final String head = documentHead(this.options, document.isEmpty())
                                 + document.map(PublicDocument::head).orElse("");
                             final String content = document.map(value ->
@@ -320,13 +331,18 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                  * Page bootstrap contains a new session and request-specific parameters.
                  */
                 return responses.custom(HttpStatus.OK, contentType, data)
+                    .setHeader("X-Widgets-Build", ReleaseInfo.buildId())
+                    .setHeader("X-Widgets-Release", ReleaseInfo.version())
                     .setCookie(new ResponseCookie.Builder(ProtocolSecurity.cookieName(this.options),
                         session.credential()).setPath("/").setHttpOnly(true)
                         .setSecure(ProtocolSecurity.secureCookie(this.options))
                         .setSameSite(SameSite.STRICT).build())
                     .setHeader("Cache-Control", "no-store").build();
             }
-            final String hash = StaticSource.contentHash(data);
+            final byte[] served = contentType == ContentType.TEXT_JAVASCRIPT
+                ? new String(data, StandardCharsets.UTF_8).replace("__WIDGETS_BUILD__",
+                    ReleaseInfo.buildId()).getBytes(StandardCharsets.UTF_8) : data;
+            final String hash = StaticSource.contentHash(served);
             final List<String> versions = request.getQuery().get("widgets-version");
             if (versions != null && (versions.size() != 1 || !hash.equals(versions.get(0)))) {
                 /*
@@ -338,7 +354,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             final String tag = "\"" + hash + "\"";
             final boolean unchanged = matchesEntityTag(request, tag);
             return responses.custom(unchanged ? HttpStatus.NOT_MODIFIED : HttpStatus.OK,
-                contentType, unchanged ? new byte[0] : data)
+                contentType, unchanged ? new byte[0] : served)
                 .setHeader("ETag", tag)
                 .setHeader("Cache-Control", versions == null ? "private, no-cache"
                     : "private, max-age=31536000, immutable")

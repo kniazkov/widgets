@@ -3,6 +3,14 @@
  */
 
 // Each runtime factory owns these variables, its widget registry and upload scheduler.
+// The runtime carries its own stamp: an old factory cannot borrow a new transport's identity.
+const widgetsRuntimeBuild = "__WIDGETS_BUILD__";
+function clientBuildIdentity() {
+    return typeof widgetsClientBuild === "string" && widgetsRuntimeBuild === widgetsClientBuild
+        ? widgetsRuntimeBuild
+        : "mixed-bundle";
+}
+
 const pageContext = typeof page === "undefined" ? null : page;
 const tabContext = pageContext?.tab || { id: null };
 let clientDisposed = false;
@@ -112,6 +120,7 @@ function startClient(address, data) {
     request.address = address;
     request.browserId = browserId;
     request.mobile = isMobileDevice();
+    request.clientBuild = clientBuildIdentity();
     request.updateVersion = updateStreamVersion;
     request.updateCapability = updateStreamCapability;
     // Query parameters must never select a context, including during retries.

@@ -62,6 +62,10 @@ final class CreateClient extends ActionHandler {
             return UpdateStream.mismatch();
         }
 
+        if (this.access != null && !ReleaseInfo.buildId().equals(data.get("clientBuild"))) {
+            return ReleaseInfo.mismatch();
+        }
+
         /*
          * Prepare a collection of parameters that are passed through the address line
          */
@@ -77,6 +81,7 @@ final class CreateClient extends ActionHandler {
         parameters.remove("updateVersion");
         parameters.remove("updateCapability");
         parameters.remove("updateEpoch");
+        parameters.remove("clientBuild");
 
         /*
          * Prepare a container for request-specific settings passed to a page
@@ -112,6 +117,8 @@ final class CreateClient extends ActionHandler {
          */
         JsonObject obj = new JsonObject();
         obj.addString("id", id);
+        obj.addString("clientBuild", ReleaseInfo.buildId());
+        obj.addString("releaseVersion", ReleaseInfo.version());
         context.publicDocument.ifPresent(document ->
             obj.addElement("publicDocument", document.json()));
         obj.addString("channelToken", this.application.channelToken(

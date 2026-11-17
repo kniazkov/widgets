@@ -52,7 +52,7 @@
 - [x] **R36 · P2** — [#140: Реализовать выбранный push-транспорт и мультиплексирование страниц](https://github.com/kniazkov/widgets/issues/140)
 - [x] **R37 · P2** — [#141: Определить модель нескольких серверов и восстановление состояния](https://github.com/kniazkov/widgets/issues/141)
 - [x] **R38 · P2** — [#142: Добавить статическое представление страниц и метаданные для каталога](https://github.com/kniazkov/widgets/issues/142)
-- [ ] **R39 · P2** — [#143: Версионировать выпуски и совместимость Java/JS-протокола](https://github.com/kniazkov/widgets/issues/143)
+- [x] **R39 · P2** — [#143: Версионировать выпуски и совместимость Java/JS-протокола](https://github.com/kniazkov/widgets/issues/143)
 - [ ] **R40 · P3** — [#144: Разделить core, HTTP, database и image-зависимости](https://github.com/kniazkov/widgets/issues/144)
 - [ ] **R41 · P3** — [#145: Добавить TreeView для иерархических данных](https://github.com/kniazkov/widgets/issues/145)
 - [ ] **R42 · P3** — [#146: Добавить SplitPane с доступным изменением размеров](https://github.com/kniazkov/widgets/issues/146)
@@ -1180,6 +1180,8 @@ Deployment-контракт и воспроизводимый стенд: [DEPLO
 **P2 · [Issue #143](https://github.com/kniazkov/widgets/issues/143)**. Зависимости: [R13 #117](https://github.com/kniazkov/widgets/issues/117), [R18 #122](https://github.com/kniazkov/widgets/issues/122)
 
 Версия Maven 0.1 не выражает развитие API и протокола. Foundry19 нуждается в однозначном выборе совместимой версии и понятном обновлении.
+
+Контракт выпуска и обновление Foundry19: [RELEASING.ru.md](RELEASING.ru.md).
 
 **Что сделать**
 

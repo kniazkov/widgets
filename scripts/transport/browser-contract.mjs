@@ -62,6 +62,7 @@ export async function install(page, mode, root) {
                 address: "/",
                 browserId: "12345678-1234-4234-8234-123456789abc",
                 mobile: false,
+                clientBuild: widgetsClientBuild,
                 updateVersion: "2",
                 updateCapability: "sequenced-updates",
                 ...(tabId ? { tabId } : {})

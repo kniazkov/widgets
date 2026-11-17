@@ -23,7 +23,7 @@ final class UpdateStream {
     /**
      * Version of the update envelope, independent of transport authentication.
      */
-    static final String VERSION = "2";
+    static final String VERSION = ReleaseInfo.updateProtocol();
 
     /**
      * Mandatory capability negotiated at runtime creation.

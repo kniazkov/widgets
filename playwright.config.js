@@ -44,7 +44,8 @@ export default defineConfig({
                 "adaptive-layout.spec.js",
                 "typed-choices.spec.js",
                 "data-table.spec.js",
-                "public-document.spec.js"
+                "public-document.spec.js",
+                "release-compatibility.spec.js"
             ],
             use: { browserName: "webkit" }
         }
