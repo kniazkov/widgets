@@ -21,6 +21,8 @@ function initEditableText(widget) {
     widget._inputDebounce = 0;
     let timer = null;
     let lastSent = widget.value;
+    let compositionBase = widget.value;
+    let compositionBaseUnsent = false;
     const cancelTimer = () => {
         clearTimeout(timer);
         timer = null;
@@ -83,6 +85,8 @@ function initEditableText(widget) {
         } else widget._flushTextInput();
     };
     listenWidget(widget, "compositionstart", () => {
+        compositionBase = widget.value;
+        compositionBaseUnsent = widget._unsentText;
         widget._composingText = true;
         cancelTimer();
     });
@@ -104,6 +108,11 @@ function initEditableText(widget) {
     const detached = widget._onDetached;
     widget._onDetached = () => {
         cancelTimer();
+        if (widget._composingText) {
+            widget.value = compositionBase;
+            widget._unsentText = compositionBaseUnsent;
+            widget._composingText = false;
+        }
         detached?.();
     };
     const attached = widget._onAttached;
@@ -213,16 +222,8 @@ function setInputReadOnly(data) {
 
 function initKeyboardShortcuts(widget) {
     widget._keyboardInitialized = true;
-    let composing = false;
     let consumedEnter = false;
-    listenWidget(widget, "compositionstart", () => {
-        composing = true;
-    });
-    listenWidget(widget, "compositionend", () => {
-        composing = false;
-    });
     listenWidget(widget, "blur", () => {
-        composing = false;
         consumedEnter = false;
     });
 
@@ -240,7 +241,7 @@ function initKeyboardShortcuts(widget) {
         if (event.key === "Enter" && phase === "DOWN" && !event.repeat) {
             consumedEnter =
                 event.defaultPrevented ||
-                composing ||
+                widget._composingText ||
                 event.isComposing ||
                 event.keyCode === 229 ||
                 widget._isSuggestionOpen?.() === true;
@@ -249,7 +250,7 @@ function initKeyboardShortcuts(widget) {
         if (event.key === "Enter" && phase === "UP") consumedEnter = false;
         if (
             event.defaultPrevented ||
-            composing ||
+            widget._composingText ||
             event.isComposing ||
             event.keyCode === 229 ||
             enterWasConsumed

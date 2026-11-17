@@ -3,7 +3,7 @@ import { afterEach, expect, test } from "vitest";
 import { readScript, readScriptGroup } from "./helpers/scripts.js";
 let dom;
 afterEach(() => dom?.window.close());
-function harness() {
+function harness(type = "input field") {
     dom = new JSDOM("<!doctype html><body></body>", {
         runScripts: "outside-only",
         url: "https://example.com/"
@@ -14,14 +14,14 @@ function harness() {
         const timers = [];
         window.setTimeout = fn => { const t={fn,active:true}; timers.push(t); return t; };
         window.clearTimeout = t => { if(t) t.active=false; };
-        createWidget({type:'input field',widget:'#1'});
+        createWidget({type:${JSON.stringify(type)},widget:'#1'});
         createWidget({type:'button',widget:'#2'});
         const editor=widgets['#1'], button=widgets['#2'];
         document.body.append(editor,button);
         editor.getClientRects = () => [{}];
         button._events.click = true;
         window.h = {editor,button,events,setText,setClientEventAction,setInputDebounce,sendEventToServer,
-          disposeWidget, validLocalAction,
+          disposeWidget, validLocalAction, pauseWidgetSubtree, resumeWidgetSubtree, setKeyboardShortcuts,
           tick: () => { for(const t of timers.splice(0)) if(t.active)t.fn(); },
           ack: (id,text) => { removeProcessedEvents('#'+id); if(text!==undefined)setText({widget:'#1',text}); reconcileTextInputs(); }};`);
     return dom.window.h;
@@ -159,3 +159,25 @@ test("local registry rejects server mutation actions, code, bad ranges and unsaf
         );
     expect(h.validLocalAction({ action: "open page in new tab", href: "/safe" })).toBe(true);
 });
+
+test.each(["input field", "suggestion field"])(
+    "detaching composition in %s cancels the draft without disabling input",
+    type => {
+        const h = harness(type);
+        h.editor.focus();
+        h.setKeyboardShortcuts({ widget: "#1", shortcuts: ["DOWN:Enter:0000:1"] });
+        composition(h, "compositionstart");
+        input(h, "未確定", true);
+        h.pauseWidgetSubtree(h.editor);
+        h.editor.remove();
+        dom.window.document.body.append(h.editor);
+        h.resumeWidgetSubtree(h.editor);
+        expect(h.editor.value).toBe("");
+        expect(h.events).toHaveLength(0);
+        input(h, "after");
+        h.editor.dispatchEvent(
+            new dom.window.KeyboardEvent("keydown", { key: "Enter", bubbles: true })
+        );
+        expect(h.events.map(e => e.type)).toEqual(["text input", "keyboard"]);
+    }
+);
