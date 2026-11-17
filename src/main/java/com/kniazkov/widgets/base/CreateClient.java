@@ -117,6 +117,11 @@ final class CreateClient extends ActionHandler {
         obj.addString("tabId", context.tabContext.getId().toString());
         obj.addString("serverId", this.application.getServerId().toString());
         obj.addNumber("pollingMaxDelay", this.application.pollingMaxDelay());
+        final PushServer push = this.application.pushServer();
+        if (push != null) {
+            obj.addString("pushPath", StreamServer.PATH);
+            obj.addNumber("pushMessageBytes", push.messageBytes());
+        }
         obj.addString("updateVersion", UpdateStream.VERSION);
         obj.addString("updateCapability", UpdateStream.CAPABILITY);
         obj.addNumber("eventBatchCount", this.application.protocolLimits().eventsPerBatch());

@@ -3,6 +3,7 @@
  */
 
 let synchronizationInFlight = false;
+let pushDirty = false;
 const synchronizationCallbacks = [];
 const maxEventStalls = 3;
 let eventStalls = 0;
@@ -63,6 +64,7 @@ function sendSynchronizeRequest(callback) {
     if (synchronizationInFlight || synchronizationRetryTask !== null) {
         return;
     }
+    pushDirty = false;
     const sentEvents = selectEventBatch();
     if (!sentEvents) return;
     if (navigator.onLine === false) {
@@ -96,7 +98,7 @@ function sendSynchronizeRequest(callback) {
         if (
             !stalled &&
             accepted &&
-            (synchronizationCallbacks.length > 0 || events.length > 0 || moreUpdates)
+            (synchronizationCallbacks.length > 0 || events.length > 0 || moreUpdates || pushDirty)
         ) {
             sendSynchronizeRequest();
         }

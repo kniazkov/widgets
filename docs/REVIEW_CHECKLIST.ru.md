@@ -49,7 +49,7 @@
 - [x] **R33 · P2** — [#137: Добавить нагрузочный стенд и метрики состояния](https://github.com/kniazkov/widgets/issues/137)
 - [x] **R34 · P2** — [#138: Зафиксировать архитектуру сменного транспорта и сравнить варианты](https://github.com/kniazkov/widgets/issues/138)
 - [x] **R35 · P2** — [#139: Добавить серверный адаптер для выбранного потокового транспорта](https://github.com/kniazkov/widgets/issues/139)
-- [ ] **R36 · P2** — [#140: Реализовать выбранный push-транспорт и мультиплексирование страниц](https://github.com/kniazkov/widgets/issues/140)
+- [x] **R36 · P2** — [#140: Реализовать выбранный push-транспорт и мультиплексирование страниц](https://github.com/kniazkov/widgets/issues/140)
 - [ ] **R37 · P2** — [#141: Определить модель нескольких серверов и восстановление состояния](https://github.com/kniazkov/widgets/issues/141)
 - [ ] **R38 · P2** — [#142: Добавить статическое представление страниц и метаданные для каталога](https://github.com/kniazkov/widgets/issues/142)
 - [ ] **R39 · P2** — [#143: Версионировать выпуски и совместимость Java/JS-протокола](https://github.com/kniazkov/widgets/issues/143)
