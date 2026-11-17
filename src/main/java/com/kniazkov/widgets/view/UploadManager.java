@@ -123,7 +123,7 @@ public final class UploadManager extends FileLoader {
             return;
         }
         final Entry entry = new Entry(event.fileId, previous == null
-            ? this.getId() + ":" + event.fileId : previous.key);
+            ? java.util.UUID.randomUUID().toString() : previous.key);
         if (previous != null) {
             this.entries.remove(event.retryOf);
         }

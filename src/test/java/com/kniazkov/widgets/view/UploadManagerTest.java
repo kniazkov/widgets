@@ -133,6 +133,7 @@ public final class UploadManagerTest {
             assertTrue(done.await(3, TimeUnit.SECONDS));
             assertEquals(2, keys.size());
             assertEquals(keys.get(0), keys.get(1));
+            assertEquals(4, java.util.UUID.fromString(keys.get(0)).version());
         } finally {
             root.closeUploads();
         }
