@@ -66,6 +66,12 @@ public final class Client implements Comparable<Client>, AutoCloseable {
     private final UpdateStream updates;
 
     /**
+     * Application-wide counters, retained after this page closes.
+     */
+    private final OperationMetrics metrics;
+
+
+    /**
      * Limits for parsing event batches and replaying widget updates.
      */
     private final ProtocolLimits protocolLimits;
@@ -114,6 +120,19 @@ public final class Client implements Comparable<Client>, AutoCloseable {
      */
     Client(final Options options, final TabContext tabContext,
             final com.kniazkov.widgets.view.UploadRegistry uploads) {
+        this(options, tabContext, uploads, new OperationMetrics());
+    }
+
+    /**
+     * @param options application configuration
+     * @param tabContext document context
+     * @param uploads shared upload resources
+     * @param metrics application counters
+     */
+    Client(final Options options, final TabContext tabContext,
+            final com.kniazkov.widgets.view.UploadRegistry uploads,
+            final OperationMetrics metrics) {
+        this.metrics = metrics;
         this.tabContext = tabContext;
         this.protocolLimits = options.getProtocolLimits();
         this.updates = new UpdateStream(this.protocolLimits, System::nanoTime);
@@ -200,31 +219,37 @@ public final class Client implements Comparable<Client>, AutoCloseable {
      */
     void synchronize(final Map<String, String> request, final JsonObject response,
             final boolean requireEpoch) {
+        final long waiting = this.metrics.waiting();
         synchronized (this.root) {
-            this.requireLiveSession();
-            if (!this.tabContext.isActive()) {
-                this.root.closeUploads();
-                response.addBoolean("tabContextExpired", true);
-                return;
-            }
-            if (!this.updates.acknowledge(request.get("updateEpoch"), request.get("lastUpdate"),
-                    requireEpoch)) {
-                UpdateStream.markMismatch(response);
-                return;
-            }
-            if (this.needsUpdateResync()) {
+            this.metrics.acquired(waiting);
+            try {
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    response.addBoolean("tabContextExpired", true);
+                    return;
+                }
+                if (!this.updates.acknowledge(request.get("updateEpoch"), request.get("lastUpdate"),
+                        requireEpoch)) {
+                    UpdateStream.markMismatch(response);
+                    return;
+                }
+                if (this.needsUpdateResync()) {
+                    this.serializeUpdates(response);
+                    return;
+                }
+                this.processEvents(request, response);
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    response.addBoolean("tabContextExpired", true);
+                    return;
+                }
+                this.collectUpdates();
                 this.serializeUpdates(response);
-                return;
+            } finally {
+                this.metrics.completed();
             }
-            this.processEvents(request, response);
-            this.requireLiveSession();
-            if (!this.tabContext.isActive()) {
-                this.root.closeUploads();
-                response.addBoolean("tabContextExpired", true);
-                return;
-            }
-            this.collectUpdates();
-            this.serializeUpdates(response);
         }
     }
 
@@ -262,40 +287,46 @@ public final class Client implements Comparable<Client>, AutoCloseable {
     JsonObject uploadChunk(final RMId widgetId, final int fileId, final int chunkIndex,
             final byte[] data, final String lastUpdate, final String epoch,
             final boolean requireEpoch) {
+        final long waiting = this.metrics.waiting();
         synchronized (this.root) {
-            this.requireLiveSession();
-            if (!this.tabContext.isActive()) {
-                this.root.closeUploads();
-                return UploadProtocol.rejected();
-            }
-            if (!this.updates.acknowledge(epoch, lastUpdate, requireEpoch)) {
-                return UpdateStream.mismatch();
-            }
-            if (this.needsUpdateResync()) {
-                final JsonObject response = new JsonObject();
-                response.addBoolean("result", false);
-                this.serializeUpdates(response);
-                return response;
-            }
-            for (final Widget<?> widget : this.root) {
-                if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
-                    final JsonObject response = ((FileLoader) widget).handleUploadChunk(
-                        fileId,
-                        chunkIndex,
-                        data
-                    );
-                    if (response == UploadProtocol.rejected()) {
-                        return response;
-                    }
-                    this.requireLiveSession();
-                    if (!this.tabContext.isActive()) {
-                        this.root.closeUploads();
-                        return UploadProtocol.rejected();
-                    }
-                    this.collectUpdates();
+            this.metrics.acquired(waiting);
+            try {
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    return UploadProtocol.rejected();
+                }
+                if (!this.updates.acknowledge(epoch, lastUpdate, requireEpoch)) {
+                    return UpdateStream.mismatch();
+                }
+                if (this.needsUpdateResync()) {
+                    final JsonObject response = new JsonObject();
+                    response.addBoolean("result", false);
                     this.serializeUpdates(response);
                     return response;
                 }
+                for (final Widget<?> widget : this.root) {
+                    if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
+                        final JsonObject response = ((FileLoader) widget).handleUploadChunk(
+                            fileId,
+                            chunkIndex,
+                            data
+                        );
+                        if (response == UploadProtocol.rejected()) {
+                            return response;
+                        }
+                        this.requireLiveSession();
+                        if (!this.tabContext.isActive()) {
+                            this.root.closeUploads();
+                            return UploadProtocol.rejected();
+                        }
+                        this.collectUpdates();
+                        this.serializeUpdates(response);
+                        return response;
+                    }
+                }
+            } finally {
+                this.metrics.completed();
             }
         }
         return UploadProtocol.rejected();
@@ -525,6 +556,18 @@ public final class Client implements Comparable<Client>, AutoCloseable {
      * Terminal page lifecycle, guarded by the root monitor.
      */
     private boolean closed;
+
+    /**
+     * @return page gauges under the same monitor as update publication
+     */
+    Map<String, Long> diagnostics() {
+        synchronized (this.root) {
+            final Map<String, Long> values = new java.util.HashMap<>(this.root.getDiagnostics());
+            values.put("pendingUpdates", (long) this.updates.pendingCount());
+            values.put("pendingUpdateBytes", this.updates.pendingBytes());
+            return values;
+        }
+    }
 
     /**
      * Releases this page without revoking sibling pages in the same document.

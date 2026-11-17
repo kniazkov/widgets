@@ -176,6 +176,20 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
+     * Samples fixed numeric gauges. May walk owned widgets; do not call per HTTP request.
+     * @return immutable widget and raw queue counts, without identities or model values
+     */
+    public synchronized java.util.Map<String, Long> getDiagnostics() {
+        final long widgets = this.owned.stream().filter(widget -> !widget.isRetired()
+            && widget.getRootWidget().orElse(null) == this).count();
+        synchronized (this.bufferBudget) {
+            return java.util.Map.of("widgets", widgets + (this.isRetired() ? 0 : 1),
+                "bufferedUpdates", (long) this.bufferedCount,
+                "bufferedUpdateBytes", this.bufferedSize, "dirtyWidgets", (long) this.dirty.size());
+        }
+    }
+
+    /**
      * Applies a short UI update in the same page context as browser synchronization.
      * Do not block, decode files or wait for another worker inside this action.
      *

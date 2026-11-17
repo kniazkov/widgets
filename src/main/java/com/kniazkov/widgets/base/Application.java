@@ -75,6 +75,18 @@ public final class Application implements AutoCloseable {
     private int counter;
 
     /**
+
+     * Constant-cardinality diagnostics shared by all page channels.
+
+     */
+    private final OperationMetrics metrics = new OperationMetrics();
+
+    /**
+     * Includes waiting for the client-map entry and client monitor before the root lock.
+     */
+    private final OperationMetrics channelMetrics = new OperationMetrics();
+
+    /**
      * Guards registration and the transition to terminal shutdown, never user code.
      */
     private final Object lifecycle = new Object();
@@ -115,6 +127,50 @@ public final class Application implements AutoCloseable {
          * Start watchdog to clean up inactive clients
          */
         this.watchdog.start(WATCHDOG_PERIOD);
+    }
+
+    /**
+     * Samples aggregate diagnostics without exposing browser, page or widget identities.
+     * This explicit operation acquires page monitors and may wait for application handlers.
+     * Do not invoke from a page handler or hold a root lock while sampling other pages.
+     * No public HTTP endpoint is registered; applications control access to these numbers.
+     *
+     * @return immutable fixed-key numeric snapshot; JVM gauges cover the whole process
+     */
+    public Map<String, Long> getMetrics() {
+        final Map<String, Long> values = new java.util.TreeMap<>(this.metrics.snapshot());
+        this.channelMetrics.snapshot().forEach((key, value) -> values.put(
+            key.startsWith("root") ? "channel" + key.substring(4)
+                : "channel" + Character.toUpperCase(key.charAt(0)) + key.substring(1), value));
+        values.put("pages", (long) this.clients.size());
+        for (final String key : new String[]{"widgets", "pendingUpdates", "pendingUpdateBytes",
+                "bufferedUpdates", "bufferedUpdateBytes", "dirtyWidgets"}) {
+            values.put(key, 0L);
+        }
+        for (final Client client : this.clients.values()) {
+            client.diagnostics().forEach((key, value) -> values.merge(key, value, Long::sum));
+        }
+        final var registry = this.uploads;
+        values.put("uploads", registry == null ? 0L : (long) registry.getActiveCount());
+        values.put("uploadReservedBytes", registry == null ? 0L : registry.getReservedBytes());
+        values.put("uploadProcessing", registry == null ? 0L
+            : (long) registry.getProcessingCount());
+        values.put("uploadQueued", registry == null ? 0L : (long) registry.getQueuedCount());
+        values.put("heapUsedBytes", java.lang.management.ManagementFactory.getMemoryMXBean()
+            .getHeapMemoryUsage().getUsed());
+        long collections = 0;
+        long collectionTime = 0;
+        final var collectors = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
+        for (final var collector : collectors) {
+            collections += Math.max(0L, collector.getCollectionCount());
+            collectionTime += Math.max(0L, collector.getCollectionTime());
+        }
+        values.put("gcCount", collections);
+        values.put("gcMillis", collectionTime);
+        final var os = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        values.put("processCpuNanos", os instanceof com.sun.management.OperatingSystemMXBean bean
+            ? bean.getProcessCpuTime() : -1L);
+        return Map.copyOf(values);
     }
 
     /**
@@ -409,7 +465,7 @@ public final class Application implements AutoCloseable {
                 throw new ProtocolAccessException(true);
             }
             page = this.pages.getOrDefault(address, this.pages.get("/"));
-            client = new Client(this.options, context.tabContext, this.uploads);
+            client = new Client(this.options, context.tabContext, this.uploads, this.metrics);
             client.timer = this.options.getClientLifetime();
         }
         final RMId id = client.getId();
@@ -541,7 +597,7 @@ public final class Application implements AutoCloseable {
     void synchronize(final RMId clientId, final Map<String, String> request,
             final JsonObject response, final ChannelAccess access) {
         this.counter++;
-        this.clients.computeIfPresent(clientId, (id, client) -> {
+        this.withClientMetrics(clientId, (id, client) -> {
             synchronized (client) {
                 ChannelAccess.require(access, client, this.serverId);
                 if (access != null && !access.session.touch()) {
@@ -603,7 +659,7 @@ public final class Application implements AutoCloseable {
             final String updateEpoch, final ChannelAccess access) {
         this.counter++;
         final JsonObject[] result = {UploadProtocol.rejected()};
-        this.clients.computeIfPresent(clientId, (id, client) -> {
+        this.withClientMetrics(clientId, (id, client) -> {
             synchronized (client) {
                 ChannelAccess.require(access, client, this.serverId);
                 if (access != null && !access.session.touch()) {
@@ -624,6 +680,34 @@ public final class Application implements AutoCloseable {
             return client;
         });
         return result[0];
+    }
+
+    /**
+     * @param id page identity, never retained in a metric label
+     * @param operation authenticated operation under the client monitor
+     */
+    private void withClientMetrics(final RMId id,
+            final java.util.function.BiFunction<RMId, Client, Client> operation) {
+        final long started = this.channelMetrics.waiting();
+        final boolean[] entered = {false};
+        try {
+            this.clients.computeIfPresent(id, (key, client) -> {
+                synchronized (client) {
+                    entered[0] = true;
+                    this.channelMetrics.acquired(started);
+                    try {
+                        return operation.apply(key, client);
+                    } finally {
+                        this.channelMetrics.completed();
+                    }
+                }
+            });
+        } finally {
+            if (!entered[0]) {
+                this.channelMetrics.acquired(started);
+                this.channelMetrics.completed();
+            }
+        }
     }
 
     /**

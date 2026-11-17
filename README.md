@@ -35,6 +35,9 @@ duplicate suppression, bounded retries and page resynchronization.
 See [Live event targets](docs/LIVE_EVENT_TARGETS.ru.md) for tree mutations between batch events,
 replacement, movement and context revocation.
 
+See [Load profiles and runtime metrics](docs/LOAD_TESTING.ru.md) for reproducible load tests,
+resource counters, browser round trips and measured regression budgets.
+
 ## MVC architecture
 
 - **Model** — typed reactive values from `com.kniazkov.widgets.model`. Models support validation,

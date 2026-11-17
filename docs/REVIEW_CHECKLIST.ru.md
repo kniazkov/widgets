@@ -46,7 +46,7 @@
 - [x] **R30 · P2** — [#134: Добавить UploadManager и UploadList с отменой и повтором](https://github.com/kniazkov/widgets/issues/134)
 - [x] **R31 · P2** — [#135: Определить локальные действия и корректный ввод с IME](https://github.com/kniazkov/widgets/issues/135)
 - [x] **R32 · P2** — [#136: Уменьшить стоимость polling и обходов дерева](https://github.com/kniazkov/widgets/issues/136)
-- [ ] **R33 · P2** — [#137: Добавить нагрузочный стенд и метрики состояния](https://github.com/kniazkov/widgets/issues/137)
+- [x] **R33 · P2** — [#137: Добавить нагрузочный стенд и метрики состояния](https://github.com/kniazkov/widgets/issues/137)
 - [ ] **R34 · P2** — [#138: Зафиксировать архитектуру сменного транспорта и сравнить варианты](https://github.com/kniazkov/widgets/issues/138)
 - [ ] **R35 · P2** — [#139: Добавить серверный адаптер для выбранного потокового транспорта](https://github.com/kniazkov/widgets/issues/139)
 - [ ] **R36 · P2** — [#140: Реализовать выбранный push-транспорт и мультиплексирование страниц](https://github.com/kniazkov/widgets/issues/140)
@@ -1009,6 +1009,8 @@ FileLoader отвечает за выбор и передачу, но не да�
 - [x] E2E активная/скрытая/кешированная страница, Back, истечение TTL и обновление данных в фоне
 
 ### R33. Добавить нагрузочный стенд и метрики состояния
+
+Реализация и методика: [LOAD_TESTING.ru.md](LOAD_TESTING.ru.md).
 
 **P2 · [Issue #137](https://github.com/kniazkov/widgets/issues/137)**. Зависимости: [R15 #119](https://github.com/kniazkov/widgets/issues/119), [R16 #120](https://github.com/kniazkov/widgets/issues/120), [R17 #121](https://github.com/kniazkov/widgets/issues/121), [R32 #136](https://github.com/kniazkov/widgets/issues/136)
 
