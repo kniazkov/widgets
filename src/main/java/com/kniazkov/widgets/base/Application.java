@@ -337,6 +337,19 @@ public final class Application implements AutoCloseable {
     }
 
     /**
+     * @return started HTTP configuration for an application-owned stream adapter
+     */
+    Options streamOptions() {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            if (!this.starting) {
+                throw new IllegalStateException("Start the HTTP server before the stream adapter");
+            }
+            return this.options;
+        }
+    }
+
+    /**
      * Returns the identifier shared by every client of this application instance.
      *
      * @return server-state identifier
