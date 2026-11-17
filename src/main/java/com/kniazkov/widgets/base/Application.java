@@ -513,6 +513,19 @@ public final class Application implements AutoCloseable {
     }
 
     /**
+     * @param address exact registered route
+     * @param parameters untrusted query parameters
+     * @return explicitly public content, or empty for ordinary/private pages
+     */
+    java.util.Optional<PublicDocument> publicDocument(final String address,
+            final Map<String, String> parameters) {
+        final Page page = this.pages.get(address);
+        return page instanceof PublicPage publicPage
+            ? java.util.Optional.of(publicPage.publicDocument(Map.copyOf(parameters)))
+            : java.util.Optional.empty();
+    }
+
+    /**
      * Bounds browser idle polling below the configured client lease.
      * @return maximum delay in milliseconds
      */
@@ -547,6 +560,11 @@ public final class Application implements AutoCloseable {
         final RMId id = client.getId();
         final RootWidget root = client.getRootWidget();
         try {
+            context.publicDocument = this.publicDocument(address, context.parameters);
+            context.publicDocument.ifPresent(document -> {
+                root.setTitle(document.title());
+                root.setDescription(document.description());
+            });
             page.create(root, context);
         } catch (final RuntimeException | Error failure) {
             client.close();

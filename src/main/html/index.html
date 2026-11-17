@@ -15,12 +15,13 @@
         <script src="/scripts/navigation.js"></script>
     </head>
     <body>
+        __PUBLIC_CONTENT__
         <script>
             configureProtocolSecurity("__PROTOCOL_CSRF__", "__PROTOCOL_SESSION__");
             configureUploadProtocol(__UPLOAD_CHUNK_SIZE__, __MAX_UPLOAD_FILE_SIZE__);
 
             addEvent(window, "load", function() {
-                initNavigation("{sessionId}", "{address}", {data}, __PAGE_ADDRESSES__);
+                initNavigation("{sessionId}", "{address}", {data}, __PAGE_ADDRESSES__, __SITE_METADATA__);
             });
 
             addEvent(window, "pageshow", function(evt) {

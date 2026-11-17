@@ -5,8 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 let dom;
 afterEach(() => dom?.window.close());
 
-function harness(head = "", push = false) {
-    dom = new JSDOM(`<!doctype html><head>${head}</head><body></body>`, {
+function harness(head = "", push = false, initial = "") {
+    dom = new JSDOM(`<!doctype html><head>${head}</head><body>${initial}</body>`, {
         runScripts: "outside-only",
         url: "http://localhost/catalog?filter=blue"
     });
@@ -99,7 +99,7 @@ function harness(head = "", push = false) {
             client
         );
     }
-    function created(id, text = id, tabId) {
+    function created(id, text = id, tabId, publicDocument) {
         answer("new instance", {
             id,
             serverId: "server",
@@ -107,7 +107,8 @@ function harness(head = "", push = false) {
             tabId,
             updateVersion: "2",
             updateCapability: "sequenced-updates",
-            updateEpoch: "stream-" + id
+            updateEpoch: "stream-" + id,
+            publicDocument
         });
         updates(id, [
             { id: "#1", action: "create widget", type: "root", widget: "#1" },
@@ -531,5 +532,32 @@ describe("document tab context", () => {
         expect(request.request.tabId).toBeUndefined();
         h.created("fresh", "normal", "tab-two");
         expect(h.win.document.body.textContent).toContain("normal");
+    });
+});
+
+describe("public bootstrap replacement", () => {
+    it("keeps initial content until the tree is ready and replaces it once", () => {
+        const h = harness(
+            "<title>Public</title>",
+            false,
+            '<div id="widgets-initial" class="widgets-page"><article class="widgets-public"><h1>Public</h1></article></div>'
+        );
+        expect(h.win.document.querySelector("#widgets-initial")).not.toBeNull();
+        h.created("#10", "Live controls", undefined, {
+            title: "Public",
+            description: "Description",
+            canonical: "https://example.com/catalog",
+            image: "",
+            blocks: [{ tag: "h1", text: "Public" }]
+        });
+        expect(h.win.document.querySelector("#widgets-initial")).toBeNull();
+        expect(h.win.document.querySelectorAll(".widgets-public")).toHaveLength(1);
+        expect(h.win.document.body.textContent).toBe("PublicLive controls");
+        expect(h.win.document.querySelector('link[rel="canonical"]').href).toBe(
+            "https://example.com/catalog"
+        );
+        h.tick();
+        h.updates("#10");
+        expect(h.win.document.querySelectorAll(".widgets-public")).toHaveLength(1);
     });
 });

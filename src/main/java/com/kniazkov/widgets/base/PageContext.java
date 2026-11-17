@@ -15,6 +15,11 @@ import java.util.UUID;
  */
 public class PageContext {
     /**
+     * Public snapshot evaluated once for this interactive creation.
+     */
+    java.util.Optional<PublicDocument> publicDocument = java.util.Optional.empty();
+
+    /**
      * Creates an empty page context.
      */
     public PageContext() {

@@ -185,6 +185,7 @@ function startClient(address, data) {
                 }
                 tabContext.id = json.tabId;
             }
+            if (json.publicDocument) pageContext?.publicDocument?.(json.publicDocument);
             clientCreationFailures = 0;
             clearSessionRefreshAttempt();
             recordRequestSuccess();

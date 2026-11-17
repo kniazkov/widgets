@@ -51,7 +51,7 @@
 - [x] **R35 · P2** — [#139: Добавить серверный адаптер для выбранного потокового транспорта](https://github.com/kniazkov/widgets/issues/139)
 - [x] **R36 · P2** — [#140: Реализовать выбранный push-транспорт и мультиплексирование страниц](https://github.com/kniazkov/widgets/issues/140)
 - [x] **R37 · P2** — [#141: Определить модель нескольких серверов и восстановление состояния](https://github.com/kniazkov/widgets/issues/141)
-- [ ] **R38 · P2** — [#142: Добавить статическое представление страниц и метаданные для каталога](https://github.com/kniazkov/widgets/issues/142)
+- [x] **R38 · P2** — [#142: Добавить статическое представление страниц и метаданные для каталога](https://github.com/kniazkov/widgets/issues/142)
 - [ ] **R39 · P2** — [#143: Версионировать выпуски и совместимость Java/JS-протокола](https://github.com/kniazkov/widgets/issues/143)
 - [ ] **R40 · P3** — [#144: Разделить core, HTTP, database и image-зависимости](https://github.com/kniazkov/widgets/issues/144)
 - [ ] **R41 · P3** — [#145: Добавить TreeView для иерархических данных](https://github.com/kniazkov/widgets/issues/145)
@@ -1153,6 +1153,8 @@ Deployment-контракт и воспроизводимый стенд: [DEPLO
 **P2 · [Issue #142](https://github.com/kniazkov/widgets/issues/142)**. Зависимости: [R01 #105](https://github.com/kniazkov/widgets/issues/105), [R11 #115](https://github.com/kniazkov/widgets/issues/115), [R13 #117](https://github.com/kniazkov/widgets/issues/117)
 
 Для публичного каталога полезен содержательный первоначальный HTML: быстрый первый показ, ссылки и доступ к информации без выполнения JS. Не следует утверждать, что все поисковые системы сейчас не видят сайт.
+
+Контракт и пример: [PUBLIC_PAGES.ru.md](PUBLIC_PAGES.ru.md).
 
 **Что сделать**
 

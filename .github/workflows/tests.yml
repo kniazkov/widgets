@@ -80,3 +80,11 @@ jobs:
             target/playwright-report
           if-no-files-found: ignore
           retention-days: 7
+      - name: Preserve public initial render comparisons
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-render-comparison-${{ github.run_attempt }}
+          path: target/playwright-results/public-document-*/**/*.png
+          if-no-files-found: ignore
+          retention-days: 7

@@ -688,3 +688,16 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-upload-row button { min-height: 2.5rem; }
 .widgets-upload-row[data-upload-state="error"] { color: #991b1b; }
 .widgets-upload-row[data-upload-state="done"] { color: #166534; }
+
+/* Identical typography and image geometry before and after interactive bootstrap. */
+.widgets-public {
+    display: flow-root;
+    color: #222;
+    font: 16px/1.5 sans-serif;
+    overflow-wrap: anywhere;
+}
+
+.widgets-public img {
+    max-width: 100%;
+    height: auto;
+}
