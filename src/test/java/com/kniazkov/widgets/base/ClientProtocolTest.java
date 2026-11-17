@@ -154,9 +154,10 @@ public class ClientProtocolTest {
         final FileLoader loader = new FileLoader();
         final TextWidget progress = new TextWidget("0%");
         client.getRootWidget().add(new Section(loader, progress));
-        loader.onSelect(descriptor -> descriptor.getLoadingPercentageModel().addListener(
-            percent -> progress.setText(percent + "%")
-        ));
+        final com.kniazkov.widgets.common.Listener<Integer> progressListener =
+            percent -> progress.setText(percent + "%");
+        loader.onSelect(descriptor -> descriptor.getLoadingPercentageModel()
+            .addListener(progressListener));
         final UploadEvent selection = new UploadEvent();
         selection.fileId = 7;
         selection.name = "data.bin";
@@ -172,6 +173,10 @@ public class ClientProtocolTest {
             .objectValueOrThrow()
             .get("sequence");
 
+        /*
+         * Model listeners are weak: the test must retain its observer across collection.
+         */
+        System.gc();
         final JsonObject first = client.uploadChunk(
             loader.getId(),
             7,
@@ -199,6 +204,7 @@ public class ClientProtocolTest {
 
         assertTrue(second.toString().contains("100%"));
         assertFalse(second.toString().contains("50%"));
+        java.lang.ref.Reference.reachabilityFence(progressListener);
     }
 
     /**
