@@ -47,6 +47,11 @@ const streamPort = await freePort();
 const proxy = tlsServer(
     { key: await readFile(`${output}/key.pem`), cert: await readFile(`${output}/cert.pem`) },
     (req, res) => {
+        if (req.url === "/stream-witness") {
+            res.writeHead(200, { "Content-Type": "text/html" });
+            res.end("<!doctype html><title>Stream witness</title>");
+            return;
+        }
         const upstream = request(
             {
                 hostname: "127.0.0.1",
@@ -329,13 +334,11 @@ try {
     report.checks.push("unresponsive peer expires without pong");
     // This same-origin browser document has no HTTP poller and cannot reload on logout.
     const witness = await context.newPage();
-    await witness.route("**/stream-witness", route =>
-        route.fulfill({
-            status: 200,
-            contentType: "text/html",
-            body: "<!doctype html><title>Stream witness</title>"
-        })
-    );
+    witness.on("console", message => {
+        if (message.type() === "error" && message.text().includes("WebSocket")) {
+            proxyDiagnostics.push({ browserWebSocketError: message.text() });
+        }
+    });
     await witness.goto(`${origin}/stream-witness`);
     await witness.evaluate(
         auth =>
