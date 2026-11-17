@@ -116,9 +116,7 @@ for (const [status, headers, reason] of [
     });
 }
 
-test("an expired session gets only one fresh document attempt before stopping", async ({
-    page
-}) => {
+test("an expired session stops after three fresh document attempts", async ({ page }) => {
     let attempts = 0;
     await page.route("**/*", async route => {
         if (field(route.request(), "action") !== "new instance") return route.continue();
@@ -135,6 +133,34 @@ test("an expired session gets only one fresh document attempt before stopping", 
     await expect(fatal(page)).toHaveAttribute("data-reason", "session");
     await expect(ready(page)).toHaveCount(0);
     await page.waitForTimeout(2750);
-    expect(attempts).toBe(2);
+    expect(attempts).toBe(4); // initial bootstrap plus three bounded document refreshes
+    expect(
+        await page.evaluate(() => sessionStorage.getItem("widgetsSessionRefreshAttempted"))
+    ).toBe("3");
+    await expect(page).toHaveURL(/\/connection-recovery\?mode=draft$/);
+});
+
+test("two consecutive cookie rotations recover and clear the refresh budget", async ({ page }) => {
+    let attempts = 0;
+    await page.route("**/*", async route => {
+        if (field(route.request(), "action") !== "new instance") return route.continue();
+        if (++attempts > 2) return route.continue();
+        await route.fulfill({
+            status: 403,
+            contentType: "application/json",
+            body: '{"sessionExpired":true}'
+        });
+    });
+    await page.goto(fixture).catch(error => {
+        if (!/interrupted|NS_BINDING_ABORTED|ERR_ABORTED/.test(error.message)) throw error;
+    });
+    await expect(ready(page)).toBeVisible();
+    await expect(fatal(page)).toHaveCount(0);
+    expect(attempts).toBe(3);
+    expect(
+        await page.evaluate(() => sessionStorage.getItem("widgetsSessionRefreshAttempted"))
+    ).toBeNull();
+    await countButton(page).click();
+    await expect(count(page, 1)).toBeVisible();
     await expect(page).toHaveURL(/\/connection-recovery\?mode=draft$/);
 });

@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - scripts/run-push-probe.mjs
+      - src/test/e2e/connection-recovery.spec.js
       - src/main/java/com/kniazkov/widgets/base/**
       - src/main/java/com/kniazkov/widgets/view/RootWidget.java
       - src/main/html/scripts/**
