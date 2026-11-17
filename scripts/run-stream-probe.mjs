@@ -181,12 +181,6 @@ try {
     browser = await chromium.launch();
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     const page = await context.newPage();
-    const browserSockets = new Set();
-    page.on("websocket", socket => {
-        browserSockets.add(socket);
-        socket.on("close", () => browserSockets.delete(socket));
-        socket.on("socketerror", () => browserSockets.delete(socket));
-    });
     page.setDefaultTimeout(15000);
     await page.goto(origin);
     await page.getByRole("button", { name: "Increment", exact: true }).waitFor();
@@ -333,20 +327,45 @@ try {
         })
     ]);
     report.checks.push("unresponsive peer expires without pong");
-    // An independent peer proves revoke itself closes the socket, even when HTTP reloads.
-    const observer = await nodePeer(true);
-    await page.getByRole("button", { name: "Revoke session", exact: true }).click();
-    assert.equal(
-        await Promise.race([
-            observer.closed,
-            delay(5000).then(() => {
-                throw new Error("Revoked socket remained open");
-            })
-        ]),
-        1008
+    // This same-origin browser document has no HTTP poller and cannot reload on logout.
+    const witness = await context.newPage();
+    await witness.route("**/stream-witness", route =>
+        route.fulfill({
+            status: 200,
+            contentType: "text/html",
+            body: "<!doctype html><title>Stream witness</title>"
+        })
     );
-    for (let i = 0; i < 50 && browserSockets.size; i++) await delay(100);
-    assert.equal(browserSockets.size, 0, "Old document sockets must close across logout reload");
+    await witness.goto(`${origin}/stream-witness`);
+    await witness.evaluate(
+        auth =>
+            new Promise((resolve, reject) => {
+                window.streamCloseCode = null;
+                const socket = new WebSocket(
+                    `${location.origin.replace("https:", "wss:")}/widgets-stream`,
+                    "widgets.stream.v1"
+                );
+                const deadline = setTimeout(() => reject(new Error("Witness AUTH timeout")), 5000);
+                socket.onopen = () => socket.send(JSON.stringify(auth));
+                socket.onerror = () => {
+                    clearTimeout(deadline);
+                    reject(new Error("Witness upgrade failed"));
+                };
+                socket.onmessage = event => {
+                    if (JSON.parse(event.data).type === "ready") {
+                        clearTimeout(deadline);
+                        resolve();
+                    }
+                };
+                socket.onclose = event => {
+                    window.streamCloseCode = event.code;
+                };
+            }),
+        auth
+    );
+    await page.getByRole("button", { name: "Revoke session", exact: true }).click();
+    await witness.waitForFunction(() => window.streamCloseCode !== null, null, { timeout: 5000 });
+    assert.equal(await witness.evaluate(() => window.streamCloseCode), 1008);
     for (let i = 0; i < 60; i++) {
         try {
             const gauges = JSON.parse(await readFile(`${output}/metrics.json`, "utf8"));
