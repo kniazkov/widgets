@@ -81,6 +81,20 @@ final class UpdateStream {
     private boolean resync;
 
     /**
+     * @return retained updates; caller holds the root monitor
+     */
+    int pendingCount() {
+        return this.pending.size();
+    }
+
+    /**
+     * @return charged replay bytes; caller holds the root monitor
+     */
+    long pendingBytes() {
+        return this.pendingBytes;
+    }
+
+    /**
      * Uses default budgets for ordinary in-process use.
      */
     UpdateStream() {

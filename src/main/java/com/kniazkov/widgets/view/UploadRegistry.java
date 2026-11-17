@@ -282,6 +282,20 @@ public final class UploadRegistry implements AutoCloseable {
     }
 
     /**
+     * @return upload callbacks currently using a worker
+     */
+    public int getProcessingCount() {
+        return this.callbacks.getActiveCount();
+    }
+
+    /**
+     * @return callbacks waiting for a bounded worker slot
+     */
+    public int getQueuedCount() {
+        return this.callbacks.getQueue().size();
+    }
+
+    /**
      * Returns bounded lightweight receipt count.
      * @return bounded lightweight receipt count
      */
