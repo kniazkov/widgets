@@ -104,6 +104,8 @@ const handlerNames = [
     "setRadioGroupName",
     "setMultipleInput",
     "setUploadManager",
+    "setInputDebounce",
+    "flushTextInputs",
     "setAcceptedFiles"
 ];
 
@@ -143,7 +145,7 @@ function createHarness() {
         window.clearTimeout = function (task) {
             if (task) task.active = false;
         };
-        ${source}\n
+        ${source}\n${readScript("widgets/local-actions.js")}\n
         sendRequest = captureRequest;
         window.__reloadCount = 0;
         window.__openedTabs = [];

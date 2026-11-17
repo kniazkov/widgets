@@ -96,6 +96,18 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
     }
 
     /**
+     * Sets trailing-edge debounce for committed text, preserving immediate delivery by default.
+     * Blur and business commands flush pending committed text before their event.
+     * Composition text is never submitted before compositionend.
+     * @param milliseconds delay in 0..2000 milliseconds
+     */
+    public final void setInputDebounce(final int milliseconds) {
+        this.requireUsable();
+        this.pushUpdate(new com.kniazkov.widgets.protocol.SetInputDebounce(
+            this.getId(), milliseconds));
+    }
+
+    /**
      * Sets a new text model for this input field.
      * <p>
      * In addition to assigning the provided {@link Model} to {@link Property#TEXT},

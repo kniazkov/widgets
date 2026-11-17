@@ -351,7 +351,12 @@ function createSuggestionField() {
     });
     widget._closeSuggestions = close;
     widget._isSuggestionOpen = () => list !== null;
-    widget._onDetached = close;
+    const detachEditor = widget._onDetached;
+    widget._onDetached = () => {
+        composing = false;
+        detachEditor?.();
+        close();
+    };
     listenWidget(widget, "focus", render);
     listenWidget(widget, "click", render);
     // A repeated tap need not focus again or produce a compatibility click.

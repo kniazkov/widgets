@@ -32,6 +32,7 @@ export default defineConfig({
                 "protocol-backpressure.spec.js",
                 "cloud-verification.spec.js",
                 "keyboard-shortcuts.spec.js",
+                "local-actions-ime.spec.js",
                 "forms.spec.js",
                 "feedback.spec.js",
                 "dialog.spec.js",

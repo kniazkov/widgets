@@ -151,6 +151,7 @@ public final class E2ETestServer {
             .build();
         final Application application = new Application(page);
         addKeyboardShortcutsPage(application);
+        application.addPage("local-actions", com.kniazkov.widgets.example.LocalActions.page());
         application.addPage("anchored-lifecycle", (root, context) -> {
             final Button anchor = new Button("Lifecycle actions");
             final TextWidget result = new TextWidget("No actions");

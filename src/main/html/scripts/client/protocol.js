@@ -96,6 +96,7 @@ function createEvent(widget, type, data) {
     eventCharges.set(obj, { bytes, at: Date.now() });
     pendingEventBytes += bytes;
     events.push(obj);
+    if (type === "text input") widget._lastTextEventId = lastEventId;
     log("The widget " + widget._id + " triggered the event " + eventId + " '" + type + "'.");
     return true;
 }
@@ -225,6 +226,7 @@ function reconcileTextInputs() {
 
 // These wire names must match the update actions serialized by the Java server.
 const actionHandlers = {
+    "set input debounce": setInputDebounce,
     "create widget": createWidget,
     reset: reset,
     "clear page cache": clearPageCache,
@@ -354,16 +356,9 @@ function sendEventToServer(widget, type, data) {
     if (clientDisposed || clientFailed) {
         return;
     }
+    if (["click", "keyboard", "submit"].includes(type)) flushTextInputs();
     const clientAction = widget._clientActions[type];
-    if (clientAction) {
-        const handler = actionHandlers[clientAction.action];
-        if (handler) {
-            handler(clientAction);
-            refreshModalStack(widget);
-        } else {
-            log("Unknown client action: '" + clientAction.action + "'.");
-        }
-    }
+    if (clientAction) performLocalAction(widget, type, clientAction);
     if (widget._events[type] || ALWAYS_ALLOWED_EVENTS.includes(type)) {
         createEvent(widget, type, data);
         sendSynchronizeRequest();
