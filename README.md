@@ -264,6 +264,9 @@ compatibility changes, cancellation semantics and examples.
 
 ## Documentation
 
+- [Local actions and IME](docs/LOCAL_ACTIONS_IME.md) — synchronous focus/scroll/selection,
+  safe navigation, committed composition input and bounded debounce.
+
 - [Visual widget gallery](docs/WIDGET_GALLERY.ru.md) — real cloud-browser screenshot crops for
   every concrete visible widget, with a coverage matrix and capture metadata.
 - [Review implementation checklist](docs/REVIEW_CHECKLIST.ru.md) — prioritized issues with

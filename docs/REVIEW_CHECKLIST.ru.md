@@ -44,7 +44,7 @@
 - [x] **R28 · P2** — [#132: Добавить Tabs, Accordion и Breadcrumbs](https://github.com/kniazkov/widgets/issues/132)
 - [x] **R29 · P2** — [#133: Добавить Menu, Popover и Tooltip с привязкой к элементу](https://github.com/kniazkov/widgets/issues/133)
 - [x] **R30 · P2** — [#134: Добавить UploadManager и UploadList с отменой и повтором](https://github.com/kniazkov/widgets/issues/134)
-- [ ] **R31 · P2** — [#135: Определить локальные действия и корректный ввод с IME](https://github.com/kniazkov/widgets/issues/135)
+- [x] **R31 · P2** — [#135: Определить локальные действия и корректный ввод с IME](https://github.com/kniazkov/widgets/issues/135)
 - [ ] **R32 · P2** — [#136: Уменьшить стоимость polling и обходов дерева](https://github.com/kniazkov/widgets/issues/136)
 - [ ] **R33 · P2** — [#137: Добавить нагрузочный стенд и метрики состояния](https://github.com/kniazkov/widgets/issues/137)
 - [ ] **R34 · P2** — [#138: Зафиксировать архитектуру сменного транспорта и сравнить варианты](https://github.com/kniazkov/widgets/issues/138)
@@ -955,6 +955,8 @@ FileLoader отвечает за выбор и передачу, но не да�
 - [ ] Облачная ручная загрузка тестовых файлов и снимки progress/error/done; нет зависших индикаторов
 
 ### R31. Определить локальные действия и корректный ввод с IME
+
+[Контракт, интеграционный пример и ограничения проверки](LOCAL_ACTIONS_IME.ru.md).
 
 **P2 · [Issue #135](https://github.com/kniazkov/widgets/issues/135)**. Зависимости: [R02 #106](https://github.com/kniazkov/widgets/issues/106), [R13 #117](https://github.com/kniazkov/widgets/issues/117), [R20 #124](https://github.com/kniazkov/widgets/issues/124), [R29 #133](https://github.com/kniazkov/widgets/issues/133)
 

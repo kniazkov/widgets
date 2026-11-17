@@ -19,9 +19,10 @@ function setClientEventAction(data) {
     const clientAction = data.clientAction;
     if (
         widget &&
-        typeof event == "string" &&
+        event === "click" &&
         clientAction &&
-        typeof clientAction.action == "string"
+        typeof clientAction.action == "string" &&
+        validLocalAction(clientAction)
     ) {
         widget._clientActions[event] = clientAction;
         log("A client action was set for the '" + event + "' event of widget " + widget._id + ".");

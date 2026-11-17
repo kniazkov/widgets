@@ -16,12 +16,34 @@ function createInputField() {
 function initEditableText(widget) {
     widget._deferredText = null;
     widget._textInputPending = false;
+    widget._unsentText = false;
+    widget._composingText = false;
+    widget._inputDebounce = 0;
+    let timer = null;
+    let lastSent = widget.value;
+    const cancelTimer = () => {
+        clearTimeout(timer);
+        timer = null;
+    };
+    const protectedEdit = () =>
+        document.activeElement === widget ||
+        widget._textInputPending ||
+        widget._unsentText ||
+        widget._composingText;
     widget.setText = function (text) {
-        if (document.activeElement === widget || widget._textInputPending) {
+        if (
+            widget._unsentText ||
+            widget._composingText ||
+            (typeof lastAcknowledgedEventId !== "undefined" &&
+                widget._lastTextEventId > lastAcknowledgedEventId)
+        )
+            return false;
+        if (protectedEdit()) {
             widget._deferredText = text;
             return false;
         }
         widget._deferredText = null;
+        lastSent = text;
         if (widget.value != text || (text === "" && widget.validity?.badInput)) {
             widget.value = text;
             return true;
@@ -29,30 +51,91 @@ function initEditableText(widget) {
         return false;
     };
     widget._applyDeferredText = function () {
-        if (
-            document.activeElement === widget ||
-            widget._textInputPending ||
-            widget._deferredText === null
-        ) {
-            return false;
-        }
-        const text = widget._deferredText;
-        widget._deferredText = null;
-        if (widget.value != text || (text === "" && widget.validity?.badInput)) {
-            widget.value = text;
-            return true;
-        }
-        return false;
+        if (protectedEdit() || widget._deferredText === null) return false;
+        return widget.setText(widget._deferredText);
     };
-    listenWidget(widget, "input", function () {
+    widget._flushTextInput = () => {
+        cancelTimer();
+        if (
+            !widget._unsentText ||
+            widget._composingText ||
+            widget._treePaused ||
+            !widget.isConnected ||
+            widget.disabled ||
+            widget.readOnly
+        )
+            return;
+        widget._unsentText = false;
+        const text = widget._readText ? widget._readText() : widget.value;
+        if (text === lastSent) return;
+        lastSent = text;
         widget._textInputPending = true;
-        sendEventToServer(widget, "text input", {
-            text: widget._readText ? widget._readText() : widget.value
-        });
+        sendEventToServer(widget, "text input", { text });
+    };
+    const edited = () => {
+        widget._unsentText = true;
+        // An answer received before this edit cannot become authoritative on a later blur.
+        widget._deferredText = null;
+        cancelTimer();
+        if (widget._composingText) return;
+        if (widget._inputDebounce && document.activeElement === widget) {
+            timer = setTimeout(widget._flushTextInput, widget._inputDebounce);
+        } else widget._flushTextInput();
+    };
+    listenWidget(widget, "compositionstart", () => {
+        widget._composingText = true;
+        cancelTimer();
     });
-    listenWidget(widget, "blur", function () {
+    listenWidget(widget, "compositionupdate", () => {
+        widget._composingText = true;
+    });
+    listenWidget(widget, "compositionend", () => {
+        widget._composingText = false;
+        edited();
+    });
+    listenWidget(widget, "input", event => {
+        if (event.isComposing) widget._composingText = true;
+        edited();
+    });
+    listenWidget(widget, "blur", () => {
+        widget._flushTextInput();
         widget._applyDeferredText();
     });
+    const detached = widget._onDetached;
+    widget._onDetached = () => {
+        cancelTimer();
+        detached?.();
+    };
+    const attached = widget._onAttached;
+    widget._onAttached = () => {
+        attached?.();
+        widget._flushTextInput();
+    };
+    const disposed = widget._onDisposed;
+    widget._onDisposed = () => {
+        cancelTimer();
+        widget._unsentText = false;
+        widget._deferredText = null;
+        disposed?.();
+    };
+}
+
+function setInputDebounce(data) {
+    const widget = widgets[data.widget];
+    if (
+        !widget?._flushTextInput ||
+        !Number.isInteger(data.milliseconds) ||
+        data.milliseconds < 0 ||
+        data.milliseconds > 2000
+    )
+        return false;
+    widget._inputDebounce = data.milliseconds;
+    widget._flushTextInput();
+    return true;
+}
+
+function flushTextInputs() {
+    for (const widget of Object.values(widgets)) widget._flushTextInput?.();
 }
 
 // Adds CSS text alignment support to text input controls.
@@ -181,7 +264,8 @@ function initKeyboardShortcuts(widget) {
             event.stopPropagation();
         }
         if (event.repeat) return;
-        // Earlier input notifications are already in this same acknowledged ordered queue.
+        flushTextInputs();
+        // Flush committed edits before the keyboard command in the same ordered queue.
         if (
             createEvent(widget, "keyboard", {
                 key,

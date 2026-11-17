@@ -11,6 +11,7 @@
         "widgets/popup.js",
         "widgets/semantics.js",
         "widgets/events.js",
+        "widgets/local-actions.js",
         "widgets/tree.js",
         "widgets/content.js",
         "widgets/countdown.js",
