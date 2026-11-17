@@ -70,6 +70,19 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     private final Object bufferBudget = new Object();
 
     /**
+     * Coalesced push invalidation generation; reading it never acquires a widget monitor.
+     */
+    private final java.util.concurrent.atomic.AtomicLong changeRevision =
+        new java.util.concurrent.atomic.AtomicLong();
+
+    /**
+     * @return monotonic invalidation generation, not an update ACK or replay checkpoint
+     */
+    public long getChangeRevision() {
+        return this.changeRevision.get();
+    }
+
+    /**
      * Mounted widgets with pending changes; guarded by bufferBudget, never a widget lock.
      */
     private final Set<Widget<?>> dirty = Collections.newSetFromMap(new WeakHashMap<>());
@@ -80,6 +93,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     void markDirty(final Widget<?> widget) {
         synchronized (this.bufferBudget) {
             this.dirty.add(widget);
+            this.changeRevision.incrementAndGet();
         }
     }
 
@@ -119,6 +133,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
                     || updates > limits.pendingUpdates() - this.bufferedCount
                     || bytes > limits.pendingBytes() - this.bufferedSize) {
                 this.bufferOverflow = true;
+            this.changeRevision.incrementAndGet();
                 return false;
             }
             this.bufferedCount += updates;
@@ -144,6 +159,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     void markBufferOverflow() {
         synchronized (this.bufferBudget) {
             this.bufferOverflow = true;
+            this.changeRevision.incrementAndGet();
         }
     }
 

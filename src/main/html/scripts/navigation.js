@@ -216,7 +216,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             entry.waiting = true;
             entry.restoring = true;
             // Verify the retained server instance before exposing its DOM again.
-            entry.runtime.mainCycle();
+            entry.runtime.mainCycle(true);
         }
         prune();
     }

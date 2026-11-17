@@ -8,7 +8,6 @@ const clientErrorOverlayId = "client-error-overlay";
 let consecutiveRequestFailures = 0;
 let reloadRequested = false;
 let clientFailed = false;
-const sessionRefreshKey = "widgetsSessionRefreshAttempted";
 
 function readProtocolResponse(data) {
     try {
@@ -110,14 +109,12 @@ function showUpdateProtocolError(error) {
 function responseHasClientError(response) {
     if (response?.sessionExpired === true) {
         if (reloadRequested || clientDisposed || clientFailed) return true;
-        // Carry one refresh attempt across the document reload, without retaining credentials.
+        // Allow bounded cookie-rotation convergence across tabs, without retaining credentials.
         try {
-            if (!window.sessionStorage.getItem(sessionRefreshKey)) {
-                window.sessionStorage.setItem(sessionRefreshKey, "1");
+            if (scheduleSessionRefresh()) {
                 reloadRequested = true;
                 clientFailed = true;
                 stopClientRecovery();
-                window.location.reload();
                 return true;
             }
         } catch {

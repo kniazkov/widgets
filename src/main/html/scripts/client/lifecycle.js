@@ -13,6 +13,7 @@ let channelToken = null;
 let browserId = null;
 const period = 2500;
 let mainCycleTask = null;
+let pushChannel = null;
 let clientCreationInProgress = false;
 let clientCreationRetryTask = null;
 let clientCreationRetry = null;
@@ -32,6 +33,8 @@ function resumeOnline() {
 window.addEventListener("online", resumeOnline);
 
 function stopClientRecovery() {
+    pushChannel?.dispose();
+    pushChannel = null;
     window.removeEventListener("online", resumeOnline);
     mainCycleTask?.dispose();
     mainCycleTask = null;
@@ -44,6 +47,9 @@ function stopClientRecovery() {
 
 // Always attach the credentials of this runtime, including cleanup of a late creation.
 function sendClientRequest(query, callback, method, files, channel) {
+    if (query.action === "synchronize" && !files && !channel && pushChannel) {
+        return pushChannel.send(query, callback);
+    }
     sendRequest(
         query,
         callback,
@@ -198,13 +204,24 @@ function startClient(address, data) {
                 () => !pageContext || pageContext.isActive?.() !== false,
                 maximum
             );
+            if (typeof registerPushChannel === "function") {
+                pushChannel = registerPushChannel(
+                    json,
+                    clientId,
+                    () => ({ token: channelToken, epoch: serverId, updateEpoch }),
+                    () => {
+                        pushDirty = true;
+                        sendSynchronizeRequest();
+                    }
+                );
+            }
             mainCycle();
         },
         "post"
     );
 }
 
-function mainCycle() {
+function mainCycle(force = false) {
     if (pageContext) {
         const overlay = pageContext.root.querySelector(
             "#" + clientErrorOverlayId + ", #" + connectionOverlayId
@@ -216,7 +233,7 @@ function mainCycle() {
     if (clientFailed) {
         return;
     }
-    sendSynchronizeRequest();
+    if (force || !pushChannel?.available()) sendSynchronizeRequest();
 }
 
 // Disposed runtimes cannot send events, retry uploads or apply late responses.
@@ -247,6 +264,8 @@ function reset() {
         pageContext.expire();
         return true;
     }
+    pushChannel?.dispose();
+    pushChannel = null;
     clientId = null;
     channelToken = null;
     mainCycleTask?.dispose();

@@ -2,6 +2,7 @@
     "shared": [
         "shared/transport-channel.js",
         "shared/transport.js",
+        "shared/push-transport.js",
         "shared/dom.js",
         "shared/document.js",
         "shared/polling.js"

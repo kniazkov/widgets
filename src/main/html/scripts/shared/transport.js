@@ -20,6 +20,27 @@ function configureProtocolSecurity(csrf, session) {
     protocolSession = session;
 }
 
+// Shared-cookie rotation can race across several documents after logout/server restart.
+// Coalesce cached-page failures into one reload, and bound attempts across document reloads.
+const sessionRefreshKey = "widgetsSessionRefreshAttempted";
+let documentSessionRefreshPending = false;
+function scheduleSessionRefresh(
+    storage = window.sessionStorage,
+    reload = () => window.location.reload()
+) {
+    if (documentSessionRefreshPending) return true;
+    try {
+        const attempts = Number(storage.getItem(sessionRefreshKey) || 0);
+        if (!Number.isInteger(attempts) || attempts < 0 || attempts >= 3) return false;
+        storage.setItem(sessionRefreshKey, String(attempts + 1));
+        documentSessionRefreshPending = true;
+        setTimeout(reload, 250 * (attempts + 1) + Math.round(Math.random() * 500));
+        return true;
+    } catch {
+        return false; // unavailable storage must never cause an unbounded reload loop
+    }
+}
+
 // Creates an independent transport so overlapping protocol requests cannot abort each other.
 function getXmlHttp() {
     let xmlHttpObject = null;

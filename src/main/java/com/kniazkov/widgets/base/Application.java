@@ -337,6 +337,69 @@ public final class Application implements AutoCloseable {
     }
 
     /**
+     * Optional application-owned push service, advertised only after successful startup.
+     */
+    private volatile PushServer push;
+
+    /**
+     * @param service unique active push owner, or null when disabling it
+     */
+    void configurePush(final PushServer service) {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            if (service != null && this.push != null && !this.push.isClosed()) {
+                throw new IllegalStateException("Push already started");
+            }
+            this.push = service;
+        }
+    }
+
+    /**
+     * @param service closed owner; a concurrently installed replacement is preserved
+     */
+    void disablePush(final PushServer service) {
+        synchronized (this.lifecycle) {
+            if (this.push == service) {
+                this.push = null;
+            }
+        }
+    }
+
+    /**
+     * @return live service advertised by new HTTP page channels
+     */
+    PushServer pushServer() {
+        final PushServer service = this.push;
+        return service != null && !service.isClosed() ? service : null;
+    }
+
+    /**
+     * @param id page channel identity
+     * @param access authenticated stream owner and per-page credentials
+     * @return existing authorized client, without creating any page state
+     */
+    Client streamClient(final RMId id, final ChannelAccess access) {
+        final Client client = this.requireClient(id);
+        ChannelAccess.require(access, client, this.serverId);
+        return client;
+    }
+
+    /**
+     * Renews an explicitly subscribed page lease without collecting updates or advancing ACKs.
+     * @param client previously authorized channel
+     * @param access immutable owner credentials, checked again on every lease
+     */
+    void renewStreamClient(final Client client, final ChannelAccess access) {
+        synchronized (client) {
+            if (this.streamClient(client.getId(), access) != client
+                    || !access.session.touch() || !client.getTabContext().touch()) {
+                throw new ProtocolAccessException(true);
+            }
+            client.timer = this.options.getClientLifetime();
+        }
+    }
+
+    /**
      * @return started HTTP configuration for an application-owned stream adapter
      */
     Options streamOptions() {
