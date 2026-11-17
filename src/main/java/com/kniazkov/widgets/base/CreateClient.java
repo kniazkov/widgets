@@ -112,6 +112,8 @@ final class CreateClient extends ActionHandler {
          */
         JsonObject obj = new JsonObject();
         obj.addString("id", id);
+        context.publicDocument.ifPresent(document ->
+            obj.addElement("publicDocument", document.json()));
         obj.addString("channelToken", this.application.channelToken(
             com.kniazkov.widgets.common.RMId.parse(id)));
         obj.addString("tabId", context.tabContext.getId().toString());

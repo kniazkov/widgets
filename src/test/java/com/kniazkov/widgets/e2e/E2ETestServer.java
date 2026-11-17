@@ -150,6 +150,13 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("public-catalog",
+            new com.kniazkov.widgets.example.PublicCatalog(false));
+        application.addPage("public-terms",
+            new com.kniazkov.widgets.example.PublicCatalog(true));
+        application.addPage("private-static-test", (root, context) -> {
+            root.add(new Section(new TextWidget("Private UI requires interactive authorization")));
+        });
         addKeyboardShortcutsPage(application);
         final com.kniazkov.widgets.model.StringModel pollingValue =
             new com.kniazkov.widgets.model.StringModel("Initial polling value");

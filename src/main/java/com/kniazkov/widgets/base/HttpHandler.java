@@ -221,6 +221,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
         final boolean removeLogs = contentType == ContentType.TEXT_JAVASCRIPT && !options.isDebug();
 
         try {
+            final java.util.Optional<PublicDocument> document = replaceAddress
+                ? this.application.publicDocument(requestPath, parameters)
+                : java.util.Optional.empty();
             final URL url = isBundledWebResource(address)
                 ? getClass().getResource(address)
                 : null;
@@ -276,10 +279,22 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             );
                         }
                         if (replaceAddress) {
-                            code = code.replaceFirst("__DOCUMENT_LANGUAGE__",
-                                Matcher.quoteReplacement(this.options.getLanguage()))
-                                .replaceFirst("__DOCUMENT_HEAD__",
-                                    Matcher.quoteReplacement(documentHead(this.options)));
+                            final String head = documentHead(this.options, document.isEmpty())
+                                + document.map(PublicDocument::head).orElse("");
+                            final String content = document.map(value ->
+                                "<div id=\"widgets-initial\" class=\"widgets-page\">"
+                                    + value.html() + "</div>").orElse("");
+                            code = java.util.regex.Pattern.compile(
+                                "__DOCUMENT_LANGUAGE__|__DOCUMENT_HEAD__|__PUBLIC_CONTENT__"
+                                    + "|__SITE_METADATA__")
+                                .matcher(code).replaceAll(match -> Matcher.quoteReplacement(
+                                    switch (match.group()) {
+                                        case "__DOCUMENT_LANGUAGE__" -> this.options.getLanguage();
+                                        case "__DOCUMENT_HEAD__" -> head;
+                                        case "__SITE_METADATA__" -> escapeInlineScriptData(
+                                            siteMetadata(this.options).toString());
+                                        default -> content;
+                                    }));
                         }
                         data = code.getBytes(StandardCharsets.UTF_8);
                     } else {
@@ -486,15 +501,28 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     /**
+     * @param options site defaults independent of the initially requested page
+     * @return metadata used when navigating away from the bootstrap page
+     */
+    private static JsonObject siteMetadata(final Options options) {
+        final JsonObject result = new JsonObject();
+        result.addString("title", options.getTitle());
+        result.addString("description", options.getDescription());
+        result.addString("robots", options.getRobots());
+        return result;
+    }
+
+    /**
      * Builds escaped site metadata for the initial HTML response, before JavaScript runs.
      * Inserted last so template tokens and log-like text in metadata remain literal.
      *
      * @param options application options
+     * @param siteTitle whether site title and description should be emitted
      * @return document head elements
      */
-    private static String documentHead(final Options options) {
+    private static String documentHead(final Options options, final boolean siteTitle) {
         final StringBuilder result = new StringBuilder();
-        if (!options.getTitle().isEmpty()) {
+        if (siteTitle && !options.getTitle().isEmpty()) {
             result.append("<title>").append(escapeHtmlAttribute(options.getTitle()))
                 .append("</title>\n");
         }
@@ -502,7 +530,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             result.append("<link rel=\"icon\" href=\"")
                 .append(escapeHtmlAttribute(options.getFaviconUrl())).append("\">\n");
         }
-        appendMeta(result, "description", options.getDescription());
+        if (siteTitle) {
+            appendMeta(result, "description", options.getDescription());
+        }
         appendMeta(result, "robots", options.getRobots());
         return result.toString();
     }
