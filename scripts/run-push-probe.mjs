@@ -192,6 +192,7 @@ async function waitForGauge(predicate, timeout = 15000) {
     }
     throw new Error(`Resource condition failed: ${JSON.stringify(await gauges())}`);
 }
+let observedPages = [];
 const report = {
     commit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     tls: true,
@@ -201,6 +202,8 @@ const report = {
     scope: "Integration load sample, not a capacity or statistically controlled heap benchmark",
     runs: [],
     checks: [],
+    browserErrors: [],
+    httpFailures: {},
     proxyDiagnostics
 };
 try {
@@ -247,11 +250,22 @@ try {
             };
         });
         const pages = [];
+        observedPages = pages;
+        report.phase = mode + ": load";
         let syncFrames = 0,
             controlFrames = 0;
         for (let i = 0; i < report.documents; i++) {
             const page = await context.newPage();
             page.setDefaultTimeout(30000);
+            page.on("pageerror", error =>
+                report.browserErrors.push(error.name + ": " + error.message)
+            );
+            page.on("response", response => {
+                if (response.status() >= 400) {
+                    const status = String(response.status());
+                    report.httpFailures[status] = (report.httpFailures[status] || 0) + 1;
+                }
+            });
             page.on("websocket", socket =>
                 socket.on("framesent", frame => {
                     try {
@@ -382,10 +396,12 @@ try {
         await page.getByText("Uploads: 1", { exact: true }).waitFor();
         if (mode === "push") {
             // Process state is ephemeral: restart must bootstrap a new generation, not replay commands.
+            report.phase = "server restart";
             await start("push");
             await page.getByText("Count: 0", { exact: true }).waitFor({ timeout: 45000 });
             await page.getByRole("button", { name: "Increment", exact: true }).click();
             await page.getByText("Count: 1", { exact: true }).waitFor();
+            report.phase = "session revoke";
             await page.getByRole("button", { name: "Revoke session", exact: true }).click();
             await page.getByText("Count: 0", { exact: true }).waitFor({ timeout: 45000 });
             await page.getByRole("button", { name: "Increment", exact: true }).click();
@@ -410,6 +426,29 @@ try {
         }
     }
     report.passed = true;
+} catch (error) {
+    report.failure = error.message;
+    report.pages = await Promise.all(
+        observedPages.map(async page => {
+            try {
+                return await page.evaluate(() => ({
+                    path: location.pathname,
+                    text: document.body?.innerText.slice(0, 1500),
+                    alerts: [...document.querySelectorAll("[role=alert]")].map(
+                        el => el.dataset.reason
+                    ),
+                    push:
+                        typeof documentPushCoordinator === "undefined"
+                            ? null
+                            : documentPushCoordinator?.state,
+                    refreshAttempted: sessionStorage.getItem("widgetsSessionRefreshAttempted")
+                }));
+            } catch {
+                return { unavailable: true };
+            }
+        })
+    );
+    throw error;
 } finally {
     await writeFile(`${output}/report.json`, JSON.stringify(report, null, 2));
     await writeFile(`${output}/server.log`, errors);
