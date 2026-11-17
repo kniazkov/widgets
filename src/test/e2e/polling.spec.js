@@ -24,11 +24,12 @@ test("idle backoff preserves immediate events, background updates, Back and cach
     page
 }, info) => {
     await instrument(page);
+    // Install before navigation: an already-running native timer cannot be moved to the fake clock.
+    await page.clock.install({ time: new Date("2026-11-17T00:00:00Z") });
+    await page.clock.pauseAt(new Date("2026-11-17T01:00:00Z"));
     await page.goto("/polling");
     const button = page.getByRole("button", { name: "Change shared polling value" });
     await expect(button).toBeVisible();
-    await page.clock.install();
-    await page.clock.pauseAt(new Date());
     await page.evaluate(() => {
         window.savedPollingRoot = document.querySelector(".widgets-page");
     });
@@ -87,10 +88,11 @@ test("idle backoff preserves immediate events, background updates, Back and cach
 
 test("visibility wake immediately synchronizes a hidden document", async ({ page }) => {
     await instrument(page);
+    // Install before navigation: an already-running native timer cannot be moved to the fake clock.
+    await page.clock.install({ time: new Date("2026-11-17T00:00:00Z") });
+    await page.clock.pauseAt(new Date("2026-11-17T01:00:00Z"));
     await page.goto("/polling");
     await expect(page.getByRole("button", { name: "Change shared polling value" })).toBeVisible();
-    await page.clock.install();
-    await page.clock.pauseAt(new Date());
     await page.evaluate(() => {
         Object.defineProperty(document, "visibilityState", {
             configurable: true,
