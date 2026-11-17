@@ -540,7 +540,29 @@ public abstract class Event<T> {
     };
 
     /**
-     * Global immutable registry of all known events, keyed by their unique names.
+     * Managed upload cancellation, removal and retry requests.
+     */
+    public static final Event<UploadCommand> UPLOAD_COMMAND = new Event<UploadCommand>() {
+        @Override
+        public String getName() {
+            return "upload command";
+        }
+        @Override
+        public UploadCommand parseData(final JsonObject object) {
+            return object.toJavaObject(UploadCommand.class);
+        }
+        @Override
+        public void updateWidget(final Widget<?> widget, final UploadCommand data) {
+            if (widget instanceof com.kniazkov.widgets.view.UploadManager manager) {
+                manager.command(data);
+            }
+        }
+    };
+
+    /**
+
+     * Global event registry.
+
      */
     private static final Map<String, Event<?>> REGISTRY =
         Collections.unmodifiableMap(
@@ -564,7 +586,8 @@ public abstract class Event<T> {
                 POINTER_LEAVE,
                 POINTER_DOWN,
                 POINTER_UP,
-                UPLOAD
+                UPLOAD,
+                UPLOAD_COMMAND
             ).collect(Collectors.toMap(Event::getName, e -> e))
         );
 

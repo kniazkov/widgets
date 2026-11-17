@@ -68,6 +68,9 @@ final class EventValidation {
      * Describes which widget capabilities permit browser-originated events.
      */
     private static boolean supports(final Event<?> event, final Widget<?> widget) {
+        if (event == Event.UPLOAD_COMMAND) {
+            return widget instanceof com.kniazkov.widgets.view.UploadManager;
+        }
         if (event == Event.TEXT_INPUT) {
             return widget instanceof HasTextInput
                 && (!(widget instanceof InputField input) || !input.isReadOnly());
@@ -166,6 +169,11 @@ final class EventValidation {
                 && text(data.get("child"), 64) && !data.get("child").stringValue().isEmpty()
                 && text(data.get("before"), 64);
         }
+        if (event == Event.UPLOAD_COMMAND) {
+            return fields(data, "action", "fileId") && text(data.get("action"), 6)
+                && Set.of("cancel", "retry", "remove").contains(data.get("action").stringValue())
+                && integer(data.get("fileId"), 1, Integer.MAX_VALUE);
+        }
         if (event == Event.UPLOAD) {
             return upload(widget, data);
         }
@@ -179,7 +187,10 @@ final class EventValidation {
      * Validates upload metadata before FileLoader allocates storage or invokes a controller.
      */
     private static boolean upload(final Widget<?> widget, final JsonObject data) {
-        if (!fields(data, "fileId", "name", "type", "size", "totalChunks")
+        if (!(fields(data, "fileId", "name", "type", "size", "totalChunks")
+                || widget instanceof com.kniazkov.widgets.view.UploadManager
+                    && fields(data, "fileId", "name", "type", "size", "totalChunks", "retryOf")
+                    && integer(data.get("retryOf"), 0, Integer.MAX_VALUE))
                 || !integer(data.get("fileId"), 1, Integer.MAX_VALUE)
                 || !integer(data.get("size"), 0, Integer.MAX_VALUE)
                 || !integer(data.get("totalChunks"), 1, Integer.MAX_VALUE)

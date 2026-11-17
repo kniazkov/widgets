@@ -1171,6 +1171,90 @@
         920
       ],
       "sha256": "c0d626f5bee3ff7fb10c6b2a58fe05626f8ad794db3c312f2abcc283feb6c9ee"
+    },
+    "upload-desktop-done": {
+      "file": "upload-desktop-done.png",
+      "title": "UploadManager / UploadList",
+      "states": "done; desktop",
+      "sourceScreenshot": "upload-desktop-done.png",
+      "crop": [
+        32,
+        7140,
+        1301,
+        348
+      ],
+      "sha256": "e132cefda40d97877ac31a45e7b1e2a70b543d4c98d5841e69104138f8b5b9dc",
+      "captureId": "r30-desktop"
+    },
+    "upload-desktop-error": {
+      "file": "upload-desktop-error.png",
+      "title": "UploadManager / UploadList",
+      "states": "error; desktop",
+      "sourceScreenshot": "upload-desktop-error.png",
+      "crop": [
+        32,
+        7140,
+        1301,
+        348
+      ],
+      "sha256": "5c4839d327a30b8c4f78f86b7e156143742024f18c8e6b58146ba571e5928ac2",
+      "captureId": "r30-desktop"
+    },
+    "upload-desktop-progress": {
+      "file": "upload-desktop-progress.png",
+      "title": "UploadManager / UploadList",
+      "states": "progress; desktop",
+      "sourceScreenshot": "upload-desktop-progress.png",
+      "crop": [
+        32,
+        7140,
+        1301,
+        348
+      ],
+      "sha256": "bdc44c0a7efc2766a306353ebd0c41772f8be71f5803e4cb2675ffbdf67f9731",
+      "captureId": "r30-desktop"
+    },
+    "upload-mobile-done": {
+      "file": "upload-mobile-done.png",
+      "title": "UploadManager / UploadList",
+      "states": "done; mobile",
+      "sourceScreenshot": "upload-mobile-done.png",
+      "crop": [
+        32,
+        12102,
+        326,
+        486
+      ],
+      "sha256": "57f2e823c6401442544a98c65f36f44cfd5f9bdf98ab82add1dea892b85841d2",
+      "captureId": "r30-mobile"
+    },
+    "upload-mobile-error": {
+      "file": "upload-mobile-error.png",
+      "title": "UploadManager / UploadList",
+      "states": "error; mobile",
+      "sourceScreenshot": "upload-mobile-error.png",
+      "crop": [
+        32,
+        12102,
+        326,
+        534
+      ],
+      "sha256": "5ecbba5d01a1be8b561faef88e4bb8daa87d6710f58782862d26a7a2e87c07e4",
+      "captureId": "r30-mobile"
+    },
+    "upload-mobile-progress": {
+      "file": "upload-mobile-progress.png",
+      "title": "UploadManager / UploadList",
+      "states": "progress; mobile",
+      "sourceScreenshot": "upload-mobile-progress.png",
+      "crop": [
+        32,
+        12102,
+        326,
+        582
+      ],
+      "sha256": "687176d04f336f2239813478cea275b52918fef5a947106accf8a812bc2cdb52",
+      "captureId": "r30-mobile"
     }
   },
   "widgets": {
@@ -1434,6 +1518,22 @@
     ],
     "Tooltip": [
       "anchored-tooltip"
+    ],
+    "UploadManager": [
+      "upload-desktop-done",
+      "upload-desktop-error",
+      "upload-desktop-progress",
+      "upload-mobile-done",
+      "upload-mobile-error",
+      "upload-mobile-progress"
+    ],
+    "UploadList": [
+      "upload-desktop-done",
+      "upload-desktop-error",
+      "upload-desktop-progress",
+      "upload-mobile-done",
+      "upload-mobile-error",
+      "upload-mobile-progress"
     ]
   },
   "modalLifecycleCapture": {
@@ -1912,6 +2012,52 @@
         "data-table-narrow.png": [
           280,
           515
+        ]
+      }
+    },
+    "r30-desktop": {
+      "date": "2026-11-17",
+      "commit": "a8354fe58ad8bdf6f0d739ea8ce0718bd12772af",
+      "allWidgetsSourceSha256": "e84e604367c1f0e6285aa72860a9685046e56aebccd9ca30a12f6ec9bab0fbf3",
+      "page": "AllWidgets /all-widgets, CI run 44036207319",
+      "browser": "Chromium 151.0.7922.34 / Playwright 1.62.1",
+      "viewport": "{'width': 1365, 'height': 900}",
+      "method": "Unmodified crop from real full-page screenshot on GitHub Actions Ubuntu 24.04; artifact 14307780661.",
+      "screenshots": {
+        "upload-desktop-done.png": [
+          1365,
+          12868
+        ],
+        "upload-desktop-error.png": [
+          1365,
+          12868
+        ],
+        "upload-desktop-progress.png": [
+          1365,
+          12868
+        ]
+      }
+    },
+    "r30-mobile": {
+      "date": "2026-11-17",
+      "commit": "a8354fe58ad8bdf6f0d739ea8ce0718bd12772af",
+      "allWidgetsSourceSha256": "e84e604367c1f0e6285aa72860a9685046e56aebccd9ca30a12f6ec9bab0fbf3",
+      "page": "AllWidgets /all-widgets, CI run 44036207319",
+      "browser": "Chromium 151.0.7922.34 / Playwright 1.62.1",
+      "viewport": "{'width': 390, 'height': 844}",
+      "method": "Unmodified crop from real full-page screenshot on GitHub Actions Ubuntu 24.04; artifact 14307780661.",
+      "screenshots": {
+        "upload-mobile-done.png": [
+          395,
+          21216
+        ],
+        "upload-mobile-error.png": [
+          395,
+          21264
+        ],
+        "upload-mobile-progress.png": [
+          395,
+          21312
         ]
       }
     }

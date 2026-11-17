@@ -246,6 +246,7 @@ const actionHandlers = {
     "set suggestions": setSuggestions,
     "set choice state": setChoiceState,
     "set data table": setDataTable,
+    "set upload manager": setUploadManager,
     "set feedback": setFeedback,
     "set temporal input": setTemporalInput,
     "set navigation": setNavigation,

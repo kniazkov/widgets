@@ -669,3 +669,25 @@ Tooltip не перехватывает фокус, текст также свя
 | `Menu` | `anchored-menu`, `anchored-menu-mobile` |
 | `Popover` | `anchored-popover`, `anchored-popover-flipped` |
 | `Tooltip` | `anchored-tooltip` |
+
+## UploadManager / UploadList (R30)
+
+[Контракт, ограничения и пример](UPLOAD_MANAGER.ru.md). Настоящие снимки AllWidgets из CI run [44036207319](https://github.com/kniazkov/widgets/actions/runs/44036207319), вырезанные без масштабирования и ретуши.
+
+| Виджет | Покрытие |
+| --- | --- |
+| `UploadManager` | Выбор, передача, ошибка, повтор и завершение; desktop/mobile |
+| `UploadList` | Индивидуальный и общий прогресс, действия над файлами; desktop/mobile |
+
+![UploadManager и UploadList: upload-desktop-done](images/widgets/upload-desktop-done.png)
+
+![UploadManager и UploadList: upload-desktop-error](images/widgets/upload-desktop-error.png)
+
+![UploadManager и UploadList: upload-desktop-progress](images/widgets/upload-desktop-progress.png)
+
+![UploadManager и UploadList: upload-mobile-done](images/widgets/upload-mobile-done.png)
+
+![UploadManager и UploadList: upload-mobile-error](images/widgets/upload-mobile-error.png)
+
+![UploadManager и UploadList: upload-mobile-progress](images/widgets/upload-mobile-progress.png)
+

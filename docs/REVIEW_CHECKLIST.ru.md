@@ -43,7 +43,7 @@
 - [x] **R27 · P2** — [#131: Добавить NumberField и QuantityField без потери точности](https://github.com/kniazkov/widgets/issues/131)
 - [x] **R28 · P2** — [#132: Добавить Tabs, Accordion и Breadcrumbs](https://github.com/kniazkov/widgets/issues/132)
 - [x] **R29 · P2** — [#133: Добавить Menu, Popover и Tooltip с привязкой к элементу](https://github.com/kniazkov/widgets/issues/133)
-- [ ] **R30 · P2** — [#134: Добавить UploadManager и UploadList с отменой и повтором](https://github.com/kniazkov/widgets/issues/134)
+- [x] **R30 · P2** — [#134: Добавить UploadManager и UploadList с отменой и повтором](https://github.com/kniazkov/widgets/issues/134)
 - [ ] **R31 · P2** — [#135: Определить локальные действия и корректный ввод с IME](https://github.com/kniazkov/widgets/issues/135)
 - [ ] **R32 · P2** — [#136: Уменьшить стоимость polling и обходов дерева](https://github.com/kniazkov/widgets/issues/136)
 - [ ] **R33 · P2** — [#137: Добавить нагрузочный стенд и метрики состояния](https://github.com/kniazkov/widgets/issues/137)
@@ -927,6 +927,9 @@ Popup привязан к viewport. Для меню действий и подс
 
 ### R30. Добавить UploadManager и UploadList с отменой и повтором
 
+Контракт и пример: [UPLOAD_MANAGER.ru.md](UPLOAD_MANAGER.ru.md).
+Результаты: [UPLOAD_MANAGER_VERIFICATION.ru.md](UPLOAD_MANAGER_VERIFICATION.ru.md).
+
 **P2 · [Issue #134](https://github.com/kniazkov/widgets/issues/134)**. Зависимости: [R05 #109](https://github.com/kniazkov/widgets/issues/109), [R14 #118](https://github.com/kniazkov/widgets/issues/118), [R16 #120](https://github.com/kniazkov/widgets/issues/120), [R24 #128](https://github.com/kniazkov/widgets/issues/128)
 
 FileLoader отвечает за выбор и передачу, но не даёт готового интерфейса нескольких файлов с индивидуальными состояниями и ошибками.
@@ -939,15 +942,15 @@ FileLoader отвечает за выбор и передачу, но не да�
 
 **Критерии приёмки**
 
-- [ ] Добавлены автоматические тесты перечисленных ниже сценариев; для исправления ошибки есть regression-тест, воспроизводящий исходный дефект.
+- [x] Добавлены автоматические тесты перечисленных ниже сценариев; для исправления ошибки есть regression-тест, воспроизводящий исходный дефект.
 - [ ] На облачном компьютере собран текущий commit и выполнены mvn verify и npm run test:browser. В PR приведены SHA, версии, команды и фактические результаты; инфраструктурный блокер и непрошедший тест не считаются успешной приёмкой.
-- [ ] Документация описывает новый контракт, ограничения, совместимость и пример использования; связанные пункты docs/REVIEW_CHECKLIST.ru.md обновлены после приёмки.
-- [ ] Каждый новый виджет и изменённое визуальное поведение описаны в docs, добавлены в AllWidgets с основными состояниями (normal/disabled/invalid/loading, где применимо).
+- [x] Документация описывает новый контракт, ограничения, совместимость и пример использования; связанные пункты docs/REVIEW_CHECKLIST.ru.md обновлены после приёмки.
+- [x] Каждый новый виджет и изменённое визуальное поведение описаны в docs, добавлены в AllWidgets с основными состояниями (normal/disabled/invalid/loading, где применимо).
 - [ ] На облачном компьютере открыта собранная версия; из реальных скриншотов вырезаны изображения всех новых/изменённых видимых виджетов, добавлены в docs/images/widgets и подключены в документацию с alt/подписью. Проверены desktop и mobile, мышь, клавиатура и touch, где применимо.
 
 **Обязательные сценарии тестирования**
 
-- [ ] Java/JS: переходы состояний, очередь, отмена во время чанка/обработки, повтор последнего чанка
+- [x] Java/JS: переходы состояний, очередь, отмена во время чанка/обработки, повтор последнего чанка
 - [ ] E2E: несколько файлов, один невалидный, обрыв сети, повтор и продолжение остальных
 - [ ] Облачная ручная загрузка тестовых файлов и снимки progress/error/done; нет зависших индикаторов
 

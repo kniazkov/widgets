@@ -325,6 +325,8 @@ const widgetsLibrary = {
     "typed multi select": () => createTypedSelect(true),
     "typed combo box": createTypedComboBox,
     "data table": createDataTable,
+    "upload manager": createUploadManager,
+    "upload list": createUploadList,
     feedback: createFeedback,
     "password input": function () {
         const widget = createInputField();
@@ -381,7 +383,10 @@ const widgetsLibrary = {
                 function (evt) {
                     const files = evt.target.files;
                     if (widget._filePicker !== input) return;
-                    if (files) loadFiles(widget, files);
+                    if (files) {
+                        if (widget._managedLoad) widget._managedLoad(files);
+                        else loadFiles(widget, files);
+                    }
                     widget._closeFilePicker();
                 },
                 { signal: listenerScope.signal }

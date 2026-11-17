@@ -234,6 +234,7 @@ public class AllWidgets {
         addDropDownLists(root);
         addTypedChoices(root);
         addDataTable(root);
+        addUploadManager(root);
         addFeedback(root);
         addDialogs(root);
         addButtons(root);
@@ -641,6 +642,36 @@ public class AllWidgets {
                 "Проверка завершена", com.kniazkov.widgets.view.Feedback.Severity.SUCCESS);
         });
         card.add(new Section(notify));
+    }
+
+    /**
+
+     * Demonstrates managed transfers and idempotent completion.
+
+     */
+    private static void addUploadManager(final RootWidget root) {
+        final Panel card = addCard(root, "UploadManager / UploadList",
+            "Multiple files, per-file progress, cancellation and retry. Try a .txt file.");
+        final var list = new com.kniazkov.widgets.view.UploadList();
+        final java.util.Set<String> completed =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+        final java.util.Set<String> failed =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+        final var manager = new com.kniazkov.widgets.view.UploadManager(
+            "Upload managed files", list,
+            10, 2 * 1024 * 1024, (key, file) -> {
+                if (completed.contains(key)) {
+                    return;
+                }
+                if (file.getName().startsWith("retry") && failed.add(key)) {
+                    throw new java.io.IOException("Demonstration failure");
+                }
+                Thread.sleep(800);
+                completed.add(key);
+            });
+        manager.setAcceptedFiles(".txt,.bin");
+        card.add(new Section(manager));
+        card.add(list);
     }
 
     /**

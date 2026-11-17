@@ -116,6 +116,15 @@ for (const width of [320, 1280]) {
                 });
             });
             expect(bounds).toBe(true);
+            // Axe opens/closes a helper tab. Exercise native popup creation before that lifecycle
+            // so the assertion only observes the user link, not the accessibility helper page.
+            const nextPage = context.waitForEvent("page");
+            await path
+                .getByRole("link", { name: "Главная", exact: true })
+                .click({ modifiers: ["ControlOrMeta"] });
+            const opened = await nextPage;
+            await expect(opened).toHaveURL(/\/$/);
+            await opened.close();
             expect(
                 (
                     await new AxeBuilder({ page })
@@ -125,13 +134,6 @@ for (const width of [320, 1280]) {
                         .analyze()
                 ).violations
             ).toEqual([]);
-            const nextPage = context.waitForEvent("page");
-            await path
-                .getByRole("link", { name: "Главная", exact: true })
-                .click({ modifiers: ["ControlOrMeta"] });
-            const opened = await nextPage;
-            await expect(opened).toHaveURL(/\/$/);
-            await opened.close();
         });
     });
 }
