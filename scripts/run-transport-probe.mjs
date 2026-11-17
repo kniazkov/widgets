@@ -1,9 +1,9 @@
-import { spawn, execFileSync } from "node:child_process";
+import { spawn, spawnSync, execFileSync } from "node:child_process";
 import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { dirname, resolve, join, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
-import { cpus, totalmem } from "node:os";
+import { cpus, totalmem, platform, release } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import { performance } from "node:perf_hooks";
 import process from "node:process";
@@ -60,7 +60,22 @@ async function start() {
 }
 const report = {
     commit: execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim(),
+    dirty:
+        execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" }).trim()
+            .length > 0,
+    configuration: {
+        samples: 100,
+        repetitions: 2,
+        documents: 1,
+        replayMs: 5000,
+        javaHeap: "1g",
+        tls: false,
+        push: false
+    },
     environment: {
+        platform: platform(),
+        release: release(),
+        java: spawnSync(javaPath, ["-version"], { encoding: "utf8" }).stderr.trim(),
         cpu: cpus()[0].model,
         processors: cpus().length,
         memoryBytes: totalmem(),

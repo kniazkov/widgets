@@ -63,6 +63,7 @@ function createProtocolTransport(driver, { maxInFlight = 64, maxChannels = 64 } 
                 callback?.(data);
             };
             operation.cancel = () => {
+                if (operation.settled) return;
                 try {
                     operation.abort?.();
                 } finally {
@@ -72,7 +73,8 @@ function createProtocolTransport(driver, { maxInFlight = 64, maxChannels = 64 } 
             pending.add(operation);
             try {
                 operation.abort = driver.send(packet, complete);
-            } catch {
+            } catch (error) {
+                if (operation.settled) throw error;
                 complete(null);
             }
             return operation.cancel;
@@ -88,10 +90,9 @@ function createProtocolTransport(driver, { maxInFlight = 64, maxChannels = 64 } 
                         callback?.(null);
                         return () => {};
                     }
-                    const entry = { cancel: null, done: false };
+                    const entry = { cancel: null };
                     operations.add(entry);
                     entry.cancel = transport.send({ query, channel: credentials, files }, data => {
-                        entry.done = true;
                         operations.delete(entry);
                         callback?.(data);
                     });
@@ -101,8 +102,16 @@ function createProtocolTransport(driver, { maxInFlight = 64, maxChannels = 64 } 
                     if (closed) return;
                     closed = true;
                     channels.delete(channel);
-                    for (const entry of [...operations]) entry.cancel?.();
+                    let failure;
+                    for (const entry of [...operations]) {
+                        try {
+                            entry.cancel?.();
+                        } catch (error) {
+                            failure ||= error;
+                        }
+                    }
                     operations.clear();
+                    if (failure) throw failure;
                 }
             };
             channels.add(channel);

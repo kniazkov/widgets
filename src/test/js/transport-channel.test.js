@@ -78,3 +78,36 @@ test("multiplexed channels close independently and unsolicited delivery stops on
         dom.window.close();
     }
 });
+
+test("throwing callbacks cannot strand sibling requests during channel close", () => {
+    const dom = new JSDOM("", { runScripts: "outside-only" });
+    try {
+        dom.window.eval(readScript("shared/transport-channel.js"));
+        let aborted = 0,
+            completed = 0;
+        const transport = dom.window.createProtocolTransport({
+            send(packet, done) {
+                return () => {
+                    aborted++;
+                    done(null);
+                };
+            }
+        });
+        transport.connect();
+        const channel = transport.channel({});
+        channel.send({}, () => {
+            throw new Error("consumer failed");
+        });
+        const cancel = channel.send({}, () => {
+            completed++;
+        });
+        expect(() => channel.close()).toThrow("consumer failed");
+        cancel();
+        expect(aborted).toBe(2);
+        expect(completed).toBe(1);
+        expect(transport.pending).toBe(0);
+        transport.close();
+    } finally {
+        dom.window.close();
+    }
+});
