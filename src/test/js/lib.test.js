@@ -237,3 +237,31 @@ describe("sendRequest", () => {
         expect(requests.every(request => !request.aborted)).toBe(true);
     });
 });
+
+describe("session refresh convergence", () => {
+    it("coalesces cached-page failures and stops after three document reloads", () => {
+        const values = new Map();
+        const storage = {
+            getItem: key => values.get(key),
+            setItem: (key, value) => values.set(key, value)
+        };
+        for (let attempt = 0; attempt < 4; attempt++) {
+            dom?.window.close();
+            dom = new JSDOM("", { runScripts: "outside-only", url: "https://example.test" });
+            const tasks = [];
+            dom.window.setTimeout = (fn, delay) => tasks.push({ fn, delay });
+            dom.window.eval(source);
+            const reload = vi.fn();
+            expect(dom.window.scheduleSessionRefresh(storage, reload)).toBe(attempt < 3);
+            if (attempt < 3) {
+                expect(dom.window.scheduleSessionRefresh(storage, reload)).toBe(true);
+                expect(tasks).toHaveLength(1);
+                expect(tasks[0].delay).toBeGreaterThanOrEqual(250 * (attempt + 1));
+                expect(tasks[0].delay).toBeLessThanOrEqual(250 * (attempt + 1) + 500);
+                tasks[0].fn();
+                expect(reload).toHaveBeenCalledTimes(1);
+            } else expect(tasks).toHaveLength(0);
+        }
+        expect(values.get("widgetsSessionRefreshAttempted")).toBe("3");
+    });
+});

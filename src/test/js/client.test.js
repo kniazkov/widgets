@@ -259,7 +259,7 @@ describe("connection recovery", () => {
     ])("stops synchronization on a terminal response: %o", (response, reason) => {
         const harness = createHarness();
         if (response.sessionExpired) {
-            dom.window.sessionStorage.setItem("widgetsSessionRefreshAttempted", "1");
+            dom.window.sessionStorage.setItem("widgetsSessionRefreshAttempted", "3");
         }
         harness.setClientId("#123");
         harness.sendSynchronizeRequest();
@@ -271,6 +271,18 @@ describe("connection recovery", () => {
         harness.mainCycle();
         expect(harness.requests).toHaveLength(1);
         expect(harness.scheduledTasks).toHaveLength(0);
+    });
+
+    it("retries a second cookie rotation with a bounded delayed reload", () => {
+        const harness = createHarness();
+        dom.window.sessionStorage.setItem("widgetsSessionRefreshAttempted", "1");
+        harness.reportClientError({ sessionExpired: true });
+        expect(dom.window.sessionStorage.getItem("widgetsSessionRefreshAttempted")).toBe("2");
+        expect(harness.scheduledTasks.filter(task => task.active)).toHaveLength(1);
+        expect(harness.scheduledTasks.at(-1).delay).toBe(750);
+        expect(dom.window.document.getElementById("client-error-overlay")).toBeNull();
+        harness.reportClientError({ sessionExpired: true });
+        expect(harness.scheduledTasks.filter(task => task.active)).toHaveLength(1);
     });
 
     it("does not send offline and wakes the existing gate when back online", () => {

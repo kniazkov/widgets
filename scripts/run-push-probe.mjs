@@ -398,12 +398,20 @@ try {
             // Process state is ephemeral: restart must bootstrap a new generation, not replay commands.
             report.phase = "server restart";
             await start("push");
-            await page.getByText("Count: 0", { exact: true }).waitFor({ timeout: 45000 });
+            await Promise.all(
+                pages.map(tab =>
+                    tab.getByText("Count: 0", { exact: true }).waitFor({ timeout: 45000 })
+                )
+            );
             await page.getByRole("button", { name: "Increment", exact: true }).click();
             await page.getByText("Count: 1", { exact: true }).waitFor();
             report.phase = "session revoke";
             await page.getByRole("button", { name: "Revoke session", exact: true }).click();
-            await page.getByText("Count: 0", { exact: true }).waitFor({ timeout: 45000 });
+            await Promise.all(
+                pages.map(tab =>
+                    tab.getByText("Count: 0", { exact: true }).waitFor({ timeout: 45000 })
+                )
+            );
             await page.getByRole("button", { name: "Increment", exact: true }).click();
             await page.getByText("Count: 1", { exact: true }).waitFor();
             report.checks.push(
