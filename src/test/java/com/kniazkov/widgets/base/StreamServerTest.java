@@ -44,8 +44,18 @@ public final class StreamServerTest {
     @Test
     public void refusesUntrustedUpgradesAndInvalidAuth() throws Exception {
         try (Fixture fixture = new Fixture((connection, text) -> fail("Unauthorized callback"))) {
-            assertThrows(Exception.class, () -> fixture.connect("https://evil.example", true));
-            assertThrows(Exception.class, () -> fixture.connect(fixture.origin, false));
+            final String cookie = "widgets-session=" + fixture.owner.credential();
+            fixture.rejectUpgrade("/widgets-stream", "https://evil.example", cookie,
+                StreamServer.SUBPROTOCOL, 403);
+            fixture.rejectUpgrade("/widgets-stream", fixture.origin, null,
+                StreamServer.SUBPROTOCOL, 403);
+            fixture.rejectUpgrade("/widgets-stream", null, cookie,
+                StreamServer.SUBPROTOCOL, 403);
+            fixture.rejectUpgrade("/widgets-stream?secret=forbidden", fixture.origin, cookie,
+                StreamServer.SUBPROTOCOL, 403);
+            fixture.rejectUpgrade("/widgets-stream", fixture.origin, cookie, null, 403);
+            fixture.rejectUpgrade("/widgets-stream", fixture.origin, cookie + "; " + cookie,
+                StreamServer.SUBPROTOCOL, 403);
             for (final String auth : new String[]{"{}", fixture.auth().replace("auth", "echo"),
                     fixture.auth().replace(fixture.owner.csrf(), "wrong"),
                     fixture.auth().replace("\"version\":1", "\"version\":1.5")}) {
@@ -113,7 +123,8 @@ public final class StreamServerTest {
             fixture.authenticate(first);
             final Peer second = fixture.connect();
             fixture.authenticate(second);
-            assertThrows(Exception.class, fixture::connect);
+            fixture.rejectUpgrade("/widgets-stream", fixture.origin,
+                "widgets-session=" + fixture.owner.credential(), StreamServer.SUBPROTOCOL, 503);
             fixture.app.close();
             assertTrue(first.closed.await(3, TimeUnit.SECONDS));
             assertTrue(second.closed.await(3, TimeUnit.SECONDS));
@@ -305,6 +316,29 @@ public final class StreamServerTest {
             peer.socket = builder.buildAsync(URI.create("ws://127.0.0.1:"
                 + this.stream.getPort() + StreamServer.PATH), peer).get(3, TimeUnit.SECONDS);
             return peer;
+        }
+
+        /**
+         * Verifies explicit HTTP refusal, rather than accepting any handshake failure.
+         */
+        void rejectUpgrade(final String path, final String origin, final String cookie,
+                final String protocol, final int status) throws Exception {
+            final var builder = this.client.newWebSocketBuilder();
+            if (origin != null) {
+                builder.header("Origin", origin);
+            }
+            if (cookie != null) {
+                builder.header("Cookie", cookie);
+            }
+            if (protocol != null) {
+                builder.subprotocols(protocol);
+            }
+            final var failure = assertThrows(java.util.concurrent.ExecutionException.class,
+                () -> builder.buildAsync(URI.create("ws://127.0.0.1:" + this.stream.getPort()
+                    + path), new Peer()).get(3, TimeUnit.SECONDS));
+            assertTrue(failure.getCause() instanceof java.net.http.WebSocketHandshakeException);
+            assertEquals(status, ((java.net.http.WebSocketHandshakeException) failure.getCause())
+                .getResponse().statusCode());
         }
 
         /**

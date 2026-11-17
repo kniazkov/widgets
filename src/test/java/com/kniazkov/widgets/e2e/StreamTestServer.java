@@ -77,9 +77,9 @@ public final class StreamTestServer {
                 limits.updatesPerBatch(), limits.updateBytesPerBatch(), 5000,
                 limits.eventsPerBatch(), limits.eventBytesPerBatch())).build());
         final var stream = StreamServer.start(app, new StreamOptions(Integer.parseInt(args[1]),
-            args[2], 64, 2, 4, 65536, 8, 131072, 1000, 500, 3000), (connection, text) -> {
+            args[2], 64, 2, 4, 65536, 8, 131072, 1000, 500, 5000), (connection, text) -> {
                 if ("hold".equals(text)) {
-                    Thread.sleep(10000);
+                    Thread.sleep(20000);
                 } else {
                     connection.send(text);
                 }

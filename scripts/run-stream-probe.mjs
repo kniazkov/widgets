@@ -6,6 +6,7 @@ import { createServer } from "node:net";
 import { join, delimiter } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 import process from "node:process";
+import { performance } from "node:perf_hooks";
 import assert from "node:assert/strict";
 import { chromium } from "@playwright/test";
 import WebSocket from "ws";
@@ -128,6 +129,16 @@ child.stderr.on("data", data => {
     errors = (errors + data).slice(-64000);
 });
 let browser;
+async function gauges() {
+    for (let attempt = 0; attempt < 20; attempt++) {
+        try {
+            return JSON.parse(await readFile(`${output}/metrics.json`, "utf8"));
+        } catch {
+            await delay(25);
+        }
+    }
+    throw new Error("No valid resource sample");
+}
 const report = {
     commit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
     tls: true,
@@ -197,6 +208,9 @@ try {
     for (let i = 0; i < 32; i++) await page.evaluate(() => window.openStream());
     // Occupy both callback workers; HTTP and binary upload must still finish.
     await page.evaluate(() => window.streams.slice(0, 2).forEach(ws => ws.send("hold")));
+    for (let i = 0; i < 40 && (await gauges()).activeHandlers !== 2; i++) await delay(25);
+    assert.equal((await gauges()).activeHandlers, 2, "Both stream workers must be occupied");
+    const started = performance.now();
     await page.getByRole("button", { name: "Increment", exact: true }).click();
     await page.getByText("Count: 1", { exact: true }).waitFor();
     const chooser = page.waitForEvent("filechooser");
@@ -209,9 +223,18 @@ try {
         buffer: Buffer.alloc(65536, 9)
     });
     await page.getByText("Uploads: 1", { exact: true }).waitFor();
+    report.httpAndUploadMillis = performance.now() - started;
+    await delay(100);
+    assert.equal(
+        (await gauges()).activeHandlers,
+        2,
+        "HTTP/upload must finish BEFORE stream timeout"
+    );
     report.checks.push("32 WSS connections + blocked handlers: HTTP event and binary upload pass");
     // Surviving idle connections must answer heartbeat through the real browser.
-    await delay(4000);
+    await page.waitForFunction(
+        () => window.streams.filter(ws => ws.readyState === WebSocket.OPEN).length === 30
+    );
     assert.equal(
         await page.evaluate(
             () => window.streams.filter(ws => ws.readyState === WebSocket.OPEN).length
