@@ -16,9 +16,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
-
  * Numeric diagnostics must not expose identities or retain disposed pages.
-
  */
 public final class RuntimeMetricsTest {
     /**
@@ -57,9 +55,7 @@ public final class RuntimeMetricsTest {
     }
 
     /**
-
      * Root contention is measured, and rejected requests release active-operation gauges.
-
      */
     @Test(timeout = 5000)
     public void recordsRootWaitAndResetsActiveCountersOnFailure() throws Exception {

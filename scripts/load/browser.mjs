@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
+import { setTimeout as delay } from "node:timers/promises";
 import { pool } from "./stats.mjs";
 
 export async function browserProbe(browser, origin, api, clients, concurrency, samples) {
@@ -47,6 +48,15 @@ export async function historyProbe(browser, origin) {
         await page.getByRole("link", { name: "Next load page" }).click();
         await page.getByRole("button", { name: "Increment", exact: true }).click();
         await page.getByText("Count: 1", { exact: true }).waitFor();
+        await page.clock.fastForward(30000);
+        let backgroundUpdated = false;
+        for (let i = 0; i < 100 && !backgroundUpdated; i++) {
+            backgroundUpdated = await page.evaluate(() =>
+                window.originalLoadRoot.textContent.includes("Count: 1")
+            );
+            if (!backgroundUpdated) await delay(50);
+        }
+        assert(backgroundUpdated, "Cached DOM did not receive the background model change");
         await page.goBack();
         await page.getByText("Count: 1", { exact: true }).waitFor();
         assert(
