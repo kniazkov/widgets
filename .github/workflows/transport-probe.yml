@@ -1,0 +1,44 @@
+name: Transport prototype
+on:
+  pull_request:
+    paths:
+      - scripts/transport/**
+      - scripts/run-transport-probe.mjs
+      - src/main/html/scripts/shared/transport*.js
+      - src/test/java/com/kniazkov/widgets/e2e/TransportTestServer.java
+      - .github/workflows/transport-probe.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: transport-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        timeout-minutes: 5
+        run: npx playwright install --with-deps chromium
+      - name: Build shared Java fixture
+        run: mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+      - name: Compare HTTP and WebSocket prototype in Chromium
+        run: node scripts/run-transport-probe.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transport-probe
+          path: target/transport-probe
+          retention-days: 7
