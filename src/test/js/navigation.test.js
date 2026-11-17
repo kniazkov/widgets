@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 let dom;
 afterEach(() => dom?.window.close());
 
-function harness(head = "") {
+function harness(head = "", push = false) {
     dom = new JSDOM(`<!doctype html><head>${head}</head><body></body>`, {
         runScripts: "outside-only",
         url: "http://localhost/catalog?filter=blue"
@@ -49,6 +49,14 @@ function harness(head = "") {
     win.__request = (request, callback) => requests.push({ request, callback });
     win.eval(`${readScript("options.js")}\n${readScriptGroup("shared")}
         sendRequest = window.__request;
+        ${
+            push
+                ? `registerPushChannel = (configuration, client, credentials, wake) => {
+            wake();
+            return {available: () => true, send: window.__request, dispose() {}};
+        };`
+                : ""
+        }
         isMobileDevice = () => false;
         ${readPageRuntime()}
         ${readScript("navigation.js")}
@@ -125,6 +133,22 @@ function harness(head = "") {
 }
 
 describe("page history cache", () => {
+    it("revalidates retained push pages on Back while suppressing idle polling", async () => {
+        const h = harness("", true);
+        h.created("catalog");
+        const root = h.win.document.querySelector(".widgets-page");
+        const initialRequests = h.requests.length;
+        h.tick();
+        expect(h.requests).toHaveLength(initialRequests);
+        h.navigate("/product");
+        h.created("product");
+        await h.back();
+        expect(root.isConnected).toBe(false);
+        h.updates("catalog");
+        expect(h.win.document.querySelector(".widgets-page")).toBe(root);
+        expect(h.requests.filter(x => x.request.action === "new instance")).toHaveLength(2);
+    });
+
     it("keeps rapid scroll events in memory and persists once before navigation", async () => {
         const h = harness();
         h.created("catalog");

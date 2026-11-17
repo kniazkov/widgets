@@ -221,7 +221,7 @@ function startClient(address, data) {
     );
 }
 
-function mainCycle() {
+function mainCycle(force = false) {
     if (pageContext) {
         const overlay = pageContext.root.querySelector(
             "#" + clientErrorOverlayId + ", #" + connectionOverlayId
@@ -233,7 +233,7 @@ function mainCycle() {
     if (clientFailed) {
         return;
     }
-    if (!pushChannel?.available()) sendSynchronizeRequest();
+    if (force || !pushChannel?.available()) sendSynchronizeRequest();
 }
 
 // Disposed runtimes cannot send events, retry uploads or apply late responses.
