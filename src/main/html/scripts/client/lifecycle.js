@@ -33,7 +33,8 @@ window.addEventListener("online", resumeOnline);
 
 function stopClientRecovery() {
     window.removeEventListener("online", resumeOnline);
-    clearInterval(mainCycleTask);
+    mainCycleTask?.dispose();
+    mainCycleTask = null;
     clearTimeout(clientCreationRetryTask);
     clientCreationRetryTask = null;
     clientCreationRetry = null;
@@ -188,7 +189,15 @@ function startClient(address, data) {
             lastAppliedUpdateSequence = 0;
             configureEventBatches(json.eventBatchCount, json.eventBatchBytes);
             log("Client created, id: " + clientId + ".");
-            mainCycleTask = setInterval(mainCycle, period);
+            tabContext.polling ||= createPollingCoordinator();
+            const maximum = Number.isFinite(json.pollingMaxDelay)
+                ? Math.max(1, Math.min(30000, json.pollingMaxDelay))
+                : period;
+            mainCycleTask = tabContext.polling.register(
+                mainCycle,
+                () => !pageContext || pageContext.isActive?.() !== false,
+                maximum
+            );
             mainCycle();
         },
         "post"
@@ -217,7 +226,8 @@ function disposeClient() {
     stopClientRecovery();
     disposeCountdowns();
     disposeAllWidgets();
-    clearInterval(mainCycleTask);
+    mainCycleTask?.dispose();
+    mainCycleTask = null;
     if (clientId != null) {
         sendClientRequest({ action: "kill", client: clientId });
     }
@@ -239,7 +249,8 @@ function reset() {
     }
     clientId = null;
     channelToken = null;
-    clearInterval(mainCycleTask);
+    mainCycleTask?.dispose();
+    mainCycleTask = null;
     disposeAllWidgets();
     startClient();
     return true;

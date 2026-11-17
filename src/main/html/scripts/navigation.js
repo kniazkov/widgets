@@ -173,6 +173,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             entry.runtime = createPageRuntime({
                 root: entry.root,
                 tab,
+                isActive: () => active === entry,
                 resetTab,
                 metadataChanged: () => showMetadata(entry),
                 failure: overlay => {

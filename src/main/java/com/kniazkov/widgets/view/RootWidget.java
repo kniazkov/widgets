@@ -70,6 +70,29 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     private final Object bufferBudget = new Object();
 
     /**
+     * Mounted widgets with pending changes; guarded by bufferBudget, never a widget lock.
+     */
+    private final Set<Widget<?>> dirty = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * @param widget mounted widget with pending changes
+     */
+    void markDirty(final Widget<?> widget) {
+        synchronized (this.bufferBudget) {
+            this.dirty.add(widget);
+        }
+    }
+
+    /**
+     * @param widget widget whose mounted queue is no longer pending
+     */
+    void clearDirty(final Widget<?> widget) {
+        synchronized (this.bufferBudget) {
+            this.dirty.remove(widget);
+        }
+    }
+
+    /**
      * Counts pending raw updates before collection.
      */
     private int bufferedCount;
@@ -404,10 +427,13 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * @param pending destination for updates, in protocol order
      */
     public void collectBrowserUpdates(final Set<Update> pending) {
-        for (final Widget<?> widget : this) {
-            this.trackOwned(widget);
-            widget.markExported(this.getId());
-            widget.getUpdates(pending);
+        final List<Widget<?>> changed;
+        synchronized (this.bufferBudget) {
+            changed = List.copyOf(this.dirty);
+            this.dirty.clear();
+        }
+        for (final Widget<?> widget : changed) {
+            widget.collectMountedUpdates(this, pending);
         }
     }
 

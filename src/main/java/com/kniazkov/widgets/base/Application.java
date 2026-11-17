@@ -381,6 +381,14 @@ public final class Application implements AutoCloseable {
     }
 
     /**
+     * Bounds browser idle polling below the configured client lease.
+     * @return maximum delay in milliseconds
+     */
+    long pollingMaxDelay() {
+        return Math.max(1L, Math.min(30000L, this.options.getClientLifetime() / 3L));
+    }
+
+    /**
      * Creates a new client and initializes its page.
      *
      * @param address page address

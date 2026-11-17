@@ -117,7 +117,7 @@ function processUpdates(receipt, modalActivation = null) {
         }
         if (!clientDisposed) {
             trimDetachedWidgets();
-            refreshModalStack(modalActivation);
+            if (receipt.updates.length || modalActivation) refreshModalStack(modalActivation);
         }
         return !clientDisposed;
     } catch (error) {

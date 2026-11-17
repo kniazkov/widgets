@@ -118,12 +118,18 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
             return;
         }
         this.releaseBudget();
+        if (old != null) {
+            old.clearDirty(this);
+        }
         this.bufferOwner = root == null ? null : new WeakReference<>(root);
         if (root != null && (this.bufferOverflow || this.updates != null
                 && !root.retainBuffered(this.updates.size(), this.bufferedBytes))) {
             root.markBufferOverflow();
             this.updates = null;
             this.bufferedBytes = 0;
+        }
+        if (root != null && this.updates != null) {
+            root.markDirty(this);
         }
     }
 
@@ -134,6 +140,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
         final RootWidget owner = this.bufferOwner == null ? null : this.bufferOwner.get();
         if (owner != null && this.updates != null) {
             owner.releaseBuffered(this.updates.size(), this.bufferedBytes);
+            owner.clearDirty(this);
         }
     }
 
@@ -470,23 +477,42 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
     }
 
     /**
-     * Collects and clears all pending updates from this widget, adding them
-     * to the given set. This effectively drains the update queues.
-     *
-     * @param set the set to which updates are added
+     * Drains changes only if this widget still belongs to the collecting root.
+     * @param root collecting root
+     * @param destination protocol-ordered destination
      */
-    public void getUpdates(final Set<Update> set) {
+    final void collectMountedUpdates(final RootWidget root, final Set<Update> destination) {
         final List<Update> pending;
         synchronized (this) {
-            if (this.updates == null) {
+            if (this.bufferOwner == null || this.bufferOwner.get() != root || this.retired) {
                 return;
             }
-            pending = this.updates;
-            this.releaseBudget();
-            this.updates = null;
-            this.bufferedBytes = 0;
+            this.markExported(root.getId());
+            pending = this.drainUpdates();
         }
-        set.addAll(pending);
+        destination.addAll(pending);
+    }
+
+    /**
+     * Drains this widget's queue without holding its monitor while calling external code.
+     * @param set destination
+     */
+    public void getUpdates(final Set<Update> set) {
+        set.addAll(this.drainUpdates());
+    }
+
+    /**
+     * @return queued changes, detached from the mutable buffer
+     */
+    private synchronized List<Update> drainUpdates() {
+        if (this.updates == null) {
+            return List.of();
+        }
+        final List<Update> pending = this.updates;
+        this.releaseBudget();
+        this.updates = null;
+        this.bufferedBytes = 0;
+        return pending;
     }
 
     /**
@@ -683,6 +709,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
         }
         this.updates.add(update);
         this.bufferedBytes += bytes;
+        if (owner != null) {
+            owner.markDirty(this);
+        }
     }
 
     /**

@@ -14,6 +14,27 @@ function harness(head = "") {
     const requests = [];
     const intervals = new Map();
     let timer = 0;
+    const timeouts = new Map();
+    let now = Date.now();
+    win.Date.now = () => now;
+    const nativeTimeout = win.setTimeout.bind(win);
+    win.setTimeout = (callback, delay) => {
+        if (!delay) return nativeTimeout(callback);
+        // jsdom history uses its own task queue; runtime timers are explicitly driven below.
+        timeouts.set(++timer, { callback, due: now + delay });
+        return timer;
+    };
+    win.clearTimeout = id => timeouts.delete(id);
+    const tick = () => {
+        now += 30000;
+        for (const callback of [...intervals.values()]) callback();
+        for (const [id, task] of [...timeouts]) {
+            if (task.due <= now) {
+                timeouts.delete(id);
+                task.callback();
+            }
+        }
+    };
     win.scrollTo = (x, y) => {
         win.scrollX = x;
         win.scrollY = y;
@@ -100,7 +121,7 @@ function harness(head = "") {
             win.history.back();
         });
     }
-    return { win, requests, intervals, answer, updates, created, navigate, back };
+    return { win, requests, intervals, tick, answer, updates, created, navigate, back };
 }
 
 describe("page history cache", () => {
@@ -181,9 +202,7 @@ describe("page history cache", () => {
         const h = harness();
         h.created("first");
         const root = h.win.document.querySelector(".widgets-page");
-        for (const tick of h.intervals.values()) {
-            tick();
-        }
+        h.tick();
         h.navigate("/catalog?filter=blue");
         h.created("second");
         h.updates("first", [{ id: "#5", action: "set text", widget: "#2", text: "late" }]);
@@ -225,9 +244,7 @@ describe("page history cache", () => {
         h.created("second");
         const now = h.win.Date.now();
         h.win.Date.now = () => now + 120001;
-        for (const tick of h.intervals.values()) {
-            tick();
-        }
+        h.tick();
         expect(
             h.requests.some(x => x.request.action === "kill" && x.request.client === "first")
         ).toBe(true);
@@ -257,9 +274,7 @@ describe("page history cache", () => {
         h.navigate("/product");
         h.created("pending-catalog");
         h.created("product");
-        for (const tick of h.intervals.values()) {
-            tick();
-        }
+        h.tick();
         h.updates("product", [{ id: "#5", action: "clear page cache" }]);
         expect(
             h.requests.some(
@@ -318,7 +333,7 @@ describe("page metadata", () => {
         ["document " + name]: value
     });
     const tick = h => {
-        for (const callback of h.intervals.values()) callback();
+        h.tick();
     };
 
     it("restores defaults, retains hidden updates and restores metadata on Back/Forward", async () => {
@@ -375,7 +390,7 @@ describe("cached page interaction styles", () => {
             const h = harness();
             h.created("catalog");
             // Use the real runtime's registry and protocol to create both navigation targets.
-            for (const callback of h.intervals.values()) callback();
+            h.tick();
             const commands = [];
             for (const widget of ["#10", "#11"]) {
                 commands.push(
@@ -449,8 +464,7 @@ describe("document tab context", () => {
             h.created("catalog", "old operator page", "tab-one");
             h.navigate("/product");
             h.created("product", "operator", "tab-one");
-            const tick = [...h.intervals.values()].at(-1);
-            tick();
+            h.tick();
             h.updates("product", [], invalid);
             const fresh = h.requests
                 .filter(item => !item.answered && item.request.action === "new instance")
@@ -469,7 +483,7 @@ describe("document tab context", () => {
     it("keeps the tab when only a page Client expires", () => {
         const h = harness();
         h.created("catalog", "catalog", "tab-one");
-        [...h.intervals.values()].at(-1)();
+        h.tick();
         h.updates("catalog", [], { clientAlive: false });
         const request = h.requests
             .filter(item => !item.answered && item.request.action === "new instance")

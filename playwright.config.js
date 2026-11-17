@@ -33,6 +33,7 @@ export default defineConfig({
                 "cloud-verification.spec.js",
                 "keyboard-shortcuts.spec.js",
                 "local-actions-ime.spec.js",
+                "polling.spec.js",
                 "forms.spec.js",
                 "feedback.spec.js",
                 "dialog.spec.js",

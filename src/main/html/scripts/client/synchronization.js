@@ -167,7 +167,8 @@ function sendSynchronizeRequest(callback) {
                     .slice(0, removed)
                     .findLast(event => event.type === "click");
                 if (!processUpdates(json, widgets[activation?.widget])) return;
-                reconcileTextInputs();
+                if (removed > 0 || json.updates.length > 0) reconcileTextInputs();
+                mainCycleTask?.received(sentEvents.length > 0 || json.updates.length > 0);
                 recordRequestSuccess();
                 if (pageContext && !moreUpdates) {
                     pageContext.ready();
