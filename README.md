@@ -264,6 +264,9 @@ compatibility changes, cancellation semantics and examples.
 
 ## Documentation
 
+- [Adaptive polling and incremental updates](docs/ADAPTIVE_POLLING.ru.md) — per-document scheduling,
+  dirty queues, background page limits and reproducible measurements.
+
 - [Local actions and IME](docs/LOCAL_ACTIONS_IME.md) — synchronous focus/scroll/selection,
   safe navigation, committed composition input and bounded debounce.
 

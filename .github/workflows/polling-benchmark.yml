@@ -1,0 +1,61 @@
+name: Polling comparison
+
+on:
+  pull_request:
+    paths:
+      - scripts/measure-polling-http.mjs
+      - .github/workflows/polling-benchmark.yml
+  workflow_dispatch:
+    inputs:
+      baseline:
+        description: Baseline commit to compare with the selected ref
+        required: true
+        default: bb23a40a107d8fccafd234ec12f45043c9f37db6
+
+permissions:
+  contents: read
+
+concurrency:
+  group: polling-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.base.sha || inputs.baseline }}
+          path: .polling-baseline
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        timeout-minutes: 5
+        run: npx playwright install --with-deps chromium
+      - name: Build both test servers
+        run: |
+          mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+          mvn -B -ntp -f .polling-baseline/pom.xml -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+      - name: Compare HTTP and event-to-DOM under load
+        shell: bash
+        run: |
+          mkdir -p target/polling-comparison
+          node scripts/measure-polling-http.mjs .polling-baseline --browser | tee target/polling-comparison/before.jsonl
+          node scripts/measure-polling-http.mjs --browser | tee target/polling-comparison/after.jsonl
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: polling-comparison
+          path: target/polling-comparison
+          retention-days: 7
+          if-no-files-found: ignore

@@ -2,7 +2,8 @@
     "shared": [
         "shared/transport.js",
         "shared/dom.js",
-        "shared/document.js"
+        "shared/document.js",
+        "shared/polling.js"
     ],
     "widgets": [
         "widgets/core.js",

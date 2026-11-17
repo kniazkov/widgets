@@ -116,6 +116,7 @@ final class CreateClient extends ActionHandler {
             com.kniazkov.widgets.common.RMId.parse(id)));
         obj.addString("tabId", context.tabContext.getId().toString());
         obj.addString("serverId", this.application.getServerId().toString());
+        obj.addNumber("pollingMaxDelay", this.application.pollingMaxDelay());
         obj.addString("updateVersion", UpdateStream.VERSION);
         obj.addString("updateCapability", UpdateStream.CAPABILITY);
         obj.addNumber("eventBatchCount", this.application.protocolLimits().eventsPerBatch());

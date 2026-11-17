@@ -151,6 +151,19 @@ public final class E2ETestServer {
             .build();
         final Application application = new Application(page);
         addKeyboardShortcutsPage(application);
+        final com.kniazkov.widgets.model.StringModel pollingValue =
+            new com.kniazkov.widgets.model.StringModel("Initial polling value");
+        final java.util.concurrent.atomic.AtomicInteger pollingChanges =
+            new java.util.concurrent.atomic.AtomicInteger();
+        final Page pollingPage = (root, context) -> {
+            final TextWidget value = new TextWidget(TextWidget.getDefaultStyle(), pollingValue);
+            final Button change = new Button("Change shared polling value");
+            change.onClick(event -> pollingValue.setData(
+                "Updated polling value " + pollingChanges.incrementAndGet()));
+            root.add(new Section(value, change, new Link("Next polling page", "/polling-next")));
+        };
+        application.addPage("polling", pollingPage);
+        application.addPage("polling-next", pollingPage);
         application.addPage("local-actions", com.kniazkov.widgets.example.LocalActions.page());
         application.addPage("anchored-lifecycle", (root, context) -> {
             final Button anchor = new Button("Lifecycle actions");
