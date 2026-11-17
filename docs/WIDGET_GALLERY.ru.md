@@ -636,3 +636,36 @@ AllWidgets, облачный Chromium, 16 ноября 2026 года. Число
 | `Tabs` | `navigation-desktop`, `navigation-mobile-tabs` |
 | `Accordion` | `navigation-desktop`, `navigation-mobile-accordion` |
 | `Breadcrumbs` | `navigation-desktop`, `navigation-mobile-tabs` |
+
+## R29: Menu, Popover и Tooltip
+
+Реальная AllWidgets в облачном Chromium, 16 ноября 2026 года.
+[Контракт и примеры](ANCHORED_OVERLAYS.ru.md), [проверка](R29_VERIFICATION.ru.md).
+
+![Menu под кнопкой: первый пункт с клавиатурным фокусом, отключённый пункт и действие копирования](images/widgets/anchored-menu.png)
+
+Menu пропускает disabled-пункт при навигации стрелками; Enter/Space выбирают действие.
+
+![Popover с комментарием к доставке и кнопками Подробнее и Готово](images/widgets/anchored-popover.png)
+
+Popover получает фокус в поле и сохраняет введённое значение между открытиями.
+
+![Tooltip рядом с кнопкой Срок изготовления: дополнительная информация при фокусе](images/widgets/anchored-tooltip.png)
+
+Tooltip не перехватывает фокус, текст также связан с кнопкой через aria-describedby.
+
+![Popover автоматически расположен над кнопкой возле нижнего края экрана](images/widgets/anchored-popover-flipped.png)
+
+При прокрутке якорь оказался у нижнего края: `data-placement=top`, панель перешла наверх.
+
+![Длинное Menu на ширине 320 CSS пикселей: многострочные русские подписи и внутренняя прокрутка](images/widgets/anchored-menu-mobile.png)
+
+Узкий iframe содержит настоящую AllWidgets, а не макет. Это проверка ширины 320 CSS px
+в desktop-браузере; touch отдельно проверен автоматическими Chromium/WebKit E2E.
+Изображения вырезаны без масштабирования и ретуши. Прямоугольники и SHA-256 — в manifest.
+
+| Класс | Изображения |
+| --- | --- |
+| `Menu` | `anchored-menu`, `anchored-menu-mobile` |
+| `Popover` | `anchored-popover`, `anchored-popover-flipped` |
+| `Tooltip` | `anchored-tooltip` |

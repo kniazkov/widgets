@@ -37,6 +37,7 @@ export default defineConfig({
                 "temporal.spec.js",
                 "numbers.spec.js",
                 "navigation-panels.spec.js",
+                "anchored-overlays.spec.js",
                 "adaptive-layout.spec.js",
                 "typed-choices.spec.js",
                 "data-table.spec.js"

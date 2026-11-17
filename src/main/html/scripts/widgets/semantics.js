@@ -45,7 +45,14 @@ function refreshAccessibleRelationsFor(widget) {
         assignSemanticAttribute(widget, "for", semanticTarget(widget, "label target"));
     }
     // Include active errors in describedby for assistive technology without errormessage support.
-    const descriptions = new Set([help, ownDescription, error].filter(Boolean));
+    const descriptions = new Set(
+        [
+            help,
+            ownDescription,
+            error,
+            ...(!covered ? widget._tooltipDescriptions || [] : [])
+        ].filter(Boolean)
+    );
     assignSemanticAttribute(widget, "aria-describedby", [...descriptions].join(" "));
     assignSemanticAttribute(widget, "aria-errormessage", error);
 }
@@ -57,12 +64,15 @@ function refreshAccessibleRelations() {
 function forgetAccessibleWidget(widget) {
     accessibilityConsumers.delete(widget);
     for (const consumer of accessibilityConsumers) {
-        for (const property of Object.keys(consumer._accessibleReferences)) {
+        for (const property of Object.keys(consumer._accessibleReferences || {})) {
             if (consumer._accessibleReferences[property] === widget._id) {
                 delete consumer._accessibleReferences[property];
             }
         }
-        if (Object.keys(consumer._accessibleReferences).length === 0) {
+        if (
+            Object.keys(consumer._accessibleReferences || {}).length === 0 &&
+            !consumer._tooltipDescriptions?.size
+        ) {
             accessibilityConsumers.delete(consumer);
             refreshAccessibleRelationsFor(consumer);
         }
@@ -82,7 +92,8 @@ function setAccessibleReference(data, property) {
     widget._accessibleReferences ??= Object.create(null);
     if (target) widget._accessibleReferences[property] = target;
     else delete widget._accessibleReferences[property];
-    if (Object.keys(widget._accessibleReferences).length) accessibilityConsumers.add(widget);
+    if (Object.keys(widget._accessibleReferences).length || widget._tooltipDescriptions?.size)
+        accessibilityConsumers.add(widget);
     else accessibilityConsumers.delete(widget);
     refreshAccessibleRelationsFor(widget);
     return true;

@@ -51,3 +51,5 @@ Limits: 1–32 rows per page, 1–8 columns, 160 UTF-16 units per cell,
 96 per key and 120 for the filter. Selection retains up to 512 keys. There
 are no arbitrary child widgets in cells, no automatic database writes, and
 no virtualization. See the [browser gallery](WIDGET_GALLERY.ru.md#data-table).
+
+The row viewport has a fixed height of `20rem` with internal scrolling, so loading and page changes do not shift controls below the table. Override `--widgets-data-table-height` to customize it. The status line reserves space even when empty.

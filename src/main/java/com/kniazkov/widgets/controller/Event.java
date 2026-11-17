@@ -272,6 +272,26 @@ public abstract class Event<T> {
     }
 
     /**
+     * Generation-checked commands for anchored overlays.
+     */
+    public static final Event<JsonObject> OVERLAY_COMMAND = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "overlay command";
+        }
+        @Override
+        public JsonObject parseData(final JsonObject data) {
+            return data;
+        }
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof com.kniazkov.widgets.view.AnchoredOverlay overlay) {
+                overlay.processOverlayCommand(data);
+            }
+        }
+    };
+
+    /**
      * Explicit dismissal of a retained notification owned by one outlet.
      */
     public static final Event<JsonObject> TOAST_DISMISS = new Event<JsonObject>() {
@@ -533,6 +553,7 @@ public abstract class Event<T> {
                 CHOICE_SEARCH,
                 DATA_TABLE,
                 TOAST_DISMISS,
+                OVERLAY_COMMAND,
                 REORDER,
                 DISMISS,
                 DISMISS_BY_ESCAPE,

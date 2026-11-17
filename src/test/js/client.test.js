@@ -36,6 +36,7 @@ const handlerNames = [
     "setFeedback",
     "setTemporalInput",
     "setNavigation",
+    "setAnchoredOverlay",
     "setSuggestionSeparator",
     "setKeyboardShortcuts",
     "setInputReadOnly",

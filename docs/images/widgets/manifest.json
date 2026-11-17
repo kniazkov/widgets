@@ -839,44 +839,44 @@
     "data-table-wide": {
       "file": "data-table-wide.png",
       "title": "DataTable",
-      "states": "Сортировка, выбор первой строки и первая страница 125 записей.",
-      "sourceScreenshot": "data-table-wide.jpg",
+      "states": "Первая страница из 125 записей; постоянная область строк 20rem.",
+      "sourceScreenshot": "data-table-wide.png",
       "crop": [
-        58,
-        305,
-        1064,
-        520
+        0,
+        0,
+        1170,
+        447
       ],
-      "sha256": "0765e1d186f2c0f9a9d51d8f020d9e95c5393bac35e6c3c2365b2a86ebcce0a3",
-      "captureId": "r23-desktop"
+      "sha256": "fa621b816246a5246290e56af2afeea3d7253376ffef34646687ede282c03f01",
+      "captureId": "r29-table-stability-element-capture"
     },
     "data-table-empty": {
       "file": "data-table-empty.png",
       "title": "DataTable",
-      "states": "Пустой фильтр по активным заказам оставляет ранее выбранный ключ.",
-      "sourceScreenshot": "data-table-empty.jpg",
+      "states": "Пустой результат фильтра nothing-matches; высота области строк сохранена.",
+      "sourceScreenshot": "data-table-empty.png",
       "crop": [
-        58,
-        305,
-        1064,
-        333
+        0,
+        0,
+        1170,
+        447
       ],
-      "sha256": "7d15907c25e9b3e7335d08b334910e03dee6de7fc64082f848a12d76879a27c1",
-      "captureId": "r23-desktop"
+      "sha256": "4d303f0ba5890014beaf3b860d92a47e2de80356c1384f946c4e55c99b134c3f",
+      "captureId": "r29-table-stability-element-capture"
     },
     "data-table-narrow": {
       "file": "data-table-narrow.png",
       "title": "DataTable",
-      "states": "Один результат, горизонтальная прокрутка только области таблицы.",
-      "sourceScreenshot": "data-table-narrow.jpg",
+      "states": "Мобильная область 390px; внутренняя горизонтальная и вертикальная прокрутка.",
+      "sourceScreenshot": "data-table-narrow.png",
       "crop": [
-        45,
-        169,
-        316,
-        581
+        0,
+        0,
+        280,
+        515
       ],
-      "sha256": "0fddad306424828f51488bc9486e892c82ea1e1e0920145325ad9fdc51bec8cf",
-      "captureId": "r23-narrow"
+      "sha256": "33c3592eca495037b5bc944680d40840fd0644f263e8263b57c3d5a1c9abde30",
+      "captureId": "r29-table-stability-element-capture"
     },
     "feedback-desktop": {
       "file": "feedback-desktop.png",
@@ -1101,6 +1101,76 @@
       ],
       "sha256": "942c079b73b4d7cfb525dda15bb0aadf00074a00615d8b48e48964bb713fca65",
       "captureId": "r28-mobile"
+    },
+    "anchored-menu": {
+      "file": "anchored-menu.png",
+      "title": "Menu: обычное открытие и клавиатурный фокус",
+      "states": "Первый доступный пункт, disabled action; размещение снизу.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-menu.jpg",
+      "crop": [
+        35,
+        375,
+        700,
+        265
+      ],
+      "sha256": "daf49eaa2e8098430bc5facda30bf244249e3dde645a1f831fd04fd1da51b68c"
+    },
+    "anchored-popover": {
+      "file": "anchored-popover.png",
+      "title": "Popover: поле и кнопки",
+      "states": "Открытая панель с фокусом в поле.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-popover.jpg",
+      "crop": [
+        35,
+        375,
+        700,
+        270
+      ],
+      "sha256": "db0139e882cc9fef1997007f5ffadcb58eed8078883e22bf0342323d0b2008e3"
+    },
+    "anchored-tooltip": {
+      "file": "anchored-tooltip.png",
+      "title": "Tooltip: подсказка при фокусе",
+      "states": "Описание кнопки, без переноса фокуса.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-tooltip.jpg",
+      "crop": [
+        35,
+        335,
+        1020,
+        180
+      ],
+      "sha256": "1ecc4bc7f293dba2242ad56f04601f0661a01530ab139d12305a4ef012becae5"
+    },
+    "anchored-popover-flipped": {
+      "file": "anchored-popover-flipped.png",
+      "title": "Popover: автоматический flip",
+      "states": "Якорь у нижнего края, панель сверху.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-popover-flipped.jpg",
+      "crop": [
+        35,
+        648,
+        700,
+        276
+      ],
+      "sha256": "1cd43208eccb34c243c44768680b6c54def9f54e9d9aada90ef68c96dad868c9"
+    },
+    "anchored-menu-mobile": {
+      "file": "anchored-menu-mobile.png",
+      "title": "Menu: длинное меню на 320 CSS px",
+      "states": "16 пунктов, перенос подписей, внутренняя прокрутка.",
+      "captureId": "r29-mobile",
+      "sourceScreenshot": "r29-menu-mobile.jpg",
+      "crop": [
+        521,
+        0,
+        321,
+        920
+      ],
+      "sha256": "c0d626f5bee3ff7fb10c6b2a58fe05626f8ad794db3c312f2abcc283feb6c9ee"
     }
   },
   "widgets": {
@@ -1353,6 +1423,17 @@
     "Breadcrumbs": [
       "navigation-desktop",
       "navigation-mobile-tabs"
+    ],
+    "Menu": [
+      "anchored-menu",
+      "anchored-menu-mobile"
+    ],
+    "Popover": [
+      "anchored-popover",
+      "anchored-popover-flipped"
+    ],
+    "Tooltip": [
+      "anchored-tooltip"
     ]
   },
   "modalLifecycleCapture": {
@@ -1766,6 +1847,71 @@
         "r28-navigation-mobile-accordion.jpg": [
           1363,
           936
+        ]
+      }
+    },
+    "r29-desktop": {
+      "date": "2026-11-16",
+      "commit": "b91992c2bdd836b5cdbfc4ea2a695394d07c125d",
+      "allWidgetsSourceSha256": "1cda6566ca334feeb17666e73021ea8faec73dacb31505837f0cfa0f74377959",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of R29 working tree based on commit above. Unscaled crops, no retouching; source tree identified in R29_VERIFICATION.ru.md.",
+      "screenshots": {
+        "r29-menu.jpg": [
+          1348,
+          926
+        ],
+        "r29-popover.jpg": [
+          1348,
+          926
+        ],
+        "r29-tooltip.jpg": [
+          1348,
+          926
+        ],
+        "r29-popover-flipped.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r29-mobile": {
+      "date": "2026-11-16",
+      "commit": "b91992c2bdd836b5cdbfc4ea2a695394d07c125d",
+      "allWidgetsSourceSha256": "1cda6566ca334feeb17666e73021ea8faec73dacb31505837f0cfa0f74377959",
+      "page": "AllWidgets / in 320px iframe",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "320 × 920 CSS px iframe",
+      "method": "Real cloud browser screenshot of R29 working tree based on commit above. Unscaled crops, no retouching; source tree identified in R29_VERIFICATION.ru.md.",
+      "screenshots": {
+        "r29-menu-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r29-table-stability-element-capture": {
+      "date": "2026-11-16",
+      "commit": "b5aa5f89ed992240059d2fa2f2f6d4524bae76fc",
+      "allWidgetsSourceSha256": "1cda6566ca334feeb17666e73021ea8faec73dacb31505837f0cfa0f74377959",
+      "page": "AllWidgets, /all-widgets on local E2E server",
+      "browser": "Playwright Chromium 151, cloud execution environment",
+      "viewport": "Desktop 1280x720 (wide), 1280x780 (empty); mobile 390x760",
+      "method": "Playwright locator.screenshot of .widgets-data-table; element crop without resizing. Captured from working tree before commit, with the same table CSS.",
+      "screenshots": {
+        "data-table-wide.png": [
+          1170,
+          447
+        ],
+        "data-table-empty.png": [
+          1170,
+          447
+        ],
+        "data-table-narrow.png": [
+          280,
+          515
         ]
       }
     }
