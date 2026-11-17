@@ -77,6 +77,7 @@ function scheduleUploadRetry(callback) {
 }
 
 function disposeUploads() {
+    for (const widget of Object.values(widgets)) widget._clearManagedUploads?.();
     for (const task of uploadRetryTasks) clearTimeout(task);
     uploadRetryTasks.clear();
     clearTimeout(uploadNetworkRetry);
@@ -93,6 +94,7 @@ function disposeUploads() {
 }
 
 function discardWidgetUploads(widget) {
+    widget._clearManagedUploads?.();
     for (let index = pendingUploads.length - 1; index >= 0; index--) {
         const file = pendingUploads[index];
         if (file.widget !== widget) continue;
@@ -176,6 +178,7 @@ function loadFiles(widget, descriptions) {
             ready: false,
             widget
         };
+        widget._managedSelected?.(file);
         pendingUploads.push(file);
         selected.push(file);
         const enqueued = createEvent(widget, "upload", {
@@ -183,7 +186,8 @@ function loadFiles(widget, descriptions) {
             name: file.name,
             type: file.type,
             size: file.size,
-            totalChunks: file.totalChunks
+            totalChunks: file.totalChunks,
+            ...(file.retryOf ? { retryOf: file.retryOf } : {})
         });
         if (enqueued === false) return;
     }
@@ -219,7 +223,9 @@ function fillActiveUploads() {
         pendingUploads.length > 0 &&
         pendingUploads[0].ready
     ) {
-        activeUploads.push(pendingUploads.shift());
+        const file = pendingUploads.shift();
+        activeUploads.push(file);
+        file.widget._managedProgress?.(file, "uploading");
     }
 }
 
@@ -315,6 +321,7 @@ function sendNextUploadChunk() {
                 receipt.complete === (receipt.nextChunk == file.totalChunks)
             ) {
                 file.nextChunk = receipt.nextChunk;
+                file.widget._managedProgress?.(file, receipt.complete ? "processing" : "uploading");
                 if (receipt.complete === true) {
                     removeActiveUpload(file);
                 }
@@ -327,7 +334,8 @@ function sendNextUploadChunk() {
                 )
                     ? receipt.uploadError
                     : "rejected";
-                showUploadError(code, receipt.limitBytes);
+                if (file.widget._managedProgress) file.widget._managedProgress(file, "error", code);
+                else showUploadError(code, receipt.limitBytes);
                 removeActiveUpload(file);
                 sendNextUploadChunk();
                 return;

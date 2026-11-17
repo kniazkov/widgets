@@ -681,3 +681,10 @@ button[aria-label]:has(> img):focus-visible {
 }
 .widgets-anchored-menu [role="menuitem"]:disabled { color: #667485; }
 .widgets-anchored-tooltip { pointer-events: auto; }
+
+.widgets-upload-list { max-inline-size: 100%; }
+.widgets-upload-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.75rem; border-bottom: 1px solid #cbd5e1; }
+.widgets-upload-row > span { flex: 1 1 16rem; overflow-wrap: anywhere; }
+.widgets-upload-row button { min-height: 2.5rem; }
+.widgets-upload-row[data-upload-state="error"] { color: #991b1b; }
+.widgets-upload-row[data-upload-state="done"] { color: #166534; }

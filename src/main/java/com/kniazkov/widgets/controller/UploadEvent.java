@@ -20,6 +20,13 @@ public class UploadEvent {
     public int fileId;
 
     /**
+
+     * Previous attempt ID, only for managed uploads; zero for a new file.
+
+     */
+    public int retryOf;
+
+    /**
      * The original name of the file as provided by the user.
      */
     public String name;

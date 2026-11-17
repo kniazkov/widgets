@@ -26,6 +26,7 @@ export default defineConfig({
                 "widget-reparenting.spec.js",
                 "update-stream.spec.js",
                 "upload-lifecycle.spec.js",
+                "upload-manager.spec.js",
                 "upload-boundary.spec.js",
                 "image-processing.spec.js",
                 "protocol-backpressure.spec.js",

@@ -103,6 +103,7 @@ const handlerNames = [
     "setWidgetAccessibleName",
     "setRadioGroupName",
     "setMultipleInput",
+    "setUploadManager",
     "setAcceptedFiles"
 ];
 

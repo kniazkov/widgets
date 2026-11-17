@@ -68,6 +68,18 @@ jobs:
       - name: Install Chromium and WebKit
         timeout-minutes: 5
         run: npx playwright install chromium webkit
+      - name: Capture managed upload gallery
+        env:
+          WIDGETS_CAPTURE_UPLOADS: "1"
+        run: npm run test:e2e -- upload-manager.spec.js --project=chromium
+      - name: Preserve managed upload gallery
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: upload-gallery-${{ github.run_attempt }}
+          path: target/upload-gallery
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Run browser tests
         run: npm run test:browser
       - name: Preserve browser test failure artifacts
