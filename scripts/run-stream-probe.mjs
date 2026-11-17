@@ -181,6 +181,12 @@ try {
     browser = await chromium.launch();
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     const page = await context.newPage();
+    const browserSockets = new Set();
+    page.on("websocket", socket => {
+        browserSockets.add(socket);
+        socket.on("close", () => browserSockets.delete(socket));
+        socket.on("socketerror", () => browserSockets.delete(socket));
+    });
     page.setDefaultTimeout(15000);
     await page.goto(origin);
     await page.getByRole("button", { name: "Increment", exact: true }).waitFor();
@@ -292,28 +298,55 @@ try {
         "proxy disconnect/reconnect; HTTP remains usable when upgrades are unavailable"
     );
     const cookies = (await context.cookies()).map(item => `${item.name}=${item.value}`).join("; ");
-    const silent = new WebSocket(
-        `${origin.replace("https:", "wss:")}/widgets-stream`,
-        "widgets.stream.v1",
-        { rejectUnauthorized: false, autoPong: false, headers: { Origin: origin, Cookie: cookies } }
-    );
-    const closed = new Promise(resolve => silent.once("close", resolve));
-    silent.on("error", error => {
-        throw error;
-    });
-    await new Promise(resolve => silent.once("open", resolve));
-    silent.send(JSON.stringify(auth));
+    async function nodePeer(autoPong) {
+        const socket = new WebSocket(
+            `${origin.replace("https:", "wss:")}/widgets-stream`,
+            "widgets.stream.v1",
+            { rejectUnauthorized: false, autoPong, headers: { Origin: origin, Cookie: cookies } }
+        );
+        const closed = new Promise(resolve => socket.once("close", resolve));
+        const ready = new Promise((resolve, reject) => {
+            socket.once("error", reject);
+            socket.once("open", () => socket.send(JSON.stringify(auth)));
+            socket.once("message", data => {
+                try {
+                    assert.equal(JSON.parse(data).type, "ready");
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+        await Promise.race([
+            ready,
+            delay(5000).then(() => {
+                throw new Error("Node peer AUTH timeout");
+            })
+        ]);
+        return { socket, closed };
+    }
+    const silent = await nodePeer(false);
     await Promise.race([
-        closed,
+        silent.closed,
         delay(7000).then(() => {
             throw new Error("Missing pong did not expire");
         })
     ]);
     report.checks.push("unresponsive peer expires without pong");
+    // An independent peer proves revoke itself closes the socket, even when HTTP reloads.
+    const observer = await nodePeer(true);
     await page.getByRole("button", { name: "Revoke session", exact: true }).click();
-    await page.waitForFunction(() =>
-        window.streams.every(ws => ws.readyState === WebSocket.CLOSED)
+    assert.equal(
+        await Promise.race([
+            observer.closed,
+            delay(5000).then(() => {
+                throw new Error("Revoked socket remained open");
+            })
+        ]),
+        1008
     );
+    for (let i = 0; i < 50 && browserSockets.size; i++) await delay(100);
+    assert.equal(browserSockets.size, 0, "Old document sockets must close across logout reload");
     for (let i = 0; i < 60; i++) {
         try {
             const gauges = JSON.parse(await readFile(`${output}/metrics.json`, "utf8"));
