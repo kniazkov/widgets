@@ -78,3 +78,20 @@ test("late progress cannot overwrite terminal states and zero-byte completion re
     expect(h.list.textContent).toContain("1/1 · 100%");
     expect(h.list.querySelector(".widgets-upload-row").dataset.uploadState).toBe("done");
 });
+
+test("progress updates preserve the focused action node during a pointer click", () => {
+    const h = harness();
+    h.manager._managedLoad([file("a.txt")]);
+    const button = h.list.querySelector("button");
+    button.focus();
+    const transfer = h.files()[0];
+    transfer.nextChunk = 1;
+    h.manager._managedProgress(transfer, "uploading");
+    expect(h.list.querySelector("button")).toBe(button);
+    expect(dom.window.document.activeElement).toBe(button);
+    button.click();
+    expect(h.sent.at(-1)).toEqual({
+        type: "upload command",
+        data: { action: "cancel", fileId: 1 }
+    });
+});

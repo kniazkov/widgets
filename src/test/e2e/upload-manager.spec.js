@@ -17,7 +17,8 @@ test("managed files isolate errors and retry with one logical entry", async ({ p
     const list = page.locator(".widgets-upload-list");
     await expect(list.locator('[data-upload-state="done"]')).toContainText("first.txt");
     await expect(list.locator('[data-upload-state="error"]')).toHaveCount(2);
-    await page.getByRole("button", { name: "retry retry.txt", exact: true }).click();
+    await page.getByRole("button", { name: "retry retry.txt", exact: true }).focus();
+    await page.keyboard.press("Enter");
     await expect(list.locator('[data-upload-state="done"]')).toHaveCount(2);
     await expect(list.locator(".widgets-upload-row").filter({ hasText: "retry.txt" })).toHaveCount(
         1
@@ -135,3 +136,18 @@ for (const [label, viewport] of [
         await capture("done");
     });
 }
+
+test.describe("touch upload controls", () => {
+    test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
+    test("removes a completed file with a touch action", async ({ page }) => {
+        await page.goto("/all-widgets");
+        const chooser = page.waitForEvent("filechooser");
+        await page.getByRole("button", { name: "Upload managed files", exact: true }).tap();
+        await (
+            await chooser
+        ).setFiles({ name: "touch.txt", mimeType: "text/plain", buffer: Buffer.from("touch") });
+        await expect(page.locator('[data-upload-state="done"]')).toHaveCount(1);
+        await page.getByRole("button", { name: "remove touch.txt", exact: true }).tap();
+        await expect(page.locator(".widgets-upload-row")).toHaveCount(0);
+    });
+});
