@@ -163,7 +163,8 @@ public final class StreamEndpoint implements StreamConnection, Session.Listener 
             if (!"auth".equals(value.get("type").stringValue())
                     || !"1".equals(value.get("version").toString())
                     || !this.owner.getId().toString().equals(value.get("session").stringValue())
-                    || !SecurityPrimitives.matches(this.owner.csrf(), value.get("csrf").stringValue())
+                    || !SecurityPrimitives.matches(this.owner.csrf(),
+                        value.get("csrf").stringValue())
                     || !this.owner.touch()) {
                 this.finish(1008);
                 return;

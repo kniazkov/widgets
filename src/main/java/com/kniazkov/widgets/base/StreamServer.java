@@ -202,7 +202,8 @@ public final class StreamServer implements AutoCloseable {
         final List<String> origins = headers.getValuesList("Origin");
         final List<String> sites = headers.getValuesList("Sec-Fetch-Site");
         if (origins.size() != 1
-                || !this.options.publicOrigin().equals(SecurityPrimitives.origin(origins.getFirst()))
+                || !this.options.publicOrigin().equals(
+                    SecurityPrimitives.origin(origins.getFirst()))
                 || (!sites.isEmpty() && (sites.size() != 1
                     || !"same-origin".equals(sites.getFirst())))
                 || request.getHttpURI().getQuery() != null

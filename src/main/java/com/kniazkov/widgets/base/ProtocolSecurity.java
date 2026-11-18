@@ -71,7 +71,8 @@ final class ProtocolSecurity {
         final String site = header(request, "Sec-Fetch-Site");
         final boolean hasSite = request.getHeaders().getValues().keySet().stream()
             .anyMatch(name -> "Sec-Fetch-Site".equalsIgnoreCase(name));
-        return expected != null && (!hasOrigin || expected.equals(SecurityPrimitives.origin(rawOrigin)))
+        return expected != null
+            && (!hasOrigin || expected.equals(SecurityPrimitives.origin(rawOrigin)))
             && (!hasSite || "same-origin".equals(site));
     }
 
