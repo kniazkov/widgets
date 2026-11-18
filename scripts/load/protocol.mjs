@@ -110,6 +110,7 @@ export async function protocol(origin) {
             address,
             browserId: "12345678-1234-4234-8234-123456789abc",
             mobile: false,
+            clientBuild: bootstrap.headers.get("X-Widgets-Build"),
             updateVersion: "2",
             updateCapability: "sequenced-updates",
             ...(tabId ? { tabId } : {})

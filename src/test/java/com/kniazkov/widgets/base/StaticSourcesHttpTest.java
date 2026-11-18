@@ -94,7 +94,8 @@ public class StaticSourcesHttpTest {
         int previous = html.indexOf("/scripts/options.js");
         assertTrue(previous >= 0);
         for (final String path : BrowserScripts.paths("shared")) {
-            final String tag = "<script src=\"/scripts/" + path + "\"></script>";
+            final String tag = "<script src=\"/scripts/" + path + "?widgets-build="
+                + ReleaseInfo.buildId() + "\"></script>";
             final int index = html.indexOf(tag);
             assertTrue(path, index > previous);
             assertEquals(index, html.lastIndexOf(tag));

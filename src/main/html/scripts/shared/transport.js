@@ -6,6 +6,7 @@ const server = window.location.protocol + "//" + window.location.host;
 let protocolCsrf = null;
 let protocolSession = null;
 const widgetsProtocolVersion = "1";
+const widgetsClientBuild = "__WIDGETS_BUILD__";
 
 // Keep retries local to the caller that owns the idempotency key or event checkpoint.
 function transportRetryDelay(failures, base = 500) {

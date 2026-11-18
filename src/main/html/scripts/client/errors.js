@@ -139,6 +139,14 @@ function responseHasClientError(response) {
         showUpdateProtocolError();
         return true;
     }
+    if (response?.clientBuildMismatch === true) {
+        showClientError(
+            undefined,
+            "version",
+            "Widgets was updated. Reload this page to continue. Unsent actions were not replayed."
+        );
+        return true;
+    }
     if (response?.protocolMismatch === true) {
         showClientError(undefined, "protocol");
         return true;

@@ -88,6 +88,7 @@ final class ProtocolTestBrowser {
     JsonObject create(final String tab) throws Exception {
         final Map<String, String> fields = new TreeMap<>(Map.of("action", "new instance",
             "address", "/", "browserId", BROWSER_ID, "mobile", "false",
+            "clientBuild", ReleaseInfo.buildId(),
             "updateVersion", UpdateStream.VERSION, "updateCapability", UpdateStream.CAPABILITY));
         if (tab != null) {
             fields.put("tabId", tab);

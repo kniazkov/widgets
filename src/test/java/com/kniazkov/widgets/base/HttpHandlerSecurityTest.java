@@ -261,6 +261,7 @@ public class HttpHandlerSecurityTest {
             "123e4567-e89b-12d3-a456-426614174000"
         ));
         write(body, part(boundary, "mobile", "false"));
+        write(body, part(boundary, "clientBuild", ReleaseInfo.buildId()));
         write(body, part(boundary, "updateVersion", UpdateStream.VERSION));
         write(body, part(boundary, "updateCapability", UpdateStream.CAPABILITY));
         write(body, "--" + boundary + "\r\n"

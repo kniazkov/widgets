@@ -9,7 +9,9 @@ client over HTTP, so a typical application does not need to generate HTML or wri
 JavaScript.
 
 The project targets Java 21 and is distributed as the Maven artifact
-`com.kniazkov:widgets:0.1`.
+`com.kniazkov:widgets:0.2.0` (release candidate; not a claim of Maven Central publication).
+See [release policy and Foundry19 migration](docs/RELEASING.ru.md) and
+[CHANGELOG](CHANGELOG.md).
 
 Applications can publish explicit filesystem and classpath subtrees with
 `Options.Builder.addStaticSource(...)`. See [Static resource sources](docs/STATIC_RESOURCES.md)
@@ -79,7 +81,7 @@ Add it to an application:
 <dependency>
     <groupId>com.kniazkov</groupId>
     <artifactId>widgets</artifactId>
-    <version>0.1</version>
+    <version>0.2.0</version>
 </dependency>
 ```
 
