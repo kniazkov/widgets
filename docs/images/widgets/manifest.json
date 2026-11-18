@@ -1311,6 +1311,34 @@
         477
       ],
       "sha256": "302681cb56d49c47d3bf1581a2588fa142fac2490b983801fd959b70b319bb19"
+    },
+    "slider-desktop": {
+      "file": "slider-desktop.png",
+      "title": "Размер браслета",
+      "states": "Доступный и отключённый ползунки, значение с единицей измерения",
+      "sourceScreenshot": "slider-desktop-source.png",
+      "captureId": "slider",
+      "crop": [
+        32,
+        320,
+        1216,
+        259
+      ],
+      "sha256": "bef767999a7a764916be98730af46e8bf5067e00c48ac2a81bd379685f9e6a63"
+    },
+    "slider-mobile": {
+      "file": "slider-mobile.png",
+      "title": "Размер браслета",
+      "states": "Доступный и отключённый ползунки, значение с единицей измерения",
+      "sourceScreenshot": "slider-mobile-source.png",
+      "captureId": "slider",
+      "crop": [
+        32,
+        233,
+        296,
+        275
+      ],
+      "sha256": "de40f9822757d88201756723ec5d621a9af384912622e47078d346b213beca44"
     }
   },
   "widgets": {
@@ -1598,6 +1626,10 @@
     "SplitPane": [
       "split-desktop",
       "split-mobile"
+    ],
+    "Slider": [
+      "slider-desktop",
+      "slider-mobile"
     ]
   },
   "modalLifecycleCapture": {
@@ -2158,6 +2190,25 @@
           900
         ],
         "split-mobile-source.png": [
+          360,
+          740
+        ]
+      }
+    },
+    "slider": {
+      "date": "2026-11-18",
+      "commit": "0d0b32ee0fc8ccf27ac343500f34e2b27de7c024",
+      "allWidgetsSourceSha256": "91d475e38348bb88260b5f87bb94736a603f7695d22697c0efc792b291ee7b0d",
+      "page": "Standalone AllWidgets, http://127.0.0.1:18647/",
+      "browser": "Chromium 153.0.8010.0",
+      "viewport": "1280 × 900 and 360 × 740, DPR 1",
+      "method": "Playwright viewport screenshot with an unscaled card crop. Mobile touch emulation.",
+      "screenshots": {
+        "slider-desktop-source.png": [
+          1280,
+          900
+        ],
+        "slider-mobile-source.png": [
           360,
           740
         ]

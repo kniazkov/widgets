@@ -8,6 +8,7 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.ComboBox;
 import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.view.Slider;
 import com.kniazkov.widgets.view.TypedChoice;
 import java.util.List;
 import com.kniazkov.widgets.view.FileLoader;
@@ -308,6 +309,28 @@ public abstract class Event<T> {
         public void updateWidget(final Widget<?> widget, final JsonObject data) {
             if (widget instanceof com.kniazkov.widgets.view.Toast toast) {
                 toast.dismiss(data.get("id").stringValue());
+            }
+        }
+    };
+
+    /**
+     * Final tick from a completed range edit.
+     */
+    public static final Event<Integer> SLIDER_COMMIT = new Event<Integer>() {
+        @Override
+        public String getName() {
+            return "slider commit";
+        }
+
+        @Override
+        public Integer parseData(final JsonObject object) {
+            return object.get("index").intValue();
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Integer index) {
+            if (widget instanceof Slider slider) {
+                slider.getValueModel().select(index);
             }
         }
     };
@@ -621,6 +644,7 @@ public abstract class Event<T> {
                 DATA_TABLE,
                 TREE_VIEW,
                 SPLIT_RESIZE,
+                SLIDER_COMMIT,
                 TOAST_DISMISS,
                 OVERLAY_COMMAND,
                 REORDER,

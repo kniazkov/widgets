@@ -37,6 +37,8 @@ import com.kniazkov.widgets.view.DataProvider;
 import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.TreeView;
 import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.view.Slider;
+import com.kniazkov.widgets.model.SliderModel;
 import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
@@ -239,6 +241,7 @@ public class AllWidgets {
         addDataTable(root);
         addTreeView(root);
         addSplitPane(root);
+        addSlider(root);
         addUploadManager(root);
         addFeedback(root);
         addDialogs(root);
@@ -677,6 +680,28 @@ public class AllWidgets {
         manager.setAcceptedFiles(".txt,.bin");
         card.add(new Section(manager));
         card.add(list);
+    }
+
+    /**
+     * Shared decimal selection; the disabled copy shows the last committed value.
+     * @param root gallery page
+     */
+    private static void addSlider(final RootWidget root) {
+        final Panel card = addCard(root, "Размер браслета",
+            "Выбери длину от 14 до 22 см с шагом 0,25 см.");
+        final BigDecimal initial = new BigDecimal("18.50");
+        final SliderModel length = new SliderModel(new BigDecimal("14"), new BigDecimal("22"),
+            new BigDecimal("0.25"), initial);
+        final Slider slider = new Slider(length, "Длина браслета", "см");
+        final Slider confirmed = new Slider(length, "Подтверждённая длина", "см");
+        confirmed.disable();
+        card.add(new Section(new TextWidget("Длина браслета")));
+        card.add(slider);
+        card.add(new Section(new TextWidget("Подтверждённая длина")));
+        card.add(confirmed);
+        final Button reset = new Button("Сбросить длину");
+        reset.onClick(event -> length.setData(initial));
+        card.add(new Section(reset));
     }
 
     /**

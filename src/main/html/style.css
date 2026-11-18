@@ -787,3 +787,27 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-split-pane.dragging > .widgets-split-handle,
 .widgets-split-handle:hover { background: #e9f2f8; }
 .widgets-split-handle[aria-disabled="true"] { opacity: .45; cursor: default; }
+
+.widgets-slider {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    max-width: 100%;
+    min-width: 0;
+}
+.widgets-slider input {
+    min-width: 0;
+    flex: 1 1 8rem;
+    height: 2.75rem;
+    margin: 0 3px;
+    accent-color: #315d86;
+    touch-action: pan-y;
+}
+.widgets-slider input:focus-visible {
+    outline: 2px solid #315d86;
+    outline-offset: 1px;
+}
+.widgets-slider span {
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
