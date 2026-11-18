@@ -29,7 +29,7 @@ import com.kniazkov.widgets.view.TextWidget;
  *   <li>Run the program;</li>
  *   <li>
  *     Open your browser and go to
- *     <a href="http://localhost:8000">http://localhost:8000</a>;
+ *     <a href="http://localhost:8080">http://localhost:8080</a>;
  *   </li>
  *   <li>Click the button — the counter will increase with each click.</li>
  * </ol>
