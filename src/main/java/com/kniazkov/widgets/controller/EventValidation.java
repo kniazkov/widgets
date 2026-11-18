@@ -7,6 +7,7 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.ComboBox;
 import com.kniazkov.widgets.view.DataTable;
+import com.kniazkov.widgets.view.SplitPane;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.TypedChoice;
 import com.kniazkov.widgets.view.HasCheckedState;
@@ -93,6 +94,9 @@ final class EventValidation {
         if (event == Event.TOAST_DISMISS) {
             return widget instanceof com.kniazkov.widgets.view.Toast;
         }
+        if (event == Event.SPLIT_RESIZE) {
+            return widget instanceof SplitPane;
+        }
         if (event == Event.TREE_VIEW) {
             return widget instanceof com.kniazkov.widgets.view.TreeView;
         }
@@ -159,6 +163,10 @@ final class EventValidation {
             return fields(data, "id") && text(data.get("id"), 20)
                 && ((com.kniazkov.widgets.view.Toast) widget)
                     .contains(data.get("id").stringValue());
+        }
+        if (event == Event.SPLIT_RESIZE) {
+            return fields(data, "position") && integer(data.get("position"), 0, 100)
+                && ((SplitPane) widget).acceptsPosition(data.get("position").intValue());
         }
         if (event == Event.TREE_VIEW) {
             return fields(data, "action", "key") && text(data.get("action"), 6)

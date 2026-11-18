@@ -249,6 +249,7 @@ const actionHandlers = {
     "set choice state": setChoiceState,
     "set data table": setDataTable,
     "set tree view": setTreeView,
+    "set split pane": setSplitPane,
     "set upload manager": setUploadManager,
     "set feedback": setFeedback,
     "set temporal input": setTemporalInput,

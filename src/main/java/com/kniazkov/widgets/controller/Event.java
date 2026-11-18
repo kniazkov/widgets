@@ -7,6 +7,7 @@ import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.ComboBox;
 import com.kniazkov.widgets.view.DataTable;
+import com.kniazkov.widgets.view.SplitPane;
 import com.kniazkov.widgets.view.TypedChoice;
 import java.util.List;
 import com.kniazkov.widgets.view.FileLoader;
@@ -312,6 +313,28 @@ public abstract class Event<T> {
     };
 
     /**
+     * Committed percentage from a pointer or keyboard resize.
+     */
+    public static final Event<Integer> SPLIT_RESIZE = new Event<Integer>() {
+        @Override
+        public String getName() {
+            return "split resize";
+        }
+
+        @Override
+        public Integer parseData(final JsonObject object) {
+            return object.get("position").intValue();
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Integer position) {
+            if (widget instanceof SplitPane pane) {
+                pane.setPosition(position);
+            }
+        }
+    };
+
+    /**
      * Scoped commands from the lazy tree, not arbitrary application input.
      */
     public static final Event<JsonObject> TREE_VIEW = new Event<JsonObject>() {
@@ -597,6 +620,7 @@ public abstract class Event<T> {
                 CHOICE_SEARCH,
                 DATA_TABLE,
                 TREE_VIEW,
+                SPLIT_RESIZE,
                 TOAST_DISMISS,
                 OVERLAY_COMMAND,
                 REORDER,

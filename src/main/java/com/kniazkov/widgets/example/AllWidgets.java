@@ -36,6 +36,8 @@ import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.DataProvider;
 import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.TreeView;
+import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Form;
@@ -236,6 +238,7 @@ public class AllWidgets {
         addTypedChoices(root);
         addDataTable(root);
         addTreeView(root);
+        addSplitPane(root);
         addUploadManager(root);
         addFeedback(root);
         addDialogs(root);
@@ -674,6 +677,55 @@ public class AllWidgets {
         manager.setAcceptedFiles(".txt,.bin");
         card.add(new Section(manager));
         card.add(list);
+    }
+
+    /**
+     * Resizable catalogue and nested detail panes sharing the same editing surface.
+     * @param root gallery page
+     */
+    private static void addSplitPane(final RootWidget root) {
+        final Panel card = addCard(root, "Редактор каталога",
+            "Перетащи разделитель или выбери его клавишей Tab и нажимай стрелки.");
+        final Panel catalog = splitArea("Коллекции", "Витражное стекло", 232, 241, 248);
+        final Panel details = splitArea("Подвеска", "Северное сияние", 242, 238, 247);
+        final Panel notes = splitArea("Материалы", "Стекло, медная фольга", 235, 244, 239);
+        final SplitPane detailPane = new SplitPane(SplitPane.Axis.VERTICAL, "Высота карточки",
+            20, 80, new IntegerModel(55), details, notes);
+        detailPane.setHeight("100%");
+        final IntegerModel width = new IntegerModel(38);
+        final SplitPane editor = new SplitPane(SplitPane.Axis.HORIZONTAL, "Размер списка коллекций",
+            20, 75, width, catalog, detailPane);
+        editor.setHeight(300);
+        final Button reset = new Button("Сбросить размеры");
+        reset.onClick(event -> {
+            width.setData(38);
+            detailPane.setPosition(55);
+        });
+        final BooleanModel locked = new BooleanModel(false);
+        editor.setDisabledStateModel(locked);
+        detailPane.setDisabledStateModel(locked);
+        final CheckBoxWithText lock = new CheckBoxWithText(
+            new StringModel("Зафиксировать размеры"), locked);
+        card.add(editor);
+        card.add(new Section(reset, lock));
+    }
+
+    /**
+     * @param title area heading
+     * @param text catalogue content
+     * @param red red channel
+     * @param green green channel
+     * @param blue blue channel
+     * @return sample pane content
+     */
+    private static Panel splitArea(final String title, final String text, final int red,
+            final int green, final int blue) {
+        final Panel area = new Panel();
+        area.setPadding(10);
+        area.setBgColor(new Color(red, green, blue));
+        area.add(new Section(new TextWidget(textStyle(TEXT, "16px", FontWeight.BOLD), title)));
+        area.add(new Section(new TextWidget(text)));
+        return area;
     }
 
     /**
