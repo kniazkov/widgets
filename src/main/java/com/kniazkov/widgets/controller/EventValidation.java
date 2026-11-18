@@ -93,6 +93,9 @@ final class EventValidation {
         if (event == Event.TOAST_DISMISS) {
             return widget instanceof com.kniazkov.widgets.view.Toast;
         }
+        if (event == Event.TREE_VIEW) {
+            return widget instanceof com.kniazkov.widgets.view.TreeView;
+        }
         if (event == Event.DATA_TABLE) {
             return widget instanceof DataTable;
         }
@@ -156,6 +159,11 @@ final class EventValidation {
             return fields(data, "id") && text(data.get("id"), 20)
                 && ((com.kniazkov.widgets.view.Toast) widget)
                     .contains(data.get("id").stringValue());
+        }
+        if (event == Event.TREE_VIEW) {
+            return fields(data, "action", "key") && text(data.get("action"), 6)
+                && text(data.get("key"), 128) && ((com.kniazkov.widgets.view.TreeView) widget)
+                    .accepts(data.get("action").stringValue(), data.get("key").stringValue());
         }
         if (event == Event.DATA_TABLE) {
             return fields(data, "action", "value", "checked") && text(data.get("action"), 8)

@@ -44,6 +44,7 @@ export default defineConfig({
                 "adaptive-layout.spec.js",
                 "typed-choices.spec.js",
                 "data-table.spec.js",
+                "tree-view.spec.js",
                 "public-document.spec.js",
                 "release-compatibility.spec.js"
             ],

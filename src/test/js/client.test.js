@@ -38,6 +38,7 @@ const handlerNames = [
     "setSuggestions",
     "setChoiceState",
     "setDataTable",
+    "setTreeView",
     "setFeedback",
     "setTemporalInput",
     "setNavigation",

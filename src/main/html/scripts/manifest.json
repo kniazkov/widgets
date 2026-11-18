@@ -28,6 +28,7 @@
         "widgets/suggestions.js",
         "widgets/choices.js",
         "widgets/data-table.js",
+        "widgets/tree-view.js",
         "widgets/feedback.js",
         "widgets/sortable.js",
         "widgets/zoom.js",

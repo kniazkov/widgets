@@ -701,3 +701,44 @@ button[aria-label]:has(> img):focus-visible {
     max-width: 100%;
     height: auto;
 }
+
+.widgets-tree-view {
+    box-sizing: border-box;
+    max-width: 100%;
+    color: inherit;
+}
+.widgets-tree-line {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding-inline-end: .5rem;
+    border-radius: .3rem;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+.widgets-tree-toggle {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 2.5rem;
+    align-self: stretch;
+}
+.widgets-tree-view [role="group"] {
+    margin-inline-start: min(1.15rem, 3vw);
+    border-inline-start: 1px solid #afbdc7;
+}
+.widgets-tree-view [role="status"] {
+    padding: .45rem .8rem;
+    font-size: .9em;
+}
+.widgets-tree-view [aria-selected="true"] > .widgets-tree-line {
+    background: #dae9f6;
+    color: #132c46;
+    font-weight: 600;
+}
+.widgets-tree-view:focus-visible .active > .widgets-tree-line {
+    outline: 2px solid #315d86;
+    outline-offset: -2px;
+}
+.widgets-tree-view[aria-disabled="true"] {
+    opacity: .6;
+}

@@ -35,6 +35,7 @@ import com.kniazkov.widgets.view.CheckBoxWithText;
 import com.kniazkov.widgets.view.RadioButtonWithText;
 import com.kniazkov.widgets.view.DataProvider;
 import com.kniazkov.widgets.view.DataTable;
+import com.kniazkov.widgets.view.TreeView;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Form;
@@ -234,6 +235,7 @@ public class AllWidgets {
         addDropDownLists(root);
         addTypedChoices(root);
         addDataTable(root);
+        addTreeView(root);
         addUploadManager(root);
         addFeedback(root);
         addDialogs(root);
@@ -672,6 +674,37 @@ public class AllWidgets {
         manager.setAcceptedFiles(".txt,.bin");
         card.add(new Section(manager));
         card.add(list);
+    }
+
+    /**
+     * Demonstrates lazy category browsing and branch status announcements.
+     * @param root gallery page
+     */
+    private static void addTreeView(final RootWidget root) {
+        final Panel card = addCard(root, "Дерево категорий",
+            "Стрелки перемещают фокус, Enter выбирает категорию.");
+        final TreeView tree = new TreeView(List.of(
+            new TreeView.Node("glass", "Витражное стекло", true),
+            new TreeView.Node("empty", "Новая коллекция", true),
+            new TreeView.Node("offline", "Недоступный архив", true)),
+            key -> CompletableFuture.supplyAsync(() -> switch (key) {
+                case "glass" -> List.of(new TreeView.Node("pendants", "Подвески", true),
+                    new TreeView.Node("earrings", "Серьги из цветного стекла", false));
+                case "pendants" -> List.of(new TreeView.Node("northern",
+                    "Коллекция длинных подвесок с северными пейзажами ручной работы", false));
+                case "empty" -> List.of();
+                default -> throw new IllegalStateException("Archive unavailable");
+            }, CompletableFuture.delayedExecutor(900, TimeUnit.MILLISECONDS)),
+            new TreeView.Messages("Загрузка…", "Пока пусто", "Ошибка загрузки"));
+        tree.setAccessibleName("Категории украшений");
+        final TextWidget toggleLabel = new TextWidget("Отключить дерево");
+        final Button disable = new Button(toggleLabel);
+        disable.onClick(event -> {
+            tree.setDisabledFlag(!tree.isDisabled());
+            toggleLabel.setText(tree.isDisabled() ? "Включить дерево" : "Отключить дерево");
+        });
+        card.add(tree);
+        card.add(new Section(disable));
     }
 
     /**

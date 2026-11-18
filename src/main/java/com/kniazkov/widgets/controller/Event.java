@@ -312,6 +312,28 @@ public abstract class Event<T> {
     };
 
     /**
+     * Scoped commands from the lazy tree, not arbitrary application input.
+     */
+    public static final Event<JsonObject> TREE_VIEW = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "tree command";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof com.kniazkov.widgets.view.TreeView tree) {
+                tree.command(data.get("action").stringValue(), data.get("key").stringValue());
+            }
+        }
+    };
+
+    /**
      * Scoped commands from the provider-backed table, not arbitrary application input.
      */
     public static final Event<JsonObject> DATA_TABLE = new Event<JsonObject>() {
@@ -574,6 +596,7 @@ public abstract class Event<T> {
                 CHOOSE_KEYS,
                 CHOICE_SEARCH,
                 DATA_TABLE,
+                TREE_VIEW,
                 TOAST_DISMISS,
                 OVERLAY_COMMAND,
                 REORDER,

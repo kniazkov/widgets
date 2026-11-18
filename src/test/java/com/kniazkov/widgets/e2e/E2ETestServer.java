@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.e2e;
 
 import com.kniazkov.widgets.base.Application;
+import com.kniazkov.widgets.view.TreeView;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
@@ -39,6 +40,7 @@ import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test-only application used by the Playwright end-to-end suite.
@@ -186,6 +188,26 @@ public final class E2ETestServer {
             show.onClick(event -> container.show());
             root.add(new Section(hide, show, result));
             root.add(container);
+        });
+        application.addPage("tree-race", (root, context) -> {
+            final var requests = new ArrayList<CompletableFuture<List<TreeView.Node>>>();
+            final var tree = new TreeView(List.of(
+                new TreeView.Node("root", "Root", true)), key -> {
+                    final var future = new CompletableFuture<List<TreeView.Node>>();
+                    requests.add(future);
+                    return future;
+                }, new TreeView.Messages("Loading", "Empty", "Error"));
+            final Button finish = new Button("Finish both");
+            finish.onClick(event -> {
+                if (requests.size() == 2) {
+                    requests.getLast().complete(List.of(
+                        new TreeView.Node("new", "Current", false)));
+                    requests.getFirst().complete(List.of(
+                        new TreeView.Node("old", "Stale", false)));
+                }
+            });
+            root.add(tree);
+            root.add(new Section(finish));
         });
         application.addPage("all-widgets", com.kniazkov.widgets.example.AllWidgets.galleryPage());
         application.addPage("connection-recovery", (root, context) -> {
