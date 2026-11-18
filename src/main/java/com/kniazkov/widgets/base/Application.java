@@ -339,12 +339,12 @@ public final class Application implements AutoCloseable {
     /**
      * Optional application-owned push service, advertised only after successful startup.
      */
-    private volatile PushServer push;
+    private volatile PushService push;
 
     /**
      * @param service unique active push owner, or null when disabling it
      */
-    void configurePush(final PushServer service) {
+    void configurePush(final PushService service) {
         synchronized (this.lifecycle) {
             this.requireOpen();
             if (service != null && this.push != null && !this.push.isClosed()) {
@@ -357,7 +357,7 @@ public final class Application implements AutoCloseable {
     /**
      * @param service closed owner; a concurrently installed replacement is preserved
      */
-    void disablePush(final PushServer service) {
+    void disablePush(final PushService service) {
         synchronized (this.lifecycle) {
             if (this.push == service) {
                 this.push = null;
@@ -368,8 +368,8 @@ public final class Application implements AutoCloseable {
     /**
      * @return live service advertised by new HTTP page channels
      */
-    PushServer pushServer() {
-        final PushServer service = this.push;
+    PushService pushServer() {
+        final PushService service = this.push;
         return service != null && !service.isClosed() ? service : null;
     }
 

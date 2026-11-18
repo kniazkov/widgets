@@ -31,6 +31,18 @@ jobs:
         run: mvn -B -ntp -f src/test/consumer/pom.xml clean verify
       - name: Validate release, resources and consumer
         run: node scripts/check-release.mjs
+      - name: Build independent modules and resolve consumer classpaths
+        run: |
+          mvn -B -ntp -f modules/pom.xml clean install
+          for consumer in minimal consumer; do
+            mvn -B -ntp -f src/test/$consumer/pom.xml verify dependency:build-classpath -Dmdep.outputFile=target/classpath.txt -DincludeScope=runtime
+          done
+          python3 modules/test/classpath.py
+      - name: Exercise the packaged applications in Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test --config=modules/test/playwright.config.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
