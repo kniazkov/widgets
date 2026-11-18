@@ -4,13 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.webserver.Request;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -18,34 +12,9 @@ import java.util.Map;
  */
 final class ProtocolSecurity {
     /**
-     * Cryptographic entropy source, independent of public widget/client IDs.
-     */
-    private static final SecureRandom RANDOM = new SecureRandom();
-
-    /**
      * No instances.
      */
     private ProtocolSecurity() {
-    }
-
-    /**
-     * @return 256-bit URL-safe random secret
-     */
-    static String secret() {
-        final byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-    }
-
-    /**
-     * @param expected server-side secret
-     * @param provided untrusted candidate
-     * @return constant-time equality for correctly sized credentials
-     */
-    static boolean matches(final String expected, final String provided) {
-        return provided != null && provided.length() == expected.length()
-            && MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8),
-                provided.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -65,35 +34,6 @@ final class ProtocolSecurity {
             }
         }
         return result;
-    }
-
-    /**
-     * @param value HTTP(S) origin without credentials, query, path or fragment
-     * @return normalized origin, or null for invalid input
-     */
-    static String origin(final String value) {
-        if (value == null) {
-            return null;
-        }
-        try {
-            final URI uri = URI.create(value);
-            final String scheme = uri.getScheme();
-            if (!("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
-                    || uri.getHost() == null || uri.getRawUserInfo() != null
-                    || uri.getRawQuery() != null || uri.getRawFragment() != null
-                    || !(uri.getRawPath().isEmpty() || "/".equals(uri.getRawPath()))
-                    || uri.getPort() > 65535) {
-                return null;
-            }
-            final int port = uri.getPort();
-            final boolean defaultPort = port == -1
-                || (port == 80 && "http".equalsIgnoreCase(scheme))
-                || (port == 443 && "https".equalsIgnoreCase(scheme));
-            return scheme.toLowerCase(Locale.ROOT) + "://" + uri.getHost().toLowerCase(Locale.ROOT)
-                + (defaultPort ? "" : ":" + port);
-        } catch (final IllegalArgumentException invalid) {
-            return null;
-        }
     }
 
     /**
@@ -122,7 +62,8 @@ final class ProtocolSecurity {
         final String host = header(request, "Host");
         final String expected = options.getPublicOrigin().isEmpty()
             ? (host == null ? null
-                : origin((options.getSslOptions().isPresent() ? "https://" : "http://") + host))
+                : SecurityPrimitives.origin(
+                    (options.getSslOptions().isPresent() ? "https://" : "http://") + host))
             : options.getPublicOrigin();
         final String rawOrigin = header(request, "Origin");
         final boolean hasOrigin = request.getHeaders().getValues().keySet().stream()
@@ -130,7 +71,7 @@ final class ProtocolSecurity {
         final String site = header(request, "Sec-Fetch-Site");
         final boolean hasSite = request.getHeaders().getValues().keySet().stream()
             .anyMatch(name -> "Sec-Fetch-Site".equalsIgnoreCase(name));
-        return expected != null && (!hasOrigin || expected.equals(origin(rawOrigin)))
+        return expected != null && (!hasOrigin || expected.equals(SecurityPrimitives.origin(rawOrigin)))
             && (!hasSite || "same-origin".equals(site));
     }
 

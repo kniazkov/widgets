@@ -53,7 +53,7 @@
 - [x] **R37 · P2** — [#141: Определить модель нескольких серверов и восстановление состояния](https://github.com/kniazkov/widgets/issues/141)
 - [x] **R38 · P2** — [#142: Добавить статическое представление страниц и метаданные для каталога](https://github.com/kniazkov/widgets/issues/142)
 - [x] **R39 · P2** — [#143: Версионировать выпуски и совместимость Java/JS-протокола](https://github.com/kniazkov/widgets/issues/143)
-- [ ] **R40 · P3** — [#144: Разделить core, HTTP, database и image-зависимости](https://github.com/kniazkov/widgets/issues/144)
+- [x] **R40 · P3** — [#144: Разделить core, HTTP, database и image-зависимости](https://github.com/kniazkov/widgets/issues/144)
 - [ ] **R41 · P3** — [#145: Добавить TreeView для иерархических данных](https://github.com/kniazkov/widgets/issues/145)
 - [ ] **R42 · P3** — [#146: Добавить SplitPane с доступным изменением размеров](https://github.com/kniazkov/widgets/issues/146)
 - [ ] **R43 · P3** — [#147: Добавить Slider с числовым контрактом и клавиатурой](https://github.com/kniazkov/widgets/issues/147)

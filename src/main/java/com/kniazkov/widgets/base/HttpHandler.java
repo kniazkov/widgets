@@ -403,7 +403,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
              */
             throw new ProtocolAccessException(true);
         }
-        if (!ProtocolSecurity.matches(session.csrf(), ProtocolSecurity.header(request,
+        if (!SecurityPrimitives.matches(session.csrf(), ProtocolSecurity.header(request,
                 "X-Widgets-CSRF"))) {
             throw new ProtocolAccessException(false);
         }
