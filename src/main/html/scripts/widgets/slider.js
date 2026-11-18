@@ -39,10 +39,8 @@ function createSlider() {
     }
 
     function cancel() {
-        const id = pointer;
         pointer = null;
         key = null;
-        if (id !== null && input.hasPointerCapture(id)) input.releasePointerCapture(id);
         if (state) {
             input.valueAsNumber = committed;
             preview();
@@ -86,7 +84,7 @@ function createSlider() {
     listen("pointerdown", event => {
         if (!state || input.disabled || !event.isPrimary || event.button !== 0) return;
         pointer = event.pointerId;
-        input.setPointerCapture(pointer);
+        // Leave native thumb tracking to the browser, including its internal pointer capture.
     });
     listen("input", () => {
         if (state) preview();
@@ -94,15 +92,27 @@ function createSlider() {
     listen("change", () => {
         if (pointer === null && key === null) commit();
     });
-    listen("pointerup", event => {
-        if (pointer !== event.pointerId) return;
-        pointer = null;
-        commit();
-    });
-    for (const type of ["pointercancel", "lostpointercapture"])
-        listen(type, event => {
+    listenWidget(
+        widget,
+        "pointerup",
+        event => {
+            if (pointer !== event.pointerId) return;
+            pointer = null;
+            commit();
+        },
+        undefined,
+        window
+    );
+    listenWidget(
+        widget,
+        "pointercancel",
+        event => {
             if (pointer === event.pointerId) cancel();
-        });
+        },
+        true,
+        window
+    );
+    listenWidget(widget, "blur", cancel, undefined, window);
 
     listen("keydown", event => {
         if (!state || input.disabled || event.altKey || event.ctrlKey || event.metaKey) return;

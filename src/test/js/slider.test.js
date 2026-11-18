@@ -27,10 +27,8 @@ it("previews exactly, bounds event traffic and retains authoritative state on ca
         };
         const set = index => setSlider({ widget: "#1", snapshot: { ...snapshot, index } });
         expect(set(0)).toBe(true);
-        input.setPointerCapture = () => {};
-        input.hasPointerCapture = () => false;
         const pointer = type => {
-            const e = new dom.window.Event(type);
+            const e = new dom.window.Event(type, { bubbles: true });
             Object.assign(e, { pointerId: 7, isPrimary: true, button: 0 });
             input.dispatchEvent(e);
         };
