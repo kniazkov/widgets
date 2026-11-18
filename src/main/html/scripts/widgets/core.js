@@ -325,6 +325,7 @@ const widgetsLibrary = {
     "typed multi select": () => createTypedSelect(true),
     "typed combo box": createTypedComboBox,
     "data table": createDataTable,
+    "tree view": createTreeView,
     "upload manager": createUploadManager,
     "upload list": createUploadList,
     feedback: createFeedback,
