@@ -40,7 +40,7 @@ public final class Client implements Comparable<Client>, AutoCloseable {
     /**
      * Independent 256-bit secret for this page, never a widget ID or browser ID.
      */
-    private final String channelToken = ProtocolSecurity.secret();
+    private final String channelToken = SecurityPrimitives.secret();
 
     /**
      * Client expiration timer in milliseconds.

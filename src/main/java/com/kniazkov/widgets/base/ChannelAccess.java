@@ -48,7 +48,7 @@ final class ChannelAccess {
         }
         if (access == null || owner == null || access.session != owner
                 || !serverId.toString().equals(access.epoch)
-                || !ProtocolSecurity.matches(client.channelToken(), access.token)) {
+                || !SecurityPrimitives.matches(client.channelToken(), access.token)) {
             throw new ProtocolAccessException(false);
         }
         if (!owner.isActive()) {

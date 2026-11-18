@@ -19,11 +19,11 @@ public final class BrowserSession {
     /**
      * HttpOnly cookie credential, never exposed to application pages or JavaScript.
      */
-    private final String credential = ProtocolSecurity.secret();
+    private final String credential = SecurityPrimitives.secret();
     /**
      * Independent bootstrap proof for same-origin POST requests.
      */
-    private final String csrf = ProtocolSecurity.secret();
+    private final String csrf = SecurityPrimitives.secret();
     /**
      * Maximum idle time in nanoseconds.
      */

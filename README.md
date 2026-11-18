@@ -13,6 +13,8 @@ The project targets Java 21 and is distributed as the Maven artifact
 See [release policy and Foundry19 migration](docs/RELEASING.ru.md) and
 [CHANGELOG](CHANGELOG.md).
 
+For a smaller web dependency, use `widgets-http`. See [module setup and examples](docs/MODULES_DESIGN.ru.md).
+
 Applications can publish explicit filesystem and classpath subtrees with
 `Options.Builder.addStaticSource(...)`. See [Static resource sources](docs/STATIC_RESOURCES.md)
 for configuration examples, routing precedence and security boundaries.

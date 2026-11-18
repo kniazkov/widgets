@@ -509,7 +509,7 @@ public final class Options {
          */
         public Builder setPublicOrigin(final String value) {
             Objects.requireNonNull(value, "Public origin must not be null");
-            final String normalized = ProtocolSecurity.origin(value);
+            final String normalized = SecurityPrimitives.origin(value);
             if (normalized == null) {
                 throw new IllegalArgumentException("Public origin must be an HTTP(S) origin");
             }

@@ -6,6 +6,7 @@ package com.kniazkov.widgets.base;
 import com.kniazkov.json.JsonObject;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,6 +16,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.jar.JarFile;
 
 /**
@@ -116,25 +119,46 @@ public final class ReleaseInfo {
     }
 
     /**
+     * @param location directory or JAR containing one or more Widgets components
+     * @param entries names to include in the fingerprint
+     * @throws IOException when classes or resources cannot be enumerated
+     */
+    private static void collect(final Path location, final Set<String> entries) throws IOException {
+        if (Files.isDirectory(location)) {
+            try (var files = Files.walk(location)) {
+                files.filter(Files::isRegularFile)
+                    .map(file -> location.relativize(file).toString().replace('\\', '/'))
+                    .filter(ReleaseInfo::included).forEach(entries::add);
+            }
+        } else {
+            try (JarFile jar = new JarFile(location.toFile())) {
+                jar.stream().filter(entry -> !entry.isDirectory()).map(entry -> entry.getName())
+                    .filter(ReleaseInfo::included).forEach(entries::add);
+            }
+        }
+    }
+
+    /**
      * @return digest independent of ZIP timestamps, entry order and unrelated consumer classes
      */
     private static String fingerprint() {
         try {
-            final Path location = Path.of(ReleaseInfo.class.getProtectionDomain().getCodeSource()
-                .getLocation().toURI());
-            final List<String> entries;
-            if (Files.isDirectory(location)) {
-                try (var files = Files.walk(location)) {
-                    entries = files.filter(Files::isRegularFile)
-                        .map(file -> location.relativize(file).toString().replace('\\', '/'))
-                        .filter(ReleaseInfo::included).sorted().toList();
+            final Set<Path> locations = new TreeSet<>();
+            locations.add(Path.of(ReleaseInfo.class.getProtectionDomain().getCodeSource()
+                .getLocation().toURI()));
+            final var markers = ReleaseInfo.class.getClassLoader()
+                .getResources("META-INF/widgets-component");
+            while (markers.hasMoreElements()) {
+                final var marker = markers.nextElement();
+                if (marker.openConnection() instanceof JarURLConnection jar) {
+                    locations.add(Path.of(jar.getJarFileURL().toURI()));
+                } else {
+                    locations.add(Path.of(marker.toURI()).getParent().getParent());
                 }
-            } else {
-                try (JarFile jar = new JarFile(location.toFile())) {
-                    entries = jar.stream().filter(entry -> !entry.isDirectory())
-                        .map(entry -> entry.getName()).filter(ReleaseInfo::included)
-                        .distinct().sorted().toList();
-                }
+            }
+            final Set<String> entries = new TreeSet<>();
+            for (final Path location : locations) {
+                collect(location, entries);
             }
             final MessageDigest digest = MessageDigest.getInstance("SHA-256");
             for (final String entry : entries) {

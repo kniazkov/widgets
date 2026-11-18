@@ -27,7 +27,7 @@ public record StreamOptions(int port, String publicOrigin, int connections, int 
      * Validates fixed resource budgets and requires TLS except on local test origins.
      */
     public StreamOptions {
-        final String normalized = ProtocolSecurity.origin(publicOrigin);
+        final String normalized = SecurityPrimitives.origin(publicOrigin);
         if (normalized == null || port < 0 || port > 65535 || connections < 1 || workers < 1
                 || tasks < 1 || messageBytes < 256 || queuedMessages < 1
                 || queuedBytes < messageBytes || authMillis < 100 || heartbeatMillis < 100

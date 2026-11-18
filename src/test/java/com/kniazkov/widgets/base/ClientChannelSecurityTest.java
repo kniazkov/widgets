@@ -253,8 +253,23 @@ public final class ClientChannelSecurityTest {
         final var replacedCookie = fresh.post(this.syncFields(first, "[]"), staleDocument);
         assertEquals(403, replacedCookie.statusCode());
         assertTrue(ProtocolTestBrowser.json(replacedCookie).get("sessionExpired").booleanValue());
-        assertEquals(403,
-            fresh.post(this.syncFields(first, "[]"), fresh.headers(first)).statusCode());
+        final var reused = fresh.post(this.syncFields(first, "[]"), fresh.headers(first));
+        final JsonObject result = ProtocolTestBrowser.json(reused);
+        if (reused.statusCode() == 403) {
+            assertTrue(result.get("accessDenied").booleanValue());
+        } else {
+            /*
+             * The watchdog may already have removed the revoked session's channels.
+             */
+            assertEquals(200, reused.statusCode());
+            assertThrows(ProtocolAccessException.class,
+                () -> this.app.channelToken(RMId.parse(id(first))));
+            assertEquals(4, result.size());
+            assertEquals("false", result.get("result").toString());
+            assertEquals("false", result.get("clientAlive").toString());
+            assertEquals(this.app.getServerId().toString(), result.get("serverId").stringValue());
+            assertTrue(result.containsKey("serverNow"));
+        }
         assertEquals(0, this.clicks.get());
     }
 

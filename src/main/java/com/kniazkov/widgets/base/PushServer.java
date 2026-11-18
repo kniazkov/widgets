@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * protocol, preserving its event IDs, independent update epochs and replay checkpoints.
  * Network writes never run under an application/client/root monitor.
  */
-public final class PushServer implements AutoCloseable, StreamHandler {
+public final class PushServer implements AutoCloseable, StreamHandler, PushService {
     /**
      * Hard per-document subscription and in-flight request budget.
      */
@@ -118,7 +118,8 @@ public final class PushServer implements AutoCloseable, StreamHandler {
     /**
      * @return advertised native text envelope limit
      */
-    int messageBytes() {
+    @Override
+    public int messageBytes() {
         return this.messageBytes;
     }
 
