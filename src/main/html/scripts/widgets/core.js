@@ -327,6 +327,7 @@ const widgetsLibrary = {
     "data table": createDataTable,
     "tree view": createTreeView,
     "split pane": createSplitPane,
+    slider: createSlider,
     "upload manager": createUploadManager,
     "upload list": createUploadList,
     feedback: createFeedback,

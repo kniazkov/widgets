@@ -46,6 +46,7 @@ export default defineConfig({
                 "data-table.spec.js",
                 "tree-view.spec.js",
                 "split-pane.spec.js",
+                "slider.spec.js",
                 "public-document.spec.js",
                 "release-compatibility.spec.js"
             ],

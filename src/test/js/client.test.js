@@ -40,6 +40,7 @@ const handlerNames = [
     "setDataTable",
     "setTreeView",
     "setSplitPane",
+    "setSlider",
     "setFeedback",
     "setTemporalInput",
     "setNavigation",
