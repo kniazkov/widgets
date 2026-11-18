@@ -1255,6 +1255,34 @@
       ],
       "sha256": "687176d04f336f2239813478cea275b52918fef5a947106accf8a812bc2cdb52",
       "captureId": "r30-mobile"
+    },
+    "tree-desktop": {
+      "file": "tree-desktop.png",
+      "title": "Дерево категорий",
+      "states": "Два раскрытых уровня и выбранная подвеска",
+      "sourceScreenshot": "tree-desktop-source.png",
+      "captureId": "tree-view",
+      "crop": [
+        32,
+        262,
+        1216,
+        375
+      ],
+      "sha256": "3974ca07d4c166e99a4203c804a872295a8bdadfc0b90d4604597aeb14d7f73d"
+    },
+    "tree-mobile": {
+      "file": "tree-mobile.png",
+      "title": "Дерево категорий",
+      "states": "Два раскрытых уровня и выбранная подвеска",
+      "sourceScreenshot": "tree-mobile-source.png",
+      "captureId": "tree-view",
+      "crop": [
+        32,
+        159,
+        296,
+        423
+      ],
+      "sha256": "4d355f5f8313599284e0c05c4f4b975b749f0e6d4964fd30577ffe44c54ca61d"
     }
   },
   "widgets": {
@@ -1534,6 +1562,10 @@
       "upload-mobile-done",
       "upload-mobile-error",
       "upload-mobile-progress"
+    ],
+    "TreeView": [
+      "tree-desktop",
+      "tree-mobile"
     ]
   },
   "modalLifecycleCapture": {
@@ -2058,6 +2090,25 @@
         "upload-mobile-progress.png": [
           395,
           21312
+        ]
+      }
+    },
+    "tree-view": {
+      "date": "2026-11-18",
+      "commit": "5d5250f69a0d8949916898abafb95259df478804",
+      "allWidgetsSourceSha256": "b84632f3507240940c481bfffed7e402dba25b7779be5a8a6eb1cd1e7c50c15c",
+      "page": "Standalone AllWidgets, http://127.0.0.1:18645/",
+      "browser": "Chromium 153.0.8010.0",
+      "viewport": "1280 × 900 and 360 × 740, DPR 1",
+      "method": "Playwright, real viewport screenshot followed by an unscaled card crop. Mobile touch emulation.",
+      "screenshots": {
+        "tree-desktop-source.png": [
+          1280,
+          900
+        ],
+        "tree-mobile-source.png": [
+          360,
+          740
         ]
       }
     }
