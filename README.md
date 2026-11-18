@@ -26,20 +26,8 @@ Here the **model** holds an integer, the **view** displays it as text, and the *
 is the handler passed to `onClick`. A click increments the model. The text follows because
 `setTextModel` binds it to the counter. You can see all three parts in the same Java method.
 
-## Run the bundled example
+## Run the counter
 
-With Git, JDK 21, Maven 3 and Bash installed, run the bundled example:
-
-```bash
-git clone https://github.com/kniazkov/widgets.git
-cd widgets
-./run.sh com.kniazkov.widgets.example.ClickCounter
-```
-
-Open [localhost:8080](http://localhost:8080/). Click **Click me** twice. The counter goes
-from 0 to 1 to 2. Press Ctrl+C in the terminal to stop the server.
-[Full example with imports and server setup](src/main/java/com/kniazkov/widgets/example/ClickCounter.java)
-
-To create your own project, follow [Your first Widgets application with Maven](docs/en/quick-start.md).
+Use JDK 21 and Maven 3.9. Add `com.kniazkov:widgets-http:0.2.0` to your POM. The [Maven quick start](docs/en/quick-start.md) includes the complete POM, the Java file and the command to run it.
 
 [Examples](src/main/java/com/kniazkov/widgets/example) · [Visual gallery (Russian)](docs/WIDGET_GALLERY.ru.md) · [MIT license](LICENSE)

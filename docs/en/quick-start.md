@@ -3,33 +3,19 @@
 [Web Widgets](../../README.md) · [Русский](../ru/quick-start.md)
 
 Start with an empty directory. By the end you will have a standalone Java application with a button
-that increments a counter in your browser. You need Git, Bash, a JDK 21 installation and Maven 3.9.
-Run `mvn -version` and check that Maven reports Java 21.
-
-## Install Widgets once
-
-This guide uses `com.kniazkov:widgets-http:0.2.0`. This version is available from source
-and has yet to be published to Maven Central. From the empty directory, install the web module
-from the pinned revision below. Maven also installs its parent POM and the core module.
-Once these coordinates are published to Central, you can start at the next section and Maven will
-download the dependency declared in your POM.
-
-```bash
-git clone https://github.com/kniazkov/widgets.git widgets
-git -C widgets checkout --detach d1f627b7c1b17a5e722f7d502db48e32b56e03de
-mvn -f widgets/modules/pom.xml -pl :widgets-http -am clean install
-```
+that increments a counter in your browser.
 
 ## Create the application
 
-Create your project alongside the library checkout. All remaining paths are relative to this new project.
+You need JDK 21 and Maven 3.9. Run `mvn -version` to check which JDK Maven uses.
+Create a directory for the application and its Java source.
 
 ```bash
 mkdir -p hello-widgets/src/main/java/example
 cd hello-widgets
 ```
 
-Save this file as `pom.xml`. Maven will resolve Widgets from the local repository populated above.
+Save this as `pom.xml`. Maven downloads `com.kniazkov:widgets-http:0.2.0` and its dependencies from Maven Central on the first build.
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -115,5 +101,5 @@ twice to see **1** and then **2**. Press Ctrl+C in the terminal to stop the appl
 ## Which dependency do I need?
 
 - `widgets-http` includes the server and pulls in the widgets, models and browser resources needed for this page.
-- Add `widgets-db` for the library's record and persistence APIs, or `widgets-images` for image decoding and processing. To use either at this revision, extend the install command’s `-pl` list (for example, `-pl :widgets-http,:widgets-db`) and add a dependency of the same version to your POM.
-- The full `com.kniazkov:widgets` artifact bundles all modules and examples. Use it on its own if you need that distribution. Build it from the same checkout with `mvn -f widgets/pom.xml clean install` from the directory where you cloned Widgets.
+- Add `widgets-db` for the library's record and persistence APIs, or `widgets-images` for image decoding and processing.
+- The full `com.kniazkov:widgets` artifact bundles all modules and examples. Use it on its own if you need that distribution.

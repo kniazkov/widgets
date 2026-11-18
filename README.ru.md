@@ -27,20 +27,8 @@ Page page = (root, context) -> {
 **контроллера** выполняет обработчик, переданный в `onClick`. Нажатие кнопки увеличивает
 число. Надпись обновляется сама благодаря привязке через `setTextModel`.
 
-## Запуск готового примера
+## Запусти счётчик
 
-Понадобятся Git, JDK 21, Maven 3 и Bash. Склонируй репозиторий и запусти готовый пример:
-
-```bash
-git clone https://github.com/kniazkov/widgets.git
-cd widgets
-./run.sh com.kniazkov.widgets.example.ClickCounter
-```
-
-Открой [localhost:8080](http://localhost:8080/) и дважды нажми **Click me**. Счётчик покажет
-сначала 0, затем 1 и 2. Чтобы остановить сервер, нажми Ctrl+C в терминале.
-[Полный пример с импортами и запуском сервера](src/main/java/com/kniazkov/widgets/example/ClickCounter.java)
-
-Чтобы создать свой проект, пройди [быстрый старт с Maven](docs/ru/quick-start.md).
+Понадобятся JDK 21 и Maven 3.9. Добавь в POM зависимость `com.kniazkov:widgets-http:0.2.0`. В [быстром старте с Maven](docs/ru/quick-start.md) есть полный POM, Java-файл и команда запуска.
 
 [Примеры](src/main/java/com/kniazkov/widgets/example) · [Справочник классов (на английском)](docs/WIDGETS.md) · [Лицензия MIT](LICENSE)
