@@ -326,6 +326,7 @@ const widgetsLibrary = {
     "typed combo box": createTypedComboBox,
     "data table": createDataTable,
     "tree view": createTreeView,
+    "split pane": createSplitPane,
     "upload manager": createUploadManager,
     "upload list": createUploadList,
     feedback: createFeedback,

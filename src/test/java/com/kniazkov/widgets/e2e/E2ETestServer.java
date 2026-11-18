@@ -5,6 +5,9 @@ package com.kniazkov.widgets.e2e;
 
 import com.kniazkov.widgets.base.Application;
 import com.kniazkov.widgets.view.TreeView;
+import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.model.IntegerModel;
+import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
@@ -188,6 +191,20 @@ public final class E2ETestServer {
             show.onClick(event -> container.show());
             root.add(new Section(hide, show, result));
             root.add(container);
+        });
+        application.addPage("split-lifecycle", (root, context) -> {
+            final IntegerModel position = new IntegerModel(40);
+            final InputField field = new InputField();
+            final var pane = new SplitPane(SplitPane.Axis.HORIZONTAL, "Divider", 15, 85,
+                position, new Section(field), new Section(new TextWidget("Preview")));
+            final Button reset = new Button("Reset");
+            reset.onClick(event -> position.setData(60));
+            final Button remove = new Button("Remove");
+            remove.onClick(event -> pane.dispose());
+            final TextWidget report = new TextWidget();
+            report.setTextModel(new IntegerToStringModel(position));
+            root.add(pane);
+            root.add(new Section(reset, remove, report));
         });
         application.addPage("tree-race", (root, context) -> {
             final var requests = new ArrayList<CompletableFuture<List<TreeView.Node>>>();

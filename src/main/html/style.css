@@ -742,3 +742,48 @@ button[aria-label]:has(> img):focus-visible {
 .widgets-tree-view[aria-disabled="true"] {
     opacity: .6;
 }
+
+.widgets-split-pane {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    height: 16rem;
+    grid-template-columns: minmax(0, var(--split-first, 1fr)) 26px minmax(0, var(--split-second, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+}
+.widgets-split-pane.stacked {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, var(--split-first)) 26px minmax(0, var(--split-second));
+}
+.widgets-split-pane.single-area {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+}
+.widgets-split-pane > :not(.widgets-split-handle) {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+}
+.widgets-split-handle:not([hidden]) {
+    display: grid;
+    place-items: center;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+}
+.widgets-split-handle::before {
+    content: "";
+    width: 4px;
+    height: min(60%, 3rem);
+    border-radius: 2px;
+    background: #687d91;
+}
+.widgets-split-pane.stacked > .widgets-split-handle { cursor: row-resize; }
+.widgets-split-pane.stacked > .widgets-split-handle::before {
+    width: min(60%, 3rem);
+    height: 4px;
+}
+.widgets-split-handle:focus-visible { outline: 2px solid #315d86; outline-offset: -2px; }
+.widgets-split-pane.dragging > .widgets-split-handle,
+.widgets-split-handle:hover { background: #e9f2f8; }
+.widgets-split-handle[aria-disabled="true"] { opacity: .45; cursor: default; }

@@ -1283,6 +1283,34 @@
         423
       ],
       "sha256": "4d355f5f8313599284e0c05c4f4b975b749f0e6d4964fd30577ffe44c54ca61d"
+    },
+    "split-desktop": {
+      "file": "split-desktop.png",
+      "title": "Редактор каталога",
+      "states": "Два вложенных разделителя, фокус на внешнем",
+      "sourceScreenshot": "split-desktop-source.png",
+      "captureId": "split-pane",
+      "crop": [
+        32,
+        232,
+        1216,
+        435
+      ],
+      "sha256": "858800694b75db30b2c161b21c20eb39c9db34b308b3e4287a1a1f101203d2e5"
+    },
+    "split-mobile": {
+      "file": "split-mobile.png",
+      "title": "Редактор каталога",
+      "states": "Два вложенных разделителя, фокус на внешнем",
+      "sourceScreenshot": "split-mobile-source.png",
+      "captureId": "split-pane",
+      "crop": [
+        32,
+        132,
+        296,
+        477
+      ],
+      "sha256": "302681cb56d49c47d3bf1581a2588fa142fac2490b983801fd959b70b319bb19"
     }
   },
   "widgets": {
@@ -1566,6 +1594,10 @@
     "TreeView": [
       "tree-desktop",
       "tree-mobile"
+    ],
+    "SplitPane": [
+      "split-desktop",
+      "split-mobile"
     ]
   },
   "modalLifecycleCapture": {
@@ -2107,6 +2139,25 @@
           900
         ],
         "tree-mobile-source.png": [
+          360,
+          740
+        ]
+      }
+    },
+    "split-pane": {
+      "date": "2026-11-18",
+      "commit": "61f42e89da5efe9b6911d89cd753d75c658d2582",
+      "allWidgetsSourceSha256": "4093bb212874383ff24bb4e2e79eaa3c56623f1f9cc60d27cefe96ab6847ed09",
+      "page": "Standalone AllWidgets, http://127.0.0.1:18647/",
+      "browser": "Chromium 153.0.8010.0",
+      "viewport": "1280 × 900 and 360 × 740, DPR 1",
+      "method": "Playwright viewport screenshot followed by an unscaled editor card crop. Mobile touch emulation.",
+      "screenshots": {
+        "split-desktop-source.png": [
+          1280,
+          900
+        ],
+        "split-mobile-source.png": [
           360,
           740
         ]

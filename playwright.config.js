@@ -45,6 +45,7 @@ export default defineConfig({
                 "typed-choices.spec.js",
                 "data-table.spec.js",
                 "tree-view.spec.js",
+                "split-pane.spec.js",
                 "public-document.spec.js",
                 "release-compatibility.spec.js"
             ],
