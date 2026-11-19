@@ -61,7 +61,7 @@ so Ctrl+C and service-manager stop signals reach the application directly.
 
 ## Browser JavaScript
 
-See [Browser JavaScript source map](docs/JAVASCRIPT.md) for file responsibilities, script loading,
+See [Browser JavaScript source map](docs/maintainers/JAVASCRIPT.md) for file responsibilities, script loading,
 per-page scope and the shared manifest used by the server and tests.
 
 ## Development workflow
@@ -117,3 +117,5 @@ the mandatory gate for all symlink confinement checks. No production security ch
 
 Signing is reserved for release builds through the Maven `release` profile. Contributors do not
 need a GPG key to run the normal build or verification commands.
+
+[Maintainer guides for releases, architecture and testing](docs/maintainers/README.md)

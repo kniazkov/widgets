@@ -29,7 +29,7 @@ node scripts/run-load.mjs --clients=1,4 --repeats=1 --profiles=burst,uploads,his
 уже начавшиеся дожидаются завершения, каналы закрываются и Java останавливается.
 HTTP timeout — 15 секунд, проверка освобождения ресурсов — до 10 секунд.
 
-Workflow [Load profiles](../.github/workflows/load-tests.yml) запускает полную матрицу
+Workflow [Load profiles](../../.github/workflows/load-tests.yml) запускает полную матрицу
 при изменении стенда и вручную через workflow_dispatch. Лимит job — 25 минут.
 Обычный workflow Tests остаётся без сокращений: `mvn verify` на Linux/Windows и
 `npm run test:browser` (включая JavaScript-тесты и браузерные сценарии).
@@ -134,10 +134,6 @@ executor.scheduleWithFixedDelay(() -> {
 видимых виджетов нет, поэтому AllWidgets и изображения для этого контракта не нужны.
 
 ## Базовая линия и бюджеты
-
-[Предварительный прогон](LOAD_BASELINE.ru.md) фиксирует два запуска без браузера.
-Окончательные браузерные результаты текущего PR берутся из его CI artifact и
-указываются в описании PR вместе с SHA; локальный прогон не подменяет эту приёмку.
 
 Для одинаковых profile/clients отчёт вычисляет для CPU, HTTP p95 и DOM p95
 `investigationThreshold = max + (max - min)` по повторениям. Это порог расследования,

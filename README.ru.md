@@ -7,7 +7,7 @@
 Браузер показывает страницу, передаёт действия пользователя в Java и обновляет виджеты,
 когда меняются связанные с ними модели.
 
-[Быстрый старт](docs/ru/quick-start.md) · [Каталог виджетов](docs/WIDGET_GALLERY.ru.md) · [Развёртывание с HTTPS](docs/ru/https.md)
+[Быстрый старт](docs/ru/quick-start.md) · [Каталог виджетов](docs/WIDGET_GALLERY.ru.md) · [Развёртывание с HTTPS](docs/ru/https.md) · [Обновление и эксплуатация](docs/ru/operations.md)
 
 ## Кнопка и счётчик
 

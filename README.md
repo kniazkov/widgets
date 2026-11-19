@@ -6,7 +6,7 @@ Build interactive web pages in Java. Define a page’s layout, state and event h
 Widgets keeps the widget tree on the server. Its browser client displays the page, sends user
 actions to Java and updates the affected widgets when their models change.
 
-[Quick start](docs/en/quick-start.md) · [Widget catalog](docs/WIDGETS.md) · [Deploy with HTTPS](docs/en/https.md)
+[Quick start](docs/en/quick-start.md) · [Widget catalog](docs/WIDGETS.md) · [Deploy with HTTPS](docs/en/https.md) · [Upgrading and running an application](docs/en/operations.md)
 
 ## A button and a counter
 
