@@ -77,3 +77,5 @@ must survive an application restart, write it to your storage in this handler an
 **Try changing the rule.** Change `DIGITS` from `4` to `5`, restart the application and
 reopen the form. The message now asks for five digits. Typing `0042` still leaves the button
 disabled. Enter `00042` and click **Save** to see all five digits in the result.
+
+[Next: build a page from cards](page-composition.md)
