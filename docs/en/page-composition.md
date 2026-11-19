@@ -76,3 +76,5 @@ fit side by side again.
 
 Image credits — [Moon, NASA/JPL/USGS](https://science.nasa.gov/photojournal/earths-moon/) and
 [Mars, NASA/JPL-Caltech/USGS](https://science.nasa.gov/resource/global-color-views-of-mars/).
+
+[Next: link two pages and compare state across tabs](page-navigation.md)
