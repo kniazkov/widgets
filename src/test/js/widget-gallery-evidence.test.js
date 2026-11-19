@@ -71,7 +71,7 @@ describe("widget gallery evidence", () => {
 
     it("rejects unlisted files and missing or duplicate image embeddings", () => {
         const images = { example: image };
-        const docs = "![Popup in its open state](images/widgets/example.png)";
+        const docs = "![Popup in its open state](../../images/widgets/example.png)";
         expect(() =>
             checkImageInventory(images, ["example.png", "manifest.json"], docs)
         ).not.toThrow();
@@ -79,7 +79,7 @@ describe("widget gallery evidence", () => {
             "manifest and PNG files must match"
         );
         expect(() =>
-            checkImageInventory(images, ["example.png"], "![](images/widgets/example.png)")
+            checkImageInventory(images, ["example.png"], "![](../../images/widgets/example.png)")
         ).toThrow("Missing image alt");
         expect(() => checkImageInventory(images, ["example.png"], docs + "\n" + docs)).toThrow(
             "exactly once"

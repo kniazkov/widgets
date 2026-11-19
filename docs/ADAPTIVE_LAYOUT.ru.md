@@ -48,5 +48,5 @@ form.addField(new FormField("title", "Название учебного пред
   с собственным жёстким внутренним размером требуют более широкого контейнера.
   Кнопка, Enter и ошибки продолжают использовать [форму R20](FORMS.ru.md).
 
-Реальные примеры: [Stack и ResponsiveGrid](WIDGET_GALLERY.ru.md#adaptive-layouts),
-[FormLayout](WIDGET_GALLERY.ru.md#adaptive-form).
+Реальные примеры: [Stack и ResponsiveGrid](ru/widgets/layout.md#shot-adaptive-layouts-wide),
+[FormLayout](ru/widgets/layout.md#shot-adaptive-form-wide).

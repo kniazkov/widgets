@@ -14,7 +14,9 @@ export function checkImageInventory(images, diskEntries, documentation) {
         "The manifest and PNG files must match"
     );
 
-    const entries = [...documentation.matchAll(/!\[([^\]\n]*)\]\(images\/widgets\/([^\s)]+)\)/g)];
+    const entries = [
+        ...documentation.matchAll(/!\[([^\]\n]*)\]\(\.\.\/\.\.\/images\/widgets\/([^\s)]+)\)/g)
+    ];
     for (const [, alt, file] of entries) {
         assert(alt.trim(), `Missing image alt text: ${file}`);
     }

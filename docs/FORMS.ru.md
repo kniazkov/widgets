@@ -3,7 +3,7 @@
 `Form` даёт текстовым полям одну серверную цепочку проверки и отправки.
 `FormField` связывает редактор, нативный `Label`, подсказку и сообщения об
 ошибках. Подойдут `InputField`, `PasswordInput`, `SuggestionField` и
-`TextArea`. Форма показана в [галерее](WIDGET_GALLERY.ru.md#form).
+`TextArea`. Форма показана в [галерее](ru/widgets/forms.md#shot-form-desktop).
 
 ```java
 Form form = new Form("Заявка", "Отправить");

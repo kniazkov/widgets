@@ -36,4 +36,4 @@ delivery.check();
 Обычный случай: одна группа на радиокнопку. `group.remove(button)` возвращает полю
 самостоятельный Tab-стоп, если оно больше не состоит в группе.
 
-См. [галерею и скриншоты](WIDGET_GALLERY.ru.md#labeled-choices).
+См. [галерею и скриншоты](ru/widgets/choices.md#shot-labeled-choices).
