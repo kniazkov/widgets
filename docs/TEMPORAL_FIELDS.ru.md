@@ -145,4 +145,4 @@ final Optional<Instant> instant = date.toInstant(
 
 Пример всех состояний — карточка «Дата, время и диапазон» в AllWidgets:
 пустые поля, високосная дата, disabled, min/max, ошибка порядка и успешная отправка.
-[Реальные снимки](WIDGET_GALLERY.ru.md#temporal) · [Проверка R26](R26_VERIFICATION.ru.md).
+[Реальные снимки](ru/widgets/numbers.md#shot-temporal-desktop) · [Проверка R26](R26_VERIFICATION.ru.md).

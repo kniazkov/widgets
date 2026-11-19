@@ -45,4 +45,4 @@ select.setOptions(List.of(other, paper));
   `InputField`-based FormField; use the application value for validation and
   call `setValidState(false)` to expose invalid state on the control.
 
-See the [real browser examples](WIDGET_GALLERY.ru.md#typed-choices).
+See the [real browser examples](en/widgets/choices.md#shot-typed-choices-wide).
