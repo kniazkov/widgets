@@ -7,7 +7,7 @@
 Браузер показывает страницу, передаёт действия пользователя в Java и обновляет виджеты,
 когда меняются связанные с ними модели.
 
-[Быстрый старт](#быстрый-старт) · [Каталог виджетов](docs/WIDGET_GALLERY.ru.md) · [Развёртывание с HTTPS](docs/ru/https.md)
+[Быстрый старт](docs/ru/quick-start.md) · [Каталог виджетов](docs/WIDGET_GALLERY.ru.md) · [Развёртывание с HTTPS](docs/ru/https.md)
 
 ## Кнопка и счётчик
 
@@ -27,22 +27,8 @@ Page page = (root, context) -> {
 **контроллера** выполняет обработчик, переданный в `onClick`. Нажатие кнопки увеличивает
 число. Надпись обновляется сама благодаря привязке через `setTextModel`.
 
-## Быстрый старт
+## Запусти счётчик
 
-Понадобятся Git, JDK 21, Maven 3 и Bash. Склонируй репозиторий и запусти готовый пример:
-
-```bash
-git clone https://github.com/kniazkov/widgets.git
-cd widgets
-./run.sh com.kniazkov.widgets.example.ClickCounter
-```
-
-Открой [localhost:8080](http://localhost:8080/) и дважды нажми **Click me**. Счётчик покажет
-сначала 0, затем 1 и 2. Чтобы остановить сервер, нажми Ctrl+C в терминале.
-[Полный пример с импортами и запуском сервера](src/main/java/com/kniazkov/widgets/example/ClickCounter.java)
-
-Для своего Maven-проекта подключи `com.kniazkov:widgets-http`. Чтобы установить модули из этой
-копии исходников в локальный репозиторий Maven, выполни `mvn -f modules/pom.xml clean install`.
-Версию и зависимость можно взять из [pom.xml минимального приложения](src/test/minimal/pom.xml).
+Понадобятся JDK 21 и Maven 3.9. Добавь в POM зависимость `com.kniazkov:widgets-http:0.2.0`. В [быстром старте с Maven](docs/ru/quick-start.md) есть полный POM, Java-файл и команда запуска.
 
 [Примеры](src/main/java/com/kniazkov/widgets/example) · [Справочник классов (на английском)](docs/WIDGETS.md) · [Лицензия MIT](LICENSE)
