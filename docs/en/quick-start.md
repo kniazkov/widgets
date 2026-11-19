@@ -103,3 +103,5 @@ twice to see **1** and then **2**. Press Ctrl+C in the terminal to stop the appl
 - `widgets-http` includes the server and pulls in the widgets, models and browser resources needed for this page.
 - Add `widgets-db` for the library's record and persistence APIs, or `widgets-images` for image decoding and processing.
 - The full `com.kniazkov:widgets` artifact bundles all modules and examples. Use it on its own if you need that distribution.
+
+[Next: follow a click through the model, view and controller](mvc-counter.md)
