@@ -10,6 +10,8 @@
         <version>0.2.0</version>
     </parent>
     <artifactId>widgets-http</artifactId>
+    <name>Widgets HTTP</name>
+    <description>HTTP and WebSocket transports for serving interactive Widgets applications.</description>
     <dependencies>
         <dependency>
             <groupId>com.kniazkov</groupId>
@@ -23,23 +25,39 @@
         </dependency>
     </dependencies>
     <build>
-        <sourceDirectory>${project.basedir}/../../src/main/java</sourceDirectory>
+        <sourceDirectory>${project.build.directory}/module-sources</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <includes>
-                        <include>com/kniazkov/widgets/base/Server.java</include>
-                        <include>com/kniazkov/widgets/base/CreateClient.java</include>
-                        <include>com/kniazkov/widgets/base/HttpHandler.java</include>
-                        <include>com/kniazkov/widgets/base/StreamEndpoint.java</include>
-                        <include>com/kniazkov/widgets/base/StreamServer.java</include>
-                        <include>com/kniazkov/widgets/base/PushServer.java</include>
-                        <include>com/kniazkov/widgets/base/ProtocolSecurity.java</include>
-                        <include>com/kniazkov/widgets/base/RequestDiagnostics.java</include>
-                    </includes>
-                </configuration>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>select-module-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../../src/main/java</directory>
+                                    <includes>
+                                        <include>com/kniazkov/widgets/base/Server.java</include>
+                                        <include>com/kniazkov/widgets/base/CreateClient.java</include>
+                                        <include>com/kniazkov/widgets/base/HttpHandler.java</include>
+                                        <include>com/kniazkov/widgets/base/StreamEndpoint.java</include>
+                                        <include>com/kniazkov/widgets/base/StreamServer.java</include>
+                                        <include>com/kniazkov/widgets/base/PushServer.java</include>
+                                        <include>com/kniazkov/widgets/base/ProtocolSecurity.java</include>
+                                        <include>com/kniazkov/widgets/base/RequestDiagnostics.java</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -23,7 +23,7 @@
 Из корня репозитория:
 
 ```sh
-mvn clean install                   # полный JAR и примеры
+mvn clean install                   # весь выпуск, включая полный JAR с примерами
 mvn -f modules/pom.xml clean install # четыре компонента и родительский POM
 mvn -f src/test/minimal/pom.xml verify
 ```
