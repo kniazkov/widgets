@@ -17,7 +17,7 @@ function controls(page) {
 }
 
 for (const width of [320, 390, 1280]) {
-    test(`Russian form keeps labels, help, required and first-error focus at ${width}px`, async ({
+    test(`English form keeps labels, help, required and first-error focus at ${width}px`, async ({
         page
     }) => {
         await page.setViewportSize({ width, height: 760 });
