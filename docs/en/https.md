@@ -11,8 +11,9 @@ counter. Clicking **Click me** twice should change the value from **0** to **1**
 
 Use JDK 21, Maven 3.9 and the project from the [quick start](quick-start.md). Save the
 [HTTPS version of Counter.java](../examples/https/Counter.java) as
-`src/main/java/example/Counter.java`. The POM still uses `com.kniazkov:widgets-http:0.2.0`
-and starts `example.Counter`. Run the commands below from the directory containing the POM.
+`src/main/java/example/Counter.java`. Stop the previous example with Ctrl+C. In `pom.xml`, keep
+`com.kniazkov:widgets-http:0.2.0` and set `<mainClass>` to `example.Counter`, including
+when continuing from the navigation lesson. Run the commands from the directory containing the POM.
 
 For a public site, obtain a certificate for the hostname people will open. The examples
 use two PEM files. `fullchain.pem` contains the site's certificate followed by its

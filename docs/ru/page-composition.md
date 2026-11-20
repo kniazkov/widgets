@@ -75,4 +75,6 @@ grid.setGap(16);
 Фотографии — [Луна, NASA/JPL/USGS](https://science.nasa.gov/photojournal/earths-moon/) и
 [Марс, NASA/JPL-Caltech/USGS](https://science.nasa.gov/resource/global-color-views-of-mars/).
 
+Виджеты в примере · [Panel](widgets/layout.md#panel) · [ResponsiveGrid](widgets/layout.md#responsivegrid) · [ImageWidget](widgets/display.md#imagewidget)
+
 [Дальше — свяжи две страницы и сравни состояние вкладок](page-navigation.md)

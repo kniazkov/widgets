@@ -77,4 +77,6 @@ fit side by side again.
 Image credits — [Moon, NASA/JPL/USGS](https://science.nasa.gov/photojournal/earths-moon/) and
 [Mars, NASA/JPL-Caltech/USGS](https://science.nasa.gov/resource/global-color-views-of-mars/).
 
+Widgets in this example · [Panel](widgets/layout.md#panel) · [ResponsiveGrid](widgets/layout.md#responsivegrid) · [ImageWidget](widgets/display.md#imagewidget)
+
 [Next: link two pages and compare state across tabs](page-navigation.md)

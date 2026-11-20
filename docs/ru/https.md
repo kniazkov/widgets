@@ -11,8 +11,9 @@ HTTPS использует TLS для шифрования соединения.
 
 Понадобятся JDK 21, Maven 3.9 и проект из [быстрого старта](quick-start.md).
 Сохрани [HTTPS-версию Counter.java](../examples/https/Counter.java) в
-`src/main/java/example/Counter.java`. В POM остаются зависимость `com.kniazkov:widgets-http:0.2.0`
-и главный класс `example.Counter`. Выполняй команды из каталога с POM.
+`src/main/java/example/Counter.java`. Останови предыдущий пример сочетанием Ctrl+C. В `pom.xml` сохрани
+зависимость `com.kniazkov:widgets-http:0.2.0` и укажи `example.Counter` в `<mainClass>`,
+в том числе после урока о навигации. Выполняй команды из каталога с POM.
 
 Для публичного сайта получи сертификат на имя, которое пользователи вводят в браузере.
 В примерах используются два PEM-файла. В `fullchain.pem` лежит сертификат сайта, а за

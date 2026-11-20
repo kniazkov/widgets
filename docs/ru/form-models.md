@@ -79,4 +79,6 @@ private static void save(ExtensionModel draft, StringModel saved) {
 открой форму снова. Теперь подсказка просит пять цифр. После ввода `0042` кнопка ещё
 недоступна. Введи `00042` и нажми **Save** — строка результата покажет все пять цифр.
 
+Виджеты в примере · [InputField](widgets/forms.md#inputfield) · [Label](widgets/forms.md#label) · [Button](widgets/display.md#button)
+
 [Дальше — собери страницу из карточек](page-composition.md)

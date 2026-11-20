@@ -54,4 +54,6 @@ root.add(new Section(new TextWidget("Total: "), mirror));
 после второго — **2**. Если ты сохранил изменения из предыдущего раздела, увидишь **10**,
 **12**, **14**. Обработчик меняет число один раз за нажатие, обе надписи получают новое значение.
 
+Виджеты в примере · [Button](widgets/display.md#button) · [TextWidget](widgets/display.md#textwidget) · [Section](widgets/layout.md#section)
+
 [Дальше — проверь ввод и сохрани значение в форме](form-models.md)
