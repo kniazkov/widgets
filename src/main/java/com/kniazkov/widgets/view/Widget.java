@@ -12,6 +12,9 @@ import com.kniazkov.widgets.controller.Event;
 import com.kniazkov.widgets.controller.HandlesEvents;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.protocol.AppendChild;
+import com.kniazkov.widgets.protocol.InsertChild;
+import com.kniazkov.widgets.protocol.SetChild;
 import com.kniazkov.widgets.protocol.CreateWidget;
 import com.kniazkov.widgets.protocol.DisposeWidget;
 import com.kniazkov.widgets.protocol.SetClientEventAction;
@@ -650,6 +653,16 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
      */
     final void detachFrom(final Container owner) {
         if (this.parent == owner) {
+            if (this.ownerRootId == null && owner instanceof Widget<?> container) {
+                /*
+                 * Браузер ещё не знает ребёнка; не отправляем ссылку на его отменённое создание.
+                 */
+                final List<Update> pending = container.drainUpdates();
+                pending.stream().filter(update -> !update.getWidgetId().equals(this.id)
+                    || !(update instanceof AppendChild || update instanceof InsertChild
+                        || update instanceof SetChild))
+                    .forEach(container::pushUpdate);
+            }
             this.parent = null;
             this.visitSubtree(widget -> widget.setBufferOwner(null));
         }

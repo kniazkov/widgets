@@ -188,6 +188,35 @@ public class WidgetReparentingTest {
     }
 
     /**
+     * Удаление до синхронизации не оставляет ссылок на несозданные элементы.
+     */
+    @Test
+    public void omitsReferencesToUnpublishedDisposedChild() {
+        final RootWidget root = new RootWidget();
+        final Section section = new Section();
+        root.add(section);
+        final TextWidget text = new TextWidget("temporary");
+        section.add(text);
+        text.dispose();
+        final var updates = new java.util.TreeSet<com.kniazkov.widgets.protocol.Update>();
+        root.collectBrowserUpdates(updates);
+        final var known = new java.util.HashSet<String>();
+        for (final var update : updates) {
+            final var data = new com.kniazkov.json.JsonObject();
+            update.serialize(data);
+            final String action = data.get("action").stringValue();
+            final String widget = data.get("widget").stringValue();
+            if (action.equals("create widget")) {
+                known.add(widget);
+            } else if (action.equals("append child") || action.equals("set child")) {
+                assertTrue(data.toString(), known.contains(widget));
+                assertTrue(data.toString(), known.contains(data.get("container").stringValue()));
+            }
+        }
+        assertFalse(known.contains(text.getId().toString()));
+    }
+
+    /**
      * Adds a typed bridge to the generic parameter runner.
      */
     private static final class Family {

@@ -26,11 +26,11 @@ public class WidgetDisposalTest {
         final Section section = new Section(new TextWidget("Nested"));
         root.add(section);
         final TreeSet<Update> updates = new TreeSet<>();
-        root.getUpdates(updates);
+        root.collectBrowserUpdates(updates);
         updates.clear();
         section.dispose();
         section.dispose();
-        root.getUpdates(updates);
+        root.collectBrowserUpdates(updates);
         final ArrayList<Update> ordered = new ArrayList<>(updates);
         assertEquals(2, ordered.size());
         assertTrue(ordered.get(0) instanceof RemoveChild);
