@@ -17,7 +17,7 @@ Choose a task below, or [look up a Java class](#classes). Each entry includes a 
 | [Report progress, errors and outcomes](en/widgets/feedback.md) | Keep FieldError beside the editor it describes. Use an Alert for a persistent page message and a Toast for a short notification. |
 | [Select and upload files](en/widgets/files.md) | FileLoader exposes each transfer to your handler. UploadManager and UploadList provide progress, cancellation and retry controls together. |
 
-| [Scan product QR codes](en/widgets/camera.md) | QrScanner |
+| [Scan QR codes](en/widgets/camera.md) | QrScanner |
 
 ## Run AllWidgets
 

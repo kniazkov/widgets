@@ -33,7 +33,7 @@ public class QrScannerTest {
         scanner.handleEvent(Event.TEXT_INPUT, event);
         assertEquals(List.of("product"), received);
         assertEquals(configuration, scanner.getText());
-        event.addString("text", "2\n" + "x".repeat(2048));
+        event.addString("text", "2\n" + "x".repeat(QrScanner.MAX_EVENT_LENGTH));
         assertEquals("invalidPayload",
             Event.TEXT_INPUT.rejectionReason(scanner, event).orElseThrow());
         scanner.handleEvent(Event.TEXT_INPUT, event);
@@ -44,4 +44,23 @@ public class QrScannerTest {
         scanner.handleEvent(Event.TEXT_INPUT, event);
         assertEquals(List.of("product"), received);
     }
+    /**
+     * General mode preserves arbitrary text, Unicode and large QR payloads.
+     * @throws com.kniazkov.json.JsonException if the configuration is malformed
+     */
+    @org.junit.Test
+    public void acceptsGeneralQrText() throws com.kniazkov.json.JsonException {
+        final java.util.List<String> received = new java.util.ArrayList<>();
+        final QrScanner scanner = new QrScanner(java.util.Map.of(), received::add);
+        final RootWidget root = new RootWidget(scanner);
+        final String payload = "WIFI:T:WPA;S:Guest;P:sample;;\n" + "x".repeat(7000);
+        final var event = new com.kniazkov.json.JsonObject();
+        event.addString("text", "1\n" + payload);
+        scanner.handleEvent(com.kniazkov.widgets.controller.Event.TEXT_INPUT, event);
+        org.junit.Assert.assertEquals(java.util.List.of(payload), received);
+        assertEquals("", com.kniazkov.json.Json.parse(scanner.getText())
+            .objectValueOrThrow().get("prefix").stringValue());
+        root.closePage();
+    }
+
 }

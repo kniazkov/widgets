@@ -37,14 +37,14 @@ for (const width of [320, 1280]) {
         }) => {
             await page.setViewportSize({ width, height: 850 });
             await page.goto("/all-widgets");
-            const trigger = page.getByRole("button", { name: "Действия с изделием", exact: true });
+            const trigger = page.getByRole("button", { name: "Item actions", exact: true });
             await trigger.scrollIntoViewIfNeeded();
             await trigger.press("ArrowDown");
-            const menu = page.getByRole("menu", { name: "Действия с изделием", exact: true });
+            const menu = page.getByRole("menu", { name: "Item actions", exact: true });
             await expect(menu).toBeVisible();
             await insideViewport(page, menu);
-            const edit = menu.getByRole("menuitem", { name: "Редактировать описание изделия" });
-            const copy = menu.getByRole("menuitem", { name: "Создать копию" });
+            const edit = menu.getByRole("menuitem", { name: "Edit item description" });
+            const copy = menu.getByRole("menuitem", { name: "Create a copy" });
             await expect(edit).toBeFocused();
             await edit.press("ArrowDown");
             await expect(copy).toBeFocused();
@@ -54,19 +54,17 @@ for (const width of [320, 1280]) {
             await expect(copy).toBeFocused();
             await copy.press("Enter");
             await expect(menu).toBeHidden();
-            await expect(
-                page.getByText("Копирование · Действий: 1", { exact: true })
-            ).toBeVisible();
+            await expect(page.getByText("Copying · Actions: 1", { exact: true })).toBeVisible();
             await expect(trigger).toBeFocused();
             await trigger.press("ArrowUp");
             await expect(copy).toBeFocused();
             await copy.press("Escape");
             await expect(trigger).toBeFocused();
             await expect(menu).toBeHidden();
-            const longTrigger = page.getByRole("button", { name: "Длинное меню", exact: true });
+            const longTrigger = page.getByRole("button", { name: "Long menu", exact: true });
             if (width === 320) await longTrigger.tap();
             else await longTrigger.click();
-            const longMenu = page.getByRole("menu", { name: "Длинное меню действий" });
+            const longMenu = page.getByRole("menu", { name: "Long action menu" });
             await expect(longMenu).toBeVisible();
             await insideViewport(page, longMenu);
             await longMenu.getByRole("menuitem").first().press("End");
@@ -74,7 +72,7 @@ for (const width of [320, 1280]) {
             await expect(last).toBeFocused();
             if (width === 320) await last.tap();
             else await last.click();
-            await expect(page.getByText("Выбран пункт 16", { exact: true })).toBeVisible();
+            await expect(page.getByText("Selected item 16", { exact: true })).toBeVisible();
             await expect(longMenu).toBeHidden();
         });
 
@@ -83,15 +81,15 @@ for (const width of [320, 1280]) {
         }) => {
             await page.setViewportSize({ width, height: 850 });
             await page.goto("/all-widgets");
-            const trigger = page.getByRole("button", { name: "Настройки доставки", exact: true });
+            const trigger = page.getByRole("button", { name: "Delivery settings", exact: true });
             await trigger.click();
-            const popover = page.getByRole("dialog", { name: "Параметры доставки", exact: true });
+            const popover = page.getByRole("dialog", { name: "Delivery options", exact: true });
             await expect(popover).toBeVisible();
-            const field = popover.getByRole("textbox", { name: "Комментарий к доставке" });
+            const field = popover.getByRole("textbox", { name: "Delivery note" });
             await expect(field).toBeFocused();
-            await field.fill("Сохранённая заметка");
-            await popover.getByRole("button", { name: "Подробнее", exact: true }).click();
-            await expect(popover.getByText(/Длинное пояснение/)).toBeVisible();
+            await field.fill("Saved note");
+            await popover.getByRole("button", { name: "More details", exact: true }).click();
+            await expect(popover.getByText(/Detailed information/)).toBeVisible();
             await insideViewport(page, popover);
             await page.setViewportSize({ width, height: 420 });
             await expect
@@ -103,16 +101,16 @@ for (const width of [320, 1280]) {
             await expect(trigger).toBeFocused();
             await page.setViewportSize({ width, height: 850 });
             await trigger.click();
-            await expect(field).toHaveValue("Сохранённая заметка");
+            await expect(field).toHaveValue("Saved note");
             await page
-                .getByRole("heading", { name: "Меню и подсказки у элемента", exact: true })
+                .getByRole("heading", { name: "Menus, popovers and tooltips", exact: true })
                 .click();
             await expect(popover).toBeHidden();
             await trigger.click();
             await expect(popover).toBeVisible();
             // Programmatic click preserves popover focus while the server removes its anchor.
             await page
-                .getByRole("button", { name: "Убрать настройки", exact: true })
+                .getByRole("button", { name: "Remove settings", exact: true })
                 .evaluate(el => el.click());
             await expect(trigger).toHaveCount(0);
             await expect(popover).toBeHidden();
@@ -124,19 +122,19 @@ test("tooltip delays cancel, accessible descriptions coexist and Escape never mo
     page
 }) => {
     await page.goto("/all-widgets");
-    const help = page.getByRole("button", { name: "Срок изготовления", exact: true });
-    await expect(help).toHaveAccessibleDescription(/Срок зависит от наличия материалов/);
+    const help = page.getByRole("button", { name: "Production time", exact: true });
+    await expect(help).toHaveAccessibleDescription(/Timing depends on materials/);
     await help.hover();
     const tooltip = page.getByRole("tooltip");
     await expect(tooltip).toBeVisible();
-    await page.getByRole("heading", { name: "Меню и подсказки у элемента", exact: true }).hover();
+    await page.getByRole("heading", { name: "Menus, popovers and tooltips", exact: true }).hover();
     await expect(tooltip).toBeHidden();
     await help.focus();
     await expect(tooltip).toBeVisible();
     await help.press("Escape");
     await expect(tooltip).toBeHidden();
     await expect(help).toBeFocused();
-    await expect(help).toHaveAccessibleDescription(/Точную дату согласуем/);
+    await expect(help).toHaveAccessibleDescription(/Confirm the date/);
     await help.blur();
     await help.hover();
     await page.mouse.move(0, 0);
@@ -145,24 +143,24 @@ test("tooltip delays cancel, accessible descriptions coexist and Escape never mo
 
 test("nested menu consumes Escape before Dialog and overlays pass axe", async ({ page }) => {
     await page.goto("/all-widgets");
-    await page.getByRole("button", { name: "Меню в диалоге", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "Диалог со своим меню", exact: true });
-    await dialog.getByRole("button", { name: "Вложенные действия", exact: true }).click();
-    const menu = page.getByRole("menu", { name: "Действия внутри диалога", exact: true });
+    await page.getByRole("button", { name: "Menu in a dialog", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Dialog with a menu", exact: true });
+    await dialog.getByRole("button", { name: "Nested actions", exact: true }).click();
+    const menu = page.getByRole("menu", { name: "Actions inside a dialog", exact: true });
     await expect(menu).toBeVisible();
     await menu.getByRole("menuitem").press("Escape");
     await expect(menu).toBeHidden();
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByRole("button", { name: "Вложенные действия" })).toBeFocused();
-    await dialog.getByRole("button", { name: "Вложенные действия" }).press("Escape");
+    await expect(dialog.getByRole("button", { name: "Nested actions" })).toBeFocused();
+    await dialog.getByRole("button", { name: "Nested actions" }).press("Escape");
     await expect(dialog).toBeHidden();
-    await page.getByRole("button", { name: "Действия с изделием", exact: true }).click();
+    await page.getByRole("button", { name: "Item actions", exact: true }).click();
     expect(
         (await new AxeBuilder({ page }).include(".widgets-anchored-menu:popover-open").analyze())
             .violations
     ).toEqual([]);
-    await page.getByRole("menuitem", { name: "Создать копию" }).press("Escape");
-    await page.getByRole("button", { name: "Настройки доставки", exact: true }).click();
+    await page.getByRole("menuitem", { name: "Create a copy" }).press("Escape");
+    await page.getByRole("button", { name: "Delivery settings", exact: true }).click();
     expect(
         (await new AxeBuilder({ page }).include(".widgets-anchored-popover:popover-open").analyze())
             .violations
@@ -174,7 +172,7 @@ test("top-layer placement survives transformed scrolling ancestors and flips nea
 }) => {
     await page.setViewportSize({ width: 800, height: 600 });
     await page.goto("/all-widgets");
-    const trigger = page.getByRole("button", { name: "Действия с изделием", exact: true });
+    const trigger = page.getByRole("button", { name: "Item actions", exact: true });
     await trigger.scrollIntoViewIfNeeded();
     // A real overflow/transform ancestor exercises native top-layer geometry, not mocked rectangles.
     await trigger.evaluate(anchor => {
@@ -191,7 +189,7 @@ test("top-layer placement survives transformed scrolling ancestors and flips nea
         box.append(tail);
     });
     await trigger.click();
-    const menu = page.getByRole("menu", { name: "Действия с изделием", exact: true });
+    const menu = page.getByRole("menu", { name: "Item actions", exact: true });
     await expect(menu).toBeVisible();
     await expect(menu).toHaveAttribute("data-placement", "top");
     await insideViewport(page, menu);

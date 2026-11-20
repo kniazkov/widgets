@@ -9,29 +9,44 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * Камера с локальным декодированием QR; приложение проверяет код и подтверждает событие.
+ * Camera with local QR decoding; applications validate and acknowledge each result.
  */
 public final class QrScanner extends Panel implements HasText, HandlesTextEvents {
     /**
-     * Разрешённый префикс ссылки перед UUID.
+     * Maximum event length, including the sequence header and a full QR payload.
+     */
+    public static final int MAX_EVENT_LENGTH = 8192;
+
+    /**
+     * Creates a general-purpose scanner that accepts arbitrary QR text.
+     * Results are data: applications must not execute or automatically open them.
+     * @param messages camera messages
+     * @param onCode callback that acknowledges each result with setPaused
+     */
+    public QrScanner(final Map<String, String> messages, final Consumer<String> onCode) {
+        this("", messages, onCode);
+    }
+
+    /**
+     * Optional URL prefix before a UUID; empty accepts arbitrary QR text.
      */
     private final String prefix;
 
     /**
-     * Локализованные сообщения камеры.
+     * Localized camera messages.
      */
     private final Map<String, String> messages;
 
     /**
-     * Номер последнего принятого события.
+     * Sequence number of the last accepted event.
      */
     private long sequence;
 
     /**
-     * Создаёт сканер с проверкой последовательности событий.
-     * @param prefix разрешённый префикс ссылки
-     * @param messages локализованные сообщения
-     * @param onCode обработчик кода, который проверяет права и подтверждает событие
+     * Creates a scanner with ordered events and an optional prefix-plus-UUID filter.
+     * @param prefix allowed URL prefix, or empty for arbitrary QR text
+     * @param messages localized messages
+     * @param onCode callback that validates permissions and acknowledges the result
      */
     public QrScanner(final String prefix, final Map<String, String> messages,
                      final Consumer<String> onCode) {
@@ -40,7 +55,7 @@ public final class QrScanner extends Panel implements HasText, HandlesTextEvents
         setWidth("100%");
         onTextInput(value -> {
             final int separator = value.indexOf('\n');
-            if (separator < 1 || value.length() > 2048 || getRootWidget().isEmpty()) {
+            if (separator < 1 || value.length() > MAX_EVENT_LENGTH || getRootWidget().isEmpty()) {
                 return;
             }
             final long received;
@@ -64,8 +79,8 @@ public final class QrScanner extends Panel implements HasText, HandlesTextEvents
     }
 
     /**
-     * Подтверждает событие и задаёт паузу до решения пользователя.
-     * @param paused нужно ли приостановить распознавание
+     * Acknowledges the current event and optionally pauses for a user decision.
+     * @param paused whether recognition should pause
      */
     public void setPaused(final boolean paused) {
         final var data = new JsonObject();

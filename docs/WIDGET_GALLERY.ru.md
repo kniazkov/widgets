@@ -17,7 +17,7 @@
 | <a id="feedback"></a>[Показать прогресс, ошибку или результат](ru/widgets/feedback.md) | FieldError ставь рядом с полем, которое нужно исправить. Для постоянного сообщения подойдёт Alert, для короткого уведомления — Toast. |
 | <a id="file-loader"></a><a id="file-loader-complete"></a>[Выбрать и загрузить файл](ru/widgets/files.md) | FileLoader передаёт каждую загрузку твоему обработчику. UploadManager и UploadList вместе дают прогресс, отмену и повтор. |
 
-| [Сканировать QR-коды изделий](ru/widgets/camera.md) | QrScanner |
+| [Сканировать QR-коды](ru/widgets/camera.md) | QrScanner |
 
 ## Запусти AllWidgets
 

@@ -134,7 +134,7 @@ final class EventValidation {
         if (event == Event.TEXT_INPUT) {
             return fields(data, "text")
                 && text(data.get("text"), widget instanceof QrScanner
-                    ? 2048 : ((HasTextInput) widget).getMaxInputLength());
+                    ? QrScanner.MAX_EVENT_LENGTH : ((HasTextInput) widget).getMaxInputLength());
         }
         if (event == Event.CHECK) {
             return fields(data, "state") && data.get("state").isBoolean()

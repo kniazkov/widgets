@@ -2,8 +2,8 @@ import { test, expect } from "@playwright/test";
 
 function controls(page) {
     return {
-        slider: page.getByRole("slider", { name: "Длина браслета", exact: true }),
-        confirmed: page.getByRole("slider", { name: "Подтверждённая длина" })
+        slider: page.getByRole("slider", { name: "Bracelet length", exact: true }),
+        confirmed: page.getByRole("slider", { name: "Confirmed length" })
     };
 }
 
@@ -25,10 +25,10 @@ test("exact keys, accessible units, limits and a reactive server reset", async (
     ]) {
         await slider.press(key);
         await expect(confirmed).toHaveAttribute("aria-valuenow", value);
-        await expect(slider).toHaveAttribute("aria-valuetext", value + " см");
+        await expect(slider).toHaveAttribute("aria-valuetext", value + " cm");
         await expect(slider).toBeFocused();
     }
-    await page.getByRole("button", { name: "Сбросить длину" }).click();
+    await page.getByRole("button", { name: "Reset length" }).click();
     await expect(slider).toHaveAttribute("aria-valuenow", "18.50");
 });
 
@@ -79,8 +79,8 @@ test.describe("mobile", () => {
         await slider.scrollIntoViewIfNeeded();
         const box = await slider.boundingBox();
         await slider.tap({ position: { x: box.width - 2, y: box.height / 2 } });
-        await expect(confirmed).toHaveAttribute("aria-valuetext", "22.00 см");
-        await expect(slider.locator("..").getByText("22.00 см")).toBeVisible();
+        await expect(confirmed).toHaveAttribute("aria-valuetext", "22.00 cm");
+        await expect(slider.locator("..").getByText("22.00 cm")).toBeVisible();
         expect(await slider.locator("..").evaluate(el => el.scrollWidth <= el.clientWidth)).toBe(
             true
         );
