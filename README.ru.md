@@ -29,6 +29,6 @@ Page page = (root, context) -> {
 
 ## Запусти счётчик
 
-Понадобятся JDK 21 и Maven 3.9. Добавь в POM зависимость `com.kniazkov:widgets-http:0.2.0`. В [быстром старте с Maven](docs/ru/quick-start.md) есть полный POM, Java-файл и команда запуска.
+Понадобятся JDK 21 и Maven 3.9. Добавь в POM зависимость `com.kniazkov:widgets-http:0.2.1`. В [быстром старте с Maven](docs/ru/quick-start.md) есть полный POM, Java-файл и команда запуска.
 
 [Примеры](src/main/java/com/kniazkov/widgets/example) · [Лицензия MIT](LICENSE)

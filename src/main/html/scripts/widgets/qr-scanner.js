@@ -106,6 +106,8 @@ function createQrScanner() {
     document.addEventListener("visibilitychange", visibility);
     window.addEventListener("pagehide", stop);
     widget.setText = text => {
+        // Начальное пустое значение модели приходит перед конфигурацией сканера.
+        if (!text) return false;
         const next = JSON.parse(text);
         config = next;
         start.textContent = config.messages.start;

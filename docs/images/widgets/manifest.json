@@ -1339,6 +1339,19 @@
         275
       ],
       "sha256": "de40f9822757d88201756723ec5d621a9af384912622e47078d346b213beca44"
+    },
+    "qr-scanner": {
+      "file": "qr-scanner.png",
+      "title": "QrScanner",
+      "states": "Idle camera before explicit permission request",
+      "sourceScreenshot": "AllWidgets QrScanner element screenshot, Chromium 158.0.8127.36, 1280x900, 2026-11-20",
+      "crop": [
+        0,
+        0,
+        1216,
+        334
+      ],
+      "sha256": "20e3f455761a155f4119eedc0bfc67e3bd2fdc1ebed9e9b7077ea4bc568d5911"
     }
   },
   "widgets": {
@@ -1630,6 +1643,9 @@
     "Slider": [
       "slider-desktop",
       "slider-mobile"
+    ],
+    "QrScanner": [
+      "qr-scanner"
     ]
   },
   "modalLifecycleCapture": {

@@ -17,9 +17,11 @@
 | <a id="feedback"></a>[Показать прогресс, ошибку или результат](ru/widgets/feedback.md) | FieldError ставь рядом с полем, которое нужно исправить. Для постоянного сообщения подойдёт Alert, для короткого уведомления — Toast. |
 | <a id="file-loader"></a><a id="file-loader-complete"></a>[Выбрать и загрузить файл](ru/widgets/files.md) | FileLoader передаёт каждую загрузку твоему обработчику. UploadManager и UploadList вместе дают прогресс, отмену и повтор. |
 
+| [Сканировать QR-коды изделий](ru/widgets/camera.md) | QrScanner |
+
 ## Запусти AllWidgets
 
-В Maven-проекте из [быстрого старта](ru/quick-start.md) замени зависимость `com.kniazkov:widgets-http:0.2.0` на `com.kniazkov:widgets:0.2.0`. Полная библиотека включает пример. В `<mainClass>` укажи `com.kniazkov.widgets.example.AllWidgets`. Чтобы загрузились изображение дома и значок страницы, сохрани [house.png](../www/house.png) и [widgets-icon.svg](../www/widgets-icon.svg) в каталог `www` рядом с POM.
+В Maven-проекте из [быстрого старта](ru/quick-start.md) замени зависимость `com.kniazkov:widgets-http:0.2.1` на `com.kniazkov:widgets:0.2.1`. Полная библиотека включает пример. В `<mainClass>` укажи `com.kniazkov.widgets.example.AllWidgets`. Чтобы загрузились изображение дома и значок страницы, сохрани [house.png](../www/house.png) и [widgets-icon.svg](../www/widgets-icon.svg) в каталог `www` рядом с POM.
 
 ```sh
 mvn compile exec:java
@@ -57,7 +59,7 @@ mvn compile exec:java
 
 **P** · [Panel](ru/widgets/layout.md#panel) · [PasswordInput](ru/widgets/forms.md#passwordinput) · [Popover](ru/widgets/dialogs.md#popover) · [Popup](ru/widgets/dialogs.md#popup) · [Progress](ru/widgets/feedback.md#progress)
 
-**Q** · [QuantityField](ru/widgets/numbers.md#quantityfield)
+**Q** · [QrScanner](ru/widgets/camera.md#qrscanner) · [QuantityField](ru/widgets/numbers.md#quantityfield)
 
 **R** · [RadioButton](ru/widgets/choices.md#radiobutton) · [RadioButtonWithText](ru/widgets/choices.md#radiobuttonwithtext) · [ResponsiveGrid](ru/widgets/layout.md#responsivegrid) · [RootWidget](ru/widgets/layout.md#rootwidget) · [Row](ru/widgets/tables.md#row)
 

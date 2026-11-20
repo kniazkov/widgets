@@ -4,6 +4,11 @@ Versions follow the policy in [RELEASING.ru.md](docs/maintainers/RELEASING.ru.md
 A heading describes a release candidate; publication is confirmed only by its immutable tag
 and published artifacts. Entries never imply an artifact is already on Maven Central.
 
+## [0.2.1]
+
+- Local camera QR scanner with explicit permission and application acknowledgement.
+- Repeated-frame protection, inverted QR decoding and camera lifecycle cleanup.
+
 ## [0.2.0]
 
 First versioned baseline after the historical `0.1` development artifact.

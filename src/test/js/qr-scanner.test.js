@@ -94,6 +94,7 @@ function cameraHarness(getUserMedia) {
             "closed"
         ].map(x => [x, x])
     );
+    expect(() => widget.setText("")).not.toThrow();
     widget.setText(JSON.stringify({ prefix, messages, ack: 0, paused: false }));
     return { w, widget, button: widget.querySelector("button") };
 }
