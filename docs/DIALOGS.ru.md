@@ -106,4 +106,4 @@ Dialog соответствующий элемент прокручиваетс�
 у ModalPopup по умолчанию вызывает `remove()`; Dialog переопределяет его для
 busy-политики и результата. Изменение прокрутки фокуса ограничено Dialog.
 
-[Снимки](ru/widgets/dialogs.md#shot-dialog-confirm) · [Проверка R25](R25_VERIFICATION.ru.md)
+[Снимки](ru/widgets/dialogs.md#shot-dialog-confirm)

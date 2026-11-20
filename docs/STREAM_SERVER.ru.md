@@ -1,6 +1,6 @@
 # Серверный WebSocket-адаптер (R35)
 
-Реализация [ADR R34](adr/0034-transport.ru.md): отдельный асинхронный listener
+Реализация [ADR R34](maintainers/adr/0034-transport.ru.md): отдельный асинхронный listener
 Jetty 12.1.15 (Java 21), подключаемый явно. `com.kniazkov:webserver:2.0.0` продолжает
 обслуживать прежний HTTP-протокол и бинарные upload без изменений.
 

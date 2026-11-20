@@ -2019,7 +2019,7 @@
       "page": "AllWidgets /",
       "browser": "Cloud Chromium 156.0.8078.79 (native session)",
       "viewport": "1363 × 936 CSS px (reported)",
-      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; R28 working tree identified by AllWidgets source hash and R28_VERIFICATION.ru.md.",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; source tree 1e7d1172de3743f3c17d462b7b9204282856db4b identifies the captured implementation.",
       "screenshots": {
         "r28-navigation-desktop.jpg": [
           1348,
@@ -2034,7 +2034,7 @@
       "page": "AllWidgets /",
       "browser": "Cloud Chromium 156.0.8078.79 (native session)",
       "viewport": "320 CSS px iframe, real AllWidgets; outer 1363 × 936 CSS px",
-      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; R28 working tree identified by AllWidgets source hash and R28_VERIFICATION.ru.md.",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; source tree 1e7d1172de3743f3c17d462b7b9204282856db4b identifies the captured implementation.",
       "screenshots": {
         "r28-navigation-mobile-top.jpg": [
           1363,
@@ -2053,7 +2053,7 @@
       "page": "AllWidgets /",
       "browser": "Cloud Chromium 156.0.8078.79 (native session)",
       "viewport": "1363 × 936 CSS px (reported)",
-      "method": "Real cloud browser screenshot of R29 working tree based on commit above. Unscaled crops, no retouching; source tree identified in R29_VERIFICATION.ru.md.",
+      "method": "Real cloud browser screenshot of source tree 2ca2631fdba36ffb0fb2b90fa3e84d063543cb9d based on the commit above. Unscaled crops without retouching.",
       "screenshots": {
         "r29-menu.jpg": [
           1348,
@@ -2080,7 +2080,7 @@
       "page": "AllWidgets / in 320px iframe",
       "browser": "Cloud Chromium 156.0.8078.79 (native session)",
       "viewport": "320 × 920 CSS px iframe",
-      "method": "Real cloud browser screenshot of R29 working tree based on commit above. Unscaled crops, no retouching; source tree identified in R29_VERIFICATION.ru.md.",
+      "method": "Real cloud browser screenshot of source tree 2ca2631fdba36ffb0fb2b90fa3e84d063543cb9d based on the commit above. Unscaled crops without retouching.",
       "screenshots": {
         "r29-menu-mobile.jpg": [
           1363,

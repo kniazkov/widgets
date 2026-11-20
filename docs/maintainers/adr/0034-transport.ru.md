@@ -1,7 +1,7 @@
 # ADR R34: сменный транспорт, HTTP по умолчанию и кандидат WSS
 
 Дата: 17 ноября 2026. Статус: **принято; опциональная реализация R35–R36 доступна**.
-Подключение и текущий контракт: [PUSH_TRANSPORT.ru.md](../PUSH_TRANSPORT.ru.md).
+Подключение и текущий контракт: [PUSH_TRANSPORT.ru.md](../../PUSH_TRANSPORT.ru.md).
 Ниже сохранены основания первоначального решения R34. Задача [#138](https://github.com/kniazkov/widgets/issues/138).
 
 ## Решение
@@ -169,7 +169,7 @@ npx playwright install --with-deps chromium
 node scripts/run-transport-probe.mjs
 ```
 
-[Workflow](../../.github/workflows/transport-probe.yml) выполняет два повторения
+[Workflow](../../../.github/workflows/transport-probe.yml) выполняет два повторения
 HTTP и WS-прототипа в настоящем Chromium. В каждом: одинаковый новый Java-процесс,
 одинаковая страница и 100 последовательных кликов; далее один набор контрактных
 сценариев. Исходные данные/версии/SHA/квантили/traffic и результаты проверок

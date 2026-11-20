@@ -31,30 +31,30 @@ respective files. All of these declarations still belong to the same per-page le
 
 | File | Responsibility |
 | --- | --- |
-| [`options.js`](../src/main/html/scripts/options.js) | Global configuration and upload protocol limits |
-| [`navigation.js`](../src/main/html/scripts/navigation.js) | History entries, page cache, scroll restoration and navigation events |
-| [`shared/transport.js`](../src/main/html/scripts/shared/transport.js) | HTTP transport, form serialization and request completion |
-| [`shared/dom.js`](../src/main/html/scripts/shared/dom.js) | DOM events, device detection, escaping and small utilities |
-| [`shared/document.js`](../src/main/html/scripts/shared/document.js) | Document title and metadata |
-| [`widgets/core.js`](../src/main/html/scripts/widgets/core.js) | Widget registry, factories, visual state and property refresh |
-| [`widgets/tree.js`](../src/main/html/scripts/widgets/tree.js) | Child insertion/removal and overlay child layout |
-| [`widgets/style.js`](../src/main/html/scripts/widgets/style.js) | Colors, typography, borders and visual effects |
-| [`widgets/layout.js`](../src/main/html/scripts/widgets/layout.js) | Dimensions, spacing and alignment |
-| [`widgets/countdown.js`](../src/main/html/scripts/widgets/countdown.js) | Server-time anchor, countdown rendering and scheduler lifetime |
-| [`widgets/content.js`](../src/main/html/scripts/widgets/content.js) | Text, options, selection, images, links and page metadata updates |
-| [`widgets/inputs.js`](../src/main/html/scripts/widgets/inputs.js) | Editable text, deferred updates, placeholders and input modes |
-| [`widgets/suggestions.js`](../src/main/html/scripts/widgets/suggestions.js) | Suggestion popup, filtering, keyboard and pointer interaction |
-| [`widgets/events.js`](../src/main/html/scripts/widgets/events.js) | Subscriptions, pointer/focus events and gesture click suppression |
-| [`widgets/carousel.js`](../src/main/html/scripts/widgets/carousel.js) | Carousel image updates and swipe gestures |
-| [`widgets/uploads.js`](../src/main/html/scripts/widgets/uploads.js) | File selection, chunk scheduling, acknowledgements and retries |
-| [`widgets/popup.js`](../src/main/html/scripts/widgets/popup.js) | Popup positioning, backdrop and outside-click dismissal |
-| [`widgets/sortable.js`](../src/main/html/scripts/widgets/sortable.js) | Drag sorting, animation and server order updates |
-| [`widgets/zoom.js`](../src/main/html/scripts/widgets/zoom.js) | Zoom, pan, pinch and fitting content |
-| [`widgets/markdown.js`](../src/main/html/scripts/widgets/markdown.js) | Markdown parsing and safe DOM rendering |
-| [`client/lifecycle.js`](../src/main/html/scripts/client/lifecycle.js) | Per-page client state, startup, disposal and page commands |
-| [`client/errors.js`](../src/main/html/scripts/client/errors.js) | Failure overlays, recovery, error reporting and stale-server detection |
-| [`client/synchronization.js`](../src/main/html/scripts/client/synchronization.js) | Synchronization requests, callbacks and acknowledgements |
-| [`client/protocol.js`](../src/main/html/scripts/client/protocol.js) | Command dispatch, event IDs, queues and text reconciliation |
+| [`options.js`](../../src/main/html/scripts/options.js) | Global configuration and upload protocol limits |
+| [`navigation.js`](../../src/main/html/scripts/navigation.js) | History entries, page cache, scroll restoration and navigation events |
+| [`shared/transport.js`](../../src/main/html/scripts/shared/transport.js) | HTTP transport, form serialization and request completion |
+| [`shared/dom.js`](../../src/main/html/scripts/shared/dom.js) | DOM events, device detection, escaping and small utilities |
+| [`shared/document.js`](../../src/main/html/scripts/shared/document.js) | Document title and metadata |
+| [`widgets/core.js`](../../src/main/html/scripts/widgets/core.js) | Widget registry, factories, visual state and property refresh |
+| [`widgets/tree.js`](../../src/main/html/scripts/widgets/tree.js) | Child insertion/removal and overlay child layout |
+| [`widgets/style.js`](../../src/main/html/scripts/widgets/style.js) | Colors, typography, borders and visual effects |
+| [`widgets/layout.js`](../../src/main/html/scripts/widgets/layout.js) | Dimensions, spacing and alignment |
+| [`widgets/countdown.js`](../../src/main/html/scripts/widgets/countdown.js) | Server-time anchor, countdown rendering and scheduler lifetime |
+| [`widgets/content.js`](../../src/main/html/scripts/widgets/content.js) | Text, options, selection, images, links and page metadata updates |
+| [`widgets/inputs.js`](../../src/main/html/scripts/widgets/inputs.js) | Editable text, deferred updates, placeholders and input modes |
+| [`widgets/suggestions.js`](../../src/main/html/scripts/widgets/suggestions.js) | Suggestion popup, filtering, keyboard and pointer interaction |
+| [`widgets/events.js`](../../src/main/html/scripts/widgets/events.js) | Subscriptions, pointer/focus events and gesture click suppression |
+| [`widgets/carousel.js`](../../src/main/html/scripts/widgets/carousel.js) | Carousel image updates and swipe gestures |
+| [`widgets/uploads.js`](../../src/main/html/scripts/widgets/uploads.js) | File selection, chunk scheduling, acknowledgements and retries |
+| [`widgets/popup.js`](../../src/main/html/scripts/widgets/popup.js) | Popup positioning, backdrop and outside-click dismissal |
+| [`widgets/sortable.js`](../../src/main/html/scripts/widgets/sortable.js) | Drag sorting, animation and server order updates |
+| [`widgets/zoom.js`](../../src/main/html/scripts/widgets/zoom.js) | Zoom, pan, pinch and fitting content |
+| [`widgets/markdown.js`](../../src/main/html/scripts/widgets/markdown.js) | Markdown parsing and safe DOM rendering |
+| [`client/lifecycle.js`](../../src/main/html/scripts/client/lifecycle.js) | Per-page client state, startup, disposal and page commands |
+| [`client/errors.js`](../../src/main/html/scripts/client/errors.js) | Failure overlays, recovery, error reporting and stale-server detection |
+| [`client/synchronization.js`](../../src/main/html/scripts/client/synchronization.js) | Synchronization requests, callbacks and acknowledgements |
+| [`client/protocol.js`](../../src/main/html/scripts/client/protocol.js) | Command dispatch, event IDs, queues and text reconciliation |
 
 `navigation.js` and `options.js` remain intact: each already has a single responsibility and a
 manageable size. Small related widgets share files; complex interactions have dedicated files.
@@ -78,11 +78,11 @@ Java-to-browser round trip.
 ## Tab identity
 
 `navigation.js` owns a memory-only, server-issued context shared by its page runtimes.
-See [revocable tab context](TAB_CONTEXT.md) for the reload/duplicate-tab policy, protocol,
+See [revocable tab context](../TAB_CONTEXT.md) for the reload/duplicate-tab policy, protocol,
 revocation, application authorization responsibilities and tests.
 
 For transient HTTP errors, session refresh, and event ACK behavior, see the
-[connection recovery contract](CONNECTION_RECOVERY.ru.md).
+[connection recovery contract](../CONNECTION_RECOVERY.ru.md).
 
 ### Sequenced browser updates
 
@@ -91,4 +91,4 @@ The initial snapshot begins at sequence one, and reconnect replays an unacknowle
 suffix in the same epoch. The browser acknowledges only applied updates or explicit
 no-ops. An unsupported action or broken sequence stops the current page visibly;
 reloading opens a fresh stream rather than replaying ambiguous events.
-See the [update protocol and integration example](UPDATE_STREAM.ru.md).
+See the [update protocol and integration example](../UPDATE_STREAM.ru.md).
