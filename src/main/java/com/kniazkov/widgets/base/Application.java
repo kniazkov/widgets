@@ -18,7 +18,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Web application executed by the {@link Server}.
+ * Web application served by {@code Server} from the {@code widgets-http} module.
  * To use this framework, you must implement and provide at least one {@link Page}
  * (the index page) and pass it to this class.
  */

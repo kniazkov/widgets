@@ -19,6 +19,8 @@
     <properties>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
+        <!-- The full JAR writes the classpath used by the launchers in this directory. -->
+        <mdep.skip>true</mdep.skip>
     </properties>
     <build>
         <directory>modules/target/reactor</directory>

@@ -5,6 +5,8 @@ on:
       - scripts/run-stream-probe.mjs
       - src/main/java/com/kniazkov/widgets/base/**
       - pom.xml
+      - widgets.xml
+      - modules/pom.xml
       - src/test/java/com/kniazkov/widgets/e2e/StreamTestServer.java
       - .github/workflows/stream-probe.yml
   workflow_dispatch:

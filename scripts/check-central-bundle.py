@@ -46,6 +46,19 @@ def main():
         expected = set()
         for artifact in sorted(components):
             base = f"com/kniazkov/{artifact}/{version}/{artifact}-{version}"
+            pom = ET.fromstring(bundle.read(base + ".pom"))
+            assert pom.findtext(ns + "artifactId") == artifact, base
+            assert pom.findtext(ns + "name") and pom.findtext(ns + "description"), base
+            if artifact == "widgets-modules":
+                assert pom.findtext(ns + "groupId") == "com.kniazkov", base
+                assert pom.findtext(ns + "version") == version, base
+                for field in ("url", "licenses/license/name", "developers/developer/name",
+                              "scm/connection", "scm/developerConnection", "scm/url"):
+                    assert pom.findtext("/".join(ns + part for part in field.split("/"))), field
+            else:
+                parent = pom.find(ns + "parent")
+                assert parent is not None and parent.findtext(ns + "artifactId") == "widgets-modules", base
+                assert parent.findtext(ns + "version") == version, base
             expected.add(base + ".pom")
             if artifact != "widgets-modules":
                 expected.update(base + suffix for suffix in (".jar", "-sources.jar", "-javadoc.jar"))
