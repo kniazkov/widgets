@@ -8,7 +8,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -160,6 +160,7 @@ public final class DiagnosticsTest {
         final Application app = BaseTestSupport.application((root, context) -> { });
         final Capture capture = new Capture();
         final Logger logger = Logger.getLogger(Application.class.getName());
+        capture.setFilter(record -> record.getMessage().startsWith("Browser-reported error;"));
         logger.addHandler(capture);
         try {
             app.reportBrowserError(Map.of("client", "invalid", "error", "ignored"));
@@ -184,11 +185,13 @@ public final class DiagnosticsTest {
         /**
          * Captured records.
          */
-        private final List<LogRecord> records = new ArrayList<>();
+        private final List<LogRecord> records = new CopyOnWriteArrayList<>();
 
         @Override
         public void publish(final LogRecord record) {
-            this.records.add(record);
+            if (isLoggable(record)) {
+                this.records.add(record);
+            }
         }
 
         @Override

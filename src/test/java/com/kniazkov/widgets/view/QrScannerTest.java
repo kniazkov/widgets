@@ -34,7 +34,8 @@ public class QrScannerTest {
         assertEquals(List.of("product"), received);
         assertEquals(configuration, scanner.getText());
         event.addString("text", "2\n" + "x".repeat(2048));
-        assertEquals("invalidPayload", Event.TEXT_INPUT.rejectionReason(scanner, event).orElseThrow());
+        assertEquals("invalidPayload",
+            Event.TEXT_INPUT.rejectionReason(scanner, event).orElseThrow());
         scanner.handleEvent(Event.TEXT_INPUT, event);
         assertEquals(List.of("product"), received);
         assertTrue(Event.TEXT_INPUT.rejectionReason(new Panel(), event).isPresent());
