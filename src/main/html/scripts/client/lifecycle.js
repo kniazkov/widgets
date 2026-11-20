@@ -132,6 +132,7 @@ function mainCycle() {
 function disposeClient() {
     clientDisposed = true;
     disposeCountdowns();
+    disposeQrScanners();
     clearInterval(mainCycleTask);
     if (clientId != null) {
         sendRequest({ action: "kill", client: clientId });

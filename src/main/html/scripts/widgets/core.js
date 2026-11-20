@@ -112,6 +112,7 @@ const widgetsLibrary = {
     "modal popup": function () {
         return createPopup(true);
     },
+    "qr scanner": createQrScanner,
     countdown: createCountdown,
     markdown: createMarkdown,
     text: function () {
