@@ -55,4 +55,6 @@ With the original starting value and increment, both rows show **0**, then **1**
 as you click. If you kept the changes above, both show **10**, **12**, **14**.
 One handler updates the integer once per click. Each label follows the same binding.
 
+Widgets in this example · [Button](widgets/display.md#button) · [TextWidget](widgets/display.md#textwidget) · [Section](widgets/layout.md#section)
+
 [Next: validate input and save a form](form-models.md)

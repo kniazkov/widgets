@@ -82,4 +82,6 @@ As the pages grow, you can move them into separate Java classes as in
 [TabContextExample](../../src/main/java/com/kniazkov/widgets/example/TabContextExample.java)
 lets you inspect the tab IDs and end the current context with a button.
 
+Widgets in this example · [Link](widgets/display.md#link) · [FormField](widgets/forms.md#formfield)
+
 [Run an application over HTTPS](https.md)

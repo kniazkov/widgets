@@ -78,4 +78,6 @@ must survive an application restart, write it to your storage in this handler an
 reopen the form. The message now asks for five digits. Typing `0042` still leaves the button
 disabled. Enter `00042` and click **Save** to see all five digits in the result.
 
+Widgets in this example · [InputField](widgets/forms.md#inputfield) · [Label](widgets/forms.md#label) · [Button](widgets/display.md#button)
+
 [Next: build a page from cards](page-composition.md)

@@ -82,4 +82,6 @@ app.addPage("log", log);
 В [TabContextExample](../../src/main/java/com/kniazkov/widgets/example/TabContextExample.java)
 можно посмотреть идентификаторы вкладок и завершить текущий контекст кнопкой.
 
+Виджеты в примере · [Link](widgets/display.md#link) · [FormField](widgets/forms.md#formfield)
+
 [Запуск приложения по HTTPS](https.md)
