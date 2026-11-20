@@ -24,5 +24,13 @@
     </properties>
     <build>
         <directory>modules/target/reactor</directory>
+        <!-- Resolve CLI dependency goals without repository prefix metadata. -->
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.7.0</version>
+            </plugin>
+        </plugins>
     </build>
 </project>
