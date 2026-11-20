@@ -4,10 +4,18 @@
 package com.kniazkov.widgets.e2e;
 
 import com.kniazkov.widgets.base.Application;
+import com.kniazkov.widgets.view.TreeView;
+import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.model.IntegerModel;
+import com.kniazkov.widgets.model.IntegerToStringModel;
 import com.kniazkov.widgets.base.Options;
 import com.kniazkov.widgets.base.Page;
 import com.kniazkov.widgets.base.Server;
 import com.kniazkov.widgets.base.StaticSource;
+import com.kniazkov.widgets.common.Listener;
+import com.kniazkov.widgets.controller.KeyboardEvent;
+import com.kniazkov.widgets.images.ImageDecodeLimits;
+import com.kniazkov.widgets.images.ImageLoader;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.InlineBlock;
 import com.kniazkov.widgets.view.SortableSection;
@@ -35,6 +43,7 @@ import java.net.InetAddress;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Test-only application used by the Playwright end-to-end suite.
@@ -93,15 +102,30 @@ public final class E2ETestServer {
                 final TextWidget upload = new TextWidget(
                     "Selected " + descriptor.getName() + " 0%"
                 );
-                descriptor.getLoadingPercentageModel().addListener(
-                    percent -> upload.setText(
-                        "Selected " + descriptor.getName() + " " + percent + "%"
-                    )
+                final var progressModel = descriptor.getLoadingPercentageModel();
+                /*
+                 * The model holds listeners weakly; the fixture owns this one until completion
+                 * or cancellation so GC cannot hide progress from the browser.
+                 */
+                final Listener<Integer> progress = percent -> upload.setText(
+                    "Selected " + descriptor.getName() + " " + percent + "%"
                 );
-                descriptor.onLoad(file -> upload.setText(
-                    "Loaded " + file.getName() + " 100% " + sha256(file.getContent())
-                ));
+                progressModel.addListener(progress);
+                descriptor.onLoad(file -> {
+                    final String digest = sha256(file.getContent());
+                    descriptor.executeOnRoot(() -> {
+                        progressModel.removeListener(progress);
+                        upload.setText("Loaded " + file.getName() + " 100% " + digest);
+                    });
+                });
+                final Button cancelUpload = new Button("Cancel " + descriptor.getName());
+                cancelUpload.onClick(event -> {
+                    progressModel.removeListener(progress);
+                    descriptor.cancel();
+                    upload.setText("Cancelled " + descriptor.getName());
+                });
                 content.add(upload);
+                content.add(cancelUpload);
             });
             content.add(status);
             content.add(button);
@@ -131,6 +155,165 @@ public final class E2ETestServer {
             .addStaticSource(images)
             .build();
         final Application application = new Application(page);
+        application.addPage("public-catalog",
+            new com.kniazkov.widgets.example.PublicCatalog(false));
+        application.addPage("public-terms",
+            new com.kniazkov.widgets.example.PublicCatalog(true));
+        application.addPage("private-static-test", (root, context) -> {
+            root.add(new Section(new TextWidget("Private UI requires interactive authorization")));
+        });
+        addKeyboardShortcutsPage(application);
+        final com.kniazkov.widgets.model.StringModel pollingValue =
+            new com.kniazkov.widgets.model.StringModel("Initial polling value");
+        final java.util.concurrent.atomic.AtomicInteger pollingChanges =
+            new java.util.concurrent.atomic.AtomicInteger();
+        final Page pollingPage = (root, context) -> {
+            final TextWidget value = new TextWidget(TextWidget.getDefaultStyle(), pollingValue);
+            final Button change = new Button("Change shared polling value");
+            change.onClick(event -> pollingValue.setData(
+                "Updated polling value " + pollingChanges.incrementAndGet()));
+            root.add(new Section(value, change, new Link("Next polling page", "/polling-next")));
+        };
+        application.addPage("polling", pollingPage);
+        application.addPage("polling-next", pollingPage);
+        application.addPage("local-actions", com.kniazkov.widgets.example.LocalActions.page());
+        application.addPage("anchored-lifecycle", (root, context) -> {
+            final Button anchor = new Button("Lifecycle actions");
+            final TextWidget result = new TextWidget("No actions");
+            final com.kniazkov.widgets.view.Menu menu = new com.kniazkov.widgets.view.Menu(
+                anchor, "Lifecycle menu", List.of(new com.kniazkov.widgets.view.Menu.Item(
+                    "run", "Run action", true, () -> result.setText("Action completed"))));
+            final com.kniazkov.widgets.view.Panel container =
+                new com.kniazkov.widgets.view.Panel(new Section(anchor), menu);
+            final Button hide = new Button("Hide container");
+            hide.onClick(event -> container.hide());
+            final Button show = new Button("Show container");
+            show.onClick(event -> container.show());
+            root.add(new Section(hide, show, result));
+            root.add(container);
+        });
+        application.addPage("split-lifecycle", (root, context) -> {
+            final IntegerModel position = new IntegerModel(40);
+            final InputField field = new InputField();
+            final var pane = new SplitPane(SplitPane.Axis.HORIZONTAL, "Divider", 15, 85,
+                position, new Section(field), new Section(new TextWidget("Preview")));
+            final Button reset = new Button("Reset");
+            reset.onClick(event -> position.setData(60));
+            final Button remove = new Button("Remove");
+            remove.onClick(event -> pane.dispose());
+            final TextWidget report = new TextWidget();
+            report.setTextModel(new IntegerToStringModel(position));
+            root.add(pane);
+            root.add(new Section(reset, remove, report));
+        });
+        application.addPage("tree-race", (root, context) -> {
+            final var requests = new ArrayList<CompletableFuture<List<TreeView.Node>>>();
+            final var tree = new TreeView(List.of(
+                new TreeView.Node("root", "Root", true)), key -> {
+                    final var future = new CompletableFuture<List<TreeView.Node>>();
+                    requests.add(future);
+                    return future;
+                }, new TreeView.Messages("Loading", "Empty", "Error"));
+            final Button finish = new Button("Finish both");
+            finish.onClick(event -> {
+                if (requests.size() == 2) {
+                    requests.getLast().complete(List.of(
+                        new TreeView.Node("new", "Current", false)));
+                    requests.getFirst().complete(List.of(
+                        new TreeView.Node("old", "Stale", false)));
+                }
+            });
+            root.add(tree);
+            root.add(new Section(finish));
+        });
+        application.addPage("all-widgets", com.kniazkov.widgets.example.AllWidgets.galleryPage());
+        application.addPage("connection-recovery", (root, context) -> {
+            final TextWidget count = new TextWidget("Accepted actions: 0");
+            final var actions = new java.util.concurrent.atomic.AtomicInteger();
+            final Button change = new Button("Count recovery action");
+            change.onClick(event -> count.setText(
+                "Accepted actions: " + actions.incrementAndGet()
+            ));
+            final Button delayed = new Button("Count delayed recovery action");
+            delayed.onClick(event -> {
+                count.setText("Accepted actions: " + actions.incrementAndGet());
+                try {
+                    /*
+                     * The browser must time out while a real server reply is pending.
+                     */
+                    Thread.sleep(11000L);
+                } catch (final InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            final InputField draft = new InputField("Editable recovery draft");
+            root.add(new Section(new TextWidget("Connection recovery fixture")));
+            root.add(new Section(draft, change, count));
+            root.add(new Section(delayed));
+            root.add(new Section(new Link("Open recovery catalog", "/catalog")));
+        });
+        final Page securityPage = (root, context) -> {
+            final var session = context.browserSession;
+            final var count = new java.util.concurrent.atomic.AtomicInteger();
+            final TextWidget status = new TextWidget("Private counter: 0");
+            final Button change = new Button("Change private counter");
+            change.onClick(event -> status.setText("Private counter: " + count.incrementAndGet()));
+            final Button revoke = new Button("Revoke browser session");
+            revoke.onClick(event -> session.revoke());
+            root.add(new Section(new TextWidget("Transport session: " + session.getId())));
+            root.add(new Section(status, change, revoke));
+            root.add(new Section(new Link("Next private page", "/channel-security-next")));
+        };
+        final java.util.Map<java.util.UUID, java.util.concurrent.atomic.AtomicInteger> ackCounts =
+            new java.util.concurrent.ConcurrentHashMap<>();
+        application.addPage("event-ack", (root, context) -> {
+            final var count = ackCounts.computeIfAbsent(context.tabContext.getId(),
+                id -> new java.util.concurrent.atomic.AtomicInteger());
+            final TextWidget status = new TextWidget("Accepted actions: " + count.get());
+            final Button action = new Button("Count action");
+            action.onClick(event -> status.setText("Accepted actions: " + count.incrementAndGet()));
+            final Button remove = new Button("Remove action");
+            remove.onClick(event -> remove.remove());
+            root.add(new Section(status, action, remove));
+        });
+        application.addPage("live-event-targets", (root, context) -> {
+            final var count = new java.util.concurrent.atomic.AtomicInteger();
+            final TextWidget status = new TextWidget("Tree actions: 0");
+            final Button hold = new Button("Hold response");
+            hold.onClick(event -> { });
+            final Button old = new Button("Old target");
+            old.onClick(event -> status.setText("Tree actions: " + count.addAndGet(100)));
+            final Button replacement = new Button("New target");
+            replacement.onClick(event -> status.setText("Tree actions: " + count.addAndGet(10)));
+            final Section holder = new Section(old);
+            final Button replace = new Button("Replace tree");
+            replace.onClick(event -> {
+                holder.removeAll();
+                holder.add(replacement);
+            });
+            final Button following = new Button("Following action");
+            following.onClick(event -> status.setText("Tree actions: " + count.incrementAndGet()));
+            root.add(new Section(status, hold, replace, following));
+            root.add(holder);
+        });
+        application.addPage("event-validation", (root, context) -> {
+            final TextWidget status = new TextWidget("Accepted clicks: 0");
+            final var count = new java.util.concurrent.atomic.AtomicInteger();
+            final Button action = new Button("Guarded action");
+            action.disable();
+            action.onClick(event -> status.setText("Accepted clicks: " + count.incrementAndGet()));
+            final Button enable = new Button("Enable guarded action");
+            enable.onClick(event -> action.enable());
+            final InputField input = new InputField("initial input");
+            final TextWidget echo = new TextWidget("Echo: initial input");
+            input.onTextInput(value -> echo.setText("Echo: " + value));
+            final DropDownList select = new DropDownList("First", "Second");
+            final TextWidget selection = new TextWidget("Selected: -1");
+            select.onSelect(value -> selection.setText("Selected: " + value));
+            root.add(new Section(status, action, enable, input, echo, select, selection));
+        });
+        application.addPage("channel-security", securityPage);
+        application.addPage("channel-security-next", securityPage);
         final java.util.Set<java.util.UUID> modes =
             java.util.concurrent.ConcurrentHashMap.newKeySet();
         final Page tabPage = (root, context) -> {
@@ -152,6 +335,11 @@ public final class E2ETestServer {
             root.add(new Section(mode, enter, exit));
             root.add(new Section(new Link("Next tab page", "/tab-context-next")));
         };
+        addImageProcessingPage(application);
+        addApplicationLifecyclePages(application);
+        application.addPage("widget-lifecycle", WidgetLifecyclePage.create());
+        application.addPage("widget-reparenting", WidgetReparentingPage.create());
+        application.addPage("update-stream", UpdateStreamPage.create());
         application.addPage("countdown",
             com.kniazkov.widgets.example.CountdownExample.createPage("/countdown-next"));
         application.addPage("countdown-next",
@@ -177,9 +365,11 @@ public final class E2ETestServer {
             final CheckBoxWithText box = new CheckBoxWithText("Receive news");
             final RadioButtonWithText first = new RadioButtonWithText("Delivery");
             final RadioButtonWithText second = new RadioButtonWithText("Pickup");
+            final RadioButtonWithText unavailable = new RadioButtonWithText("Unavailable option");
+            unavailable.disable();
             first.check();
             new com.kniazkov.widgets.view.RadioGroup(
-                first.getRadioButton(), second.getRadioButton());
+                first.getRadioButton(), unavailable.getRadioButton(), second.getRadioButton());
             final com.kniazkov.widgets.model.BooleanModel disabled =
                 new com.kniazkov.widgets.model.BooleanModel(false);
             box.setDisabledStateModel(disabled);
@@ -187,6 +377,7 @@ public final class E2ETestServer {
             second.setDisabledStateModel(disabled);
             root.add(new Section(box));
             root.add(new Section(first));
+            root.add(new Section(unavailable));
             root.add(new Section(second));
             final Button toggle = new Button("Toggle disabled");
             toggle.onClick(event -> disabled.setData(!disabled.getData()));
@@ -340,6 +531,105 @@ public final class E2ETestServer {
             root.add(new Section(reset, limit, clicks));
         });
         Server.start(application, options);
+    }
+
+    /**
+     * Test-only ordinary image decoder under a deliberately low quota.
+     *
+     * @param application test application
+     */
+    private static void addImageProcessingPage(final Application application) {
+        final var limits = new ImageDecodeLimits(4096, 12, 144, 4096);
+        application.addPage("bounded-image-processing", (root, context) -> {
+            final FileLoader loader = new FileLoader("Choose image sample");
+            final TextWidget status = new TextWidget("No image selected");
+            final TextWidget progress = new TextWidget("Upload progress 0%");
+            loader.onSelect(descriptor -> {
+                final var model = descriptor.getLoadingPercentageModel();
+                final Listener<Integer> listener = count -> progress.setText(
+                    "Upload progress " + count + "%");
+                status.setText("Processing " + descriptor.getName());
+                progress.setText("Upload progress 0%");
+                model.addListener(listener);
+                descriptor.onLoad(file -> {
+                    String outcome;
+                    try {
+                        final var image = ImageLoader.load(file.getType(), file.getContent(),
+                            limits);
+                        outcome = "Decoded " + image.getWidth() + " x " + image.getHeight();
+                    } catch (final java.io.IOException invalid) {
+                        outcome = "Image rejected by decoder policy";
+                    }
+                    final String message = outcome;
+                    descriptor.executeOnRoot(() -> {
+                        model.removeListener(listener);
+                        status.setText(message);
+                    });
+                });
+            });
+            root.add(new Section(loader, progress, status));
+        });
+    }
+
+    /**
+     * Registers a pair of pages for testing terminal client cleanup over the live browser.
+     *
+     * @param application test application
+     */
+    private static void addApplicationLifecyclePages(final Application application) {
+        final var opened = new java.util.concurrent.atomic.AtomicInteger();
+        final var closed = new java.util.concurrent.atomic.AtomicInteger();
+        application.addPage("application-lifecycle", (root, context) -> {
+            final Link next = new Link("Open lifecycle monitor");
+            next.setHref("/application-lifecycle-monitor");
+            final InputField draft = new InputField();
+            draft.setAccessibleName("Page draft");
+            root.add(new Section(new TextWidget("Opened page " + opened.incrementAndGet()),
+                draft, next));
+            root.onClose(closed::incrementAndGet);
+        });
+        application.addPage("application-lifecycle-monitor", (root, context) -> {
+            final Button clear = new Button("Release cached pages");
+            clear.onClick(event -> root.clearPageCache());
+            final Button read = new Button("Read cleanup count");
+            final TextWidget status = new TextWidget("Cleanup count not read");
+            read.onClick(event -> status.setText("Closed pages " + closed.get()));
+            root.add(new Section(clear, read, status));
+        });
+    }
+
+    /**
+     * Registers an ordinary editor demo for keyboard action and state retention tests.
+     * @param application test application
+     */
+    private static void addKeyboardShortcutsPage(final Application application) {
+        application.addPage("keyboard-shortcuts", (root, context) -> {
+            final TextWidget status = new TextWidget("Keyboard actions: 0");
+            final var actions = new java.util.concurrent.atomic.AtomicInteger();
+            final Runnable invoke = () -> status.setText(
+                "Keyboard actions: " + actions.incrementAndGet()
+            );
+            final TextArea area = new TextArea();
+            area.setAccessibleName("Multiline draft");
+            area.onKeyDown(new KeyboardEvent.Shortcut(KeyboardEvent.Key.ENTER,
+                true, false, false, false), true, event -> invoke.run());
+            final SuggestionField suggestion = new SuggestionField(List.of("Silver", "Gold"));
+            suggestion.setAccessibleName("Keyboard suggestion");
+            suggestion.onEnter(event -> invoke.run());
+            final InputField locked = new InputField("Read-only test value");
+            locked.setAccessibleName("Read-only editor");
+            locked.onEnter(event -> invoke.run());
+            locked.setReadOnly(true);
+            final InputField disabled = new InputField("Disabled test value");
+            disabled.setAccessibleName("Disabled editor");
+            disabled.onEnter(event -> invoke.run());
+            disabled.disable();
+            final Button dispose = new Button("Dispose suggestion");
+            dispose.onClick(event -> suggestion.dispose());
+            root.add(new Section(area, suggestion));
+            root.add(new Section(locked, disabled, dispose, status));
+            root.add(new Section(new Link("Open other keyboard page", "/")));
+        });
     }
 
     /**

@@ -3,9 +3,16 @@
  */
 package com.kniazkov.widgets.view;
 
+import com.kniazkov.widgets.controller.Controller;
 import com.kniazkov.widgets.controller.HandlesFocusEvents;
 import com.kniazkov.widgets.controller.HandlesPointerEvents;
+import com.kniazkov.widgets.controller.KeyboardEvent;
 import com.kniazkov.widgets.model.Model;
+import com.kniazkov.widgets.protocol.FocusEditor;
+import com.kniazkov.widgets.protocol.SetKeyboardShortcuts;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * An editable text input field widget.
@@ -17,6 +24,31 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
         HasMargin, HasPadding, HasInvalidState, HasDisabledState, HasHorizontalAlignment,
         HandlesFocusEvents, HandlesPointerEvents, HasBoxShadow, HasOutline, HasCursor,
         HasTransition, HasBoxSizing {
+    /**
+     * Active, explicitly registered key handlers.
+     */
+    private final Map<KeyboardEvent, KeyBinding> keyBindings = new LinkedHashMap<>();
+
+    /**
+     * Unconfigured editors retain the standard input limit.
+     */
+    private int maxLength = 65536;
+
+    /**
+
+     * Whether local editing and keyboard actions are currently read-only.
+
+     */
+    private boolean readOnly;
+
+    /**
+     * A server controller and its synchronous browser default policy.
+     * @param controller callback
+     * @param preventDefault whether to prevent the native action and stop propagation
+     */
+    private record KeyBinding(Controller<KeyboardEvent> controller, boolean preventDefault) {
+    }
+
     /**
      * Returns the default style instance used by input fields.
      *
@@ -55,11 +87,24 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
          */
         super(style);
         this.setText(text);
+        this.onRetire(this.keyBindings::clear);
     }
 
     @Override
     public String getType() {
         return "input field";
+    }
+
+    /**
+     * Sets trailing-edge debounce for committed text, preserving immediate delivery by default.
+     * Blur and business commands flush pending committed text before their event.
+     * Composition text is never submitted before compositionend.
+     * @param milliseconds delay in 0..2000 milliseconds
+     */
+    public final void setInputDebounce(final int milliseconds) {
+        this.requireUsable();
+        this.pushUpdate(new com.kniazkov.widgets.protocol.SetInputDebounce(
+            this.getId(), milliseconds));
     }
 
     /**
@@ -84,5 +129,144 @@ public class InputField extends InlineWidget<InputFieldStyle> implements HasText
     public void setTextModel(Model<String> model) {
         this.setModel(State.ANY, Property.TEXT, model);
         this.setModel(State.ANY, Property.VALID, model.getValidFlagModel());
+    }
+
+    @Override
+    public int getMaxInputLength() {
+        return this.maxLength;
+    }
+
+    /**
+     * Changes the editor's native and server length limit, in UTF-16 code units.
+     * @param length new limit
+     */
+    final void setFormMaxLength(final int length) {
+        this.maxLength = length;
+        this.getModel(State.ANY, Property.MAX_LENGTH).setData(length);
+    }
+
+    /**
+     * Queues a one-shot focus request for a live invalid form editor.
+     */
+    final void focusFormEditor() {
+        if (this.getRootWidget().isPresent() && this.isInteractionEnabled()) {
+            this.pushUpdate(new FocusEditor(this.getId()));
+        }
+    }
+
+    /**
+     * Updates form touch state before the independent application blur callback.
+     */
+    public final void markFormEditorTouched() {
+        if (this.getParent().orElse(null) instanceof Widget<?> row
+                && row.getParent().orElse(null) instanceof FormField field
+                && field.getEditor() == this) {
+            field.markTouched();
+        }
+    }
+
+    /**
+     * Registers a logical Enter action on a single-line editor. Replaces an existing callback.
+     * @param controller handler receiving the normalized press, or null to unsubscribe
+     */
+    public final void onEnter(final Controller<KeyboardEvent> controller) {
+        this.onKeyDown(new KeyboardEvent.Shortcut(KeyboardEvent.Key.ENTER), true, controller);
+    }
+
+    /**
+     * Registers an exact key press subscription.
+     * @param shortcut named key and exact modifiers
+     * @param preventDefault cancel native behavior and propagation on the client
+     * @param controller handler, or null to unsubscribe
+     */
+    public final void onKeyDown(final KeyboardEvent.Shortcut shortcut, final boolean preventDefault,
+            final Controller<KeyboardEvent> controller) {
+        this.setKeyBinding(shortcut, KeyboardEvent.Phase.DOWN, preventDefault, controller);
+    }
+
+    /**
+     * Registers an exact key release notification without affecting the native key press.
+     * @param shortcut named key and exact modifiers
+     * @param controller handler, or null to unsubscribe
+     */
+    public final void onKeyUp(final KeyboardEvent.Shortcut shortcut,
+            final Controller<KeyboardEvent> controller) {
+        this.setKeyBinding(shortcut, KeyboardEvent.Phase.UP, false, controller);
+    }
+
+    /**
+     * Applies one binding and publishes the small complete table, without field data.
+     * @param shortcut normalized shortcut
+     * @param phase normalized event phase
+     * @param preventDefault local cancellation policy
+     * @param controller handler, or null to remove
+     */
+    private synchronized void setKeyBinding(final KeyboardEvent.Shortcut shortcut,
+            final KeyboardEvent.Phase phase, final boolean preventDefault,
+            final Controller<KeyboardEvent> controller) {
+        this.requireUsable();
+        Objects.requireNonNull(shortcut);
+        final KeyboardEvent key = new KeyboardEvent(shortcut, phase);
+        if (controller == null) {
+            if (this.keyBindings.remove(key) == null) {
+                return;
+            }
+        } else {
+            if (this instanceof TextArea && phase == KeyboardEvent.Phase.DOWN
+                    && shortcut.equals(new KeyboardEvent.Shortcut(KeyboardEvent.Key.ENTER))) {
+                throw new IllegalArgumentException("Use a modified Enter in a multiline editor");
+            }
+            if (this.keyBindings.size() >= 32 && !this.keyBindings.containsKey(key)) {
+                throw new IllegalArgumentException("Too many keyboard subscriptions");
+            }
+            this.keyBindings.put(key, new KeyBinding(controller, preventDefault));
+        }
+        this.pushUpdate(new SetKeyboardShortcuts(this.getId(), this.keyBindings.entrySet()
+            .stream().map(entry -> entry.getKey().signature() + ":"
+                + (entry.getValue().preventDefault() ? "1" : "0")).toList()));
+    }
+
+    /**
+     * Checks the live server subscription; called by browser event validation.
+     * @param event normalized press or release
+     * @return whether a callback is registered and active
+     */
+    public final synchronized boolean acceptsKeyboardEvent(final KeyboardEvent event) {
+        return !this.isRetired() && !this.readOnly && this.getRootWidget().isPresent()
+            && this.isInteractionEnabled() && this.keyBindings.containsKey(event);
+    }
+
+    /**
+     * Invokes a currently subscribed controller after protocol validation.
+     * @param event normalized press or release
+     */
+    public final void dispatchKeyboardEvent(final KeyboardEvent event) {
+        final KeyBinding binding;
+        synchronized (this) {
+            if (!this.acceptsKeyboardEvent(event)) {
+                return;
+            }
+            binding = this.keyBindings.get(event);
+        }
+        binding.controller().handleEvent(event);
+    }
+
+    /**
+     * Sets native read-only editing; also disables server keyboard actions for the editor.
+     * @param value whether the field is read-only
+     */
+    public final synchronized void setReadOnly(final boolean value) {
+        this.requireUsable();
+        if (this.readOnly != value) {
+            this.readOnly = value;
+            this.getModel(State.ANY, Property.READ_ONLY).setData(value);
+        }
+    }
+
+    /**
+     * @return whether the field is read-only
+     */
+    public final synchronized boolean isReadOnly() {
+        return this.readOnly;
     }
 }

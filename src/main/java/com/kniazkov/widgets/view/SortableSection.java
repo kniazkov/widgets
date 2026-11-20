@@ -63,6 +63,7 @@ public final class SortableSection extends BlockWidget<SortableSectionStyle>
      */
     public SortableSection(final SortableSectionStyle style, final InlineWidget<?>... children) {
         super(Objects.requireNonNull(style, "style"));
+        this.validateChildren(children);
         for (final InlineWidget<?> child : children) {
             this.add(child);
         }
@@ -93,18 +94,12 @@ public final class SortableSection extends BlockWidget<SortableSectionStyle>
 
     @Override
     public void add(final InlineWidget<?> widget) {
-        Objects.requireNonNull(widget, "widget");
-        if (widget instanceof Container container
-            && container.collectChildren(Widget.class).contains(this)) {
-            throw new IllegalArgumentException("A section cannot contain an ancestor");
-        }
         if (this.children.contains(widget)) {
             return;
         }
-        widget.remove();
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        this.pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
         this.revision++;
         this.publishOrder();
     }
@@ -113,7 +108,7 @@ public final class SortableSection extends BlockWidget<SortableSectionStyle>
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
             this.revision++;
             this.publishOrder();
         }

@@ -87,3 +87,26 @@ A crawler must execute the application to see RootWidget overrides. In particula
 site-wide `noindex` expecting a page override to undo it: crawlers may skip JavaScript rendering
 once they see `noindex` in the initial response. For reliable crawler-specific per-page rules,
 initial-response metadata will require a separate request-aware API.
+
+## Web fonts
+
+External fonts can be registered once in the application options and then used through the
+ordinary `FontFace` styling API. `GoogleFont` builds a Google Fonts CSS API request and returns the
+matching reusable face:
+
+```java
+GoogleFont roboto = new GoogleFont(
+    "Roboto Slab",
+    FontWeight.NORMAL,
+    FontWeight.BOLD
+);
+Options options = new Options.Builder()
+    .addFont(roboto)
+    .build();
+
+TextWidget title = new TextWidget("Title");
+title.setFontFace(roboto.getFontFace());
+```
+
+The server adds the required stylesheet link to every generated page. Other font providers can be
+integrated by implementing `WebFont`.

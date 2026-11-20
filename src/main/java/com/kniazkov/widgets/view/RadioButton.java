@@ -19,7 +19,7 @@ import java.util.Objects;
 public final class RadioButton extends InlineWidget<RadioButtonStyle>
         implements HasCheckedState, HasDisabledState, HasColor, HasBgColor, HasAbsoluteWidth,
         HasAbsoluteHeight, HasMargin, HasSelectableImage, HasOpacity, HandlesPointerEvents,
-        HasBoxShadow, HasCursor, HasTransition, HasBoxSizing {
+        HasBoxShadow, HasCursor, HasTransition, HasBoxSizing, HasAccessibleName {
     /**
      * Groups observing this button. Used to keep their model subscriptions current.
      */
@@ -41,6 +41,7 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
     public RadioButton() {
         super(getDefaultStyle());
         this.uncheck();
+        this.onRetire(this::leaveGroups);
     }
 
     /**
@@ -52,6 +53,7 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
     public RadioButton(final Model<Boolean> checked) {
         super(getDefaultStyle());
         this.setCheckedStateModel(Objects.requireNonNull(checked, "checked"));
+        this.onRetire(this::leaveGroups);
     }
 
     @Override
@@ -73,6 +75,7 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
      */
     void attach(final RadioGroup group) {
         this.groups.add(group);
+        this.refreshNativeGroup();
     }
 
     /**
@@ -82,6 +85,26 @@ public final class RadioButton extends InlineWidget<RadioButtonStyle>
      */
     void detach(final RadioGroup group) {
         this.groups.remove(group);
+        if (!this.isRetired()) {
+            this.refreshNativeGroup();
+        }
+    }
+
+    /**
+     * Drops only this member's subscriptions, leaving shared groups usable.
+     */
+    private void leaveGroups() {
+        for (final RadioGroup group : List.copyOf(this.groups)) {
+            group.remove(this);
+        }
+    }
+
+    /**
+     * Publishes the primary group without changing existing server-side membership.
+     */
+    private void refreshNativeGroup() {
+        final String name = this.groups.isEmpty() ? "" : this.groups.getFirst().clientName();
+        this.getModel(State.ANY, Property.RADIO_GROUP).setData(name);
     }
 
     @Override

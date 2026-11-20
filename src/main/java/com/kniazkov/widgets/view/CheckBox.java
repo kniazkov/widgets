@@ -11,7 +11,7 @@ import com.kniazkov.widgets.controller.HandlesPointerEvents;
 public class CheckBox extends InlineWidget<CheckBoxStyle> implements HasCheckedState,
         HasDisabledState, HasColor, HasBgColor, HasAbsoluteWidth, HasAbsoluteHeight, HasMargin,
         HasSelectableImage, HasOpacity, HandlesPointerEvents, HasBoxShadow, HasCursor,
-        HasTransition, HasBoxSizing {
+        HasTransition, HasBoxSizing, HasAccessibleName {
     /**
      * Returns the default style instance used by check boxes.
      *

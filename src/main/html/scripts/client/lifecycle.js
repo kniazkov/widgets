@@ -3,15 +3,69 @@
  */
 
 // Each runtime factory owns these variables, its widget registry and upload scheduler.
+// The runtime carries its own stamp: an old factory cannot borrow a new transport's identity.
+const widgetsRuntimeBuild = "__WIDGETS_BUILD__";
+function clientBuildIdentity() {
+    return typeof widgetsClientBuild === "string" && widgetsRuntimeBuild === widgetsClientBuild
+        ? widgetsRuntimeBuild
+        : "mixed-bundle";
+}
+
 const pageContext = typeof page === "undefined" ? null : page;
 const tabContext = pageContext?.tab || { id: null };
 let clientDisposed = false;
 let clientId = null;
 let serverId = null;
+let updateEpoch = null;
+let channelToken = null;
 let browserId = null;
 const period = 2500;
 let mainCycleTask = null;
+let pushChannel = null;
 let clientCreationInProgress = false;
+let clientCreationRetryTask = null;
+let clientCreationRetry = null;
+let clientCreationFailures = 0;
+
+function resumeOnline() {
+    if (clientDisposed || clientFailed) return;
+    if (clientCreationRetry) {
+        const retry = clientCreationRetry;
+        clearTimeout(clientCreationRetryTask);
+        retry();
+    } else {
+        resumeSynchronizationOnline();
+    }
+}
+
+window.addEventListener("online", resumeOnline);
+
+function stopClientRecovery() {
+    pushChannel?.dispose();
+    pushChannel = null;
+    window.removeEventListener("online", resumeOnline);
+    mainCycleTask?.dispose();
+    mainCycleTask = null;
+    clearTimeout(clientCreationRetryTask);
+    clientCreationRetryTask = null;
+    clientCreationRetry = null;
+    cancelSynchronization();
+    if (typeof disposeUploads === "function") disposeUploads();
+}
+
+// Always attach the credentials of this runtime, including cleanup of a late creation.
+function sendClientRequest(query, callback, method, files, channel) {
+    if (query.action === "synchronize" && !files && !channel && pushChannel) {
+        return pushChannel.send(query, callback);
+    }
+    sendRequest(
+        query,
+        callback,
+        method,
+        files,
+        channel || { token: channelToken, epoch: serverId, updateEpoch }
+    );
+}
 
 function initClient(sessionId, address, data) {
     browserId = localStorage.getItem("browserId");
@@ -22,7 +76,7 @@ function initClient(sessionId, address, data) {
     if (!pageContext) {
         window.addEventListener("beforeunload", function () {
             if (clientId != null) {
-                sendRequest({
+                sendClientRequest({
                     action: "kill",
                     client: clientId
                 });
@@ -33,13 +87,31 @@ function initClient(sessionId, address, data) {
 }
 
 function retryClientCreation(address, data) {
-    setTimeout(function () {
+    if (clientDisposed || clientFailed || clientCreationRetryTask !== null) return;
+    clientCreationRetry = () => {
+        clientCreationRetry = null;
+        clientCreationRetryTask = null;
         startClient(address, data);
-    }, 1000);
+    };
+    clientCreationRetryTask = setTimeout(
+        clientCreationRetry,
+        transportRetryDelay(++clientCreationFailures)
+    );
 }
 
 function startClient(address, data) {
-    if (clientDisposed || clientFailed || clientId != null || clientCreationInProgress) {
+    if (
+        clientDisposed ||
+        clientFailed ||
+        clientId != null ||
+        clientCreationInProgress ||
+        clientCreationRetryTask !== null
+    ) {
+        return;
+    }
+    if (navigator.onLine === false) {
+        recordRequestFailure();
+        retryClientCreation(address, data);
         return;
     }
     clientCreationInProgress = true;
@@ -48,6 +120,9 @@ function startClient(address, data) {
     request.address = address;
     request.browserId = browserId;
     request.mobile = isMobileDevice();
+    request.clientBuild = clientBuildIdentity();
+    request.updateVersion = updateStreamVersion;
+    request.updateCapability = updateStreamCapability;
     // Query parameters must never select a context, including during retries.
     delete request.tabId;
     if (tabContext.id) {
@@ -57,22 +132,29 @@ function startClient(address, data) {
         request,
         function (data) {
             clientCreationInProgress = false;
-            if (!data) {
+            if (data == null) {
                 recordRequestFailure();
                 retryClientCreation(address, request);
                 return;
             }
+            if (clientFailed) return;
             let json;
-            try {
-                json = JSON.parse(data);
-            } catch (error) {
-                recordRequestFailure();
-                retryClientCreation(address, request);
-                return;
+            if (clientDisposed) {
+                try {
+                    json = JSON.parse(data);
+                } catch {
+                    return;
+                }
+            } else {
+                json = readProtocolResponse(data);
             }
+            if (!json) return;
             if (clientDisposed) {
                 if (typeof json.id === "string") {
-                    sendRequest({ action: "kill", client: json.id });
+                    sendClientRequest({ action: "kill", client: json.id }, null, "post", null, {
+                        token: json.channelToken,
+                        epoch: json.serverId
+                    });
                 }
                 return;
             }
@@ -88,32 +170,68 @@ function startClient(address, data) {
             if (responseHasClientError(json)) {
                 return;
             }
-            if (typeof json.id !== "string" || typeof json.serverId !== "string") {
-                recordRequestFailure();
-                retryClientCreation(address, request);
+            if (
+                typeof json.id !== "string" ||
+                typeof json.serverId !== "string" ||
+                typeof json.channelToken !== "string" ||
+                json.updateVersion !== updateStreamVersion ||
+                json.updateCapability !== updateStreamCapability ||
+                typeof json.updateEpoch !== "string" ||
+                json.updateEpoch.length === 0
+            ) {
+                showUpdateProtocolError();
                 return;
             }
             if (typeof json.tabId === "string") {
                 if (tabContext.id && tabContext.id !== json.tabId) {
                     // A concurrent initial navigation already established the document's context.
-                    sendRequest({ action: "kill", client: json.id });
+                    sendClientRequest({ action: "kill", client: json.id }, null, "post", null, {
+                        token: json.channelToken,
+                        epoch: json.serverId
+                    });
                     retryClientCreation(address, request);
                     return;
                 }
                 tabContext.id = json.tabId;
             }
+            if (json.publicDocument) pageContext?.publicDocument?.(json.publicDocument);
+            clientCreationFailures = 0;
+            clearSessionRefreshAttempt();
             recordRequestSuccess();
             clientId = json.id;
             serverId = json.serverId;
+            channelToken = json.channelToken;
+            updateEpoch = json.updateEpoch;
+            lastAppliedUpdateSequence = 0;
+            configureEventBatches(json.eventBatchCount, json.eventBatchBytes);
             log("Client created, id: " + clientId + ".");
-            mainCycleTask = setInterval(mainCycle, period);
+            tabContext.polling ||= createPollingCoordinator();
+            const maximum = Number.isFinite(json.pollingMaxDelay)
+                ? Math.max(1, Math.min(30000, json.pollingMaxDelay))
+                : period;
+            mainCycleTask = tabContext.polling.register(
+                mainCycle,
+                () => !pageContext || pageContext.isActive?.() !== false,
+                maximum
+            );
+            if (typeof registerPushChannel === "function") {
+                pushChannel = registerPushChannel(
+                    json,
+                    clientId,
+                    () => ({ token: channelToken, epoch: serverId, updateEpoch }),
+                    () => {
+                        pushDirty = true;
+                        sendSynchronizeRequest();
+                    }
+                );
+            }
             mainCycle();
         },
         "post"
     );
 }
 
-function mainCycle() {
+function mainCycle(force = false) {
     if (pageContext) {
         const overlay = pageContext.root.querySelector(
             "#" + clientErrorOverlayId + ", #" + connectionOverlayId
@@ -125,17 +243,21 @@ function mainCycle() {
     if (clientFailed) {
         return;
     }
-    sendSynchronizeRequest();
+    if (force || !pushChannel?.available()) sendSynchronizeRequest();
 }
 
 // Disposed runtimes cannot send events, retry uploads or apply late responses.
 function disposeClient() {
+    if (clientDisposed) return;
     clientDisposed = true;
+    stopClientRecovery();
     disposeCountdowns();
     disposeQrScanners();
-    clearInterval(mainCycleTask);
+    disposeAllWidgets();
+    mainCycleTask?.dispose();
+    mainCycleTask = null;
     if (clientId != null) {
-        sendRequest({ action: "kill", client: clientId });
+        sendClientRequest({ action: "kill", client: clientId });
     }
 }
 
@@ -153,9 +275,13 @@ function reset() {
         pageContext.expire();
         return true;
     }
+    pushChannel?.dispose();
+    pushChannel = null;
     clientId = null;
-    clearInterval(mainCycleTask);
-    document.body.innerHTML = "";
+    channelToken = null;
+    mainCycleTask?.dispose();
+    mainCycleTask = null;
+    disposeAllWidgets();
     startClient();
     return true;
 }

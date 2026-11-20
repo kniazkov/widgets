@@ -3,8 +3,10 @@
  */
 
 // History entries own independent runtimes, including detached DOM and protocol checkpoints.
-function initNavigation(sessionId, address, data, addresses = [address]) {
-    const defaults = readDocumentMetadata();
+function initNavigation(sessionId, address, data, addresses = [address], siteMetadata = null) {
+    const defaults = siteMetadata || readDocumentMetadata();
+    let initial = document.getElementById("widgets-initial");
+    const initialUrl = window.location.href;
     const pages = new Map();
     // Deliberately memory-only: reloads and duplicated sessionStorage cannot inherit a mode.
     const tab = { id: null };
@@ -70,6 +72,9 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
         });
     }
 
+    // Expire hidden entries even when the active page remains open indefinitely.
+    window.setInterval(prune, Math.min(PAGE_CACHE_TTL, 15_000));
+
     function clearCache(broadcast = true) {
         for (const entry of pages.values()) {
             if (entry !== active) {
@@ -108,13 +113,16 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
     }
 
     function showMetadata(entry) {
-        if (active === entry) {
-            applyDocumentMetadata({ ...defaults, ...entry.root._documentMetadata });
+        if (active === entry && (!initial || !entry.waiting)) {
+            applyDocumentMetadata({
+                ...defaults,
+                ...entry.publicMetadata,
+                ...entry.root._documentMetadata
+            });
         }
     }
 
     function show(entry) {
-        showMetadata(entry);
         if (active === entry) {
             document.body.style.backgroundColor = entry.root.style.backgroundColor;
         }
@@ -122,9 +130,18 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             return;
         }
         entry.waiting = false;
+        showMetadata(entry);
         entry.error?.remove();
-        document.body.appendChild(entry.root);
+        if (initial) {
+            const scroll = { x: window.scrollX, y: window.scrollY };
+            initial.replaceWith(entry.root);
+            initial = null;
+            if (entry.url === initialUrl) Object.assign(entry.state, scroll);
+        } else {
+            document.body.appendChild(entry.root);
+        }
         entry.runtime.refreshCountdowns?.();
+        entry.runtime.refreshModalStack?.();
         entry.restoring = true;
         entry.scrollDeadline = Date.now() + 2000;
         restoreScroll(entry);
@@ -135,12 +152,17 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
 
     function activate(state, url, initialData) {
         saveScroll();
-        applyDocumentMetadata(defaults);
+        if (initial && url !== initialUrl) {
+            initial.remove();
+            initial = null;
+        }
+        if (!initial) applyDocumentMetadata(defaults);
         if (active) {
             active.hiddenAt = Date.now();
             active.hiddenOrder = ++accessOrder;
             active.root.remove();
             active.runtime.refreshCountdowns?.();
+            active.runtime.refreshModalStack?.();
             active.runtime.resetInteractionState();
             active.error?.remove();
         }
@@ -168,8 +190,13 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             entry.runtime = createPageRuntime({
                 root: entry.root,
                 tab,
+                isActive: () => active === entry,
                 resetTab,
                 metadataChanged: () => showMetadata(entry),
+                publicDocument: value => {
+                    entry.publicMetadata = publicDocumentMetadata(value);
+                    entry.root.prepend(renderPublicDocument(value));
+                },
                 failure: overlay => {
                     if (entry.waiting && active === entry) {
                         entry.error?.remove();
@@ -210,7 +237,7 @@ function initNavigation(sessionId, address, data, addresses = [address]) {
             entry.waiting = true;
             entry.restoring = true;
             // Verify the retained server instance before exposing its DOM again.
-            entry.runtime.mainCycle();
+            entry.runtime.mainCycle(true);
         }
         prune();
     }

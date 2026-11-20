@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.controller.EventTestData;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.view.Button;
 import java.util.Map;
@@ -92,8 +93,9 @@ public final class TabContextTest {
         final String client = created.get("id").stringValue();
         final String widget = action.get().getId().toString();
         final String events = "[{\"id\":\"#1\",\"widget\":\"" + widget
-            + "\",\"type\":\"click\"},{\"id\":\"#2\",\"widget\":\"" + widget
-            + "\",\"type\":\"click\"}]";
+            + "\",\"type\":\"click\",\"data\":" + EventTestData.pointer()
+            + "},{\"id\":\"#2\",\"widget\":\"" + widget
+            + "\",\"type\":\"click\",\"data\":" + EventTestData.pointer() + "}]";
         final JsonObject response = new Synchronize(app).process(Map.of(
             "client", client, "events", events)).objectValueOrThrow();
         assertEquals(1, calls.get());

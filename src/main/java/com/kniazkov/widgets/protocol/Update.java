@@ -95,6 +95,20 @@ public abstract class Update implements Comparable<Update>, Cloneable {
          */
     }
 
+    /**
+     * @return identity if an immediately following update may replace this one, otherwise null
+     */
+    public Object coalescingKey() {
+        return null;
+    }
+
+    /**
+     * @return encoded bytes plus fixed array-entry and sequence overhead
+     */
+    public final long encodedBytes() {
+        return 32L + this.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8).length;
+    }
+
     @Override
     public String toString() {
         final JsonObject obj = new JsonObject();

@@ -113,3 +113,48 @@ uses the framework's new-tab command; if blocked by the browser, open the URL ma
 The example's application-owned registry uses weak context keys, and its values do not retain
 the keys. It removes the entry explicitly on revocation. This is demonstration state only;
 no customer selection, authentication or real operator privileges are implemented.
+
+## Navigation and retained pages
+
+Internal navigation (`RootWidget.goToPage`, `OnClient.goToPage`, and ordinary links to registered
+application pages) uses browser history within the current document. Back and Forward restore
+the same DOM, Java `Client`, `RootWidget`, local input state and scroll position. Each history
+entry has its own runtime, widget registry, upload scheduler, event queue and update checkpoint;
+visiting the same URL twice creates two independent entries. Static files, external URLs, hash
+links, downloads, modifier clicks and new-tab links retain native browser navigation.
+
+Scroll events update the cached coordinates in memory without writing browser history. Widgets
+persists them before an internal `pushState` and on `pagehide`, avoiding high-frequency
+`replaceState` calls during scrolling. If the browser rejects this optional write with
+`SecurityError` or `QuotaExceededError`, cached pages still retain their coordinates and a single
+console warning is emitted. Scroll restoration after a reload or cache eviction may then use an
+older position. Other navigation errors are not suppressed.
+Native Back/Forward switches history entries before `popstate`; the outgoing entry keeps its latest
+position in the page cache, but its history checkpoint may be older if that cache entry is evicted.
+
+The tab retains at most three inactive pages, for two minutes after leaving each page. Retained
+pages continue normal synchronization, including acknowledging reactive updates, so their server
+queues are drained. Synchronization requests for a page are serialized. Eviction disposes its
+runtime and sends `kill`; the existing server timeout also bounds abandoned clients when a tab
+cannot deliver its final request. Late responses cannot modify a different page. File uploads
+belong to their original page and stop when that entry is evicted.
+
+Before revealing a cached page, the browser verifies that its server instance still exists. A
+server restart, expired instance or evicted entry rebuilds the original URL and query parameters,
+with an attempt to restore scroll. Full reloads still create new instances. The root DOM node is
+now a `.widgets-page` container inside `body`; custom CSS targeting `body > ...` must account for
+this container.
+
+**Authentication integration is required:** after login, logout or a permission change, call
+`root.clearPageCache()` before rebuilding the current page or navigating away. Widgets does not
+know the application's authentication model and cannot infer logout from ordinary widget edits.
+This discards inactive entries in the current tab and broadcasts invalidation to other tabs,
+which discard their caches and rebuild their current pages. `root.remove()` also invalidates the
+cache before rebuilding the current URL. The application must still enforce authorization on the
+server for every sensitive operation; cache invalidation is not an authorization mechanism.
+
+```java
+// After the application changes the authenticated user:
+root.clearPageCache();
+root.goToPage("/account");
+```

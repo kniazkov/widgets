@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Widgets upload boundary manual fixture</title>
+        <style>
+            body { font: 16px/1.4 system-ui, sans-serif; margin: 24px; }
+            button { margin: 0 6px 10px 0; font: inherit; padding: 6px 10px; }
+            iframe { border: 1px solid #aaa; width: 100%; height: 400px; box-sizing: border-box; }
+        </style>
+    </head>
+    <body>
+        <h1>Widgets upload boundary</h1>
+        <p>These buttons supply generated test files to the live FileLoader below. No local paths are read.</p>
+        <button id="exact" type="button">Use exactly 1 MiB</button>
+        <button id="excess" type="button">Use 1 MiB plus one byte</button>
+        <button id="small" type="button">Use 7-byte recovery file</button>
+        <iframe title="Live FileLoader test application" src="/"></iframe>
+        <script>
+            // This fixture replaces only the chooser for its own generated files, not transport.
+            const frame = document.querySelector("iframe");
+            const samples = [
+                ["exact", "at-limit.bin", 1048576],
+                ["excess", "over-limit.bin", 1048577],
+                ["small", "recovery.bin", 7]
+            ];
+            for (const [id, name, size] of samples) {
+                document.getElementById(id).addEventListener("click", () => {
+                    const child = frame.contentWindow;
+                    const loader = frame.contentDocument.querySelector("button");
+                    if (!loader) return;
+                    const inputs = child.HTMLInputElement.prototype;
+                    const choose = inputs.click;
+                    inputs.click = function () {
+                        if (this.type !== "file") {
+                            choose.call(this);
+                            return;
+                        }
+                        const selection = new child.DataTransfer();
+                        selection.items.add(new child.File([new Uint8Array(size)], name, {
+                            type: "application/octet-stream"
+                        }));
+                        this.files = selection.files;
+                        this.dispatchEvent(new child.Event("change", { bubbles: true }));
+                    };
+                    try {
+                        loader.click();
+                    } finally {
+                        inputs.click = choose;
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

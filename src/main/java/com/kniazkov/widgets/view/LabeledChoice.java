@@ -39,12 +39,17 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
         }
     };
 
+    @Override
+    protected final Widget<?> accessibleTarget() {
+        return this.control;
+    }
+
     /**
      * Builds the composition without copying the supplied models.
      * @param control selection control
      * @param text caption model
      * @param checked selection model
-     * @param radio whether clicking the caption only selects, never clears
+     * @param radio retained for subclasses; the native input determines selection behavior
      */
     @SuppressWarnings("this-escape")
     protected LabeledChoice(final C control, final Model<String> text,
@@ -54,17 +59,18 @@ public abstract class LabeledChoice<C extends InlineWidget<?> & HasCheckedState
         this.setTextModel(text);
         this.setCheckedStateModel(checked);
         this.caption.setDisabledStateModel(control.getDisabledStateModel());
-        final MarginDecorator label = new MarginDecorator(this.caption);
+        final MarginDecorator label = new MarginDecorator(this.caption) {
+            @Override
+            public String getType() {
+                return "choice label";
+            }
+        };
         label.setLeftMargin(6);
         this.section.setMiddleAlignment();
         this.section.add(control);
         this.section.add(label);
         this.add(this.section);
-        this.caption.onClick(event -> {
-            if (!this.isDisabled()) {
-                this.setCheckedFlag(radio || !this.isChecked());
-            }
-        });
+
     }
 
     /**

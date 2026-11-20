@@ -142,6 +142,12 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
                 this.getId(), State.ANY, Property.SELECTED_INDEX, index
             ));
         });
+        this.onRetire(this.selectedIndex::close);
+    }
+
+    @Override
+    public boolean acceptsSelectedIndex(final int index) {
+        return index >= 0 && index < this.sources.size();
     }
 
     @Override
@@ -351,6 +357,7 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
             );
             this.model = model;
             this.model.addListener(this.listener);
+            Carousel.this.onRetire(() -> this.model.removeListener(this.listener));
         }
 
         /**
@@ -368,6 +375,7 @@ public class Carousel extends BaseImageWidget<CarouselStyle>
          * @param replacement replacement source model
          */
         void setModel(final Model<ImageSource> replacement) {
+            Carousel.this.requireUsable();
             Objects.requireNonNull(replacement.getData(), "image source");
             if (this.model != replacement) {
                 this.model.removeListener(this.listener);

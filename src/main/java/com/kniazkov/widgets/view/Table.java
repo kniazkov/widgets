@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.Objects;
 
 /**
  * Represents a table widget that contains {@link Row} widgets.
@@ -86,6 +87,7 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
          */
         super(style);
         this.applyChildStyles(style);
+        this.validateChildren(children);
         for (final Row child : children) {
             this.appendChild(child);
         }
@@ -128,9 +130,18 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
      * @return newly created row
      */
     public Row addRow() {
-        final Row row = new Row(this.rowStyle);
+        final Row row = this.createDefaultRow();
         this.add(row);
         return row;
+    }
+
+    /**
+     * Creates a styled row that does not yet belong to a table.
+     *
+     * @return unattached row
+     */
+    Row createDefaultRow() {
+        return new Row(this.rowStyle);
     }
 
     /**
@@ -148,24 +159,21 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
     }
 
     /**
-     * Inserts an unattached row at the specified position.
+     * Inserts or moves a row at the specified position.
      * Existing rows at and after that position are shifted down by one.
      *
      * @param index insertion position from {@code 0} through {@link #getChildCount()}
-     * @param row unattached row to insert
+     * @param row row to insert or move
      * @throws IndexOutOfBoundsException when the position is outside the valid range
-     * @throws IllegalArgumentException when the row already belongs to a container
+     * @throws IllegalArgumentException when the row cannot be attached here
      */
     public void insertRow(final int index, final Row row) {
         if (index < 0 || index > this.children.size()) {
             throw new IndexOutOfBoundsException("Invalid row insertion index: " + index);
         }
-        if (row.getParent().isPresent()) {
-            throw new IllegalArgumentException("The row already belongs to a container");
-        }
+        Objects.requireNonNull(row, "row").validateAttachment(this);
         this.children.add(index, row);
-        row.setParent(this);
-        this.pushUpdate(new InsertChild(row.getId(), this.getId(), index));
+        row.attachTo(this, () -> new InsertChild(row.getId(), this.getId(), index));
     }
 
     /**
@@ -188,16 +196,16 @@ public class Table extends BlockWidget<TableStyle> implements TypedContainer<Row
      * @param widget the child row
      */
     private void appendChild(final Row widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 

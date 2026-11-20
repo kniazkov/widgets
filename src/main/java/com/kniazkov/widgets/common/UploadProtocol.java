@@ -24,6 +24,28 @@ public final class UploadProtocol {
     }
 
     /**
+     * Creates a negative acknowledgement for a configured binary payload limit.
+     *
+     * @param limit accepted maximum bytes for the part
+     * @return structured chunk-size rejection, rather than a generic retry
+     */
+    public static JsonObject chunkTooLarge(final int limit) {
+        final JsonObject response = createRejected();
+        response.addString("uploadError", "chunkTooLarge");
+        response.addNumber("limitBytes", limit);
+        return response;
+    }
+
+    /**
+     * @return negative acknowledgement for a full processing queue
+     */
+    public static JsonObject processingBusy() {
+        final JsonObject response = createRejected();
+        response.addString("uploadError", "processingBusy");
+        return response;
+    }
+
+    /**
      * Creates the singleton during class initialization.
      */
     private static JsonObject createRejected() {

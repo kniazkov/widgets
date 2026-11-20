@@ -1,0 +1,60 @@
+name: Release candidate
+on:
+  pull_request:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Build and verify a signed Central bundle locally
+        shell: bash
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          trap 'gpgconf --kill gpg-agent; rm -rf "$GNUPGHOME"' EXIT
+          gpg --batch --pinentry-mode loopback --passphrase '' --quick-generate-key \
+            'Widgets CI <ci@example.invalid>' rsa2048 sign 1d
+          mvn -B -ntp clean deploy -DskipUpload=true
+          python3 scripts/check-central-bundle.py
+      - name: Compile independent Maven consumer
+        run: mvn -B -ntp -f src/test/consumer/pom.xml clean verify
+      - name: Validate release, resources and consumer
+        run: node scripts/check-release.mjs
+      - name: Resolve independent consumer classpaths
+        run: |
+          for consumer in minimal consumer; do
+            mvn -B -ntp -f src/test/$consumer/pom.xml verify dependency:build-classpath -Dmdep.outputFile=target/classpath.txt -DincludeScope=runtime
+          done
+          python3 modules/test/classpath.py
+      - name: Exercise the packaged applications in Chromium
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test --config=modules/test/playwright.config.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-candidate
+          path: |
+            target/widgets-*.jar
+            target/release-verification.json
+          if-no-files-found: error
+          retention-days: 7

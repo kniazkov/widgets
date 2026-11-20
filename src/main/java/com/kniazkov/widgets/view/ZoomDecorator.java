@@ -74,23 +74,16 @@ public final class ZoomDecorator extends InlineWidget<ZoomDecoratorStyle>
 
     @Override
     public void put(final InlineWidget<?> widget) {
-        Objects.requireNonNull(widget, "widget");
-        if (widget == this || (widget instanceof Container container
-            && container.collectChildren(Widget.class).contains(this))) {
-            throw new IllegalArgumentException("A decorator cannot contain itself or an ancestor");
-        }
-        if (this.child == widget) {
+        if (this.child == widget && widget != null) {
             return;
         }
-        widget.remove();
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         final InlineWidget<?> old = this.child;
-        this.child = null;
         if (old != null) {
-            old.setParent(null);
+            old.detachFrom(this);
         }
         this.child = widget;
-        widget.setParent(this);
-        this.pushUpdate(new SetChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new SetChild(widget.getId(), this.getId()));
     }
 
     @Override

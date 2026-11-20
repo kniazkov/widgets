@@ -94,7 +94,8 @@ public class StaticSourcesHttpTest {
         int previous = html.indexOf("/scripts/options.js");
         assertTrue(previous >= 0);
         for (final String path : BrowserScripts.paths("shared")) {
-            final String tag = "<script src=\"/scripts/" + path + "\"></script>";
+            final String tag = "<script src=\"/scripts/" + path + "?widgets-build="
+                + ReleaseInfo.buildId() + "\"></script>";
             final int index = html.indexOf(tag);
             assertTrue(path, index > previous);
             assertEquals(index, html.lastIndexOf(tag));
@@ -120,7 +121,7 @@ public class StaticSourcesHttpTest {
         assertTrue(runtime.contains("function sendSynchronizeRequest(callback)"));
         assertTrue(runtime.contains(
             "return { initClient, mainCycle, disposeClient, showClientError, "
-                + "resetInteractionState, refreshCountdowns }"));
+                + "resetInteractionState, refreshCountdowns, refreshModalStack }"));
     }
 
     /**
@@ -209,7 +210,7 @@ public class StaticSourcesHttpTest {
         assertEquals("", header(page, "ETag"));
         assertTrue(page.contains("configureUploadProtocol"));
         assertTrue(request("/?action=unknown", "If-None-Match: *\r\n")
-            .startsWith("HTTP/1.1 404"));
+            .startsWith("HTTP/1.1 405"));
     }
 
     /**

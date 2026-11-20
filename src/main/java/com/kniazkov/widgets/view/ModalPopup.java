@@ -3,13 +3,17 @@
  */
 package com.kniazkov.widgets.view;
 
+
 /**
  * A popup window with a backdrop that blocks interaction with the underlying page.
  * By default only application actions close the popup. Enable
  * {@link #setCloseOnOutsideClick(boolean)} to remove it from the server widget tree when
  * the backdrop is clicked or tapped. Clicking its contents does not dismiss it.
+ * The window and its backdrop are hidden and shown together. Set an accessible name and optional
+ * description for screen readers. The frontmost modal owns keyboard focus until it closes.
  */
-public class ModalPopup extends Popup implements HasBackdropColor, HasCloseOnOutsideClick {
+public class ModalPopup extends Popup
+        implements HasBackdropColor, HasCloseOnOutsideClick, HasHiddenState {
     /**
      * Returns the global default modal popup style.
      *
@@ -52,6 +56,30 @@ public class ModalPopup extends Popup implements HasBackdropColor, HasCloseOnOut
      */
     public ModalPopup(final ModalPopupStyle style, final BlockWidget<?>... children) {
         super(style, children);
+    }
+
+    /**
+     * Checks whether Escape may dismiss this modal. Disabled by default.
+     * @return true if Escape closes the modal
+     */
+    public final boolean isCloseOnEscape() {
+        return this.getModel(State.ANY, Property.CLOSE_ON_ESCAPE).getData();
+    }
+
+    /**
+     * Enables Escape dismissal without changing backdrop dismissal.
+     * @param enabled true to enable Escape
+     */
+    public final void setCloseOnEscape(final boolean enabled) {
+        this.getModel(State.ANY, Property.CLOSE_ON_ESCAPE).setData(enabled);
+    }
+
+    /**
+     * Requests dismissal after the server has checked the current modal policy.
+     * Subclasses may reject the request while an application action is pending.
+     */
+    public void dismiss() {
+        this.remove();
     }
 
     @Override

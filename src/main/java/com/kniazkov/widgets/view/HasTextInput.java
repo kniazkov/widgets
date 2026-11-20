@@ -13,5 +13,12 @@ import com.kniazkov.widgets.controller.HandlesTextEvents;
  * attaching a {@link Controller} that reacts to user-driven text changes.
  */
 public interface HasTextInput extends HasText, HandlesTextEvents {
-
+    /**
+     * Maximum accepted browser input length in UTF-16 code units.
+     * Override for fields that intentionally accept larger documents.
+     * @return positive input length limit
+     */
+    default int getMaxInputLength() {
+        return 65536;
+    }
 }

@@ -1,0 +1,2218 @@
+{
+  "capture": {
+    "date": "2026-11-11",
+    "baseCommit": "7112edfa10eea3f3f895e426895242f432eba41e",
+    "branch": "docs/review-roadmap-2026-11",
+    "page": "AllWidgets, http://127.0.0.1:18087/",
+    "browser": "Cloud Chromium",
+    "reportedViewport": [
+      1363,
+      936
+    ],
+    "fullScreenshotPixels": [
+      1348,
+      6775
+    ],
+    "allWidgetsSourceSha256": "8df268107e38f3d235eff10bcec767888dde012a926710ce382e3d6f6616547b",
+    "method": "Real cloud browser screenshots, cropped without retouching or resizing."
+  },
+  "images": {
+    "root-widget": {
+      "file": "root-widget.png",
+      "title": "All widgets",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        26,
+        1316,
+        101
+      ],
+      "sha256": "14b64e58a5ec6fd81c41b3b99331e7e822abce1a840d703ddb4db955756186f0"
+    },
+    "sticky-panel": {
+      "file": "sticky-panel.png",
+      "title": "StickyPanel — scroll the page to see this block stick to the top.",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        127,
+        1316,
+        51
+      ],
+      "sha256": "3fd33c74625b36e7450b3e2bb4696ee4ec322c5f230cc4f69423970162e449aa"
+    },
+    "horizontal-line": {
+      "file": "horizontal-line.png",
+      "title": "HorizontalLine",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        178,
+        1316,
+        174
+      ],
+      "sha256": "32970419309792932e5f5a641f3fd37be80770c49ec06462f952ab1512c222c5"
+    },
+    "text-widget": {
+      "file": "text-widget.png",
+      "title": "TextWidget",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        352,
+        1316,
+        189
+      ],
+      "sha256": "7ce278c0a8bbb4815d114e3d61c511ac6e8e1181f88f16994121ec5e7eb1deeb"
+    },
+    "markdown": {
+      "file": "markdown.png",
+      "title": "Markdown",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        541,
+        1316,
+        315
+      ],
+      "sha256": "b37694d119bdeba2cd82ed61ecdde3da9b478433151f99bbff63dfa2e4c504dc"
+    },
+    "no-wrap": {
+      "file": "no-wrap.png",
+      "title": "NoWrap",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        855,
+        1316,
+        121
+      ],
+      "sha256": "39347cdb340333f92eee3286a789e79f3017995380674805fffcae20eacf2652"
+    },
+    "active-text": {
+      "file": "active-text.png",
+      "title": "ActiveText",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        975,
+        1316,
+        211
+      ],
+      "sha256": "04523a9425b8e53b33c81f80c7feffd02d1d3a01490a5d43803fbc7814008514"
+    },
+    "link": {
+      "file": "link.png",
+      "title": "Link",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1185,
+        1316,
+        187
+      ],
+      "sha256": "ad4e8a71e874dae035e0d199a847b4d9941e85cbcbc2be4d2c105937b7cc956b"
+    },
+    "input-field": {
+      "file": "input-field.png",
+      "title": "InputField",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1371,
+        1316,
+        213
+      ],
+      "sha256": "f4a539f2f4224dbd25322ecb2b8ca686fc0c4d12b23b67369ef7abfd73bbccdf"
+    },
+    "numeric-hints": {
+      "file": "numeric-hints.png",
+      "title": "Numeric input hints",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1583,
+        1316,
+        213
+      ],
+      "sha256": "10449d4043b7911930dda0cf6034533dca2da0a45b2ec5bc97d66d9bb5c934dc"
+    },
+    "suggestion-field": {
+      "file": "suggestion-field.png",
+      "title": "SuggestionField",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        1795,
+        1316,
+        357
+      ],
+      "sha256": "3fe623ad5cb597612c81431381f8958da34deb95358c0c6166535ee67d9baf15"
+    },
+    "password-input": {
+      "file": "password-input.png",
+      "title": "PasswordInput",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2151,
+        1316,
+        213
+      ],
+      "sha256": "e15452bbef25be12b5e02eebaad458a876fc3feeea9ea1e7413bb688963b5ab7"
+    },
+    "text-area": {
+      "file": "text-area.png",
+      "title": "TextArea",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2363,
+        1316,
+        267
+      ],
+      "sha256": "6d57a89e43e88dbb28393c1ed8cda524e328cc82133ec1b0fd39f246e83823cf"
+    },
+    "check-box": {
+      "file": "check-box.png",
+      "title": "CheckBox",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2629,
+        1316,
+        219
+      ],
+      "sha256": "6b987c96b622dc6ff2783a1f008eb4811b01e67db00a4df064bef40f550f46bd"
+    },
+    "radio-button": {
+      "file": "radio-button.png",
+      "title": "RadioButton",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        2847,
+        1316,
+        195
+      ],
+      "sha256": "8a06533e5710ec4d1c73f58c0336ef068532cc2cfc4db11bbe0fc140161283ef"
+    },
+    "labeled-choices": {
+      "file": "labeled-choices.png",
+      "title": "CheckBoxWithText / RadioButtonWithText",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3041,
+        1316,
+        277
+      ],
+      "sha256": "548e83fa5e57b44a58fad4968f2c941e4e2a9b8869e3bdf64a9e25f5781b380e"
+    },
+    "drop-down-list": {
+      "file": "drop-down-list.png",
+      "title": "DropDownList",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3317,
+        1316,
+        237
+      ],
+      "sha256": "b3c0ba423fe00212ca24a7272f86d20637add2b4630e16337886bf90a35c4ef6"
+    },
+    "button": {
+      "file": "button.png",
+      "title": "Button",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        3553,
+        1316,
+        239
+      ],
+      "sha256": "31a6b9d65bae8dcb3558740be7d0aae65a59c4a6febb32f0416a4bd5f217f87a"
+    },
+    "popup-launchers": {
+      "file": "popup-launchers.png",
+      "title": "Popup",
+      "states": "Актуальная панель: обычные и модальные окна, восстановление и отсутствующий инициатор.",
+      "sourceScreenshot": "popup-current.jpg",
+      "crop": [
+        44,
+        332,
+        930,
+        456
+      ],
+      "sha256": "9d2c766d7cd47a190a15ec266533794a96e02f57ce2a80cf4ffb0ca746780593",
+      "captureId": "r19-desktop"
+    },
+    "file-loader": {
+      "file": "file-loader.png",
+      "title": "FileLoader",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4003,
+        1316,
+        237
+      ],
+      "sha256": "b57455a677d450dbd8bf6e266d7eef20a8bc9d6ed5a4efdc03a58f4f4412cb27"
+    },
+    "image-widget": {
+      "file": "image-widget.png",
+      "title": "ImageWidget",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4239,
+        1316,
+        265
+      ],
+      "sha256": "a2e0a2803cb489c71d087b0a60d0116ec6a1c84e77cd8625b44cd00ca99ab076"
+    },
+    "active-image": {
+      "file": "active-image.png",
+      "title": "ActiveImage",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4503,
+        1316,
+        289
+      ],
+      "sha256": "fbf6f5e2d60eda55057821ca04fc93d3ca708bc9b6fec6db31d0ddc6a6bc8135"
+    },
+    "overlay-stack": {
+      "file": "overlay-stack.png",
+      "title": "OverlayStack",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        4791,
+        1316,
+        289
+      ],
+      "sha256": "568ed6ef4129e550ec883fb3a2270d8f22faa4c12ada42e026ea5265776817a5"
+    },
+    "table": {
+      "file": "table.png",
+      "title": "Table",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        5079,
+        1316,
+        466
+      ],
+      "sha256": "c3501784524fd751329ed92da4f49243a0edecf2ab943398451fe9ce6d7f2a61"
+    },
+    "sortable-section": {
+      "file": "sortable-section.png",
+      "title": "SortableSection",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        5544,
+        1316,
+        187
+      ],
+      "sha256": "c068b59a23deb161f2d68374f1b61684fdf0174d618dcf5ebeb183e928c541f2"
+    },
+    "zoom-decorator": {
+      "file": "zoom-decorator.png",
+      "title": "ZoomDecorator",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        5730,
+        1316,
+        357
+      ],
+      "sha256": "32777a6c8feb27a1dfe93407c3ed0b067c3c5e58861a990a7a22438209527fbe"
+    },
+    "layout-composition": {
+      "file": "layout-composition.png",
+      "title": "Layout composition",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        6086,
+        1316,
+        187
+      ],
+      "sha256": "5fde813b6477fb2d4e286f66d2d8df1449338cd1df58ae5ed788158d57e1ac25"
+    },
+    "countdown": {
+      "file": "countdown.png",
+      "title": "Countdown",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        6272,
+        1316,
+        213
+      ],
+      "sha256": "8542b19b7ed1dc0dd70f58ce4d6a9d4c61dc62699129da1e09152c94c62443f3"
+    },
+    "carousel": {
+      "file": "carousel.png",
+      "title": "Carousel",
+      "states": "Начальное состояние; варианты подписаны внутри карточки.",
+      "sourceScreenshot": "allwidgets-desktop.jpg",
+      "crop": [
+        24,
+        6484,
+        1316,
+        277
+      ],
+      "sha256": "b08a460c3668e0ba9ab740de65b5fa7aa2c13646f993316992976c6abeb83769"
+    },
+    "message-popup": {
+      "file": "message-popup.png",
+      "title": "MessagePopup",
+      "states": "Открытое сообщение; видна модальная подложка вокруг окна.",
+      "sourceScreenshot": "message-popup.jpg",
+      "crop": [
+        430,
+        365,
+        490,
+        215
+      ],
+      "sha256": "9e95f82b784ee8b1875875dcca2ff98c20ad26702e63e3e1d863f923697758e0"
+    },
+    "popup": {
+      "file": "popup.png",
+      "title": "Popup",
+      "states": "Открытое немодальное окно; фон страницы остаётся активным.",
+      "sourceScreenshot": "popup.jpg",
+      "crop": [
+        475,
+        370,
+        400,
+        200
+      ],
+      "sha256": "32d2d9871305689502d5b1699bee449094db2a37a9614493b36ce014c78fa3e1"
+    },
+    "modal-popup": {
+      "file": "modal-popup.png",
+      "title": "ModalPopup",
+      "states": "Открытое модальное окно с произвольным содержимым и полем ввода.",
+      "sourceScreenshot": "modal-popup.jpg",
+      "crop": [
+        460,
+        350,
+        430,
+        235
+      ],
+      "sha256": "5eaf340deccb0c18b82b87cf83ef189a9491b5e43ef4eb9c92fdfb5a4459b7f4"
+    },
+    "suggestion-open": {
+      "file": "suggestion-open.png",
+      "title": "SuggestionField — раскрытый список",
+      "states": "Фокус в поле, открыт список подсказок перед выбором с клавиатуры.",
+      "sourceScreenshot": "suggestion-open.jpg",
+      "crop": [
+        25,
+        320,
+        1285,
+        356
+      ],
+      "sha256": "4324bf91e71bed06a4678e26f578e39102eaac761656a43f09434dd6b27a8b1d"
+    },
+    "carousel-selected": {
+      "file": "carousel-selected.png",
+      "title": "Carousel — второй слайд",
+      "states": "После drag браузер показал 2 / 3; Java обновила подпись Selected image: 2.",
+      "sourceScreenshot": "carousel-selected.jpg",
+      "crop": [
+        25,
+        640,
+        1285,
+        274
+      ],
+      "sha256": "2c55104bd5a3a645329f89f52cb569b6b770624133e88eef9ab7361760c5d6d2"
+    },
+    "modal-lifecycle-desktop-open": {
+      "file": "modal-lifecycle-desktop-open.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На широком экране открыто окно на синей подложке; фон недоступен.",
+      "sourceScreenshot": "desktop-open.jpg",
+      "crop": [
+        26,
+        122,
+        920,
+        360
+      ],
+      "sha256": "34748eb200812db59e7f163cbfe5ec78cdc0803bc16dbf1e0417876e61b00ab9"
+    },
+    "modal-lifecycle-desktop-restored": {
+      "file": "modal-lifecycle-desktop-restored.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На широком экране окно и подложка скрыты; кнопка страницы увеличила счётчик.",
+      "sourceScreenshot": "desktop-restored.jpg",
+      "crop": [
+        26,
+        122,
+        920,
+        340
+      ],
+      "sha256": "33055aaed25d4bececbd2bcc2fb0b0c3760f087664a7900ad61c35f9f40d6bbc"
+    },
+    "modal-lifecycle-mobile-open": {
+      "file": "modal-lifecycle-mobile-open.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На ширине 390 px окно полностью видно; подложка закрывает фон.",
+      "sourceScreenshot": "mobile-open.jpg",
+      "crop": [
+        25,
+        55,
+        326,
+        477
+      ],
+      "sha256": "8b35fa088daa6911fd5873d8494ae0a863422c6e8cedd4314d7e7e1444c05648"
+    },
+    "modal-lifecycle-mobile-restored": {
+      "file": "modal-lifecycle-mobile-restored.png",
+      "title": "ModalPopup: hide/show",
+      "states": "На ширине 390 px окно и подложка скрыты; счётчик реагирует.",
+      "sourceScreenshot": "mobile-restored.jpg",
+      "crop": [
+        25,
+        55,
+        326,
+        365
+      ],
+      "sha256": "d5db360d77bdf56d0e10f319e06b468283a679d1e7118b4ed90caaab397915cc"
+    },
+    "checkbox-keyboard-focus": {
+      "file": "checkbox-keyboard-focus.png",
+      "title": "CheckBox",
+      "states": "Клавиатурный фокус на CheckBox после Space; справа виден disabled.",
+      "sourceScreenshot": "desktop-open.jpg",
+      "crop": [
+        26,
+        247,
+        505,
+        205
+      ],
+      "sha256": "74e5111beaa9771606b5a4c598bfb0fef3b0642f88e80f24a3142c1f3f6f8235"
+    },
+    "radio-keyboard-focus": {
+      "file": "radio-keyboard-focus.png",
+      "title": "RadioButton",
+      "states": "Выбранная стрелкой радиокнопка в фокусе; справа виден disabled.",
+      "sourceScreenshot": "desktop-restored.jpg",
+      "crop": [
+        26,
+        462,
+        565,
+        181
+      ],
+      "sha256": "747ad08bd3bb773da75a66aea6d28b6aa8470e5be7bb75d18244d31a4cff8218"
+    },
+    "labeled-choices-320": {
+      "file": "labeled-choices-320.png",
+      "title": "CheckBoxWithText / RadioButtonWithText",
+      "states": "На ширине 320 px длинная подпись переносится рядом с фокусом.",
+      "sourceScreenshot": "mobile-open.jpg",
+      "crop": [
+        32,
+        78,
+        242,
+        270
+      ],
+      "sha256": "091a27982ed14e759f9ea01d040971f0e5f817564cb3c85ca212860b19ce9150"
+    },
+    "labeled-choices-200-percent": {
+      "file": "labeled-choices-200-percent.png",
+      "title": "CheckBoxWithText / RadioButtonWithText",
+      "states": "При масштабе 200% подпись читается целиком, рамка фокуса видна.",
+      "sourceScreenshot": "mobile-restored.jpg",
+      "crop": [
+        29,
+        52,
+        518,
+        243
+      ],
+      "sha256": "b099a1795ba3ea438f742b203951ef3d8f97a3dcd6900956f5e0d567ff9950b2"
+    },
+    "modal-focus-desktop": {
+      "file": "modal-focus-desktop.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Начальный фокус в широком диалоге; фон затемнён.",
+      "sourceScreenshot": "R10/desktop-open.jpg",
+      "crop": [
+        390,
+        240,
+        368,
+        270
+      ],
+      "sha256": "be2593677738a41266e9d56657850bad88bd0d9fccc076bf4af0839cf0dc6d30"
+    },
+    "modal-nested-desktop": {
+      "file": "modal-nested-desktop.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Переднее вложенное окно принимает клавиатурный фокус.",
+      "sourceScreenshot": "R10/desktop-restored.jpg",
+      "crop": [
+        385,
+        240,
+        380,
+        275
+      ],
+      "sha256": "13e0e2611cbad9f44993fd45bc6420d4cc6989d8a6a422a8d0d16291a7ff3d1b"
+    },
+    "modal-empty-mobile": {
+      "file": "modal-empty-mobile.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Диалог без контролов удерживает фокус на самом окне при ширине 320 px.",
+      "sourceScreenshot": "R10/mobile-open.jpg",
+      "crop": [
+        0,
+        266,
+        305,
+        130
+      ],
+      "sha256": "94ecfa2a72d92f939bd99079039825bcec0edf1e8ef025bf2e6226f477e29edc"
+    },
+    "modal-nested-mobile": {
+      "file": "modal-nested-mobile.png",
+      "title": "ModalPopup: keyboard accessibility",
+      "states": "Вложенное окно на ширине 320 px, видны края и фокус.",
+      "sourceScreenshot": "R10/mobile-restored.jpg",
+      "crop": [
+        4,
+        216,
+        296,
+        235
+      ],
+      "sha256": "030e33bc307445a9a0438c476fff7018ca63dde25ad3d3ca5db70e7595e36185"
+    },
+    "semantics-desktop": {
+      "file": "semantics-desktop.png",
+      "title": "Shared accessibility semantics",
+      "states": "Фокус иконки, отключённое действие, информативная/декоративная картинки и поле с ошибкой.",
+      "sourceScreenshot": "R11/desktop-open.jpg",
+      "crop": [
+        30,
+        235,
+        665,
+        366
+      ],
+      "sha256": "248ecc5c79e276b5fa6376dbd4321853eab1e1af6c61330b56589d33dde13866"
+    },
+    "semantics-field-updated": {
+      "file": "semantics-field-updated.png",
+      "title": "Shared accessibility semantics",
+      "states": "Подпись поля изменена, после валидации ошибка исчезла.",
+      "sourceScreenshot": "R11/desktop-restored.jpg",
+      "crop": [
+        43,
+        248,
+        527,
+        142
+      ],
+      "sha256": "fd5141760a9dc3a6b55fabaf5e9717b440fb9639510776d47b958b362a257e00"
+    },
+    "semantics-icon-mobile": {
+      "file": "semantics-icon-mobile.png",
+      "title": "Shared accessibility semantics",
+      "states": "Иконка и отключённое действие на ширине 320 px.",
+      "sourceScreenshot": "R11/mobile-open.jpg",
+      "crop": [
+        26,
+        130,
+        253,
+        500
+      ],
+      "sha256": "16232db231230c778b24f9a1429b96bb921c5314a06052cb4904a03cffb5338a"
+    },
+    "semantics-field-mobile": {
+      "file": "semantics-field-mobile.png",
+      "title": "Shared accessibility semantics",
+      "states": "Декоративная картинка и поле с подсказкой и ошибкой на ширине 320 px.",
+      "sourceScreenshot": "R11/mobile-restored.jpg",
+      "crop": [
+        27,
+        161,
+        251,
+        381
+      ],
+      "sha256": "3b50003bd92256dcbcb25c27cee8bd0238f861fb7eeb608f0aaa9408f316e4b2"
+    },
+    "file-loader-upload-complete": {
+      "file": "file-loader-upload-complete.png",
+      "title": "FileLoader: completed upload",
+      "states": "Java подтвердила завершение загрузки синтетического файла размером 7 байт.",
+      "sourceScreenshot": "upload-complete.jpg",
+      "crop": [
+        44,
+        334,
+        633,
+        232
+      ],
+      "sha256": "7af51373e31bdb3dad507c233a57fc678cef1770ab1f74c85965574cfd5ea508",
+      "captureId": "r19-desktop"
+    },
+    "message-popup-narrow": {
+      "file": "message-popup-narrow.png",
+      "title": "MessagePopup: narrow layout",
+      "states": "Сообщение открыто в узком окне; кнопка Close в фокусе.",
+      "sourceScreenshot": "narrow-popup.jpg",
+      "crop": [
+        48,
+        394,
+        424,
+        148
+      ],
+      "sha256": "03f6297019c501f8483edc17cad33d3173df030e2271b856a3f3a508a1e5268d",
+      "captureId": "r19-narrow"
+    },
+    "keyboard-demo-desktop": {
+      "file": "keyboard-demo-desktop.png",
+      "title": "Keyboard login demo",
+      "states": "Фокус в поле имени; цифровой Enter запустил ту же проверку.",
+      "sourceScreenshot": "keyboard-demo-desktop.jpg",
+      "crop": [
+        45,
+        442,
+        1107,
+        217
+      ],
+      "sha256": "983c839a9d091e6aa1650adbf63e908bab36eabfb6fb6c294026b4c38725d1dc",
+      "captureId": "r44-desktop"
+    },
+    "keyboard-demo-narrow": {
+      "file": "keyboard-demo-narrow.png",
+      "title": "Keyboard login demo",
+      "states": "Узкая раскладка; повторная попытка по Enter успешна, код замаскирован.",
+      "sourceScreenshot": "keyboard-demo-narrow.jpg",
+      "crop": [
+        45,
+        432,
+        427,
+        388
+      ],
+      "sha256": "d869bfa6cd1220df0d40ecaeada7e83527946780edd427cabf070cb289a4ca57",
+      "captureId": "r44-narrow"
+    },
+    "form-desktop": {
+      "file": "form-desktop.png",
+      "title": "Демонстрационная форма",
+      "states": "Успешная отправка учебной заявки мышью.",
+      "sourceScreenshot": "form-desktop.jpg",
+      "crop": [
+        46,
+        214,
+        642,
+        445
+      ],
+      "sha256": "0173101326ae6bba65eb706a594f0efdacfebac3e8fd3da63acf4b6f1bd8d7da",
+      "captureId": "r20-1280"
+    },
+    "form-narrow-error": {
+      "file": "form-narrow-error.png",
+      "title": "Демонстрационная форма",
+      "states": "Перенос длинных подписей, help и ошибки обязательных полей после Enter.",
+      "sourceScreenshot": "form-narrow-error.jpg",
+      "crop": [
+        46,
+        193,
+        244,
+        507
+      ],
+      "sha256": "bce05b939492fa4810bc1ed08c9c1dad57db87b98b6fff32433d62314d0ddc6a",
+      "captureId": "r20-320"
+    },
+    "form-mobile-busy": {
+      "file": "form-mobile-busy.png",
+      "title": "Демонстрационная форма",
+      "states": "Ожидание ответа: ввод остаётся видимым, кнопка временно недоступна.",
+      "sourceScreenshot": "form-mobile-busy.jpg",
+      "crop": [
+        46,
+        193,
+        315,
+        629
+      ],
+      "sha256": "aff04689c0224d8726157faf804ebc051e05678ac14d9d26808c13378cc4214c",
+      "captureId": "r20-390"
+    },
+    "adaptive-layouts-wide": {
+      "file": "adaptive-layouts-wide.png",
+      "title": "Stack и ResponsiveGrid",
+      "states": "Горизонтальный Stack, широкая сетка в три колонки и узкая вложенная сетка в одну колонку.",
+      "sourceScreenshot": "adaptive-layouts-wide.jpg",
+      "crop": [
+        45,
+        203,
+        1106,
+        303
+      ],
+      "sha256": "c1997cdbff0fae37876b59a16a212e92912ceb779eee5b4050743e948208ad56",
+      "captureId": "r21-desktop"
+    },
+    "adaptive-form-wide": {
+      "file": "adaptive-form-wide.png",
+      "title": "Адаптивная форма",
+      "states": "Две колонки: подписи слева, поля и подсказка справа; фокус и вымышленный ввод видны.",
+      "sourceScreenshot": "adaptive-form-wide.jpg",
+      "crop": [
+        45,
+        154,
+        680,
+        378
+      ],
+      "sha256": "050df93fa087146f9594b8dda505ba581714671b4517175c3b463f21827d0f0a",
+      "captureId": "r21-desktop"
+    },
+    "adaptive-form-narrow": {
+      "file": "adaptive-form-narrow.png",
+      "title": "Адаптивная форма",
+      "states": "Подписи над полями, подсказка и проверка обязательности с фокусом первого поля.",
+      "sourceScreenshot": "adaptive-form-narrow.jpg",
+      "crop": [
+        45,
+        206,
+        316,
+        493
+      ],
+      "sha256": "e9563d0c8e276c4edab2178fdfba8a8764022a082ffaf569be111c2b7dc70b9d",
+      "captureId": "r21-narrow"
+    },
+    "typed-choices-wide": {
+      "file": "typed-choices-wide.png",
+      "title": "Типизированный выбор",
+      "states": "Две одинаковые подписи с разными ключами, множественный, отключённый и неверный выбор.",
+      "sourceScreenshot": "typed-choices-wide.jpg",
+      "crop": [
+        44,
+        442,
+        847,
+        328
+      ],
+      "sha256": "4800c8a36e6c5c7ee9779a0815f3144f3b4c32fd8d2abb49c76a18420af3c870",
+      "captureId": "r22-wide"
+    },
+    "typed-choices-narrow": {
+      "file": "typed-choices-narrow.png",
+      "title": "ComboBox",
+      "states": "Открытый список, перенос длинной подписи, недоступная строка и следующая страница.",
+      "sourceScreenshot": "typed-choices-narrow.jpg",
+      "crop": [
+        45,
+        450,
+        317,
+        225
+      ],
+      "sha256": "0d53533dee0eabd3ec51f8a0cce2dd8a5a27d22facbd66b60d60659782f55dea",
+      "captureId": "r22-narrow"
+    },
+    "data-table-wide": {
+      "file": "data-table-wide.png",
+      "title": "DataTable",
+      "states": "Первая страница из 125 записей; постоянная область строк 20rem.",
+      "sourceScreenshot": "data-table-wide.png",
+      "crop": [
+        0,
+        0,
+        1170,
+        447
+      ],
+      "sha256": "fa621b816246a5246290e56af2afeea3d7253376ffef34646687ede282c03f01",
+      "captureId": "r29-table-stability-element-capture"
+    },
+    "data-table-empty": {
+      "file": "data-table-empty.png",
+      "title": "DataTable",
+      "states": "Пустой результат фильтра nothing-matches; высота области строк сохранена.",
+      "sourceScreenshot": "data-table-empty.png",
+      "crop": [
+        0,
+        0,
+        1170,
+        447
+      ],
+      "sha256": "4d303f0ba5890014beaf3b860d92a47e2de80356c1384f946c4e55c99b134c3f",
+      "captureId": "r29-table-stability-element-capture"
+    },
+    "data-table-narrow": {
+      "file": "data-table-narrow.png",
+      "title": "DataTable",
+      "states": "Мобильная область 390px; внутренняя горизонтальная и вертикальная прокрутка.",
+      "sourceScreenshot": "data-table-narrow.png",
+      "crop": [
+        0,
+        0,
+        280,
+        515
+      ],
+      "sha256": "33c3592eca495037b5bc944680d40840fd0644f263e8263b57c3d5a1c9abde30",
+      "captureId": "r29-table-stability-element-capture"
+    },
+    "feedback-desktop": {
+      "file": "feedback-desktop.png",
+      "title": "Все шесть виджетов обратной связи",
+      "states": "SUCCESS, WARNING, FieldError, EmptyState with action, indeterminate Busy, Progress 40%, persistent error Toast",
+      "sourceScreenshot": "feedback-full.jpg",
+      "crop": [
+        32,
+        5124,
+        1298,
+        780
+      ],
+      "sha256": "ac8d10076c2c8f5301dc75d7bc3ae4b5e30207760490aada26aa3d3a000754c3",
+      "captureId": "r24-desktop"
+    },
+    "feedback-mobile-messages": {
+      "file": "feedback-mobile-messages.png",
+      "title": "Сообщения на узком экране",
+      "states": "Long localized text, Alert, FieldError, EmptyState and Busy at 390px",
+      "sourceScreenshot": "feedback-mobile-top.jpg",
+      "crop": [
+        40,
+        292,
+        311,
+        540
+      ],
+      "sha256": "0fc6fadd4a2c20ad9a163b7fe7d5df9d0328ff05162254be2ce051dd0b0e3112",
+      "captureId": "r24-mobile"
+    },
+    "feedback-mobile-operation": {
+      "file": "feedback-mobile-operation.png",
+      "title": "Операция и уведомление на узком экране",
+      "states": "Busy, cancellation, Progress 40%, persistent error Toast at 390px",
+      "sourceScreenshot": "feedback-mobile-bottom.jpg",
+      "crop": [
+        40,
+        164,
+        311,
+        608
+      ],
+      "sha256": "7158a5ef3c09d1e2b3bf19d4fe4fc8dd178ba4f0da042d6195feb35a10c59aaf",
+      "captureId": "r24-mobile"
+    },
+    "dialog-confirm": {
+      "file": "dialog-confirm.png",
+      "title": "Подтверждение действия",
+      "states": "Подтверждение, отмена и закрытие.",
+      "sourceScreenshot": "dialog-confirm.jpg",
+      "crop": [
+        370,
+        355,
+        580,
+        220
+      ],
+      "sha256": "e7a0352a581520d42f3bd1cfd7ce605e5deb5d8722da54164549f8106d5e6eb6",
+      "captureId": "r25-desktop"
+    },
+    "dialog-error": {
+      "file": "dialog-error.png",
+      "title": "Ошибка асинхронного действия",
+      "states": "Данные сохранены, повтор доступен; длинная форма прокручивается.",
+      "sourceScreenshot": "dialog-error.jpg",
+      "crop": [
+        375,
+        5,
+        568,
+        915
+      ],
+      "sha256": "8cf436ea1a31f385ac86a98f54c957ef1daf2f7115d0791f097d385c78a9f688",
+      "captureId": "r25-desktop"
+    },
+    "dialog-mobile": {
+      "file": "dialog-mobile.png",
+      "title": "Длинная форма на 390 px",
+      "states": "Перенос кнопки, полей и подсказок; внутренний scroll.",
+      "sourceScreenshot": "dialog-mobile.jpg",
+      "crop": [
+        487,
+        20,
+        390,
+        870
+      ],
+      "sha256": "64d4bbdae801a0532106d7b31d32585f302477533f501831253c6cf92dfba211",
+      "captureId": "r25-mobile"
+    },
+    "temporal-desktop": {
+      "file": "temporal-desktop.png",
+      "title": "Дата, время и диапазон",
+      "states": "Заполненные поля, принятый диапазон и disabled дата.",
+      "sourceScreenshot": "temporal-desktop.jpg",
+      "crop": [
+        28,
+        210,
+        1280,
+        615
+      ],
+      "sha256": "d0bbcd02a5a6b7480d2c95d338cd2129716103bd5f0667b585c049d605527d6a",
+      "captureId": "r26-desktop"
+    },
+    "temporal-error": {
+      "file": "temporal-error.png",
+      "title": "Ошибка диапазона",
+      "states": "Начало позже конца; серверные ошибки возле обоих полей.",
+      "sourceScreenshot": "temporal-error.jpg",
+      "crop": [
+        28,
+        60,
+        1280,
+        650
+      ],
+      "sha256": "01f92a4f08ba1340de3d0d47f1705a31abd1f05585853f5e1f1a4e2148ba96ed",
+      "captureId": "r26-desktop"
+    },
+    "temporal-mobile": {
+      "file": "temporal-mobile.png",
+      "title": "Поля на 390 px",
+      "states": "Время вне границ, пустой диапазон, подписи и перенос текста.",
+      "sourceScreenshot": "temporal-mobile.jpg",
+      "crop": [
+        515,
+        220,
+        320,
+        610
+      ],
+      "sha256": "7873c78d6307fed4536b76e8dc4423d32b94c34266ecefd7ceeb4195d9a7af18",
+      "captureId": "r26-mobile"
+    },
+    "temporal-picker": {
+      "file": "temporal-picker.png",
+      "title": "Нативный календарь",
+      "states": "Февраль 2028 года, выбор 29 февраля.",
+      "sourceScreenshot": "temporal-picker-native.png",
+      "crop": [
+        48,
+        235,
+        265,
+        335
+      ],
+      "sha256": "0d9bdf835355206d9f98dce9ad993bdf7179fe60980973ab7e520554e1d6e1a6",
+      "captureId": "r26-native"
+    },
+    "numbers-desktop": {
+      "file": "numbers-desktop.png",
+      "title": "NumberField / QuantityField",
+      "states": "Заполненная форма, точное длинное число, disabled и read-only.",
+      "sourceScreenshot": "numbers-desktop.jpg",
+      "crop": [
+        32,
+        62,
+        1268,
+        558
+      ],
+      "sha256": "97fada42bd2e854227b56115b382b430d476928054032b67a7e8d2c87d856136",
+      "captureId": "r27-desktop"
+    },
+    "numbers-error": {
+      "file": "numbers-error.png",
+      "title": "NumberField / QuantityField",
+      "states": "Незавершённая дробь, превышенный новый максимум и отключённые кнопки.",
+      "sourceScreenshot": "numbers-error.jpg",
+      "crop": [
+        32,
+        154,
+        1268,
+        594
+      ],
+      "sha256": "9270b22d3e1aea58ad7667521600e546326e762ec13511e413faf402f490ef12",
+      "captureId": "r27-desktop"
+    },
+    "numbers-mobile": {
+      "file": "numbers-mobile.png",
+      "title": "NumberField / QuantityField",
+      "states": "Форма при ширине iframe 390 CSS px, успешная отправка Enter, перенос кнопок.",
+      "sourceScreenshot": "numbers-mobile.jpg",
+      "crop": [
+        519,
+        62,
+        311,
+        751
+      ],
+      "sha256": "30de154d2b28ae76a77d0f7572c5675ffe3575ef0c759541b8e29c8f602341f4",
+      "captureId": "r27-mobile"
+    },
+    "navigation-desktop": {
+      "file": "navigation-desktop.png",
+      "title": "Tabs / Accordion / Breadcrumbs",
+      "states": "Выбранная вкладка, отключённая вкладка, раскрытые single/multiple разделы и путь.",
+      "sourceScreenshot": "r28-navigation-desktop.jpg",
+      "crop": [
+        32,
+        108,
+        1269,
+        570
+      ],
+      "sha256": "b5b528e0841b490f7f2b51b8712b4b8f2e30fb87acb9c2087a3319d01ebd6716",
+      "captureId": "r28-desktop"
+    },
+    "navigation-mobile-tabs": {
+      "file": "navigation-mobile-tabs.png",
+      "title": "Tabs / Breadcrumbs",
+      "states": "Полные русские названия и поле черновика в iframe шириной 320 CSS px.",
+      "sourceScreenshot": "r28-navigation-mobile-top.jpg",
+      "crop": [
+        554,
+        77,
+        240,
+        535
+      ],
+      "sha256": "84634f56ae71c0c9923444c936906b06b3f65fdcccf12c329fb2496217f9056f",
+      "captureId": "r28-mobile"
+    },
+    "navigation-mobile-accordion": {
+      "file": "navigation-mobile-accordion.png",
+      "title": "Accordion",
+      "states": "Многострочные заголовки, один и несколько раскрытых разделов на 320 CSS px.",
+      "sourceScreenshot": "r28-navigation-mobile-accordion.jpg",
+      "crop": [
+        554,
+        143,
+        240,
+        517
+      ],
+      "sha256": "942c079b73b4d7cfb525dda15bb0aadf00074a00615d8b48e48964bb713fca65",
+      "captureId": "r28-mobile"
+    },
+    "anchored-menu": {
+      "file": "anchored-menu.png",
+      "title": "Menu: обычное открытие и клавиатурный фокус",
+      "states": "Первый доступный пункт, disabled action; размещение снизу.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-menu.jpg",
+      "crop": [
+        35,
+        375,
+        700,
+        265
+      ],
+      "sha256": "daf49eaa2e8098430bc5facda30bf244249e3dde645a1f831fd04fd1da51b68c"
+    },
+    "anchored-popover": {
+      "file": "anchored-popover.png",
+      "title": "Popover: поле и кнопки",
+      "states": "Открытая панель с фокусом в поле.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-popover.jpg",
+      "crop": [
+        35,
+        375,
+        700,
+        270
+      ],
+      "sha256": "db0139e882cc9fef1997007f5ffadcb58eed8078883e22bf0342323d0b2008e3"
+    },
+    "anchored-tooltip": {
+      "file": "anchored-tooltip.png",
+      "title": "Tooltip: подсказка при фокусе",
+      "states": "Описание кнопки, без переноса фокуса.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-tooltip.jpg",
+      "crop": [
+        35,
+        335,
+        1020,
+        180
+      ],
+      "sha256": "1ecc4bc7f293dba2242ad56f04601f0661a01530ab139d12305a4ef012becae5"
+    },
+    "anchored-popover-flipped": {
+      "file": "anchored-popover-flipped.png",
+      "title": "Popover: автоматический flip",
+      "states": "Якорь у нижнего края, панель сверху.",
+      "captureId": "r29-desktop",
+      "sourceScreenshot": "r29-popover-flipped.jpg",
+      "crop": [
+        35,
+        648,
+        700,
+        276
+      ],
+      "sha256": "1cd43208eccb34c243c44768680b6c54def9f54e9d9aada90ef68c96dad868c9"
+    },
+    "anchored-menu-mobile": {
+      "file": "anchored-menu-mobile.png",
+      "title": "Menu: длинное меню на 320 CSS px",
+      "states": "16 пунктов, перенос подписей, внутренняя прокрутка.",
+      "captureId": "r29-mobile",
+      "sourceScreenshot": "r29-menu-mobile.jpg",
+      "crop": [
+        521,
+        0,
+        321,
+        920
+      ],
+      "sha256": "c0d626f5bee3ff7fb10c6b2a58fe05626f8ad794db3c312f2abcc283feb6c9ee"
+    },
+    "upload-desktop-done": {
+      "file": "upload-desktop-done.png",
+      "title": "UploadManager / UploadList",
+      "states": "done; desktop",
+      "sourceScreenshot": "upload-desktop-done.png",
+      "crop": [
+        32,
+        7140,
+        1301,
+        348
+      ],
+      "sha256": "e132cefda40d97877ac31a45e7b1e2a70b543d4c98d5841e69104138f8b5b9dc",
+      "captureId": "r30-desktop"
+    },
+    "upload-desktop-error": {
+      "file": "upload-desktop-error.png",
+      "title": "UploadManager / UploadList",
+      "states": "error; desktop",
+      "sourceScreenshot": "upload-desktop-error.png",
+      "crop": [
+        32,
+        7140,
+        1301,
+        348
+      ],
+      "sha256": "5c4839d327a30b8c4f78f86b7e156143742024f18c8e6b58146ba571e5928ac2",
+      "captureId": "r30-desktop"
+    },
+    "upload-desktop-progress": {
+      "file": "upload-desktop-progress.png",
+      "title": "UploadManager / UploadList",
+      "states": "progress; desktop",
+      "sourceScreenshot": "upload-desktop-progress.png",
+      "crop": [
+        32,
+        7140,
+        1301,
+        348
+      ],
+      "sha256": "bdc44c0a7efc2766a306353ebd0c41772f8be71f5803e4cb2675ffbdf67f9731",
+      "captureId": "r30-desktop"
+    },
+    "upload-mobile-done": {
+      "file": "upload-mobile-done.png",
+      "title": "UploadManager / UploadList",
+      "states": "done; mobile",
+      "sourceScreenshot": "upload-mobile-done.png",
+      "crop": [
+        32,
+        12102,
+        326,
+        486
+      ],
+      "sha256": "57f2e823c6401442544a98c65f36f44cfd5f9bdf98ab82add1dea892b85841d2",
+      "captureId": "r30-mobile"
+    },
+    "upload-mobile-error": {
+      "file": "upload-mobile-error.png",
+      "title": "UploadManager / UploadList",
+      "states": "error; mobile",
+      "sourceScreenshot": "upload-mobile-error.png",
+      "crop": [
+        32,
+        12102,
+        326,
+        534
+      ],
+      "sha256": "5ecbba5d01a1be8b561faef88e4bb8daa87d6710f58782862d26a7a2e87c07e4",
+      "captureId": "r30-mobile"
+    },
+    "upload-mobile-progress": {
+      "file": "upload-mobile-progress.png",
+      "title": "UploadManager / UploadList",
+      "states": "progress; mobile",
+      "sourceScreenshot": "upload-mobile-progress.png",
+      "crop": [
+        32,
+        12102,
+        326,
+        582
+      ],
+      "sha256": "687176d04f336f2239813478cea275b52918fef5a947106accf8a812bc2cdb52",
+      "captureId": "r30-mobile"
+    },
+    "tree-desktop": {
+      "file": "tree-desktop.png",
+      "title": "Дерево категорий",
+      "states": "Два раскрытых уровня и выбранная подвеска",
+      "sourceScreenshot": "tree-desktop-source.png",
+      "captureId": "tree-view",
+      "crop": [
+        32,
+        262,
+        1216,
+        375
+      ],
+      "sha256": "3974ca07d4c166e99a4203c804a872295a8bdadfc0b90d4604597aeb14d7f73d"
+    },
+    "tree-mobile": {
+      "file": "tree-mobile.png",
+      "title": "Дерево категорий",
+      "states": "Два раскрытых уровня и выбранная подвеска",
+      "sourceScreenshot": "tree-mobile-source.png",
+      "captureId": "tree-view",
+      "crop": [
+        32,
+        159,
+        296,
+        423
+      ],
+      "sha256": "4d355f5f8313599284e0c05c4f4b975b749f0e6d4964fd30577ffe44c54ca61d"
+    },
+    "split-desktop": {
+      "file": "split-desktop.png",
+      "title": "Редактор каталога",
+      "states": "Два вложенных разделителя, фокус на внешнем",
+      "sourceScreenshot": "split-desktop-source.png",
+      "captureId": "split-pane",
+      "crop": [
+        32,
+        232,
+        1216,
+        435
+      ],
+      "sha256": "858800694b75db30b2c161b21c20eb39c9db34b308b3e4287a1a1f101203d2e5"
+    },
+    "split-mobile": {
+      "file": "split-mobile.png",
+      "title": "Редактор каталога",
+      "states": "Два вложенных разделителя, фокус на внешнем",
+      "sourceScreenshot": "split-mobile-source.png",
+      "captureId": "split-pane",
+      "crop": [
+        32,
+        132,
+        296,
+        477
+      ],
+      "sha256": "302681cb56d49c47d3bf1581a2588fa142fac2490b983801fd959b70b319bb19"
+    },
+    "slider-desktop": {
+      "file": "slider-desktop.png",
+      "title": "Размер браслета",
+      "states": "Доступный и отключённый ползунки, значение с единицей измерения",
+      "sourceScreenshot": "slider-desktop-source.png",
+      "captureId": "slider",
+      "crop": [
+        32,
+        320,
+        1216,
+        259
+      ],
+      "sha256": "bef767999a7a764916be98730af46e8bf5067e00c48ac2a81bd379685f9e6a63"
+    },
+    "slider-mobile": {
+      "file": "slider-mobile.png",
+      "title": "Размер браслета",
+      "states": "Доступный и отключённый ползунки, значение с единицей измерения",
+      "sourceScreenshot": "slider-mobile-source.png",
+      "captureId": "slider",
+      "crop": [
+        32,
+        233,
+        296,
+        275
+      ],
+      "sha256": "de40f9822757d88201756723ec5d621a9af384912622e47078d346b213beca44"
+    }
+  },
+  "widgets": {
+    "RootWidget": [
+      "root-widget"
+    ],
+    "StickyPanel": [
+      "sticky-panel"
+    ],
+    "HorizontalLine": [
+      "horizontal-line"
+    ],
+    "TextWidget": [
+      "text-widget",
+      "semantics-desktop"
+    ],
+    "Markdown": [
+      "markdown"
+    ],
+    "NoWrap": [
+      "no-wrap"
+    ],
+    "ActiveText": [
+      "active-text"
+    ],
+    "Link": [
+      "link"
+    ],
+    "InputField": [
+      "input-field",
+      "semantics-desktop",
+      "semantics-field-updated",
+      "semantics-field-mobile",
+      "keyboard-demo-desktop",
+      "keyboard-demo-narrow"
+    ],
+    "SuggestionField": [
+      "suggestion-field",
+      "suggestion-open"
+    ],
+    "PasswordInput": [
+      "password-input",
+      "keyboard-demo-desktop",
+      "keyboard-demo-narrow"
+    ],
+    "TextArea": [
+      "text-area"
+    ],
+    "CheckBox": [
+      "check-box",
+      "checkbox-keyboard-focus"
+    ],
+    "RadioButton": [
+      "radio-button",
+      "radio-keyboard-focus"
+    ],
+    "CheckBoxWithText": [
+      "labeled-choices",
+      "labeled-choices-320",
+      "labeled-choices-200-percent"
+    ],
+    "RadioButtonWithText": [
+      "labeled-choices",
+      "labeled-choices-320",
+      "labeled-choices-200-percent"
+    ],
+    "DropDownList": [
+      "drop-down-list"
+    ],
+    "Button": [
+      "button",
+      "semantics-desktop",
+      "semantics-icon-mobile",
+      "keyboard-demo-desktop",
+      "keyboard-demo-narrow"
+    ],
+    "FileLoader": [
+      "file-loader",
+      "file-loader-upload-complete"
+    ],
+    "ImageWidget": [
+      "image-widget",
+      "semantics-desktop",
+      "semantics-field-mobile"
+    ],
+    "ActiveImage": [
+      "active-image"
+    ],
+    "OverlayStack": [
+      "overlay-stack"
+    ],
+    "Table": [
+      "table"
+    ],
+    "Row": [
+      "table"
+    ],
+    "Cell": [
+      "table"
+    ],
+    "SortableSection": [
+      "sortable-section"
+    ],
+    "ZoomDecorator": [
+      "zoom-decorator"
+    ],
+    "Panel": [
+      "layout-composition"
+    ],
+    "Section": [
+      "layout-composition"
+    ],
+    "InlineBlock": [
+      "layout-composition"
+    ],
+    "TextFlow": [
+      "layout-composition"
+    ],
+    "MarginDecorator": [
+      "layout-composition"
+    ],
+    "Countdown": [
+      "countdown"
+    ],
+    "Carousel": [
+      "carousel",
+      "carousel-selected"
+    ],
+    "MessagePopup": [
+      "message-popup",
+      "message-popup-narrow"
+    ],
+    "Popup": [
+      "popup"
+    ],
+    "ModalPopup": [
+      "modal-popup",
+      "modal-lifecycle-desktop-open",
+      "modal-lifecycle-desktop-restored",
+      "modal-lifecycle-mobile-open",
+      "modal-lifecycle-mobile-restored",
+      "modal-focus-desktop",
+      "modal-nested-desktop",
+      "modal-empty-mobile",
+      "modal-nested-mobile"
+    ],
+    "Form": [
+      "form-desktop",
+      "form-narrow-error",
+      "form-mobile-busy"
+    ],
+    "FormField": [
+      "form-desktop",
+      "form-narrow-error",
+      "form-mobile-busy"
+    ],
+    "Label": [
+      "form-desktop",
+      "form-narrow-error",
+      "form-mobile-busy"
+    ],
+    "Stack": [
+      "adaptive-layouts-wide"
+    ],
+    "ResponsiveGrid": [
+      "adaptive-layouts-wide"
+    ],
+    "FormLayout": [
+      "adaptive-form-wide",
+      "adaptive-form-narrow"
+    ],
+    "ComboBox": [
+      "typed-choices-wide",
+      "typed-choices-narrow"
+    ],
+    "MultiSelect": [
+      "typed-choices-wide"
+    ],
+    "Select": [
+      "typed-choices-wide"
+    ],
+    "DataTable": [
+      "data-table-wide",
+      "data-table-empty",
+      "data-table-narrow"
+    ],
+    "Alert": [
+      "feedback-desktop",
+      "feedback-mobile-messages"
+    ],
+    "FieldError": [
+      "feedback-desktop",
+      "feedback-mobile-messages"
+    ],
+    "EmptyState": [
+      "feedback-desktop",
+      "feedback-mobile-messages"
+    ],
+    "Busy": [
+      "feedback-desktop",
+      "feedback-mobile-operation"
+    ],
+    "Progress": [
+      "feedback-desktop",
+      "feedback-mobile-operation"
+    ],
+    "Toast": [
+      "feedback-desktop",
+      "feedback-mobile-operation"
+    ],
+    "Dialog": [
+      "dialog-confirm",
+      "dialog-error",
+      "dialog-mobile"
+    ],
+    "DateField": [
+      "temporal-desktop",
+      "temporal-error",
+      "temporal-mobile",
+      "temporal-picker"
+    ],
+    "TimeField": [
+      "temporal-desktop",
+      "temporal-error",
+      "temporal-mobile"
+    ],
+    "DateRange": [
+      "temporal-desktop",
+      "temporal-error",
+      "temporal-mobile"
+    ],
+    "NumberField": [
+      "numbers-desktop",
+      "numbers-error",
+      "numbers-mobile"
+    ],
+    "QuantityField": [
+      "numbers-desktop",
+      "numbers-error",
+      "numbers-mobile"
+    ],
+    "Tabs": [
+      "navigation-desktop",
+      "navigation-mobile-tabs"
+    ],
+    "Accordion": [
+      "navigation-desktop",
+      "navigation-mobile-accordion"
+    ],
+    "Breadcrumbs": [
+      "navigation-desktop",
+      "navigation-mobile-tabs"
+    ],
+    "Menu": [
+      "anchored-menu",
+      "anchored-menu-mobile"
+    ],
+    "Popover": [
+      "anchored-popover",
+      "anchored-popover-flipped"
+    ],
+    "Tooltip": [
+      "anchored-tooltip"
+    ],
+    "UploadManager": [
+      "upload-desktop-done",
+      "upload-desktop-error",
+      "upload-desktop-progress",
+      "upload-mobile-done",
+      "upload-mobile-error",
+      "upload-mobile-progress"
+    ],
+    "UploadList": [
+      "upload-desktop-done",
+      "upload-desktop-error",
+      "upload-desktop-progress",
+      "upload-mobile-done",
+      "upload-mobile-error",
+      "upload-mobile-progress"
+    ],
+    "TreeView": [
+      "tree-desktop",
+      "tree-mobile"
+    ],
+    "SplitPane": [
+      "split-desktop",
+      "split-mobile"
+    ],
+    "Slider": [
+      "slider-desktop",
+      "slider-mobile"
+    ]
+  },
+  "modalLifecycleCapture": {
+    "date": "2026-11-14",
+    "page": "AllWidgets /all-widgets",
+    "browser": "Cloud Chromium",
+    "viewports": [
+      "1165 × 747",
+      "390 × 680"
+    ],
+    "method": "Real cloud browser screenshots, cropped without retouching or resizing."
+  },
+  "choiceAccessibilityCapture": {
+    "date": "2026-11-14",
+    "page": "AllWidgets /all-widgets",
+    "browser": "Cloud Chromium",
+    "viewports": [
+      "1165 × 747",
+      "320 × 680",
+      "583 × 374 (browser zoom 200%)"
+    ],
+    "method": "Real cloud browser screenshots, cropped without retouching or resizing."
+  },
+  "captures": {
+    "r19-desktop": {
+      "date": "2026-11-14",
+      "commit": "29106ee49eb61f6d141b55921543e9577c621eec",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "e33c305908c95178e004fe26e098f4a8daff29b1ab739b29de31e272eb972f48",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "upload-complete.jpg": [
+          1212,
+          886
+        ],
+        "popup-current.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r19-narrow": {
+      "date": "2026-11-14",
+      "commit": "29106ee49eb61f6d141b55921543e9577c621eec",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈485 × 740 CSS px",
+      "allWidgetsSourceSha256": "e33c305908c95178e004fe26e098f4a8daff29b1ab739b29de31e272eb972f48",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "narrow-popup.jpg": [
+          532,
+          869
+        ]
+      }
+    },
+    "r44-desktop": {
+      "date": "2026-11-14",
+      "commit": "5eee747b6fcfd0865cbe65eac05eb8e67edc5aa1",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "8c51424fad657b1d659d96c788f289fe3ae76aacb2b230195b5c0afa9b80755a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "keyboard-demo-desktop.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r44-narrow": {
+      "date": "2026-11-14",
+      "commit": "5eee747b6fcfd0865cbe65eac05eb8e67edc5aa1",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈485 × 740 CSS px",
+      "allWidgetsSourceSha256": "8c51424fad657b1d659d96c788f289fe3ae76aacb2b230195b5c0afa9b80755a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "keyboard-demo-narrow.jpg": [
+          532,
+          868
+        ]
+      }
+    },
+    "r20-1280": {
+      "date": "2026-11-14",
+      "commit": "7e4faef8afeafe02f8be89c775feb3e7fe8edf57",
+      "page": "Standalone AllWidgets / inside local viewport frame",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "1280 × 780 CSS px",
+      "allWidgetsSourceSha256": "514df1e8028b529f1d107e156d3230d157edd2561bce98855fd672a61578499c",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "form-desktop.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r20-320": {
+      "date": "2026-11-14",
+      "commit": "7e4faef8afeafe02f8be89c775feb3e7fe8edf57",
+      "page": "Standalone AllWidgets / inside local viewport frame",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "320 × 780 CSS px",
+      "allWidgetsSourceSha256": "514df1e8028b529f1d107e156d3230d157edd2561bce98855fd672a61578499c",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "form-narrow-error.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r20-390": {
+      "date": "2026-11-14",
+      "commit": "7e4faef8afeafe02f8be89c775feb3e7fe8edf57",
+      "page": "Standalone AllWidgets / inside local viewport frame",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "514df1e8028b529f1d107e156d3230d157edd2561bce98855fd672a61578499c",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "form-mobile-busy.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r21-desktop": {
+      "date": "2026-11-14",
+      "commit": "2420cfa8a8b6375c1204367e313535db823b3df8",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "fc7bc8bea1a82e864613ded9054ceebc0d3cfda5b324e0cfc3ac887c0be89f6a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "adaptive-layouts-wide.jpg": [
+          1212,
+          886
+        ],
+        "adaptive-form-wide.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r21-narrow": {
+      "date": "2026-11-14",
+      "commit": "2420cfa8a8b6375c1204367e313535db823b3df8",
+      "page": "Standalone AllWidgets / within fixed-width local preview",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "fc7bc8bea1a82e864613ded9054ceebc0d3cfda5b324e0cfc3ac887c0be89f6a",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "adaptive-form-narrow.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r22-wide": {
+      "date": "2026-11-14",
+      "commit": "da9ff003f543c368e82d1bcf652b18a7c59b4f40",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "a6092a46b9f5e8efb2c11c0e408daf34f35b3ce46e1719f786977a2080a4ab1b",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "typed-choices-wide.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r22-narrow": {
+      "date": "2026-11-14",
+      "commit": "da9ff003f543c368e82d1bcf652b18a7c59b4f40",
+      "page": "Standalone AllWidgets / within fixed-width local preview",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "a6092a46b9f5e8efb2c11c0e408daf34f35b3ce46e1719f786977a2080a4ab1b",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "typed-choices-narrow.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r23-desktop": {
+      "date": "2026-11-14",
+      "commit": "7c39f5135ca82708e9525eecd0dd7b0b4ecd5ab5",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "≈1165 × 757 CSS px",
+      "allWidgetsSourceSha256": "a4f23fe60054bfa9ad4ca358ee4f34b4c198e02e5c4317f333b9cee842452bea",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "data-table-wide.jpg": [
+          1212,
+          886
+        ],
+        "data-table-empty.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r23-narrow": {
+      "date": "2026-11-14",
+      "commit": "7c39f5135ca82708e9525eecd0dd7b0b4ecd5ab5",
+      "page": "Standalone AllWidgets / in 390px local preview",
+      "browser": "Cloud Chromium 156.0.8078.79",
+      "viewport": "390 × 780 CSS px",
+      "allWidgetsSourceSha256": "a4f23fe60054bfa9ad4ca358ee4f34b4c198e02e5c4317f333b9cee842452bea",
+      "method": "Native cloud browser window screenshot; crop without scaling or retouching.",
+      "screenshots": {
+        "data-table-narrow.jpg": [
+          1212,
+          886
+        ]
+      }
+    },
+    "r24-desktop": {
+      "date": "2026-11-16",
+      "commit": "f0c3e1ce1be08650dc55f261e43f6fe3f28b0133",
+      "allWidgetsSourceSha256": "1695676ded3e6813b296b8beb19a6a461aacf2ed78e9ba78fa539229a28c6c6f",
+      "page": "Standalone AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1348 × 936 CSS px",
+      "method": "Cloud browser screenshot; working tree based on commit above; unscaled crop, no retouching. AllWidgets SHA256 identifies implementation.",
+      "screenshots": {
+        "feedback-full.jpg": [
+          1348,
+          10350
+        ]
+      }
+    },
+    "r24-mobile": {
+      "date": "2026-11-16",
+      "commit": "f0c3e1ce1be08650dc55f261e43f6fe3f28b0133",
+      "allWidgetsSourceSha256": "1695676ded3e6813b296b8beb19a6a461aacf2ed78e9ba78fa539229a28c6c6f",
+      "page": "Standalone AllWidgets / in local 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 870 CSS px",
+      "method": "Cloud browser screenshot; working tree based on commit above; unscaled crop, no retouching. AllWidgets SHA256 identifies implementation.",
+      "screenshots": {
+        "feedback-mobile-top.jpg": [
+          1363,
+          936
+        ],
+        "feedback-mobile-bottom.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r25-desktop": {
+      "date": "2026-11-16",
+      "commit": "2407eb4c70897ff91726cb3e9f7a1dd01ca20cb9",
+      "allWidgetsSourceSha256": "82791c4fb8c156e749a2c838069087d994b2c013b5874d36f403102cb5020b6d",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of working tree based on commit above; cropped without scaling or retouching.",
+      "screenshots": {
+        "dialog-confirm.jpg": [
+          1348,
+          926
+        ],
+        "dialog-error.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r25-mobile": {
+      "date": "2026-11-16",
+      "commit": "2407eb4c70897ff91726cb3e9f7a1dd01ca20cb9",
+      "allWidgetsSourceSha256": "82791c4fb8c156e749a2c838069087d994b2c013b5874d36f403102cb5020b6d",
+      "page": "AllWidgets / in local 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 870 CSS px",
+      "method": "Real cloud browser screenshot of working tree based on commit above; cropped without scaling or retouching.",
+      "screenshots": {
+        "dialog-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r26-desktop": {
+      "date": "2026-11-16",
+      "commit": "f0b98eaaeab603f260597334dce4bdf84a8e54e8",
+      "allWidgetsSourceSha256": "a86f584b957913d6d47bd5890b27f0c77424278fdd5ca072b39a8997e82af1b2",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of working tree based on commit above; native desktop capture for calendar popup; unscaled crop, no retouching.",
+      "screenshots": {
+        "temporal-desktop.jpg": [
+          1348,
+          926
+        ],
+        "temporal-error.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r26-mobile": {
+      "date": "2026-11-16",
+      "commit": "f0b98eaaeab603f260597334dce4bdf84a8e54e8",
+      "allWidgetsSourceSha256": "a86f584b957913d6d47bd5890b27f0c77424278fdd5ca072b39a8997e82af1b2",
+      "page": "AllWidgets / in local 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 870 CSS px",
+      "method": "Real cloud browser screenshot of working tree based on commit above; native desktop capture for calendar popup; unscaled crop, no retouching.",
+      "screenshots": {
+        "temporal-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r26-native": {
+      "date": "2026-11-16",
+      "commit": "f0b98eaaeab603f260597334dce4bdf84a8e54e8",
+      "allWidgetsSourceSha256": "a86f584b957913d6d47bd5890b27f0c77424278fdd5ca072b39a8997e82af1b2",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of working tree based on commit above; native desktop capture for calendar popup; unscaled crop, no retouching.",
+      "screenshots": {
+        "temporal-picker-native.png": [
+          1364,
+          1024
+        ]
+      }
+    },
+    "r27-desktop": {
+      "date": "2026-11-16",
+      "commit": "65f421a6834312c84533b528b2e3ff02630a3a41",
+      "allWidgetsSourceSha256": "293d2197222f3c806376ba2540f47fb3697dd8a30beedbb0947a602a8a9fae8c",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching.",
+      "screenshots": {
+        "numbers-desktop.jpg": [
+          1348,
+          926
+        ],
+        "numbers-error.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r27-mobile": {
+      "date": "2026-11-16",
+      "commit": "65f421a6834312c84533b528b2e3ff02630a3a41",
+      "allWidgetsSourceSha256": "293d2197222f3c806376ba2540f47fb3697dd8a30beedbb0947a602a8a9fae8c",
+      "page": "AllWidgets / in 390px iframe",
+      "browser": "Cloud Chromium (native session)",
+      "viewport": "390 × 920 CSS px iframe",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching.",
+      "screenshots": {
+        "numbers-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r28-desktop": {
+      "date": "2026-11-16",
+      "commit": "1b36f2432f5761f3678a92dc1b4f6b364471ec9c",
+      "allWidgetsSourceSha256": "0a4e7db8e26136ddbb82ceec5c601f10e0ad336964cbf3045f5fe4c3fb8c10d1",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; source tree 1e7d1172de3743f3c17d462b7b9204282856db4b identifies the captured implementation.",
+      "screenshots": {
+        "r28-navigation-desktop.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r28-mobile": {
+      "date": "2026-11-16",
+      "commit": "1b36f2432f5761f3678a92dc1b4f6b364471ec9c",
+      "allWidgetsSourceSha256": "0a4e7db8e26136ddbb82ceec5c601f10e0ad336964cbf3045f5fe4c3fb8c10d1",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "320 CSS px iframe, real AllWidgets; outer 1363 × 936 CSS px",
+      "method": "Real cloud browser screenshot, cropped without scaling or retouching. Commit identifies the base; source tree 1e7d1172de3743f3c17d462b7b9204282856db4b identifies the captured implementation.",
+      "screenshots": {
+        "r28-navigation-mobile-top.jpg": [
+          1363,
+          936
+        ],
+        "r28-navigation-mobile-accordion.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r29-desktop": {
+      "date": "2026-11-16",
+      "commit": "b91992c2bdd836b5cdbfc4ea2a695394d07c125d",
+      "allWidgetsSourceSha256": "1cda6566ca334feeb17666e73021ea8faec73dacb31505837f0cfa0f74377959",
+      "page": "AllWidgets /",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "1363 × 936 CSS px (reported)",
+      "method": "Real cloud browser screenshot of source tree 2ca2631fdba36ffb0fb2b90fa3e84d063543cb9d based on the commit above. Unscaled crops without retouching.",
+      "screenshots": {
+        "r29-menu.jpg": [
+          1348,
+          926
+        ],
+        "r29-popover.jpg": [
+          1348,
+          926
+        ],
+        "r29-tooltip.jpg": [
+          1348,
+          926
+        ],
+        "r29-popover-flipped.jpg": [
+          1348,
+          926
+        ]
+      }
+    },
+    "r29-mobile": {
+      "date": "2026-11-16",
+      "commit": "b91992c2bdd836b5cdbfc4ea2a695394d07c125d",
+      "allWidgetsSourceSha256": "1cda6566ca334feeb17666e73021ea8faec73dacb31505837f0cfa0f74377959",
+      "page": "AllWidgets / in 320px iframe",
+      "browser": "Cloud Chromium 156.0.8078.79 (native session)",
+      "viewport": "320 × 920 CSS px iframe",
+      "method": "Real cloud browser screenshot of source tree 2ca2631fdba36ffb0fb2b90fa3e84d063543cb9d based on the commit above. Unscaled crops without retouching.",
+      "screenshots": {
+        "r29-menu-mobile.jpg": [
+          1363,
+          936
+        ]
+      }
+    },
+    "r29-table-stability-element-capture": {
+      "date": "2026-11-16",
+      "commit": "b5aa5f89ed992240059d2fa2f2f6d4524bae76fc",
+      "allWidgetsSourceSha256": "1cda6566ca334feeb17666e73021ea8faec73dacb31505837f0cfa0f74377959",
+      "page": "AllWidgets, /all-widgets on local E2E server",
+      "browser": "Playwright Chromium 151, cloud execution environment",
+      "viewport": "Desktop 1280x720 (wide), 1280x780 (empty); mobile 390x760",
+      "method": "Playwright locator.screenshot of .widgets-data-table; element crop without resizing. Captured from working tree before commit, with the same table CSS.",
+      "screenshots": {
+        "data-table-wide.png": [
+          1170,
+          447
+        ],
+        "data-table-empty.png": [
+          1170,
+          447
+        ],
+        "data-table-narrow.png": [
+          280,
+          515
+        ]
+      }
+    },
+    "r30-desktop": {
+      "date": "2026-11-17",
+      "commit": "a8354fe58ad8bdf6f0d739ea8ce0718bd12772af",
+      "allWidgetsSourceSha256": "e84e604367c1f0e6285aa72860a9685046e56aebccd9ca30a12f6ec9bab0fbf3",
+      "page": "AllWidgets /all-widgets, CI run 44036207319",
+      "browser": "Chromium 151.0.7922.34 / Playwright 1.62.1",
+      "viewport": "{'width': 1365, 'height': 900}",
+      "method": "Unmodified crop from real full-page screenshot on GitHub Actions Ubuntu 24.04; artifact 14307780661.",
+      "screenshots": {
+        "upload-desktop-done.png": [
+          1365,
+          12868
+        ],
+        "upload-desktop-error.png": [
+          1365,
+          12868
+        ],
+        "upload-desktop-progress.png": [
+          1365,
+          12868
+        ]
+      }
+    },
+    "r30-mobile": {
+      "date": "2026-11-17",
+      "commit": "a8354fe58ad8bdf6f0d739ea8ce0718bd12772af",
+      "allWidgetsSourceSha256": "e84e604367c1f0e6285aa72860a9685046e56aebccd9ca30a12f6ec9bab0fbf3",
+      "page": "AllWidgets /all-widgets, CI run 44036207319",
+      "browser": "Chromium 151.0.7922.34 / Playwright 1.62.1",
+      "viewport": "{'width': 390, 'height': 844}",
+      "method": "Unmodified crop from real full-page screenshot on GitHub Actions Ubuntu 24.04; artifact 14307780661.",
+      "screenshots": {
+        "upload-mobile-done.png": [
+          395,
+          21216
+        ],
+        "upload-mobile-error.png": [
+          395,
+          21264
+        ],
+        "upload-mobile-progress.png": [
+          395,
+          21312
+        ]
+      }
+    },
+    "tree-view": {
+      "date": "2026-11-18",
+      "commit": "5d5250f69a0d8949916898abafb95259df478804",
+      "allWidgetsSourceSha256": "b84632f3507240940c481bfffed7e402dba25b7779be5a8a6eb1cd1e7c50c15c",
+      "page": "Standalone AllWidgets, http://127.0.0.1:18645/",
+      "browser": "Chromium 153.0.8010.0",
+      "viewport": "1280 × 900 and 360 × 740, DPR 1",
+      "method": "Playwright, real viewport screenshot followed by an unscaled card crop. Mobile touch emulation.",
+      "screenshots": {
+        "tree-desktop-source.png": [
+          1280,
+          900
+        ],
+        "tree-mobile-source.png": [
+          360,
+          740
+        ]
+      }
+    },
+    "split-pane": {
+      "date": "2026-11-18",
+      "commit": "61f42e89da5efe9b6911d89cd753d75c658d2582",
+      "allWidgetsSourceSha256": "4093bb212874383ff24bb4e2e79eaa3c56623f1f9cc60d27cefe96ab6847ed09",
+      "page": "Standalone AllWidgets, http://127.0.0.1:18647/",
+      "browser": "Chromium 153.0.8010.0",
+      "viewport": "1280 × 900 and 360 × 740, DPR 1",
+      "method": "Playwright viewport screenshot followed by an unscaled editor card crop. Mobile touch emulation.",
+      "screenshots": {
+        "split-desktop-source.png": [
+          1280,
+          900
+        ],
+        "split-mobile-source.png": [
+          360,
+          740
+        ]
+      }
+    },
+    "slider": {
+      "date": "2026-11-18",
+      "commit": "0d0b32ee0fc8ccf27ac343500f34e2b27de7c024",
+      "allWidgetsSourceSha256": "91d475e38348bb88260b5f87bb94736a603f7695d22697c0efc792b291ee7b0d",
+      "page": "Standalone AllWidgets, http://127.0.0.1:18647/",
+      "browser": "Chromium 153.0.8010.0",
+      "viewport": "1280 × 900 and 360 × 740, DPR 1",
+      "method": "Playwright viewport screenshot with an unscaled card crop. Mobile touch emulation.",
+      "screenshots": {
+        "slider-desktop-source.png": [
+          1280,
+          900
+        ],
+        "slider-mobile-source.png": [
+          360,
+          740
+        ]
+      }
+    }
+  }
+}

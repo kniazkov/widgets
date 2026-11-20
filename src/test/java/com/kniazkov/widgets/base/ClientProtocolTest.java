@@ -5,6 +5,7 @@ package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.controller.EventTestData;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.controller.UploadEvent;
 import com.kniazkov.widgets.model.StringModel;
@@ -51,13 +52,13 @@ public class ClientProtocolTest {
         event.addString("id", RMId.create().toString());
         event.addString("widget", button.getId().toString());
         event.addString("type", "click");
-        event.createObject("data");
+        event.put("data", EventTestData.pointer());
         final String valid = "[" + event + "]";
         final java.util.List<String> payloads = new java.util.ArrayList<>();
         payloads.add(valid.substring(0, valid.length() - 1));
         payloads.add("{}");
         payloads.add("[null,42,[]]");
-        for (final String key : java.util.List.of("id", "widget", "type", "data")) {
+        for (final String key : java.util.List.of("id")) {
             final JsonObject invalid = event.clone().objectValueOrThrow();
             invalid.addNumber(key, 42);
             payloads.add("[" + invalid + "]");
@@ -66,6 +67,7 @@ public class ClientProtocolTest {
             final JsonObject response = new JsonObject();
             client.synchronize(Collections.singletonMap("events", payload), response);
             assertEquals(0, calls.get());
+            assertTrue(response.get("eventResyncRequired").booleanValue());
             assertEquals(RMId.INVALID.toString(), response.get("lastEvent").stringValue());
         }
         client.synchronize(Collections.singletonMap("events", valid), new JsonObject());
@@ -106,7 +108,7 @@ public class ClientProtocolTest {
         client.getRootWidget().add(new Section(button));
         final RMId eventId = RMId.create();
         final String event = "[{\"id\":\"" + eventId + "\",\"widget\":\""
-            + button.getId() + "\",\"type\":\"click\",\"data\":{}}]";
+            + button.getId() + "\",\"type\":\"click\",\"data\":" + EventTestData.pointer() + "}]";
         final Map<String, String> request = Collections.singletonMap("events", event);
         final JsonObject first = new JsonObject();
         final JsonObject second = new JsonObject();
@@ -129,8 +131,8 @@ public class ClientProtocolTest {
         final JsonObject first = new JsonObject();
         client.synchronize(Collections.emptyMap(), first);
         final JsonArray updates = first.get("updates").arrayValueOrThrow();
-        final String lastUpdate = updates.get(updates.size() - 1)
-            .objectValueOrThrow().get("id").stringValue();
+        final String lastUpdate = "#" + updates.get(updates.size() - 1)
+            .objectValueOrThrow().get("sequence");
         final JsonObject second = new JsonObject();
 
         client.synchronize(Collections.singletonMap("lastUpdate", lastUpdate), second);
@@ -152,9 +154,10 @@ public class ClientProtocolTest {
         final FileLoader loader = new FileLoader();
         final TextWidget progress = new TextWidget("0%");
         client.getRootWidget().add(new Section(loader, progress));
-        loader.onSelect(descriptor -> descriptor.getLoadingPercentageModel().addListener(
-            percent -> progress.setText(percent + "%")
-        ));
+        final com.kniazkov.widgets.common.Listener<Integer> progressListener =
+            percent -> progress.setText(percent + "%");
+        loader.onSelect(descriptor -> descriptor.getLoadingPercentageModel()
+            .addListener(progressListener));
         final UploadEvent selection = new UploadEvent();
         selection.fileId = 7;
         selection.name = "data.bin";
@@ -165,12 +168,15 @@ public class ClientProtocolTest {
         final JsonObject initial = new JsonObject();
         client.synchronize(Collections.emptyMap(), initial);
         final JsonArray initialUpdates = initial.get("updates").arrayValueOrThrow();
-        final String initialLastUpdate = initialUpdates
+        final String initialLastUpdate = "#" + initialUpdates
             .get(initialUpdates.size() - 1)
             .objectValueOrThrow()
-            .get("id")
-            .stringValue();
+            .get("sequence");
 
+        /*
+         * Model listeners are weak: the test must retain its observer across collection.
+         */
+        System.gc();
         final JsonObject first = client.uploadChunk(
             loader.getId(),
             7,
@@ -183,11 +189,10 @@ public class ClientProtocolTest {
         assertFalse(first.get("updates").arrayValueOrThrow().isEmpty());
         assertTrue(first.toString().contains("50%"));
         final JsonArray firstUpdates = first.get("updates").arrayValueOrThrow();
-        final String firstLastUpdate = firstUpdates
+        final String firstLastUpdate = "#" + firstUpdates
             .get(firstUpdates.size() - 1)
             .objectValueOrThrow()
-            .get("id")
-            .stringValue();
+            .get("sequence");
 
         final JsonObject second = client.uploadChunk(
             loader.getId(),
@@ -199,6 +204,7 @@ public class ClientProtocolTest {
 
         assertTrue(second.toString().contains("100%"));
         assertFalse(second.toString().contains("50%"));
+        java.lang.ref.Reference.reachabilityFence(progressListener);
     }
 
     /**

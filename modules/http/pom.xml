@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.kniazkov</groupId>
+        <artifactId>widgets-modules</artifactId>
+        <version>0.2.0</version>
+    </parent>
+    <artifactId>widgets-http</artifactId>
+    <name>Widgets HTTP</name>
+    <description>HTTP and WebSocket transports for serving interactive Widgets applications.</description>
+    <dependencies>
+        <dependency>
+            <groupId>com.kniazkov</groupId>
+            <artifactId>widgets-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>jetty-websocket-jetty-server</artifactId>
+            <version>12.1.15</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <sourceDirectory>${project.build.directory}/module-sources</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>select-module-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../../src/main/java</directory>
+                                    <includes>
+                                        <include>com/kniazkov/widgets/base/Server.java</include>
+                                        <include>com/kniazkov/widgets/base/CreateClient.java</include>
+                                        <include>com/kniazkov/widgets/base/HttpHandler.java</include>
+                                        <include>com/kniazkov/widgets/base/StreamEndpoint.java</include>
+                                        <include>com/kniazkov/widgets/base/StreamServer.java</include>
+                                        <include>com/kniazkov/widgets/base/PushServer.java</include>
+                                        <include>com/kniazkov/widgets/base/ProtocolSecurity.java</include>
+                                        <include>com/kniazkov/widgets/base/RequestDiagnostics.java</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

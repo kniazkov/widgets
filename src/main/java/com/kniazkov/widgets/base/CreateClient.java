@@ -32,6 +32,14 @@ final class CreateClient extends ActionHandler {
         super(application);
     }
 
+    /**
+     * @param application owning application
+     * @param access verified transport credentials
+     */
+    CreateClient(final Application application, final ChannelAccess access) {
+        super(application, access);
+    }
+
     @Override
     JsonElement process(final Map<String, String> data) {
         final String address = data.get("address");
@@ -49,6 +57,15 @@ final class CreateClient extends ActionHandler {
             return invalidRequest();
         }
 
+        if (this.access != null && (!UpdateStream.VERSION.equals(data.get("updateVersion"))
+                || !UpdateStream.CAPABILITY.equals(data.get("updateCapability")))) {
+            return UpdateStream.mismatch();
+        }
+
+        if (this.access != null && !ReleaseInfo.buildId().equals(data.get("clientBuild"))) {
+            return ReleaseInfo.mismatch();
+        }
+
         /*
          * Prepare a collection of parameters that are passed through the address line
          */
@@ -58,13 +75,25 @@ final class CreateClient extends ActionHandler {
         parameters.remove("browserId");
         parameters.remove("mobile");
         parameters.remove("tabId");
+        parameters.remove("channelToken");
+        parameters.remove("serverId");
+        parameters.remove("csrfToken");
+        parameters.remove("updateVersion");
+        parameters.remove("updateCapability");
+        parameters.remove("updateEpoch");
+        parameters.remove("clientBuild");
 
         /*
          * Prepare a container for request-specific settings passed to a page
          */
         final PageContext context = new PageContext();
         context.browserId = parsedBrowserId;
-        context.tabContext = this.application.resolveTab(parsedBrowserId, data.get("tabId"));
+        context.browserSession = this.access == null ? null : this.access.session;
+        if (context.browserSession != null && !context.browserSession.touch()) {
+            throw new ProtocolAccessException(true);
+        }
+        context.tabContext = this.application.resolveTab(
+            parsedBrowserId, data.get("tabId"), context.browserSession);
         if (context.tabContext == null) {
             final JsonObject expired = new JsonObject();
             expired.addBoolean("result", false);
@@ -88,8 +117,26 @@ final class CreateClient extends ActionHandler {
          */
         JsonObject obj = new JsonObject();
         obj.addString("id", id);
+        obj.addString("clientBuild", ReleaseInfo.buildId());
+        obj.addString("releaseVersion", ReleaseInfo.version());
+        context.publicDocument.ifPresent(document ->
+            obj.addElement("publicDocument", document.json()));
+        obj.addString("channelToken", this.application.channelToken(
+            com.kniazkov.widgets.common.RMId.parse(id)));
         obj.addString("tabId", context.tabContext.getId().toString());
         obj.addString("serverId", this.application.getServerId().toString());
+        obj.addNumber("pollingMaxDelay", this.application.pollingMaxDelay());
+        final PushService push = this.application.pushServer();
+        if (push != null) {
+            obj.addString("pushPath", StreamServer.PATH);
+            obj.addNumber("pushMessageBytes", push.messageBytes());
+        }
+        obj.addString("updateVersion", UpdateStream.VERSION);
+        obj.addString("updateCapability", UpdateStream.CAPABILITY);
+        obj.addNumber("eventBatchCount", this.application.protocolLimits().eventsPerBatch());
+        obj.addNumber("eventBatchBytes", this.application.protocolLimits().eventBytesPerBatch());
+        obj.addString("updateEpoch", this.application.updateEpoch(
+            com.kniazkov.widgets.common.RMId.parse(id)));
 
         /*
          * Log creation for debugging or monitoring

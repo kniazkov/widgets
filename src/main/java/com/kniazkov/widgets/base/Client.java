@@ -17,7 +17,6 @@ import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.Widget;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 /**
@@ -27,7 +26,7 @@ import java.util.TreeSet;
  * managed by a {@link RootWidget}. The client tracks all registered widgets, handles
  * incoming events from the front end, and collects outgoing updates for transmission.
  */
-public final class Client implements Comparable<Client> {
+public final class Client implements Comparable<Client>, AutoCloseable {
     /**
      * Shared revocable document identity.
      */
@@ -37,6 +36,11 @@ public final class Client implements Comparable<Client> {
      * Unique identifier for this client instance.
      */
     private final RMId id;
+
+    /**
+     * Independent 256-bit secret for this page, never a widget ID or browser ID.
+     */
+    private final String channelToken = SecurityPrimitives.secret();
 
     /**
      * Client expiration timer in milliseconds.
@@ -57,9 +61,25 @@ public final class Client implements Comparable<Client> {
     private final RootWidget root;
 
     /**
-     * Set of updates collected from widgets but not processed by the client.
+     * Outgoing independently sequenced browser channel.
      */
-    private final Set<Update> updates;
+    private final UpdateStream updates;
+
+    /**
+     * Application-wide counters, retained after this page closes.
+     */
+    private final OperationMetrics metrics;
+
+
+    /**
+     * Limits for parsing event batches and replaying widget updates.
+     */
+    private final ProtocolLimits protocolLimits;
+
+    /**
+     * Scratch set keeps model update order while each widget transfers its own queue.
+     */
+    private final Set<Update> collecting = new TreeSet<>();
 
     /**
      * The identifier of the last event processed.
@@ -84,21 +104,65 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
+     * Configures upload resource ownership.
      * @param options application options
      * @param tabContext shared document context
      */
     Client(final Options options, final TabContext tabContext) {
-        this.tabContext = tabContext;
-        this.id = RMId.create();
-        this.root = new RootWidget(options);
-        this.updates = new TreeSet<>();
+        this(options, tabContext, new com.kniazkov.widgets.view.UploadRegistry(options));
     }
 
     /**
+     * Configures upload resource ownership.
+     * @param options application configuration
+     * @param tabContext document context
+     * @param uploads application-wide upload resources
+     */
+    Client(final Options options, final TabContext tabContext,
+            final com.kniazkov.widgets.view.UploadRegistry uploads) {
+        this(options, tabContext, uploads, new OperationMetrics());
+    }
+
+    /**
+     * @param options application configuration
+     * @param tabContext document context
+     * @param uploads shared upload resources
+     * @param metrics application counters
+     */
+    Client(final Options options, final TabContext tabContext,
+            final com.kniazkov.widgets.view.UploadRegistry uploads,
+            final OperationMetrics metrics) {
+        this.metrics = metrics;
+        this.tabContext = tabContext;
+        this.protocolLimits = options.getProtocolLimits();
+        this.updates = new UpdateStream(this.protocolLimits, System::nanoTime);
+        this.id = RMId.create();
+        this.root = new RootWidget(options, uploads);
+    }
+
+    /**
+     * Returns revocable document context.
      * @return revocable document context
      */
     TabContext getTabContext() {
         return this.tabContext;
+    }
+
+    /**
+     * Returns channel secret, only for authenticated creation and verification.
+     * @return channel secret, only for authenticated creation and verification
+     */
+    String channelToken() {
+        return this.channelToken;
+    }
+
+    /**
+     * Returns the sequence epoch independently of the server instance and channel token.
+     *
+     * @return outgoing stream epoch
+     */
+    String updateEpoch() {
+        return this.updates.epoch();
     }
 
     /**
@@ -143,14 +207,49 @@ public final class Client implements Comparable<Client> {
      *  processed event ID
      */
     void synchronize(final Map<String, String> request, final JsonObject response) {
+        this.synchronize(request, response, false);
+    }
+
+    /**
+     * Processes synchronization with optional mandatory stream credentials.
+     *
+     * @param request browser request
+     * @param response target response
+     * @param requireEpoch whether this is an authenticated HTTP request
+     */
+    void synchronize(final Map<String, String> request, final JsonObject response,
+            final boolean requireEpoch) {
+        final long waiting = this.metrics.waiting();
         synchronized (this.root) {
-            if (!this.tabContext.isActive()) {
-                response.addBoolean("tabContextExpired", true);
-                return;
+            this.metrics.acquired(waiting);
+            try {
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    response.addBoolean("tabContextExpired", true);
+                    return;
+                }
+                if (!this.updates.acknowledge(request.get("updateEpoch"), request.get("lastUpdate"),
+                        requireEpoch)) {
+                    UpdateStream.markMismatch(response);
+                    return;
+                }
+                if (this.needsUpdateResync()) {
+                    this.serializeUpdates(response);
+                    return;
+                }
+                this.processEvents(request, response);
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    response.addBoolean("tabContextExpired", true);
+                    return;
+                }
+                this.collectUpdates();
+                this.serializeUpdates(response);
+            } finally {
+                this.metrics.completed();
             }
-            this.processEvents(request);
-            this.collectUpdates(request.get("lastUpdate"));
-            this.serializeUpdates(response);
         }
     }
 
@@ -170,27 +269,81 @@ public final class Client implements Comparable<Client> {
             final int chunkIndex,
             final byte[] data,
             final String lastUpdate) {
+        return this.uploadChunk(widgetId, fileId, chunkIndex, data, lastUpdate, null, false);
+    }
+
+    /**
+     * Delivers one chunk with the browser's outgoing-update acknowledgement.
+     *
+     * @param widgetId upload target
+     * @param fileId browser-local file identifier
+     * @param chunkIndex chunk index
+     * @param data chunk bytes
+     * @param lastUpdate last applied sequence
+     * @param epoch outgoing stream generation
+     * @param requireEpoch whether this is an authenticated HTTP request
+     * @return upload receipt or protocol failure
+     */
+    JsonObject uploadChunk(final RMId widgetId, final int fileId, final int chunkIndex,
+            final byte[] data, final String lastUpdate, final String epoch,
+            final boolean requireEpoch) {
+        final long waiting = this.metrics.waiting();
         synchronized (this.root) {
-            if (!this.tabContext.isActive()) {
-                return UploadProtocol.rejected();
-            }
-            for (final Widget<?> widget : this.root) {
-                if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
-                    final JsonObject response = ((FileLoader) widget).handleUploadChunk(
-                        fileId,
-                        chunkIndex,
-                        data
-                    );
-                    if (response == UploadProtocol.rejected()) {
-                        return response;
-                    }
-                    this.collectUpdates(lastUpdate);
+            this.metrics.acquired(waiting);
+            try {
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    return UploadProtocol.rejected();
+                }
+                if (!this.updates.acknowledge(epoch, lastUpdate, requireEpoch)) {
+                    return UpdateStream.mismatch();
+                }
+                if (this.needsUpdateResync()) {
+                    final JsonObject response = new JsonObject();
+                    response.addBoolean("result", false);
                     this.serializeUpdates(response);
                     return response;
                 }
+                for (final Widget<?> widget : this.root) {
+                    if (widget.getId().equals(widgetId) && widget instanceof FileLoader) {
+                        final JsonObject response = ((FileLoader) widget).handleUploadChunk(
+                            fileId,
+                            chunkIndex,
+                            data
+                        );
+                        if (response == UploadProtocol.rejected()) {
+                            return response;
+                        }
+                        this.requireLiveSession();
+                        if (!this.tabContext.isActive()) {
+                            this.root.closeUploads();
+                            return UploadProtocol.rejected();
+                        }
+                        this.collectUpdates();
+                        this.serializeUpdates(response);
+                        return response;
+                    }
+                }
+            } finally {
+                this.metrics.completed();
             }
         }
         return UploadProtocol.rejected();
+    }
+
+    /**
+     * Rechecks revocation after waiting for the root and after application callbacks.
+     */
+    private void requireLiveSession() {
+        if (this.closed) {
+            throw new ProtocolAccessException(true);
+        }
+        final BrowserSession owner = this.tabContext.getBrowserSession();
+        if (owner != null && !owner.isActive()) {
+            this.root.closeUploads();
+            throw new ProtocolAccessException(true);
+        }
     }
 
     /**
@@ -198,43 +351,59 @@ public final class Client implements Comparable<Client> {
      *
      * @param request the map of client parameters containing the "events" key
      */
-    private void processEvents(final Map<String, String> request) {
+    private void processEvents(final Map<String, String> request, final JsonObject response) {
         if (!request.containsKey("events")) {
             return;
         }
+        final String encoded = request.get("events");
+        if (encoded.length() > this.protocolLimits.eventBytesPerBatch()
+                || encoded.getBytes(java.nio.charset.StandardCharsets.UTF_8).length
+                    > this.protocolLimits.eventBytesPerBatch()) {
+            this.rejectEventBatch(response, "bytes");
+            return;
+        }
         try {
-            final JsonElement element = Json.parse(request.get("events"), JsonParsingMode.STRICT);
+            final JsonElement element = Json.parse(encoded, JsonParsingMode.STRICT);
             final JsonArray events = element.toJsonArray().orElse(null);
-            if (events == null || events.isEmpty()) {
+            if (events != null && events.size() > this.protocolLimits.eventsPerBatch()) {
+                this.rejectEventBatch(response, "count");
                 return;
             }
-            if (events.size() == 1) {
-                processSingleEvent(events.get(0).toJsonObject().orElse(null));
+            if (events == null || !validEventSequence(events)) {
+                response.addBoolean("eventResyncRequired", true);
                 return;
             }
-            final Map<RMId, Widget<?>> map = new TreeMap<>();
-            for (final Widget<?> widget : this.root) {
-                map.put(widget.getId(), widget);
-            }
-            for (JsonElement item : events) {
-                final JsonObject event = item.toJsonObject().orElse(null);
-                if (event == null) {
-                    continue;
+            for (final JsonElement item : events) {
+                this.requireLiveSession();
+                if (!this.tabContext.isActive()) {
+                    this.root.closeUploads();
+                    return;
                 }
-                handleEventObject(event, map.get(getEventWidgetId(event)));
+                this.processEvent(item.objectValueOrThrow(), response);
             }
 
         } catch (final JsonException ignored) {
+            response.addBoolean("eventResyncRequired", true);
         }
     }
 
     /**
-     * Handles a single event (used in the fast path).
+     * Rejects the whole batch without dispatching any its events.
+     *
+     * @param response envelope to mark
+     * @param reason aggregate budget category only
      */
-    private void processSingleEvent(final JsonObject event) {
-        if (event == null) {
-            return;
-        }
+    private void rejectEventBatch(final JsonObject response, final String reason) {
+        java.util.logging.Logger.getLogger(Client.class.getName()).info(
+            "Event batch rejected; limit=" + reason);
+        response.addBoolean("eventBackpressure", true);
+    }
+
+    /**
+     * Resolves each target in the current tree, after all preceding callbacks have finished.
+     * No iterator or index survives a callback that can mutate the tree.
+     */
+    private void processEvent(final JsonObject event, final JsonObject response) {
         final RMId widgetId = getEventWidgetId(event);
         Widget<?> widget = null;
         for (final Widget<?> child : this.root) {
@@ -243,35 +412,102 @@ public final class Client implements Comparable<Client> {
                 break;
             }
         }
-        handleEventObject(event, widget);
+        handleEventObject(event, widget, response);
     }
 
     /**
      * Dispatches an event to its target widget.
      */
-    private void handleEventObject(final JsonObject event, final Widget<?> widget) {
-        if (!this.tabContext.isActive() || widget == null
-            || !event.containsKey("id") || !event.containsKey("type")) {
+    private void handleEventObject(final JsonObject event, final Widget<?> widget,
+            final JsonObject response) {
+        if (!this.tabContext.isActive()) {
+            this.root.closeUploads();
             return;
         }
-        if (!event.get("id").isString() || !event.get("type").isString()) {
-            return;
-        }
+        this.requireLiveSession();
         final String serializedId = event.get("id").stringValue();
-        final String type = event.get("type").stringValue();
         final RMId eventId = RMId.parse(serializedId);
         if (eventId.compareTo(this.lastHandledEventId) <= 0) {
+            eventResult(response, serializedId, "obsolete", "alreadyConsumed");
             return;
         }
-        final JsonObject data = event.containsKey("data")
-            ? event.get("data").toJsonObject().orElse(null)
-            : new JsonObject();
-        if (data == null) {
-            return;
+        final String status;
+        final String reason;
+        if (!event.get("type").isString()
+                || getEventWidgetId(event).equals(RMId.INVALID)) {
+            status = "rejected";
+            reason = "invalidEnvelope";
+        } else if (widget == null || widget.getRootWidget().orElse(null) != this.root) {
+            status = "obsolete";
+            reason = "detachedWidget";
+        } else {
+            final JsonObject data = event.containsKey("data")
+                ? event.get("data").toJsonObject().orElse(null) : new JsonObject();
+            final com.kniazkov.widgets.controller.Event<?> kind =
+                com.kniazkov.widgets.controller.Event.getByName(event.get("type").stringValue());
+            final java.util.Optional<String> rejection = kind.rejectionReason(widget, data);
+            if (rejection.isEmpty()) {
+                /*
+                 * Consume before invoking application code: an exception after a side effect
+                 * must not cause that side effect to be repeated on a lost-response retry.
+                 */
+                this.lastHandledEventId = eventId;
+                eventResult(response, serializedId, "applied", "");
+                widget.handleEvent(kind, data);
+                return;
+            }
+            status = "rejected";
+            reason = rejection.get();
         }
-
-        widget.handleEvent(type, data);
         this.lastHandledEventId = eventId;
+        eventResult(response, serializedId, status, reason);
+    }
+
+    /**
+     * Preflights identifiers before dispatch so a corrupt/out-of-order batch cannot skip
+     * an earlier action through the cumulative ACK. Duplicate IDs are safe and permitted.
+     */
+    private static boolean validEventSequence(final JsonArray events) {
+        RMId previous = RMId.INVALID;
+        for (final JsonElement item : events) {
+            final JsonObject event = item.toJsonObject().orElse(null);
+            if (event == null || !event.get("id").isString()) {
+                return false;
+            }
+            final String value = event.get("id").stringValue();
+            final RMId id = RMId.parse(value);
+            if (id.equals(RMId.INVALID) || !id.toString().equals(value)
+                    || id.compareTo(previous) < 0) {
+                return false;
+            }
+            previous = id;
+        }
+        return true;
+    }
+
+    /**
+     * Adds a terminal delivery result without retaining an unbounded per-client history.
+     * The R02 rejectedEvents projection remains available to existing integrations.
+     */
+    private static void eventResult(final JsonObject response, final String id,
+            final String status, final String reason) {
+        final JsonArray results = response.containsKey("eventResults")
+            ? response.get("eventResults").arrayValueOrThrow()
+            : response.createArray("eventResults");
+        final JsonObject result = results.createObject();
+        result.addString("id", id);
+        result.addString("status", status);
+        if (!reason.isEmpty()) {
+            result.addString("reason", reason);
+        }
+        if ("rejected".equals(status) || "detachedWidget".equals(reason)) {
+            final JsonArray rejected = response.containsKey("rejectedEvents")
+                ? response.get("rejectedEvents").arrayValueOrThrow()
+                : response.createArray("rejectedEvents");
+            final JsonObject item = rejected.createObject();
+            item.addString("id", id);
+            item.addString("reason", reason);
+        }
     }
 
     /**
@@ -286,19 +522,24 @@ public final class Client implements Comparable<Client> {
     }
 
     /**
-     * Collects updates from widgets, adding them to the set.
-     * Removes from the set any updates that have already been processed by the client.
-     *
-     * @param lastUpdate last update applied by the browser, or null
+     * Collects new model updates in creation order and assigns stable channel sequences.
      */
-    private void collectUpdates(final String lastUpdate) {
-        if (lastUpdate != null) {
-            final RMId id = RMId.parse(lastUpdate);
-            this.updates.removeIf(update -> update.getId().compareTo(id) <= 0);
+    private void collectUpdates() {
+        this.root.collectBrowserUpdates(this.collecting);
+        if (!this.needsUpdateResync()) {
+            this.updates.publish(this.collecting);
         }
-        for (final Widget<?> widget : this.root) {
-            widget.getUpdates(this.updates);
+        this.collecting.clear();
+    }
+
+    /**
+     * @return whether a raw buffer or replay window stopped accepting new work
+     */
+    private boolean needsUpdateResync() {
+        if (this.root.hasBufferOverflow()) {
+            this.updates.requestResync();
         }
+        return this.updates.requiresResync();
     }
 
     /**
@@ -308,19 +549,38 @@ public final class Client implements Comparable<Client> {
      */
     private void serializeUpdates(final JsonObject response) {
         response.addString("lastEvent", this.lastHandledEventId.toString());
-        final JsonArray updates = response.createArray("updates");
-        for (final Update update : this.updates) {
-            update.serialize(updates.createObject());
+        this.updates.serialize(response);
+    }
+
+    /**
+     * Terminal page lifecycle, guarded by the root monitor.
+     */
+    private boolean closed;
+
+    /**
+     * @return page gauges under the same monitor as update publication
+     */
+    Map<String, Long> diagnostics() {
+        synchronized (this.root) {
+            final Map<String, Long> values = new java.util.HashMap<>(this.root.getDiagnostics());
+            values.put("pendingUpdates", (long) this.updates.pendingCount());
+            values.put("pendingUpdateBytes", this.updates.pendingBytes());
+            return values;
         }
     }
 
     /**
-     * Cleans up client state before destruction.
+     * Releases this page without revoking sibling pages in the same document.
      */
-    void destroy() {
-        /*
-         * nothing for now
-         */
+    @Override
+    public void close() {
+        synchronized (this.root) {
+            if (this.closed) {
+                return;
+            }
+            this.closed = true;
+        }
+        this.root.closePage();
     }
 
     /**

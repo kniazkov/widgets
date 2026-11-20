@@ -3,6 +3,44 @@
  */
 
 const server = window.location.protocol + "//" + window.location.host;
+let protocolCsrf = null;
+let protocolSession = null;
+const widgetsProtocolVersion = "1";
+const widgetsClientBuild = "__WIDGETS_BUILD__";
+
+// Keep retries local to the caller that owns the idempotency key or event checkpoint.
+function transportRetryDelay(failures, base = 500) {
+    const ceiling = 15000;
+    const delay = Math.min(ceiling, base * 2 ** Math.min(Math.max(0, failures - 1), 8));
+    return Math.min(ceiling, Math.round(delay * (0.75 + Math.random() * 0.5)));
+}
+
+// The document bootstrap proves access to this origin; credentials never enter URLs/storage.
+function configureProtocolSecurity(csrf, session) {
+    protocolCsrf = csrf;
+    protocolSession = session;
+}
+
+// Shared-cookie rotation can race across several documents after logout/server restart.
+// Coalesce cached-page failures into one reload, and bound attempts across document reloads.
+const sessionRefreshKey = "widgetsSessionRefreshAttempted";
+let documentSessionRefreshPending = false;
+function scheduleSessionRefresh(
+    storage = window.sessionStorage,
+    reload = () => window.location.reload()
+) {
+    if (documentSessionRefreshPending) return true;
+    try {
+        const attempts = Number(storage.getItem(sessionRefreshKey) || 0);
+        if (!Number.isInteger(attempts) || attempts < 0 || attempts >= 3) return false;
+        storage.setItem(sessionRefreshKey, String(attempts + 1));
+        documentSessionRefreshPending = true;
+        setTimeout(reload, 250 * (attempts + 1) + Math.round(Math.random() * 500));
+        return true;
+    } catch {
+        return false; // unavailable storage must never cause an unbounded reload loop
+    }
+}
 
 // Creates an independent transport so overlapping protocol requests cannot abort each other.
 function getXmlHttp() {
@@ -23,11 +61,12 @@ function getXmlHttp() {
 }
 
 // Object-valued fields are serialized as JSON; POST and file requests use multipart form data.
-function sendRequest(query, callback, method, files) {
+function sendHttpRequest(query, callback, method, files, channel) {
     const req = getXmlHttp();
+    const protocolAction = typeof query.action === "string";
     let form = null;
     const hasFiles = files && files.length;
-    const post = method == "post" || hasFiles;
+    const post = protocolAction || method == "post" || hasFiles;
     if (post) {
         form = new FormData();
         for (const key in query) {
@@ -63,6 +102,17 @@ function sendRequest(query, callback, method, files) {
         }
         req.open("GET", server + "?" + queryString, true);
     }
+    if (protocolAction) {
+        if (protocolSession) req.setRequestHeader("X-Widgets-Session", protocolSession);
+        if (protocolCsrf) req.setRequestHeader("X-Widgets-CSRF", protocolCsrf);
+        if (channel) {
+            req.setRequestHeader("X-Widgets-Channel", channel.token);
+            req.setRequestHeader("X-Widgets-Epoch", channel.epoch);
+            if (channel.updateEpoch) {
+                req.setRequestHeader("X-Widgets-Update-Epoch", channel.updateEpoch);
+            }
+        }
+    }
     let completed = false;
     const complete = function (data) {
         if (completed) {
@@ -83,13 +133,7 @@ function sendRequest(query, callback, method, files) {
                     "requestId=" + (req.getResponseHeader("X-Widgets-Request-Id") || "unavailable")
                 );
             }
-            if (req.status >= 500 && req.status <= 599) {
-                complete(
-                    JSON.stringify({ result: false, clientError: true, httpStatus: req.status })
-                );
-            } else {
-                complete(req.status == 200 ? req.responseText : null);
-            }
+            complete(classifyHttpResponse(query, req));
         }
     };
     req.onerror = function () {
@@ -98,4 +142,72 @@ function sendRequest(query, callback, method, files) {
     req.ontimeout = req.onerror;
     req.onabort = req.onerror;
     req.send(form);
+    return () => req.abort();
+}
+
+// Compatibility entry point; all existing protocol/status/security semantics stay in HTTP.
+function createHttpTransport(options) {
+    return createProtocolTransport(
+        {
+            send: (packet, done) =>
+                sendHttpRequest(packet.query, done, packet.method, packet.files, packet.channel)
+        },
+        options
+    );
+}
+let documentHttpTransport;
+function sendRequest(query, callback, method, files, channel) {
+    if (!documentHttpTransport) {
+        documentHttpTransport = createHttpTransport();
+        documentHttpTransport.connect();
+    }
+    return documentHttpTransport.send({ query, method, files, channel }, callback);
+}
+
+// Shared status mapping for HTTP and the test-only stream gateway.
+function classifyHttpResponse(query, req) {
+    const protocolAction = typeof query.action === "string";
+    let result = null;
+    const complete = value => {
+        result = value;
+    };
+    if (protocolAction && req.status === 200) {
+        const version = req.getResponseHeader("X-Widgets-Protocol-Version");
+        complete(
+            version !== null && version !== widgetsProtocolVersion
+                ? JSON.stringify({ protocolMismatch: true })
+                : req.responseText
+        );
+    } else if (
+        protocolAction &&
+        req.status === 500 &&
+        req.getResponseHeader("X-Widgets-Protocol-Error") === "application"
+    ) {
+        complete(JSON.stringify({ clientError: true }));
+    } else if (protocolAction && req.status === 403) {
+        let expired = false;
+        try {
+            expired = JSON.parse(req.responseText).sessionExpired === true;
+        } catch {
+            // An unrecognized denial is terminal, never an automatic retry loop.
+        }
+        complete(JSON.stringify(expired ? { sessionExpired: true } : { accessDenied: true }));
+    } else if (query.action === "upload chunk" && req.status === 413) {
+        complete(JSON.stringify({ result: false, uploadError: "requestTooLarge" }));
+    } else if (protocolAction && req.status === 401) {
+        complete(JSON.stringify({ accessDenied: true }));
+    } else if (protocolAction && (req.status === 426 || req.status === 505)) {
+        complete(JSON.stringify({ protocolMismatch: true }));
+    } else if (
+        protocolAction &&
+        req.status >= 400 &&
+        req.status < 500 &&
+        req.status !== 408 &&
+        req.status !== 429
+    ) {
+        complete(JSON.stringify({ clientError: true }));
+    } else {
+        complete(req.status == 200 ? req.responseText : null);
+    }
+    return result;
 }

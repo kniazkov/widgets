@@ -9,6 +9,17 @@ let consecutiveRequestFailures = 0;
 let reloadRequested = false;
 let clientFailed = false;
 
+function readProtocolResponse(data) {
+    try {
+        const response = JSON.parse(data);
+        if (response && typeof response === "object" && !Array.isArray(response)) return response;
+    } catch {
+        // A non-protocol HTTP 200 cannot safely acknowledge queued input.
+    }
+    showClientError(undefined, "protocol");
+    return null;
+}
+
 // A persistent transport failure blocks interaction without discarding the current page state.
 function showConnectionTerminated() {
     if (
@@ -21,6 +32,7 @@ function showConnectionTerminated() {
     const overlay = document.createElement("div");
     overlay.id = connectionOverlayId;
     overlay.textContent = "Connection Terminated";
+    overlay.setAttribute("role", "status");
     (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
         overlay
     );
@@ -39,12 +51,12 @@ function hideConnectionTerminated() {
 }
 
 // A client failure is fatal for the current page and must not be retried as a network failure.
-function showClientError(error) {
+function showClientError(error, reason = "application", description = null) {
     if (clientDisposed || clientFailed) {
         return;
     }
     clientFailed = true;
-    clearInterval(mainCycleTask);
+    stopClientRecovery();
     hideConnectionTerminated();
     if (error) {
         console.error("Client error", error);
@@ -57,7 +69,7 @@ function showClientError(error) {
                     0,
                     8192
                 );
-                sendRequest(
+                sendClientRequest(
                     { action: "report error", client: clientId, error: detail },
                     null,
                     "post"
@@ -70,6 +82,14 @@ function showClientError(error) {
     const overlay = document.createElement("div");
     overlay.id = clientErrorOverlayId;
     overlay.textContent = "Client Error";
+    overlay.dataset.reason = reason;
+    overlay.setAttribute("role", "alert");
+    if (description) {
+        overlay.classList.add("widgets-update-protocol-error");
+        const details = document.createElement("div");
+        details.textContent = description;
+        overlay.append(details);
+    }
     (pageContext ? pageContext.root : document.body || document.documentElement).appendChild(
         overlay
     );
@@ -78,12 +98,76 @@ function showClientError(error) {
     }
 }
 
+function showUpdateProtocolError(error) {
+    showClientError(
+        error,
+        "protocol",
+        "Incompatible widget updates. Reload this page to continue."
+    );
+}
+
 function responseHasClientError(response) {
-    if (response && response.clientError === true) {
+    if (response?.sessionExpired === true) {
+        if (reloadRequested || clientDisposed || clientFailed) return true;
+        // Allow bounded cookie-rotation convergence across tabs, without retaining credentials.
+        try {
+            if (scheduleSessionRefresh()) {
+                reloadRequested = true;
+                clientFailed = true;
+                stopClientRecovery();
+                return true;
+            }
+        } catch {
+            // If storage is unavailable, do not risk an unbounded reload loop.
+        }
+        showClientError(undefined, "session");
+        return true;
+    }
+    if (response?.updateResyncRequired === true) {
+        if (response.snapshotUnavailable === true) {
+            showClientError(
+                undefined,
+                "backpressure",
+                "This page exceeds the initial update budget. Contact the application owner."
+            );
+        } else {
+            reloadCurrentPage();
+        }
+        return true;
+    }
+    if (response?.updateProtocolMismatch === true) {
+        showUpdateProtocolError();
+        return true;
+    }
+    if (response?.clientBuildMismatch === true) {
+        showClientError(
+            undefined,
+            "version",
+            "Widgets was updated. Reload this page to continue. Unsent actions were not replayed."
+        );
+        return true;
+    }
+    if (response?.protocolMismatch === true) {
+        showClientError(undefined, "protocol");
+        return true;
+    }
+    if (response?.accessDenied === true) {
+        showClientError(undefined, "access");
+        return true;
+    }
+    if (response?.clientError === true) {
         showClientError();
         return true;
     }
     return false;
+}
+
+function clearSessionRefreshAttempt() {
+    try {
+        window.sessionStorage.removeItem(sessionRefreshKey);
+    } catch {
+        // Storage is optional; request authorization is unaffected.
+    }
 }
 
 function recordRequestFailure() {
@@ -119,6 +203,10 @@ function reloadCurrentPage() {
 }
 
 function serverStateIsCurrent(response) {
+    if (typeof response.serverId !== "string" && response.tabContextExpired !== true) {
+        showClientError(undefined, "protocol");
+        return false;
+    }
     if (response.tabContextExpired === true || response.serverId !== serverId) {
         if (pageContext?.resetTab) {
             pageContext.resetTab();
@@ -128,7 +216,7 @@ function serverStateIsCurrent(response) {
         }
         return false;
     }
-    if (response.serverId !== serverId || response.clientAlive !== true) {
+    if (response.clientAlive !== true) {
         reloadCurrentPage();
         return false;
     }

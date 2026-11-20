@@ -7,6 +7,7 @@ import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * An atomic inline group of inline widgets with no automatic line wrapping.
@@ -68,6 +69,7 @@ public class NoWrap extends InlineWidget<NoWrapStyle> implements TypedContainer<
          * Construction attaches the initial children before this instance is published.
          */
         super(style);
+        this.validateChildren(children);
         for (final InlineWidget<?> child : children) {
             this.appendChild(child);
         }
@@ -87,7 +89,7 @@ public class NoWrap extends InlineWidget<NoWrapStyle> implements TypedContainer<
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 
@@ -102,9 +104,9 @@ public class NoWrap extends InlineWidget<NoWrapStyle> implements TypedContainer<
      * @param widget the child widget
      */
     private void appendChild(final InlineWidget<?> widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override

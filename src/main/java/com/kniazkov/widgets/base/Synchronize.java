@@ -25,6 +25,14 @@ final class Synchronize extends ActionHandler {
         super(application);
     }
 
+    /**
+     * @param application owning application
+     * @param access verified transport credentials
+     */
+    Synchronize(final Application application, final ChannelAccess access) {
+        super(application, access);
+    }
+
     @Override
     JsonElement process(final Map<String, String> data) {
         final JsonObject obj = new JsonObject();
@@ -34,7 +42,7 @@ final class Synchronize extends ActionHandler {
 
         if (data.containsKey("client")) {
             final RMId clientId = RMId.parse(data.get("client"));
-            this.application.synchronize(clientId, data, obj);
+            this.application.synchronize(clientId, data, obj, this.access);
         }
 
         obj.addNumber("serverNow", System.currentTimeMillis());

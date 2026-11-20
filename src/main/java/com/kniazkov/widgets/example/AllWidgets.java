@@ -23,12 +23,46 @@ import com.kniazkov.widgets.view.ActiveText;
 import com.kniazkov.widgets.view.ActiveTextStyle;
 import com.kniazkov.widgets.view.Button;
 import com.kniazkov.widgets.view.ButtonStyle;
+import com.kniazkov.widgets.view.Carousel;
+import com.kniazkov.widgets.view.Countdown;
 import com.kniazkov.widgets.view.Cell;
 import com.kniazkov.widgets.view.CheckBox;
+import com.kniazkov.widgets.view.ChoiceOption;
+import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.Select;
+import com.kniazkov.widgets.view.MultiSelect;
 import com.kniazkov.widgets.view.CheckBoxWithText;
 import com.kniazkov.widgets.view.RadioButtonWithText;
+import com.kniazkov.widgets.view.DataProvider;
+import com.kniazkov.widgets.view.DataTable;
+import com.kniazkov.widgets.view.TreeView;
+import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.view.Slider;
+import com.kniazkov.widgets.model.SliderModel;
+import com.kniazkov.widgets.model.IntegerModel;
 import com.kniazkov.widgets.view.DropDownList;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.Form;
+import com.kniazkov.widgets.view.DateField;
+import com.kniazkov.widgets.view.TimeField;
+import com.kniazkov.widgets.view.DateRange;
+import java.math.BigDecimal;
+import com.kniazkov.widgets.model.NumberModel;
+import com.kniazkov.widgets.model.NumberValue;
+import com.kniazkov.widgets.view.NumberField;
+import com.kniazkov.widgets.view.Tabs;
+import com.kniazkov.widgets.view.Menu;
+import com.kniazkov.widgets.view.Popover;
+import com.kniazkov.widgets.view.Tooltip;
+import com.kniazkov.widgets.view.Accordion;
+import com.kniazkov.widgets.view.Breadcrumbs;
+import com.kniazkov.widgets.view.QuantityField;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Locale;
+import com.kniazkov.widgets.view.FormField;
+import com.kniazkov.widgets.view.FormLayout;
+import com.kniazkov.widgets.view.HeadingLevel;
 import com.kniazkov.widgets.view.ImageWidget;
 import com.kniazkov.widgets.view.ImageWidgetStyle;
 import com.kniazkov.widgets.view.InlineBlock;
@@ -42,6 +76,11 @@ import com.kniazkov.widgets.view.InputFieldStyle;
 import com.kniazkov.widgets.view.Link;
 import com.kniazkov.widgets.view.LinkStyle;
 import com.kniazkov.widgets.view.MessagePopup;
+import com.kniazkov.widgets.view.ModalPopup;
+import com.kniazkov.widgets.view.Popup;
+import com.kniazkov.widgets.view.MarginDecorator;
+import com.kniazkov.widgets.view.TextFlow;
+import java.time.Instant;
 import com.kniazkov.widgets.view.OverlayStack;
 import com.kniazkov.widgets.view.HorizontalLine;
 import com.kniazkov.widgets.view.Panel;
@@ -49,6 +88,7 @@ import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
 import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.RadioGroup;
+import com.kniazkov.widgets.view.ResponsiveGrid;
 import com.kniazkov.widgets.view.RootWidget;
 import com.kniazkov.widgets.view.RootWidgetStyle;
 import com.kniazkov.widgets.view.Row;
@@ -57,6 +97,7 @@ import com.kniazkov.widgets.view.SectionStyle;
 import com.kniazkov.widgets.view.State;
 import com.kniazkov.widgets.view.SortableSection;
 import com.kniazkov.widgets.view.ZoomDecorator;
+import com.kniazkov.widgets.view.Stack;
 import com.kniazkov.widgets.view.StickyPanel;
 import com.kniazkov.widgets.view.StickyPanelStyle;
 import com.kniazkov.widgets.view.Table;
@@ -67,6 +108,9 @@ import com.kniazkov.widgets.view.TextArea;
 import com.kniazkov.widgets.view.TextWidget;
 import com.kniazkov.widgets.view.TextWidgetStyle;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -129,15 +173,25 @@ public class AllWidgets {
      * @param args program arguments
      */
     public static void main(final String[] args) {
-        final Page page = (root, parameters) -> buildGallery(root);
+        final Page page = galleryPage();
         final Application application = new Application(page);
         final Options options = new Options.Builder()
+            .setPort(args.length == 0 ? 8080 : Integer.parseInt(args[0]))
             .setTitle("Web Widgets — All Widgets")
             .setFaviconUrl("/widgets-icon.svg")
             .setDescription("Interactive examples of the Web Widgets components.")
             .setLanguage("en")
             .build();
         Server.start(application, options);
+    }
+
+    /**
+     * Creates the gallery page for embedding or local browser verification.
+     *
+     * @return interactive gallery page
+     */
+    public static Page galleryPage() {
+        return (root, parameters) -> buildGallery(root);
     }
 
     /**
@@ -171,13 +225,28 @@ public class AllWidgets {
         addInputFields(root);
         addNumericHints(root);
         addSuggestionFields(root);
+        addKeyboardLogin(root);
+        addFormDemo(root);
+        addAnchoredOverlays(root);
+        addNavigation(root);
+        addNumberFields(root);
+        addTemporalFields(root);
         addPasswordInputs(root);
         addTextAreas(root);
         addCheckBoxes(root);
         addRadioButtons(root);
         addLabeledChoices(root);
         addDropDownLists(root);
+        addTypedChoices(root);
+        addDataTable(root);
+        addTreeView(root);
+        addSplitPane(root);
+        addSlider(root);
+        addUploadManager(root);
+        addFeedback(root);
+        addDialogs(root);
         addButtons(root);
+        addAccessibleSemantics(root);
         addPopups(root);
         addFileLoaders(root);
         addImages(root);
@@ -185,6 +254,873 @@ public class AllWidgets {
         addOverlayStacks(root);
         addTables(root);
         addGestureWidgets(root);
+        addLayoutWidgets(root);
+        addAdaptiveLayouts(root);
+        addAdaptiveForm(root);
+        addCountdown(root);
+        addCarousel(root);
+    }
+
+    /**
+     * Exercises native local dates, minute precision and inclusive date ranges in Form.
+     * @param root gallery page
+     */
+    private static void addTemporalFields(final RootWidget root) {
+        final Panel card = addCard(root, "Дата, время и диапазон",
+            "Учебные даты 2028 года. Пустота не заменяется сегодняшним днём; "
+                + "зона не подставляется.");
+        final DateField date = new DateField();
+        date.setBounds(LocalDate.of(2028, 1, 1), LocalDate.of(2028, 12, 31));
+        date.setLocale(Locale.forLanguageTag("ru"));
+        final FormField dateRow = new FormField("deliveryDate", "Дата доставки", date);
+        dateRow.setRequired(true);
+        dateRow.setConstraintMessages("Укажите дату доставки.", "Нужна дата в пределах 2028 года.");
+        dateRow.setHelp("Выберите дату календарём или введите с клавиатуры.");
+        final TimeField time = new TimeField();
+        time.setBounds(LocalTime.of(9, 0), LocalTime.of(18, 0));
+        time.setLocale(Locale.forLanguageTag("ru"));
+        final FormField timeRow = new FormField("deliveryTime", "Время доставки", time);
+        timeRow.setRequired(true);
+        timeRow.setConstraintMessages("Укажите время доставки.",
+            "Время должно быть от 09:00 до 18:00.");
+        timeRow.setHelp("Местное время, точность — минуты. Это ещё не момент времени.");
+        final DateRange range = new DateRange("stay", "Начало периода", "Конец периода");
+        range.setBounds(LocalDate.of(2028, 1, 1), LocalDate.of(2028, 12, 31));
+        range.setLocale(Locale.forLanguageTag("ru"));
+        range.setErrorMessage("Заполните обе даты: начало не позже конца.");
+        range.getStartField().setConstraintMessages("Укажите начало.", "Нужна дата 2028 года.");
+        range.getEndField().setConstraintMessages("Укажите конец.", "Нужна дата 2028 года.");
+        range.getStartField().setHelp(
+            "Обе границы включены; обе пустые означают отсутствие периода.");
+        final Form form = new Form("Учебная доставка", "Проверить даты");
+        form.setMessages(new Form.Messages("Проверяем…", "Даты приняты.",
+            "Проверьте даты и время.", "Не удалось проверить."));
+        form.addField(dateRow);
+        form.addField(timeRow);
+        form.addDateRange(range);
+        final TextWidget result = new TextWidget("Даты ещё не отправлены");
+        form.onSubmit(values -> {
+            result.setText("Принято: " + date.getValue().orElseThrow() + " / "
+                + time.getValue().orElseThrow() + " / "
+                + range.getValue().map(value -> value.start() + " — " + value.end()).orElse("нет"));
+            return java.util.concurrent.CompletableFuture.completedFuture(Form.Result.success());
+        });
+        final Button locale = new Button("Сменить локаль ru/en");
+        locale.onClick(event -> {
+            final Locale next = date.getLocale().getLanguage().equals("ru")
+                ? Locale.US : Locale.forLanguageTag("ru");
+            date.setLocale(next);
+            time.setLocale(next);
+            range.setLocale(next);
+            result.setText("Локаль: " + next.toLanguageTag() + "; отображение: "
+                + date.formatValue() + " / " + time.formatValue());
+        });
+        final DateField disabled = new DateField();
+        disabled.setValue(LocalDate.of(2028, 2, 29));
+        disabled.disable();
+        final FormField disabledRow = new FormField(
+            "unavailableDate", "Недоступная дата", disabled);
+        card.add(form);
+        card.add(new Section(locale));
+        card.add(new Section(result));
+        card.add(disabledRow);
+    }
+
+    /**
+     * Demonstrates anchored actions, editable popovers and supplementary descriptions.
+     * @param root gallery page
+     */
+    private static void addAnchoredOverlays(final RootWidget root) {
+        final Panel card = addCard(root, "Меню и подсказки у элемента",
+            "Escape закрывает верхний слой. Подсказка дополняет видимый текст, не заменяя его.");
+        final TextWidget result = new TextWidget("Действий: 0");
+        final java.util.concurrent.atomic.AtomicInteger count =
+            new java.util.concurrent.atomic.AtomicInteger();
+        final Button actions = new Button("Действия с изделием");
+        final Menu menu = new Menu(actions, "Действия с изделием", List.of(
+            new Menu.Item("edit", "Редактировать описание изделия", true,
+                () -> result.setText("Редактирование · Действий: " + count.incrementAndGet())),
+            new Menu.Item("archive", "Архивировать (недоступно)", false,
+                () -> result.setText("Недоступное действие не должно выполняться")),
+            new Menu.Item("copy", "Создать копию", true,
+                () -> result.setText("Копирование · Действий: " + count.incrementAndGet()))));
+        final Button longTrigger = new Button("Длинное меню");
+        final Menu longMenu = new Menu(longTrigger, "Длинное меню действий",
+            java.util.stream.IntStream.rangeClosed(1, 16).mapToObj(index ->
+                new Menu.Item("step-" + index,
+                    "Дополнительное действие с выбранным украшением №" + index, true,
+                    () -> result.setText("Выбран пункт " + index))).toList());
+        final Button settings = new Button("Настройки доставки");
+        final Popover popover = new Popover(settings, "Параметры доставки");
+        final InputField note = new InputField("Оставить у администратора");
+        note.setAccessibleName("Комментарий к доставке");
+        final TextWidget details = new TextWidget("Уточните удобное время получения.");
+        final Button grow = new Button("Подробнее");
+        grow.onClick(event -> details.setText(
+            "Длинное пояснение об условиях доставки и получении заказа. ".repeat(8)));
+        final Button close = new Button("Готово");
+        close.onClick(event -> popover.close());
+        popover.addBody(new Section(new TextWidget("Комментарий к доставке")));
+        popover.addBody(new Section(note));
+        popover.addBody(new Section(details));
+        popover.addBody(new Section(grow, close));
+        final Button help = new Button("Срок изготовления");
+        final Tooltip tooltip = new Tooltip(help,
+            "Срок зависит от наличия материалов. Точную дату согласуем перед оплатой.");
+        final Button disabled = new Button("Недоступное меню");
+        disabled.disable();
+        final Menu disabledMenu = new Menu(disabled, "Недоступное меню", List.of(
+            new Menu.Item("none", "Недоступное действие", true, () -> result.setText("Ошибка"))));
+        final Button removeAnchor = new Button("Убрать настройки");
+        removeAnchor.onClick(event -> settings.dispose());
+        final Button dialogTrigger = new Button("Меню в диалоге");
+        dialogTrigger.onClick(event -> {
+            final var dialog = com.kniazkov.widgets.view.Dialog.confirmation(
+                "Диалог со своим меню", "Escape сначала закрывает меню, затем диалог.",
+                new com.kniazkov.widgets.view.Dialog.Messages("Подтвердить", "Отмена", "Закрыть",
+                    "Сохраняем…", "Ошибка", "Проверьте данные"));
+            dialog.setCloseOnEscape(true);
+            final Button trigger = new Button("Вложенные действия");
+            final Menu nested = new Menu(trigger, "Действия внутри диалога", List.of(
+                new Menu.Item("nested", "Выбрать в диалоге", true,
+                    () -> result.setText("Действие из диалога"))));
+            dialog.getContent().add(new Section(trigger));
+            dialog.getContent().add(nested);
+            root.add(dialog);
+        });
+        card.add(new Section(actions, settings, help));
+        card.add(new Section(longTrigger, disabled, removeAnchor, dialogTrigger));
+        card.add(new Section(result));
+        card.add(menu);
+        card.add(longMenu);
+        card.add(popover);
+        card.add(tooltip);
+        card.add(disabledMenu);
+    }
+
+    /**
+     * Demonstrates keyed navigation, retained drafts and native ancestor links.
+     * @param root gallery page
+     */
+    private static void addNavigation(final RootWidget root) {
+        final Panel card = addCard(root, "Навигация: вкладки и разделы",
+            "Стрелки перемещают фокус; Enter открывает. Содержимое сохраняется при переключении.");
+        final Breadcrumbs path = new Breadcrumbs("Путь к изделию", List.of(
+            new Breadcrumbs.Item("Главная", "/"),
+            new Breadcrumbs.Item("Каталог украшений ручной работы", "/all-widgets"),
+            new Breadcrumbs.Item("Подробная информация о выбранном украшении", "")));
+        card.add(path);
+        final Tabs tabs = new Tabs();
+        tabs.setAccessibleName("Карточка украшения");
+        tabs.addTab("description", "Описание украшения", () -> {
+            final InputField draft = new InputField("Мой черновик");
+            draft.setAccessibleName("Заметка об украшении");
+            return new Panel(new Section(new TextWidget("Заметка сохраняется между вкладками:")),
+                new Section(draft));
+        });
+        tabs.addTab("delivery", "Доставка и получение заказа", () ->
+            new Section(new TextWidget("Самовывоз или доставка: обсудим удобный вариант.")));
+        tabs.addTab("reviews", "Отзывы покупателей", () ->
+            new Section(new TextWidget("Здесь появятся отзывы покупателей.")));
+        tabs.setItemEnabled("reviews", false);
+        tabs.addTab("hidden", "Скрытая вкладка", () ->
+            new Section(new TextWidget("Скрытое содержимое не создаётся.")));
+        tabs.setItemVisible("hidden", false);
+        card.add(tabs);
+        final Button reorder = new Button("Порядок вкладок");
+        reorder.onClick(event ->
+            tabs.reorder(List.of("delivery", "description", "reviews", "hidden").stream()
+                .filter(tabs.getKeys()::contains).toList()));
+        final Button replace = new Button("Обновить доставку");
+        replace.onClick(event -> {
+            if (tabs.getKeys().contains("delivery")) {
+                tabs.replaceContent("delivery", () ->
+                    new Section(new TextWidget("Условия доставки обновлены сервером.")));
+            }
+        });
+        final Button remove = new Button("Удалить доставку");
+        remove.onClick(event -> {
+            if (tabs.getKeys().contains("delivery")) {
+                tabs.removeItem("delivery");
+            }
+        });
+        card.add(new Section(reorder, replace, remove));
+        final Accordion single = new Accordion(false);
+        single.setAccessibleName("Частые вопросы");
+        single.addSection("care", "Как ухаживать за украшениями ручной работы", () ->
+            new Section(new TextWidget("Храните отдельно и протирайте мягкой сухой тканью.")));
+        single.addSection("packaging", "Подарочная упаковка и пожелания к заказу", () ->
+            new Section(new TextWidget("Упакуем украшение и приложим вашу записку.")));
+        single.getExpandedKeysModel().setData(java.util.Set.of("care"));
+        card.add(single);
+        final Accordion multiple = new Accordion(true);
+        multiple.setAccessibleName("Несколько открытых разделов");
+        multiple.addSection("materials", "Материалы украшения", () ->
+            new Section(new TextWidget("Стекло, жемчуг и металлическая фурнитура.")));
+        multiple.addSection("warranty", "Гарантия и обслуживание", () ->
+            new Section(new TextWidget("Свяжитесь с нами, если украшению нужен ремонт.")));
+        multiple.getExpandedKeysModel().setData(java.util.Set.of("materials", "warranty"));
+        card.add(multiple);
+    }
+
+    /**
+     * Demonstrates exact decimal strings, localized drafts and reactive quantity constraints.
+     * @param root gallery page
+     */
+    private static void addNumberFields(final RootWidget root) {
+        final Panel card = addCard(root, "Числа без потери точности",
+            "Десятичная запятая, точный шаг и серверная проверка количества.");
+        final NumberField amount = new NumberField();
+        amount.setLocale(Locale.forLanguageTag("ru"));
+        amount.setConversionMessage("Введите число с запятой, например 12,50.");
+        amount.setValue(new BigDecimal("9007199254740993.01"));
+        final FormField price = new FormField("amount", "Точная сумма", amount);
+        price.setHelp("Шаг 0,01. Число длиннее безопасного целого JavaScript сохраняется точно.");
+        price.setRequired(true);
+        price.setConstraintMessages("Укажите сумму.", "Проверьте точность и шаг 0,01.");
+        final QuantityField quantity = new QuantityField("quantity", "Количество");
+        quantity.setActionNames("Уменьшить количество", "Увеличить количество");
+        quantity.getEditor().getValueModel().configure(NumberValue.of(BigDecimal.ZERO),
+            NumberValue.of(new BigDecimal("5")), BigDecimal.ONE);
+        quantity.getEditor().setValue(new BigDecimal("2"));
+        quantity.getEditor().setConversionMessage("Введите целое количество.");
+        quantity.setConstraintMessages("Укажите количество.", "Количество вне текущих границ.");
+        quantity.setRequired(true);
+        quantity.setHelp("От 0 до 5, шаг 1. Одно нажатие — один шаг, без автоповтора.");
+        final Form form = new Form("Точные числа", "Проверить числа");
+        form.setMessages(new Form.Messages("Проверяем…", "Числа приняты.",
+            "Проверьте числа.", "Не удалось проверить."));
+        form.addField(price);
+        form.addField(quantity);
+        final TextWidget result = new TextWidget("Числа ещё не отправлены");
+        form.onSubmit(values -> {
+            result.setText("Точно: " + amount.getValue().orElseThrow().toPlainString()
+                + " / " + quantity.getEditor().getValue().orElseThrow().toPlainString());
+            return CompletableFuture.completedFuture(Form.Result.success());
+        });
+        final Button limit = new Button("Лимит количества: 2 / 5");
+        final boolean[] small = {false};
+        limit.onClick(event -> {
+            small[0] = !small[0];
+            quantity.getEditor().getValueModel().configure(NumberValue.of(BigDecimal.ZERO),
+                NumberValue.of(new BigDecimal(small[0] ? "2" : "5")), BigDecimal.ONE);
+            quantity.setHelp(small[0] ? "Текущий максимум: 2" : "Текущий максимум: 5");
+        });
+        final QuantityField disabled = new QuantityField(
+            "disabledQuantity", "Недоступное количество");
+        disabled.getEditor().setValue(BigDecimal.ONE);
+        disabled.getEditor().disable();
+        disabled.setActionNames("Уменьшить недоступное", "Увеличить недоступное");
+        final NumberField english = new NumberField();
+        english.setValue(new BigDecimal("1234.50"));
+        english.setReadOnly(true);
+        card.add(form);
+        card.add(new Section(limit));
+        card.add(new Section(result));
+        card.add(disabled);
+        card.add(new FormField("englishAmount", "Число en-US — только чтение", english));
+    }
+
+    /**
+     * Exercises typed confirmation, a long validated form, retry and nested modal focus.
+     * @param root gallery page
+     */
+    private static void addDialogs(final RootWidget root) {
+        final Panel card = addCard(root, "Диалоги с результатом",
+            "Учебная форма: первая отправка завершится ошибкой, повтор — успешно.");
+        final var labels = new com.kniazkov.widgets.view.Dialog.Messages(
+            "Подтвердить", "Отменить", "Закрыть диалог", "Сохраняем учебную заявку…",
+            "Не удалось сохранить. Повторите попытку.", "Проверьте поля заявки.");
+        final TextWidget result = new TextWidget("Диалог ещё не завершён");
+        final Button confirm = new Button("Открыть подтверждение");
+        confirm.onClick(event -> {
+            final var dialog = com.kniazkov.widgets.view.Dialog.confirmation(
+                "Подтверждение действия", "Подтвердить учебное действие?", labels);
+            dialog.setCloseOnOutsideClick(true);
+            dialog.result().thenAccept(value -> result.setText("Результат: " + value.reason()));
+            root.add(dialog);
+        });
+        final Button edit = new Button("Открыть длинную форму");
+        edit.onClick(event -> {
+            final var attempts = new java.util.concurrent.atomic.AtomicInteger();
+            final TextWidget count = new TextWidget("Попыток сохранения: 0");
+            final var dialog = new com.kniazkov.widgets.view.Dialog<String>(
+                "Учебная заявка", labels, values -> {
+                    final int attempt = attempts.incrementAndGet();
+                    count.setText("Попыток сохранения: " + attempt);
+                    return CompletableFuture.supplyAsync(() -> {
+                        if (attempt == 1) {
+                            throw new IllegalStateException("Simulated unavailable service");
+                        }
+                        return values.get("sample");
+                    }, CompletableFuture.delayedExecutor(2, java.util.concurrent.TimeUnit.SECONDS));
+                });
+            dialog.setCloseOnOutsideClick(true);
+            dialog.getContent().add(new Section(count));
+            final Button nested = new Button("Открыть вложенное подтверждение");
+            nested.onClick(innerEvent -> {
+                final var inner = com.kniazkov.widgets.view.Dialog.confirmation(
+                    "Вложенное подтверждение", "Это отдельное учебное действие.", labels);
+                dialog.add(inner);
+            });
+            dialog.getContent().add(new Section(nested));
+            final FormField sample = new FormField("sample", "Название образца");
+            sample.setRequired(true);
+            sample.setConstraintMessages("Введите название образца.", "Проверьте название.");
+            sample.setMaxLength(80);
+            dialog.addField(sample);
+            for (int index = 1; index <= 7; index++) {
+                final FormField note = new FormField("note" + index,
+                    "Дополнительный комментарий к этапу " + index);
+                note.setHelp("Необязательное поле для проверки длинной формы и прокрутки.");
+                dialog.addField(note);
+            }
+            dialog.result().thenAccept(value -> result.setText("Результат: " + value.reason()
+                + value.value().map(text -> " · " + text).orElse("")));
+            root.add(dialog);
+        });
+        card.add(new Section(confirm, edit));
+        card.add(new Section(result));
+    }
+
+    /**
+     * Shows localized feedback and operation state without changing keyboard focus.
+     * @param root gallery owner
+     */
+    private static void addFeedback(final RootWidget root) {
+        final Panel card = addCard(root, "Сообщения и состояние операции",
+            "Сообщения не перехватывают фокус; ошибки остаются до закрытия.");
+        final var info = new com.kniazkov.widgets.view.Alert("Изменения сохранены.");
+        info.setSeverity(com.kniazkov.widgets.view.Feedback.Severity.SUCCESS);
+        card.add(info);
+        final var warning = new com.kniazkov.widgets.view.Alert(
+            "Проверьте данные перед отправкой.");
+        warning.setSeverity(com.kniazkov.widgets.view.Feedback.Severity.WARNING);
+        card.add(warning);
+        final var error = new com.kniazkov.widgets.view.FieldError(
+            "Проверьте адрес: пример длинного сообщения об ошибке заполнения поля.");
+        card.add(error);
+        final var empty = new com.kniazkov.widgets.view.EmptyState("У вас нет активных заказов.");
+        final Button retry = new Button("Загрузить ещё раз");
+        empty.add(new Section(retry));
+        card.add(empty);
+        final var busy = new com.kniazkov.widgets.view.Busy("Проверяем наличие изделий…");
+        final Panel operation = new Panel(busy);
+        card.add(operation);
+        final Button start = new Button("Начать проверку");
+        start.onClick(event -> {
+            operation.getChild(0).dispose();
+            operation.add(new com.kniazkov.widgets.view.Busy("Проверяем наличие изделий…"));
+        });
+        final Button noData = new Button("Показать пустой результат");
+        noData.onClick(event -> {
+            empty.setText("У вас нет активных заказов.");
+            ((com.kniazkov.widgets.view.Progress) operation.getChild(0)).finish(
+                "Проверка завершена: заказов нет",
+                com.kniazkov.widgets.view.Feedback.Severity.INFO);
+        });
+        final Button fail = new Button("Ошибка проверки");
+        fail.onClick(event -> ((com.kniazkov.widgets.view.Progress) operation.getChild(0)).finish(
+            "Проверка не удалась. Попробуйте ещё раз.",
+            com.kniazkov.widgets.view.Feedback.Severity.ERROR));
+        card.add(new Section(start, noData, fail));
+        final var progress = new com.kniazkov.widgets.view.Progress("Загрузка фотографий");
+        progress.setPercentage(40);
+        progress.onCancel("Отменить загрузку", "Загрузка отменена", () ->
+            info.setText("Отмена запрошена; можно начать новую операцию."));
+        card.add(progress);
+        final var toast = new com.kniazkov.widgets.view.Toast(3, "Закрыть уведомление");
+        toast.offer("Не удалось связаться с сервером. Повторите попытку.",
+            com.kniazkov.widgets.view.Feedback.Severity.ERROR, 1000);
+        card.add(toast);
+        final Button notify = new Button("Показать уведомление");
+        notify.onClick(event -> {
+            if (!toast.offer("Изделие добавлено в список.",
+                    com.kniazkov.widgets.view.Feedback.Severity.SUCCESS, 5000)) {
+                info.setText("Очередь уведомлений заполнена.");
+            }
+        });
+        retry.onClick(event -> {
+            if (!((com.kniazkov.widgets.view.Progress) operation.getChild(0)).isRunning()) {
+                operation.getChild(0).dispose();
+                operation.add(new com.kniazkov.widgets.view.Busy("Проверяем наличие изделий…"));
+            }
+            empty.setText("Найдено изделий: 2");
+            ((com.kniazkov.widgets.view.Progress) operation.getChild(0)).finish(
+                "Проверка завершена", com.kniazkov.widgets.view.Feedback.Severity.SUCCESS);
+        });
+        card.add(new Section(notify));
+    }
+
+    /**
+
+     * Demonstrates managed transfers and idempotent completion.
+
+     */
+    private static void addUploadManager(final RootWidget root) {
+        final Panel card = addCard(root, "UploadManager / UploadList",
+            "Multiple files, per-file progress, cancellation and retry. Try a .txt file.");
+        final var list = new com.kniazkov.widgets.view.UploadList();
+        final java.util.Set<String> completed =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+        final java.util.Set<String> failed =
+            java.util.concurrent.ConcurrentHashMap.newKeySet();
+        final var manager = new com.kniazkov.widgets.view.UploadManager(
+            "Upload managed files", list,
+            10, 2 * 1024 * 1024, (key, file) -> {
+                if (completed.contains(key)) {
+                    return;
+                }
+                if (file.getName().startsWith("retry") && failed.add(key)) {
+                    throw new java.io.IOException("Demonstration failure");
+                }
+                Thread.sleep(800);
+                completed.add(key);
+            });
+        manager.setAcceptedFiles(".txt,.bin");
+        card.add(new Section(manager));
+        card.add(list);
+    }
+
+    /**
+     * Shared decimal selection; the disabled copy shows the last committed value.
+     * @param root gallery page
+     */
+    private static void addSlider(final RootWidget root) {
+        final Panel card = addCard(root, "Размер браслета",
+            "Выбери длину от 14 до 22 см с шагом 0,25 см.");
+        final BigDecimal initial = new BigDecimal("18.50");
+        final SliderModel length = new SliderModel(new BigDecimal("14"), new BigDecimal("22"),
+            new BigDecimal("0.25"), initial);
+        final Slider slider = new Slider(length, "Длина браслета", "см");
+        final Slider confirmed = new Slider(length, "Подтверждённая длина", "см");
+        confirmed.disable();
+        card.add(new Section(new TextWidget("Длина браслета")));
+        card.add(slider);
+        card.add(new Section(new TextWidget("Подтверждённая длина")));
+        card.add(confirmed);
+        final Button reset = new Button("Сбросить длину");
+        reset.onClick(event -> length.setData(initial));
+        card.add(new Section(reset));
+    }
+
+    /**
+     * Resizable catalogue and nested detail panes sharing the same editing surface.
+     * @param root gallery page
+     */
+    private static void addSplitPane(final RootWidget root) {
+        final Panel card = addCard(root, "Редактор каталога",
+            "Перетащи разделитель или выбери его клавишей Tab и нажимай стрелки.");
+        final Panel catalog = splitArea("Коллекции", "Витражное стекло", 232, 241, 248);
+        final Panel details = splitArea("Подвеска", "Северное сияние", 242, 238, 247);
+        final Panel notes = splitArea("Материалы", "Стекло, медная фольга", 235, 244, 239);
+        final SplitPane detailPane = new SplitPane(SplitPane.Axis.VERTICAL, "Высота карточки",
+            20, 80, new IntegerModel(55), details, notes);
+        detailPane.setHeight("100%");
+        final IntegerModel width = new IntegerModel(38);
+        final SplitPane editor = new SplitPane(SplitPane.Axis.HORIZONTAL, "Размер списка коллекций",
+            20, 75, width, catalog, detailPane);
+        editor.setHeight(300);
+        final Button reset = new Button("Сбросить размеры");
+        reset.onClick(event -> {
+            width.setData(38);
+            detailPane.setPosition(55);
+        });
+        final BooleanModel locked = new BooleanModel(false);
+        editor.setDisabledStateModel(locked);
+        detailPane.setDisabledStateModel(locked);
+        final CheckBoxWithText lock = new CheckBoxWithText(
+            new StringModel("Зафиксировать размеры"), locked);
+        card.add(editor);
+        card.add(new Section(reset, lock));
+    }
+
+    /**
+     * @param title area heading
+     * @param text catalogue content
+     * @param red red channel
+     * @param green green channel
+     * @param blue blue channel
+     * @return sample pane content
+     */
+    private static Panel splitArea(final String title, final String text, final int red,
+            final int green, final int blue) {
+        final Panel area = new Panel();
+        area.setPadding(10);
+        area.setBgColor(new Color(red, green, blue));
+        area.add(new Section(new TextWidget(textStyle(TEXT, "16px", FontWeight.BOLD), title)));
+        area.add(new Section(new TextWidget(text)));
+        return area;
+    }
+
+    /**
+     * Demonstrates lazy category browsing and branch status announcements.
+     * @param root gallery page
+     */
+    private static void addTreeView(final RootWidget root) {
+        final Panel card = addCard(root, "Дерево категорий",
+            "Стрелки перемещают фокус, Enter выбирает категорию.");
+        final TreeView tree = new TreeView(List.of(
+            new TreeView.Node("glass", "Витражное стекло", true),
+            new TreeView.Node("empty", "Новая коллекция", true),
+            new TreeView.Node("offline", "Недоступный архив", true)),
+            key -> CompletableFuture.supplyAsync(() -> switch (key) {
+                case "glass" -> List.of(new TreeView.Node("pendants", "Подвески", true),
+                    new TreeView.Node("earrings", "Серьги из цветного стекла", false));
+                case "pendants" -> List.of(new TreeView.Node("northern",
+                    "Коллекция длинных подвесок с северными пейзажами ручной работы", false));
+                case "empty" -> List.of();
+                default -> throw new IllegalStateException("Archive unavailable");
+            }, CompletableFuture.delayedExecutor(900, TimeUnit.MILLISECONDS)),
+            new TreeView.Messages("Загрузка…", "Пока пусто", "Ошибка загрузки"));
+        tree.setAccessibleName("Категории украшений");
+        final TextWidget toggleLabel = new TextWidget("Отключить дерево");
+        final Button disable = new Button(toggleLabel);
+        disable.onClick(event -> {
+            tree.setDisabledFlag(!tree.isDisabled());
+            toggleLabel.setText(tree.isDisabled() ? "Включить дерево" : "Отключить дерево");
+        });
+        card.add(tree);
+        card.add(new Section(disable));
+    }
+
+    /**
+     * Demonstrates paged synthetic records, stable row identity and real asynchronous updates.
+     * @param root gallery page
+     */
+    private static void addDataTable(final RootWidget root) {
+        final Panel card = addCard(root, "Таблица данных",
+            "Учебный архив: сортировка, фильтры и выбор по стабильным ключам.");
+        final List<DataProvider.DataRow> archive = new java.util.concurrent.CopyOnWriteArrayList<>(
+            java.util.stream.IntStream.rangeClosed(1, 125).mapToObj(number ->
+                demoOrder(number, "Завершён")).toList());
+        final DataTable table = new DataTable("Архив учебных заказов", List.of(
+            new DataTable.DataColumn("order-name", "Название заказа", true),
+            new DataTable.DataColumn("phase", "Состояние", true),
+            new DataTable.DataColumn("comment", "Комментарий для проверяющего", false)), 5,
+            query -> loadDemoOrders(archive, query),
+            new DataTable.Messages("Фильтр заказов", "Выбрать", "Назад", "Далее",
+                "Повторить", "Загружаем строки…", "Подходящих заказов нет.",
+                "Архив временно недоступен.", "Страница"));
+        final Button update = new Button("Обновить первую запись");
+        update.onClick(event -> {
+            if (!archive.isEmpty() && archive.getFirst().key().equals("order-1")) {
+                final var changed = demoOrder(1, "Обновлён");
+                archive.set(0, changed);
+                CompletableFuture.delayedExecutor(1400, TimeUnit.MILLISECONDS).execute(
+                    () -> root.execute(() -> {
+                        if (table.getRootWidget().orElse(null) == root) {
+                            table.updateRow(changed);
+                        }
+                    }));
+            }
+        });
+        final Button remove = new Button("Удалить первый заказ");
+        remove.onClick(event -> {
+            archive.removeIf(row -> row.key().equals("order-1"));
+            table.removeRow("order-1");
+            table.reload();
+        });
+        final Button disable = new Button("Включить / отключить таблицу");
+        disable.onClick(event -> table.setDisabledFlag(!table.isDisabled()));
+        card.add(new Section(update, remove, disable));
+        card.add(table);
+    }
+
+    /**
+     * Builds a synthetic archive record with separate stable key and visible values.
+     * @param number logical identifier
+     * @param phase display state
+     * @return demo row
+     */
+    private static DataProvider.DataRow demoOrder(final int number, final String phase) {
+        return new DataProvider.DataRow("order-" + number, Map.of(
+            "order-name", "Учебный заказ №" + number, "phase", phase,
+            "comment", "История: демонстрационная запись " + number));
+    }
+
+    /**
+     * Reads and sorts a local synthetic list; nondeterministic work is represented by futures.
+     * @param archive backing collection
+     * @param query provider query
+     * @return bounded asynchronous page
+     */
+    private static CompletableFuture<DataProvider.Page> loadDemoOrders(
+            final List<DataProvider.DataRow> archive, final DataProvider.Query query) {
+        final String filter = query.filter().strip().toLowerCase(java.util.Locale.ROOT);
+        final List<DataProvider.DataRow> filtered = new ArrayList<>(archive.stream().filter(row ->
+            switch (filter) {
+                case "активные" -> false;
+                case "медленно" -> row.key().equals("order-1");
+                case "быстро" -> row.key().equals("order-2");
+                default -> row.cells().get("order-name").toLowerCase(java.util.Locale.ROOT)
+                    .contains(filter);
+            }).toList());
+        if (!query.sortKey().isEmpty()) {
+            final java.util.Comparator<DataProvider.DataRow> order =
+                java.util.Comparator.comparing(row -> row.cells().get(query.sortKey()));
+            filtered.sort(query.descending() ? order.reversed() : order);
+        }
+        final int first = (int) Math.min(query.offset(), filtered.size());
+        final int last = Math.min(first + query.size(), filtered.size());
+        final var result = new CompletableFuture<DataProvider.Page>() {
+            @Override
+            public boolean cancel(final boolean interrupt) {
+                /*
+                 * The slow simulated request finishes despite best-effort cancellation.
+                 */
+                return false;
+            }
+        };
+        CompletableFuture.delayedExecutor(filter.equals("медленно") ? 2700 : 220,
+            TimeUnit.MILLISECONDS).execute(() -> {
+                if (filter.equals("ошибка")) {
+                    result.completeExceptionally(new IllegalArgumentException("Demo failure"));
+                } else {
+                    result.complete(new DataProvider.Page(filtered.subList(first, last),
+                        filtered.size()));
+                }
+            });
+        return result;
+    }
+
+    /**
+     * Shows independent single, multiple, strict search and free text values.
+     * @param root gallery page
+     */
+    private static void addTypedChoices(final RootWidget root) {
+        final Panel card = addCard(root, "Типизированный выбор",
+            "Одинаковые подписи не меняют ключ; демонстрация использует учебные данные.");
+        final List<ChoiceOption<Integer>> options = List.of(
+            new ChoiceOption<>("paper-a", "Бумага", 101),
+            new ChoiceOption<>("paper-b", "Бумага", 102),
+            new ChoiceOption<>("ink", "Чернила", 103),
+            new ChoiceOption<>("archive", "Архив (недоступно)", 104, true)
+        );
+        final Select<Integer> single = new Select<>(options);
+        single.setAccessibleName("Материал: один");
+        single.setPlaceholder("Выберите материал");
+        final TextWidget result = new TextWidget("Код материала: нет");
+        single.onChoose(keys -> result.setText("Код материала: "
+            + (keys.isEmpty() ? "нет" : single.getSelectedValues().getFirst())));
+        final Button reorder = new Button("Переставить материалы");
+        reorder.onClick(event -> single.setOptions(options.reversed()));
+        final Button remove = new Button("Убрать вторую бумагу");
+        remove.onClick(event -> {
+            single.setOptions(options.stream().filter(item -> !item.key().equals("paper-b"))
+                .toList());
+            result.setText("Код материала: "
+                + (single.getSelectedValues().isEmpty() ? "нет"
+                    : single.getSelectedValues().getFirst()));
+        });
+        card.add(new Section(single, result, reorder, remove));
+
+        final MultiSelect<Integer> multi = new MultiSelect<>(options);
+        multi.setAccessibleName("Материалы: несколько");
+        multi.setPlaceholder("Выберите один или несколько");
+        multi.getSelectionModel().setData(List.of("paper-a", "ink"));
+        final Button clear = new Button("Очистить материалы");
+        clear.onClick(event -> multi.clear());
+        final Select<Integer> disabled = new Select<>(options);
+        disabled.setAccessibleName("Недоступный выбор");
+        disabled.setPlaceholder("Выбор недоступен");
+        disabled.disable();
+        card.add(new Section(multi, clear, disabled));
+
+        final ComboBox<Integer> search = new ComboBox<>(List.of(), false);
+        search.setAccessibleName("Поиск склада");
+        search.setPlaceholder("Например, медленно или быстро");
+        final TextWidget outcome = new TextWidget("Склад не выбран");
+        search.onChoose(keys -> outcome.setText(keys.isEmpty() ? "Склад не выбран"
+            : "Код склада: " + search.getSelectedValues().getFirst()));
+        search.setProvider(AllWidgets::findWarehouse);
+        card.add(new Section(search, outcome));
+
+        final ComboBox<Integer> free = new ComboBox<>(options, true);
+        free.setAccessibleName("Примечание или материал");
+        free.setPlaceholder("Текст либо существующий материал");
+        free.setValidState(false);
+        card.add(new Section(free, new TextWidget("Пример свободного текста (неверное поле)")));
+    }
+
+    /**
+     * Sample async provider includes a task that observes cancellation but finishes anyway.
+     * @param query current search
+     * @param cursor opaque page cursor
+     * @return future with only fabricated catalogue items
+     */
+    private static CompletableFuture<ComboBox.Page<Integer>> findWarehouse(final String query,
+            final String cursor) {
+        final CompletableFuture<ComboBox.Page<Integer>> result = new CompletableFuture<>() {
+            @Override
+            public boolean cancel(final boolean interrupt) {
+                /*
+             * This demo models a provider that cannot abort already-started I/O.
+             */
+                return false;
+            }
+        };
+        final long delay = query.equals("медленно") ? 3000 : 140;
+        CompletableFuture.delayedExecutor(delay, TimeUnit.MILLISECONDS).execute(() -> {
+            if (query.equals("ошибка")) {
+                result.completeExceptionally(new IllegalStateException("Demo provider failed"));
+                return;
+            }
+            final List<ChoiceOption<Integer>> items;
+            if (query.equals("нет")) {
+                items = List.of();
+            } else if (query.equals("медленно")) {
+                items = List.of(new ChoiceOption<>("slow", "Медленный результат", 201));
+            } else if (query.equals("быстро")) {
+                items = List.of(new ChoiceOption<>("fast", "Быстрый результат", 202));
+            } else if (cursor.isEmpty()) {
+                items = List.of(new ChoiceOption<>("main", "Основной склад", 203),
+                    new ChoiceOption<>("long",
+                        "ОченьДлиннаяПодписьСкладаБезПробеловДляПроверкиМобильногоПереноса", 204),
+                    new ChoiceOption<>("disabled", "Закрытый склад", 205, true));
+            } else {
+                items = java.util.stream.IntStream.rangeClosed(1, 20)
+                    .mapToObj(number -> new ChoiceOption<>("extra-" + number,
+                        "Резервный склад " + number, 300 + number)).toList();
+            }
+            final String next = cursor.isEmpty() && items.size() == 3 ? "more" : "";
+            result.complete(new ComboBox.Page<>(items, next));
+        });
+        return result;
+    }
+
+    /**
+     * Shows the visible composition of the basic layout widgets.
+     * @param root gallery root
+     */
+    private static void addLayoutWidgets(final RootWidget root) {
+        final Panel card = addCard(root, "Layout composition",
+            "RootWidget contains Panels; Sections contain InlineBlocks and inline widgets.");
+        final TextFlow flow = new TextFlow();
+        flow.add(new TextWidget("TextFlow wraps text and "));
+        flow.add(new Link("links", "#"));
+        flow.add(new TextWidget(" together as a paragraph, preserving ordinary spaces."));
+        card.add(flow);
+        final MarginDecorator spaced = new MarginDecorator(new TextWidget("24 px margin"));
+        spaced.setMargin(24);
+        final InlineBlock block = new InlineBlock(new Section(spaced));
+        block.setBgColor(new Color(226, 232, 240));
+        card.add(new Section(new TextWidget("Section:"), block, new TextWidget("InlineBlock")));
+    }
+
+    /**
+     * Shows one stack that changes direction and responsive grids in two container widths.
+     * @param root gallery root
+     */
+    private static void addAdaptiveLayouts(final RootWidget root) {
+        final Panel card = addCard(root, "Адаптивные Stack и ResponsiveGrid",
+            "Перестройка зависит от ширины контейнера, а не от типа устройства.");
+        final Stack stack = new Stack(Stack.Direction.HORIZONTAL);
+        stack.setGap(8);
+        stack.setAlignment(Stack.Alignment.START);
+        stack.add(adaptiveTile("Альфа · Stack"));
+        stack.add(adaptiveTile("Бета · Stack"));
+        final Button flip = new Button("Сменить направление Stack");
+        final AtomicInteger flips = new AtomicInteger();
+        flip.onClick(event -> stack.setDirection(flips.incrementAndGet() % 2 == 1
+            ? Stack.Direction.VERTICAL : Stack.Direction.HORIZONTAL));
+        card.add(stack);
+        card.add(new Section(flip));
+        final ResponsiveGrid grid = new ResponsiveGrid();
+        grid.setGap(10);
+        grid.setColumnWidths(138, 0);
+        grid.add(adaptiveTile("Широкая сетка А"));
+        grid.add(adaptiveTile("Широкая сетка Б"));
+        grid.add(adaptiveTile("ДлинноесловобезпробеловДляПроверкиПереносаСетки"));
+        card.add(grid);
+        final Panel narrow = new Panel();
+        final ResponsiveGrid inner = new ResponsiveGrid();
+        inner.setWidth(225);
+        inner.setGap(6);
+        inner.setColumnWidths(128, 0);
+        inner.add(adaptiveTile("Узкая сетка А"));
+        inner.add(adaptiveTile("Узкая сетка Б"));
+        narrow.add(inner);
+        card.add(new Section(feedback("Вложенная сетка: контейнер не шире 225 px.")));
+        card.add(narrow);
+    }
+
+    /**
+     * Creates a display tile with no fixed minimum content width.
+     * @param text visible label
+     * @return block used by the adaptive layout demo
+     */
+    private static Panel adaptiveTile(final String text) {
+        final TextFlow flow = new TextFlow();
+        flow.add(new TextWidget(text));
+        final Panel tile = new Panel(flow);
+        tile.setBgColor(new Color(226, 232, 240));
+        tile.setPadding(7);
+        return tile;
+    }
+
+    /**
+     * Shows the same native labeled fields in columns or rows without replacing nodes.
+     * @param root gallery root
+     */
+    private static void addAdaptiveForm(final RootWidget root) {
+        final Panel card = addCard(root, "Адаптивная форма",
+            "Широкий контейнер: подпись слева. Узкий: подпись над полем.");
+        final FormLayout layout = new FormLayout();
+        layout.setBreakpoint(480);
+        layout.setGap(10);
+        final Form form = new Form("Адаптивная учебная заявка", "Проверить макет", layout);
+        form.setMessages(new Form.Messages("Проверяем макет…", "Макет проверен.",
+            "Заполните выделенное поле.", "Не удалось проверить макет."));
+        final FormField title = new FormField("title",
+            "Полное описание учебного предмета для проверки переноса подписи");
+        title.setRequired(true);
+        title.setConstraintMessages("Заполните описание.", "Проверьте описание.");
+        title.setHelp("В режиме двух колонок эта подсказка остаётся рядом с полем.");
+        title.getEditor().setWidth(300);
+        final FormField note = new FormField("note", "Дополнительный комментарий");
+        note.getEditor().setWidth(300);
+        form.addField(title);
+        form.addField(note);
+        card.add(form);
+        final Button breakpoint = new Button("Сменить порог формы");
+        final AtomicInteger changes = new AtomicInteger();
+        breakpoint.onClick(event -> layout.setBreakpoint(changes.incrementAndGet() % 2 == 1
+            ? 800 : 480));
+        card.add(new Section(breakpoint));
+    }
+
+    /**
+     * Shows a running and expired server deadline.
+     * @param root gallery root
+     */
+    private static void addCountdown(final RootWidget root) {
+        final Panel card = addCard(root, "Countdown",
+            "The browser counts down locally; reaching zero has no business effect.");
+        final Countdown running = new Countdown(Instant.now().plusSeconds(1200));
+        final Button restart = new Button("Restart 20 minutes");
+        restart.onClick(event -> running.setDeadline(Instant.now().plusSeconds(1200)));
+        card.add(new Section(variant("Running", running),
+            variant("Expired", new Countdown(Instant.EPOCH)), variant("Reset", restart)));
+    }
+
+    /**
+     * Shows an image sequence and server-observed selection.
+     * @param root gallery root
+     */
+    private static void addCarousel(final RootWidget root) {
+        final Panel card = addCard(root, "Carousel",
+            "Swipe or drag between three images; selection travels to the server.");
+        final Carousel carousel = new Carousel(demoImage("#2563eb", "#7c3aed", "1 / 3"),
+            demoImage("#059669", "#0d9488", "2 / 3"),
+            demoImage("#ea580c", "#dc2626", "3 / 3"));
+        carousel.setWidth(280);
+        carousel.setHeight(160);
+        final TextWidget selected = feedback("Selected image: 1");
+        carousel.onSelect(event -> selected.setText("Selected image: "
+            + (carousel.getSelectedIndexModel().getData() + 1)));
+        card.add(new Section(carousel));
+        card.add(new Section(selected));
     }
 
     /**
@@ -241,9 +1177,11 @@ public class AllWidgets {
         final Panel panel = new Panel(cardStyle());
         panel.setMargin(24, 24, 24, 12);
         root.add(panel);
-        panel.add(new Section(new TextWidget(
+        final TextWidget heading = new TextWidget(
             textStyle(TEXT, "30px", FontWeight.BOLD), "All widgets"
-        )));
+        );
+        heading.setHeadingLevel(HeadingLevel.H1);
+        panel.add(new Section(heading));
         panel.add(new Section(new TextWidget(
             textStyle(MUTED, "15px", FontWeight.NORMAL),
             "A gallery of visible widgets, their states and common variations."
@@ -480,19 +1418,22 @@ public class AllWidgets {
         final Section row = variantRow();
         card.add(row);
         final CheckBox unchecked = new CheckBox();
+        unchecked.setAccessibleName("Notifications");
         final TextWidget uncheckedResult = feedback("Notifications disabled");
-        unchecked.onClick(event -> uncheckedResult.setText(
-            "Notifications " + (unchecked.isChecked() ? "enabled" : "disabled")
+        unchecked.getCheckedStateModel().addListener(selected -> uncheckedResult.setText(
+            "Notifications " + (selected ? "enabled" : "disabled")
         ));
         row.add(variant("Default", unchecked, uncheckedResult));
         final CheckBox checked = new CheckBox();
+        checked.setAccessibleName("Automatic updates");
         checked.check();
         final TextWidget checkedResult = feedback("Automatic updates enabled");
-        checked.onClick(event -> checkedResult.setText(
-            "Automatic updates " + (checked.isChecked() ? "enabled" : "disabled")
+        checked.getCheckedStateModel().addListener(selected -> checkedResult.setText(
+            "Automatic updates " + (selected ? "enabled" : "disabled")
         ));
         row.add(variant("Checked", checked, checkedResult));
         final CheckBox disabled = new CheckBox();
+        disabled.setAccessibleName("Disabled notifications");
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
@@ -510,11 +1451,14 @@ public class AllWidgets {
         card.add(row);
         final RadioButton first = new RadioButton();
         final RadioButton second = new RadioButton();
+        first.setAccessibleName("First option");
+        second.setAccessibleName("Second option");
         second.check();
         new RadioGroup(first, second);
         row.add(variant("First option", first));
         row.add(variant("Second option — selected", second));
         final RadioButton disabled = new RadioButton();
+        disabled.setAccessibleName("Disabled option");
         disabled.check();
         disabled.disable();
         row.add(variant("Disabled", disabled));
@@ -526,7 +1470,7 @@ public class AllWidgets {
      */
     private static void addLabeledChoices(final RootWidget root) {
         final Panel card = addCard(root, "CheckBoxWithText / RadioButtonWithText",
-            "Click an icon or its caption. Disable choices to see their captions turn gray.");
+            "Tab, Space and arrow keys work on these choices; captions also activate them.");
         final BooleanModel disabled = new BooleanModel(false);
         final BooleanModel subscribed = new BooleanModel(true);
         final StringModel caption = new StringModel("Receive product news");
@@ -544,10 +1488,86 @@ public class AllWidgets {
         pickup.setDisabledStateModel(disabled);
         card.add(new Section(delivery));
         card.add(new Section(pickup));
+        final CheckBoxWithText longCaption = new CheckBoxWithText(
+            "Send a copy of the detailed delivery notice and tracking information "
+                + "for every package, including orders shipped in several parts."
+        );
+        card.add(new Section(longCaption));
         card.add(new Section(new CheckBoxWithText(new StringModel("Disable choices"), disabled)));
         final InputField text = new InputField();
         text.setTextModel(caption);
         card.add(new Section(new TextWidget("Edit the shared caption: "), text));
+    }
+
+    /**
+     * Shows one shared application action with fake inputs; this is not authentication.
+     * @param root gallery root
+     */
+    private static void addKeyboardLogin(final RootWidget root) {
+        final Panel card = addCard(root, "Keyboard login demo",
+            "Test data only: user demo and code blue. Enter or Sign in runs the same validation.");
+        final InputField user = new InputField();
+        user.setAccessibleName("Demo user");
+        final PasswordInput code = new PasswordInput();
+        code.setAccessibleName("Demo code");
+        final Button submit = new Button(ButtonStyle.PRIMARY, "Sign in demo");
+        final TextWidget result = feedback("No attempts yet");
+        final var attempts = new java.util.concurrent.atomic.AtomicInteger();
+        final Runnable attempt = () -> {
+            final boolean valid = user.getText().equals("demo") && code.getText().equals("blue");
+            result.setText("Attempt " + attempts.incrementAndGet()
+                + (valid ? ": demo accepted" : ": check the test data"));
+        };
+        user.onEnter(event -> attempt.run());
+        code.onEnter(event -> attempt.run());
+        submit.onClick(event -> attempt.run());
+        card.add(new Section(variant("Demo user", user), variant("Demo code", code), submit));
+        card.add(new Section(result));
+    }
+
+    /**
+     * Shows a locally simulated server refusal and a successful retry with fictional data.
+     * @param root page root
+     */
+    private static void addFormDemo(final RootWidget root) {
+        final Panel card = addCard(root, "Демонстрационная форма",
+            "Учебные данные: введите «Бумага» дважды. Образец «Занято» демонстрирует отказ.");
+        final Form form = new Form("Заявка с учебными данными", "Отправить заявку");
+        form.setMessages(new Form.Messages("Проверяем заявку…", "Учебная заявка принята.",
+            "Проверьте отмеченные поля.", "Не удалось отправить учебную заявку. Повторите."));
+        final FormField name = new FormField("title",
+            "Полное название учебного предмета для демонстрационной заявки");
+        final FormField confirm = new FormField("confirm",
+            "Повторите то же название, чтобы проверить связь между двумя полями");
+        final FormField reference = new FormField("reference", "Номер учебного образца");
+        for (final FormField field : List.of(name, confirm, reference)) {
+            field.setConstraintMessages("Заполните это поле.", "Проверьте значение поля.");
+            form.addField(field);
+        }
+        name.setRequired(true);
+        name.setMaxLength(40);
+        name.setAutocomplete("off");
+        name.setHelp("Можно использовать только вымышленные данные. Не более 40 символов.");
+        confirm.setRequired(true);
+        confirm.setMaxLength(40);
+        reference.getEditor().setText("ДЕМО-20");
+        reference.markPristine();
+        reference.setReadOnly(true);
+        reference.setHelp("Номер доступен только для чтения и отправляется вместе с заявкой.");
+        form.setValidator(values -> values.get("title").equals(values.get("confirm"))
+            ? Form.Result.success()
+            : new Form.Result(Map.of("confirm", "Названия в двух полях должны совпадать."), ""));
+        final AtomicInteger attempts = new AtomicInteger();
+        final TextWidget count = feedback("Учебных отправок: 0");
+        form.onSubmit(values -> {
+            count.setText("Учебных отправок: " + attempts.incrementAndGet());
+            return CompletableFuture.supplyAsync(() -> "Занято".equals(values.get("title"))
+                ? new Form.Result(Map.of("title", "Этот образец уже зарезервирован."),
+                    "Сервер отклонил учебную заявку.")
+                : Form.Result.success(), CompletableFuture.delayedExecutor(3, TimeUnit.SECONDS));
+        });
+        card.add(form);
+        card.add(new Section(count));
     }
 
     /**
@@ -656,7 +1676,7 @@ public class AllWidgets {
         final TextWidget customResult = feedback("Not clicked yet");
         custom.onClick(event -> customResult.setText("Custom action clicked"));
         row.add(variant("Fully custom", custom, customResult));
-        final Button icon = new Button(ButtonStyle.PRIMARY, addIcon());
+        final Button icon = Button.icon(ButtonStyle.PRIMARY, addIcon(), "Add item");
         final TextWidget iconResult = feedback("Not clicked yet");
         icon.onClick(event -> iconResult.setText("Icon action clicked"));
         row.add(variant("Image child", icon, iconResult));
@@ -708,12 +1728,214 @@ public class AllWidgets {
             );
             popup.setCloseOnOutsideClick(true);
             final CheckBox enabled = new CheckBox();
+            enabled.setAccessibleName("Allow closing by tapping outside");
             enabled.setCheckedStateModel(popup.getCloseOnOutsideClickModel());
             popup.add(new Section(enabled, new TextWidget("Allow closing by tapping outside")));
             close.onClick(closeEvent -> popup.remove());
             root.add(popup);
         });
         row.add(variant("Click or tap outside", outsideLauncher));
+        final Button plainLauncher = new Button("Show plain popup");
+        plainLauncher.onClick(event -> {
+            final Popup popup = new Popup();
+            final Button close = new Button("Close plain popup");
+            close.onClick(closeEvent -> popup.remove());
+            popup.add(new Section(new TextWidget("Popup: the page remains interactive.")));
+            popup.add(new Section(close));
+            root.add(popup);
+        });
+        row.add(variant("Non-modal", plainLauncher));
+        final Button modalLauncher = new Button("Show custom modal");
+        modalLauncher.onClick(event -> {
+            final ModalPopup popup = new ModalPopup();
+            final Button close = new Button("Close custom modal");
+            close.onClick(closeEvent -> popup.remove());
+            popup.add(new Section(new TextWidget("ModalPopup with caller-supplied content.")));
+            popup.add(new Section(new InputField("Editable content")));
+            popup.add(new Section(close));
+            root.add(popup);
+        });
+        row.add(variant("Custom modal", modalLauncher));
+        addModalVisibilityExample(root, row);
+    }
+
+    /**
+     * Adds a stateful example of hide, reopen, nesting and dismissal.
+     * @param root the page root
+     * @param row gallery variant row
+     */
+    private static void addModalVisibilityExample(final RootWidget root, final Section row) {
+        final Panel host = new Panel();
+        root.add(host);
+        final ModalPopup outer = new ModalPopup();
+        outer.setBackdropColor(new Color(30, 64, 175, 112));
+        outer.setAccessibleName("Lifecycle modal");
+        outer.setAccessibleDescription(
+            "Use Tab to move between actions; Escape closes this dialog."
+        );
+        outer.setCloseOnEscape(true);
+        outer.hide();
+        host.add(outer);
+        final Button launcher = new Button("Open lifecycle modal");
+        final Button clickPage = new Button("Count page click");
+        final TextWidget count = feedback("Page clicks: 0");
+        final var pageClicks = new java.util.concurrent.atomic.AtomicInteger();
+        clickPage.onClick(event -> count.setText("Page clicks: " + pageClicks.incrementAndGet()));
+        launcher.onClick(event -> {
+            host.show();
+            if (outer.getParent().isEmpty()) {
+                host.add(outer);
+            }
+            outer.show();
+        });
+        final Button hide = new Button("Hide lifecycle modal");
+        hide.onClick(event -> outer.hide());
+        final Button hideHost = new Button("Hide modal ancestor");
+        hideHost.onClick(event -> host.hide());
+        final Button nested = new Button("Open nested modal");
+        nested.onClick(event -> {
+            final ModalPopup inner = new ModalPopup();
+            inner.setBackdropColor(new Color(15, 23, 42, 128));
+            inner.setCloseOnOutsideClick(true);
+            inner.setCloseOnEscape(true);
+            inner.setAccessibleName("Nested lifecycle modal");
+            inner.setAccessibleDescription("Keyboard focus stays in this nested dialog.");
+            final Button close = new Button("Close nested modal");
+            final Button toggle = new Button("Toggle nested Escape");
+            toggle.onClick(click -> inner.setCloseOnEscape(!inner.isCloseOnEscape()));
+            final Button remove = new Button("Remove opener and close");
+            remove.onClick(click -> {
+                nested.dispose();
+                inner.dispose();
+            });
+            close.onClick(click -> inner.dispose());
+            inner.add(new Section(new TextWidget("Nested lifecycle modal")));
+            inner.add(new Section(close));
+            inner.add(new Section(toggle));
+            inner.add(new Section(remove));
+            outer.add(inner);
+        });
+        outer.add(new Section(new TextWidget("Lifecycle modal")));
+        outer.add(new Section(hide));
+        outer.add(new Section(hideHost));
+        outer.add(new Section(nested));
+        row.add(variant("Hide and reopen", launcher));
+        row.add(variant("Page interaction", clickPage, count));
+        addEmptyModalExamples(root, row);
+    }
+
+    /**
+     * Demonstrates dialog fallback focus with and without an available opener.
+     * @param root the page root
+     * @param row gallery variant row
+     */
+    private static void addEmptyModalExamples(final RootWidget root, final Section row) {
+        final Button empty = new Button("Open text-only dialog");
+        empty.onClick(click -> root.add(textOnlyModal()));
+        final Button disappearing = new Button("Open and remove launcher");
+        disappearing.onClick(click -> {
+            disappearing.dispose();
+            root.add(textOnlyModal());
+        });
+        row.add(variant("No interactive content", empty));
+        row.add(variant("Missing opener", disappearing));
+    }
+
+    /**
+     * Creates a dialog that can only be dismissed by the backdrop or Escape.
+     * @return text-only example
+     */
+    private static ModalPopup textOnlyModal() {
+        final ModalPopup popup = new ModalPopup(
+            new Section(new TextWidget("This dialog has no interactive controls."))
+        );
+        popup.setAccessibleName("Text-only dialog");
+        popup.setAccessibleDescription("Press Escape or select the backdrop to close.");
+        popup.setCloseOnEscape(true);
+        popup.setCloseOnOutsideClick(true);
+        return popup;
+    }
+
+    /**
+     * Shows accessible relationships, image alternatives and native icon buttons.
+     * @param root gallery root
+     */
+    private static void addAccessibleSemantics(final RootWidget root) {
+        final Panel card = addCard(root, "Accessible widgets",
+            "Named icon actions, linked field text and decorative images.");
+        final Section row = variantRow();
+        card.add(row);
+        final Button refresh = Button.icon(accessibilityIcon(), "Refresh preview");
+        final Button unavailable = Button.icon(accessibilityIcon(), "Refresh unavailable");
+        unavailable.disable();
+        final TextWidget status = feedback("Preview not refreshed");
+        final AtomicInteger count = new AtomicInteger();
+        refresh.onClick(event -> status.setText("Refresh count: " + count.incrementAndGet()));
+        row.add(variant("Icon action", refresh, status));
+        row.add(variant("Disabled action", unavailable));
+
+        final ImageWidget informative = new ImageWidget(demoImage("#2563eb", "#1e40af", "N"));
+        informative.setWidth(64);
+        informative.setHeight(64);
+        informative.setAlternativeText("North marker");
+        final ImageWidget decorative = new ImageWidget(demoImage("#059669", "#047857", "✦"));
+        decorative.setWidth(64);
+        decorative.setHeight(64);
+        decorative.setDecorative(true);
+        row.add(variant("Informative image", informative));
+        row.add(variant("Decorative image", decorative));
+        addAccessibleField(card);
+    }
+
+    /**
+     * Creates a small decorative icon for a native button.
+     * @return image shown inside the button
+     */
+    private static ImageWidget accessibilityIcon() {
+        final ImageWidget icon = new ImageWidget(new SvgImageSource() {
+            @Override
+            protected String getSvg() {
+                return "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' "
+                    + "viewBox='0 0 20 20'><path d='M16 8a6 6 0 1 0 0 4M16 4v4h-4' "
+                    + "fill='none' stroke='#1d4ed8' stroke-width='2' "
+                    + "stroke-linecap='round' stroke-linejoin='round'/></svg>";
+            }
+        });
+        icon.setWidth(20);
+        icon.setHeight(20);
+        return icon;
+    }
+
+    /**
+     * Demonstrates reactive accessible name, help and validation error references.
+     * @param card enclosing gallery panel
+     */
+    private static void addAccessibleField(final Panel card) {
+        final TextWidget label = new TextWidget("Delivery code");
+        final TextWidget help = new TextWidget("Use four digits.");
+        final TextWidget error = new TextWidget("The code is incomplete.");
+        final InputField field = new InputField();
+        field.setAccessibleName("Shipping code");
+        field.setMaxWidth("100%");
+        field.setAccessibleLabel(label);
+        field.setAccessibleDescriptionWidget(help);
+        field.setAccessibleError(error);
+        field.setValidState(false);
+        card.add(new Section(label));
+        card.add(new Section(field));
+        card.add(new Section(help));
+        card.add(new Section(error));
+        final Button rename = new Button("Rename field label");
+        rename.onClick(event -> label.setText("Updated delivery code"));
+        final Button remove = new Button("Remove field label");
+        remove.onClick(event -> label.dispose());
+        final Button valid = new Button("Toggle field validity");
+        valid.onClick(event -> {
+            final boolean nowValid = !field.isValid();
+            field.setValidState(nowValid);
+            error.setText(nowValid ? "" : "The code is incomplete.");
+        });
+        card.add(new Section(rename, remove, valid));
     }
 
     /**
@@ -856,9 +2078,11 @@ public class AllWidgets {
         final Panel card = new Panel(cardStyle());
         card.setMargin(24, 12);
         root.add(card);
-        card.add(new Section(new TextWidget(
+        final TextWidget heading = new TextWidget(
             textStyle(TEXT, "22px", FontWeight.BOLD), title
-        )));
+        );
+        heading.setHeadingLevel(HeadingLevel.H2);
+        card.add(new Section(heading));
         final Section descriptionLine = new Section(new TextWidget(
             textStyle(MUTED, "14px", FontWeight.NORMAL), description
         ));
@@ -1073,10 +2297,10 @@ public class AllWidgets {
                                              final TextWidget result) {
         loader.onSelect(file -> {
             result.setText(kind + " selected: " + file.getName());
-            file.onLoad(uploaded -> result.setText(
+            file.onLoad(uploaded -> file.executeOnRoot(() -> result.setText(
                 kind + " uploaded: " + uploaded.getName() + " (" + uploaded.getSize()
                     + " bytes)"
-            ));
+            )));
         });
     }
 

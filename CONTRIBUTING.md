@@ -61,7 +61,7 @@ so Ctrl+C and service-manager stop signals reach the application directly.
 
 ## Browser JavaScript
 
-See [Browser JavaScript source map](docs/JAVASCRIPT.md) for file responsibilities, script loading,
+See [Browser JavaScript source map](docs/maintainers/JAVASCRIPT.md) for file responsibilities, script loading,
 per-page scope and the shared manifest used by the server and tests.
 
 ## Development workflow
@@ -71,6 +71,12 @@ per-page scope and the shared manifest used by the server and tests.
 3. Follow [CODE_STYLE.md](CODE_STYLE.md). Do not disable a repository-wide rule to make one change
    pass.
 4. Update public documentation and examples when behavior or API contracts change.
+   Demonstrate public widgets in `AllWidgets`. Add the class, a short Java example and a link to
+   its screenshot in the matching [English](docs/WIDGETS.md) and [Russian](docs/WIDGET_GALLERY.ru.md)
+   task guides. Link each class from both alphabetical indexes. Capture the running example in a
+   real browser on the cloud computer, crop the widget, and record the image and capture details
+   in `docs/images/widgets/manifest.json`. Embed each image once per language with localized alt
+   text. Refresh screenshots when appearance changes. Run `npm run check:gallery` to check coverage.
 5. Run the complete local gates before opening a pull request.
 
 ```bash
@@ -111,3 +117,5 @@ the mandatory gate for all symlink confinement checks. No production security ch
 
 Signing is reserved for release builds through the Maven `release` profile. Contributors do not
 need a GPG key to run the normal build or verification commands.
+
+[Maintainer guides for releases, architecture and testing](docs/maintainers/README.md)

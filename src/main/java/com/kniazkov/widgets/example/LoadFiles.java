@@ -14,7 +14,6 @@ import com.kniazkov.widgets.view.FileLoader;
 import com.kniazkov.widgets.view.Section;
 import com.kniazkov.widgets.view.TextWidget;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 
 /**
@@ -76,16 +75,22 @@ public class LoadFiles {
                 section.add(percent);
                 section.add(new TextWidget("%"));
                 descriptor.onLoad(file -> {
-                    section.add(new TextWidget(", size: "));
-                    final TextWidget size = new TextWidget(String.valueOf(file.getSize()));
-                    size.setFontWeight(FontWeight.BOLD);
-                    section.add(size);
-                    loading.setText("Loaded");
-                    percent.setColor(Color.BLUE);
                     try {
-                        Files.write(Paths.get(file.getName()), file.getContent());
-                    } catch (IOException ignored) {
+                        file.copyTo(Paths.get(file.getName()));
+                    } catch (final IOException ignored) {
+                        /*
+                         * This example still reports successful upload if local copying fails.
+                         */
                     }
+                    final String sizeText = String.valueOf(file.getSize());
+                    descriptor.executeOnRoot(() -> {
+                        section.add(new TextWidget(", size: "));
+                        final TextWidget size = new TextWidget(sizeText);
+                        size.setFontWeight(FontWeight.BOLD);
+                        section.add(size);
+                        loading.setText("Loaded");
+                        percent.setColor(Color.BLUE);
+                    });
                 });
             });
         };

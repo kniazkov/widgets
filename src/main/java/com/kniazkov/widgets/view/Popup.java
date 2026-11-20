@@ -7,6 +7,7 @@ import com.kniazkov.widgets.protocol.AppendChild;
 import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A non-modal popup window fixed to the browser viewport.
@@ -63,6 +64,7 @@ public class Popup extends BlockWidget<PopupStyle> implements BlockContainer,
     @SuppressWarnings("this-escape")
     public Popup(final PopupStyle style, final BlockWidget<?>... children) {
         super(style);
+        this.validateChildren(children);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);
         }
@@ -89,16 +91,16 @@ public class Popup extends BlockWidget<PopupStyle> implements BlockContainer,
      * @param widget child widget
      */
     private void appendChild(final BlockWidget<?> widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        this.pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 

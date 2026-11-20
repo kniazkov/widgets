@@ -23,15 +23,17 @@ function createHarness() {
         window.__uploadEvents = [];
         window.__processedUpdates = [];
         let clientId = "#1";
-        let lastProcessedUpdateId = 0;
+        let clientDisposed = false;
+        let lastAppliedUpdateSequence = 0;
         function createEvent(widget, type, data) {
             window.__uploadEvents.push({ widget, type, data });
         }
-        function processUpdates(updates) {
+        function processUpdates({ updates }) {
             if (updates && updates.length) {
                 window.__processedUpdates.push(...updates);
-                lastProcessedUpdateId = Number(updates[updates.length - 1].id.slice(1));
+                lastAppliedUpdateSequence = Number(updates[updates.length - 1].id.slice(1));
             }
+            return true;
         }
         function sendSynchronizeRequest(callback) {
             callback(true);
@@ -42,10 +44,12 @@ function createHarness() {
         function recordRequestSuccess() {
             window.__requestSuccesses = (window.__requestSuccesses || 0) + 1;
         }
-        ${widgetsSource}`);
+        ${widgetsSource}
+        window.__dispose = () => { clientDisposed = true; disposeUploads(); };
+        window.__files = () => [...pendingUploads, ...activeUploads];`);
 
     const requests = [];
-    dom.window.sendRequest = (query, callback, method, files) => {
+    dom.window.sendClientRequest = (query, callback, method, files) => {
         requests.push({ query, callback, method, files });
     };
     return {
@@ -131,4 +135,56 @@ describe("binary upload scheduler", () => {
         expect(retry.query.chunkIndex).toBe(0);
         expect(retry.files[0].data.size).toBe(3);
     });
+});
+
+it("releases browser files and stops retries on disposal", async () => {
+    const harness = createHarness();
+    dom.window.loadFiles(harness.widget, [file("cancel.bin", 8192)]);
+    const selected = dom.window.__files();
+    harness.requests[0].callback(null);
+    dom.window.__dispose();
+    expect(selected.every(item => item.source === null)).toBe(true);
+    expect(dom.window.__files()).toHaveLength(0);
+    await new Promise(resolve => setTimeout(resolve, 350));
+    expect(harness.requests).toHaveLength(1);
+});
+
+it("reports size errors without sending a file and clears feedback on the next selection", () => {
+    const harness = createHarness();
+    const notice = () => dom.window.document.querySelector(".widgets-upload-error");
+    dom.window.loadFiles(harness.widget, [{ name: "large.bin", size: 128 * 1024 * 1024 + 1 }]);
+    expect(notice().getAttribute("role")).toBe("status");
+    expect(notice().dataset.uploadError).toBe("fileTooLarge");
+    expect(harness.requests).toHaveLength(0);
+    dom.window.loadFiles(harness.widget, [file("x".repeat(256), 1)]);
+    expect(notice().dataset.uploadError).toBe("invalidFileName");
+    expect(harness.events).toHaveLength(0);
+    dom.window.loadFiles(harness.widget, [file("small.bin", 1)]);
+    expect(notice()).toBeNull();
+    expect(harness.requests).toHaveLength(1);
+});
+
+it("distinguishes a permanent chunk-size rejection from the next valid upload", () => {
+    const harness = createHarness();
+    dom.window.loadFiles(harness.widget, [file("bad.bin", 3), file("next.bin", 3)]);
+    harness.requests[0].callback(
+        JSON.stringify({ result: false, uploadError: "chunkTooLarge", limitBytes: 2 })
+    );
+    expect(dom.window.document.querySelector(".widgets-upload-error").textContent).toContain(
+        "Maximum chunk size: 2 bytes."
+    );
+    expect(harness.requests).toHaveLength(2);
+    expect(harness.requests[1].query.fileId).toBe(2);
+    expect(harness.requests[1].query.chunkIndex).toBe(0);
+});
+
+it("does not retry a full processing queue and opens the next file", () => {
+    const harness = createHarness();
+    dom.window.loadFiles(harness.widget, [file("busy.bin", 3), file("remaining.bin", 3)]);
+    harness.requests[0].callback(JSON.stringify({ result: false, uploadError: "processingBusy" }));
+    expect(dom.window.document.querySelector(".widgets-upload-error").textContent).toContain(
+        "File processing is busy"
+    );
+    expect(harness.requests).toHaveLength(2);
+    expect(harness.requests[1].query.fileId).toBe(2);
 });

@@ -5,8 +5,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 let dom;
 afterEach(() => dom?.window.close());
 
-function harness(head = "") {
-    dom = new JSDOM(`<!doctype html><head>${head}</head><body></body>`, {
+function harness(head = "", push = false, initial = "") {
+    dom = new JSDOM(`<!doctype html><head>${head}</head><body>${initial}</body>`, {
         runScripts: "outside-only",
         url: "http://localhost/catalog?filter=blue"
     });
@@ -14,6 +14,27 @@ function harness(head = "") {
     const requests = [];
     const intervals = new Map();
     let timer = 0;
+    const timeouts = new Map();
+    let now = Date.now();
+    win.Date.now = () => now;
+    const nativeTimeout = win.setTimeout.bind(win);
+    win.setTimeout = (callback, delay) => {
+        if (!delay) return nativeTimeout(callback);
+        // jsdom history uses its own task queue; runtime timers are explicitly driven below.
+        timeouts.set(++timer, { callback, due: now + delay });
+        return timer;
+    };
+    win.clearTimeout = id => timeouts.delete(id);
+    const tick = () => {
+        now += 30000;
+        for (const callback of [...intervals.values()]) callback();
+        for (const [id, task] of [...timeouts]) {
+            if (task.due <= now) {
+                timeouts.delete(id);
+                task.callback();
+            }
+        }
+    };
     win.scrollTo = (x, y) => {
         win.scrollX = x;
         win.scrollY = y;
@@ -28,6 +49,14 @@ function harness(head = "") {
     win.__request = (request, callback) => requests.push({ request, callback });
     win.eval(`${readScript("options.js")}\n${readScriptGroup("shared")}
         sendRequest = window.__request;
+        ${
+            push
+                ? `registerPushChannel = (configuration, client, credentials, wake) => {
+            wake();
+            return {available: () => true, send: window.__request, dispose() {}};
+        };`
+                : ""
+        }
         isMobileDevice = () => false;
         ${readPageRuntime()}
         ${readScript("navigation.js")}
@@ -42,25 +71,45 @@ function harness(head = "") {
         );
         expect(item, `pending ${action} for ${client}`).toBeTruthy();
         item.answered = true;
-        item.callback(JSON.stringify(body));
+        item.callback(JSON.stringify(typeof body === "function" ? body(item.request) : body));
         return item.request;
     }
     function updates(client, values = [], extra = {}) {
         answer(
             "synchronize",
-            {
-                serverId: "server",
-                clientAlive: true,
-                result: true,
-                lastEvent: "#0",
-                updates: values,
-                ...extra
+            request => {
+                const base = Number(request.lastUpdate.slice(1));
+                return {
+                    serverId: "server",
+                    channelToken: "test-channel",
+                    clientAlive: true,
+                    result: true,
+                    lastEvent: "#0",
+                    updateEpoch: "stream-" + client,
+                    updateBase: base,
+                    updateThrough: base + values.length,
+                    snapshot: base === 0,
+                    updates: values.map((update, index) => ({
+                        ...update,
+                        sequence: base + index + 1
+                    })),
+                    ...extra
+                };
             },
             client
         );
     }
-    function created(id, text = id, tabId) {
-        answer("new instance", { id, serverId: "server", tabId });
+    function created(id, text = id, tabId, publicDocument) {
+        answer("new instance", {
+            id,
+            serverId: "server",
+            channelToken: "test-channel",
+            tabId,
+            updateVersion: "2",
+            updateCapability: "sequenced-updates",
+            updateEpoch: "stream-" + id,
+            publicDocument
+        });
         updates(id, [
             { id: "#1", action: "create widget", type: "root", widget: "#1" },
             { id: "#2", action: "create widget", type: "text", widget: "#2" },
@@ -81,10 +130,26 @@ function harness(head = "") {
             win.history.back();
         });
     }
-    return { win, requests, intervals, answer, updates, created, navigate, back };
+    return { win, requests, intervals, tick, answer, updates, created, navigate, back };
 }
 
 describe("page history cache", () => {
+    it("revalidates retained push pages on Back while suppressing idle polling", async () => {
+        const h = harness("", true);
+        h.created("catalog");
+        const root = h.win.document.querySelector(".widgets-page");
+        const initialRequests = h.requests.length;
+        h.tick();
+        expect(h.requests).toHaveLength(initialRequests);
+        h.navigate("/product");
+        h.created("product");
+        await h.back();
+        expect(root.isConnected).toBe(false);
+        h.updates("catalog");
+        expect(h.win.document.querySelector(".widgets-page")).toBe(root);
+        expect(h.requests.filter(x => x.request.action === "new instance")).toHaveLength(2);
+    });
+
     it("keeps rapid scroll events in memory and persists once before navigation", async () => {
         const h = harness();
         h.created("catalog");
@@ -162,9 +227,7 @@ describe("page history cache", () => {
         const h = harness();
         h.created("first");
         const root = h.win.document.querySelector(".widgets-page");
-        for (const tick of h.intervals.values()) {
-            tick();
-        }
+        h.tick();
         h.navigate("/catalog?filter=blue");
         h.created("second");
         h.updates("first", [{ id: "#5", action: "set text", widget: "#2", text: "late" }]);
@@ -206,9 +269,7 @@ describe("page history cache", () => {
         h.created("second");
         const now = h.win.Date.now();
         h.win.Date.now = () => now + 120001;
-        for (const tick of h.intervals.values()) {
-            tick();
-        }
+        h.tick();
         expect(
             h.requests.some(x => x.request.action === "kill" && x.request.client === "first")
         ).toBe(true);
@@ -238,9 +299,7 @@ describe("page history cache", () => {
         h.navigate("/product");
         h.created("pending-catalog");
         h.created("product");
-        for (const tick of h.intervals.values()) {
-            tick();
-        }
+        h.tick();
         h.updates("product", [{ id: "#5", action: "clear page cache" }]);
         expect(
             h.requests.some(
@@ -254,7 +313,11 @@ describe("page history cache", () => {
         for (let i = 0; i < 4; i++) {
             h.navigate(`/product?id=${i}`);
         }
-        h.answer("new instance", { id: "late-client", serverId: "server" });
+        h.answer("new instance", {
+            id: "late-client",
+            serverId: "server",
+            channelToken: "test-channel"
+        });
         expect(
             h.requests.some(x => x.request.action === "kill" && x.request.client === "late-client")
         ).toBe(true);
@@ -295,7 +358,7 @@ describe("page metadata", () => {
         ["document " + name]: value
     });
     const tick = h => {
-        for (const callback of h.intervals.values()) callback();
+        h.tick();
     };
 
     it("restores defaults, retains hidden updates and restores metadata on Back/Forward", async () => {
@@ -352,7 +415,7 @@ describe("cached page interaction styles", () => {
             const h = harness();
             h.created("catalog");
             // Use the real runtime's registry and protocol to create both navigation targets.
-            for (const callback of h.intervals.values()) callback();
+            h.tick();
             const commands = [];
             for (const widget of ["#10", "#11"]) {
                 commands.push(
@@ -426,8 +489,7 @@ describe("document tab context", () => {
             h.created("catalog", "old operator page", "tab-one");
             h.navigate("/product");
             h.created("product", "operator", "tab-one");
-            const tick = [...h.intervals.values()].at(-1);
-            tick();
+            h.tick();
             h.updates("product", [], invalid);
             const fresh = h.requests
                 .filter(item => !item.answered && item.request.action === "new instance")
@@ -446,7 +508,7 @@ describe("document tab context", () => {
     it("keeps the tab when only a page Client expires", () => {
         const h = harness();
         h.created("catalog", "catalog", "tab-one");
-        [...h.intervals.values()].at(-1)();
+        h.tick();
         h.updates("catalog", [], { clientAlive: false });
         const request = h.requests
             .filter(item => !item.answered && item.request.action === "new instance")
@@ -458,12 +520,44 @@ describe("document tab context", () => {
         const h = harness();
         h.created("catalog", "catalog", "tab-one");
         h.navigate("/product");
-        h.answer("new instance", { tabContextExpired: true, serverId: "server", result: false });
+        h.answer("new instance", {
+            tabContextExpired: true,
+            serverId: "server",
+            channelToken: "test-channel",
+            result: false
+        });
         const request = h.requests
             .filter(item => !item.answered && item.request.action === "new instance")
             .at(-1);
         expect(request.request.tabId).toBeUndefined();
         h.created("fresh", "normal", "tab-two");
         expect(h.win.document.body.textContent).toContain("normal");
+    });
+});
+
+describe("public bootstrap replacement", () => {
+    it("keeps initial content until the tree is ready and replaces it once", () => {
+        const h = harness(
+            "<title>Public</title>",
+            false,
+            '<div id="widgets-initial" class="widgets-page"><article class="widgets-public"><h1>Public</h1></article></div>'
+        );
+        expect(h.win.document.querySelector("#widgets-initial")).not.toBeNull();
+        h.created("#10", "Live controls", undefined, {
+            title: "Public",
+            description: "Description",
+            canonical: "https://example.com/catalog",
+            image: "",
+            blocks: [{ tag: "h1", text: "Public" }]
+        });
+        expect(h.win.document.querySelector("#widgets-initial")).toBeNull();
+        expect(h.win.document.querySelectorAll(".widgets-public")).toHaveLength(1);
+        expect(h.win.document.body.textContent).toBe("PublicLive controls");
+        expect(h.win.document.querySelector('link[rel="canonical"]').href).toBe(
+            "https://example.com/catalog"
+        );
+        h.tick();
+        h.updates("#10");
+        expect(h.win.document.querySelectorAll(".widgets-public")).toHaveLength(1);
     });
 });

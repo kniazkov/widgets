@@ -202,7 +202,8 @@ function createSuggestionField() {
 
     function render() {
         close();
-        if (widget.disabled || document.activeElement !== widget || composing) return;
+        if (widget.disabled || widget.readOnly || document.activeElement !== widget || composing)
+            return;
         const current = token();
         if (!current) return;
         const query = current.query.toLowerCase();
@@ -345,35 +346,41 @@ function createSuggestionField() {
         widget._suggestionSeparator = value;
         render();
     };
-    widget.addEventListener("keyup", event => {
+    listenWidget(widget, "keyup", event => {
         if (["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) render();
     });
     widget._closeSuggestions = close;
-    widget._onDetached = close;
-    widget.addEventListener("focus", render);
-    widget.addEventListener("click", render);
+    widget._isSuggestionOpen = () => list !== null;
+    const detachEditor = widget._onDetached;
+    widget._onDetached = () => {
+        composing = false;
+        detachEditor?.();
+        close();
+    };
+    listenWidget(widget, "focus", render);
+    listenWidget(widget, "click", render);
     // A repeated tap need not focus again or produce a compatibility click.
     // Never focus programmatically here: scrolling or leaving the field must
     // not steal focus or reopen the software keyboard.
-    widget.addEventListener("pointerup", event => {
+    listenWidget(widget, "pointerup", event => {
         if (event.pointerType === "touch" && document.activeElement === widget) render();
     });
-    widget.addEventListener("input", render);
-    widget.addEventListener("blur", () => {
+    listenWidget(widget, "input", render);
+    listenWidget(widget, "blur", () => {
         if (touch) return;
         close();
         removeDuplicates();
     });
-    widget.addEventListener("compositionstart", () => {
+    listenWidget(widget, "compositionstart", () => {
         composing = true;
         close();
     });
-    widget.addEventListener("compositionend", () => {
+    listenWidget(widget, "compositionend", () => {
         composing = false;
         if (document.activeElement !== widget) removeDuplicates();
         render();
     });
-    widget.addEventListener("keydown", event => {
+    listenWidget(widget, "keydown", event => {
         if (event.isComposing || composing) return;
         if (event.key === "Escape" || event.key === "Tab") {
             if (list && event.key === "Escape") {

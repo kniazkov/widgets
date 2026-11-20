@@ -22,6 +22,11 @@ public final class Options {
     private final String title;
 
     /**
+     * Explicit external HTTP(S) origin, required behind a TLS/re-hosting proxy.
+     */
+    private final String publicOrigin;
+
+    /**
      * Public favicon URL.
      */
     private final String faviconUrl;
@@ -112,6 +117,26 @@ public final class Options {
     private final int maxFileSize;
 
     /**
+     * Upload resource and temporary storage policy.
+     */
+    private final com.kniazkov.widgets.common.UploadLimits uploadLimits;
+
+    /**
+     * Maximum number of concurrent file processing callbacks.
+     */
+    private final int uploadWorkers;
+
+    /**
+     * Maximum queued callbacks before upload backpressure.
+     */
+    private final int uploadQueueCapacity;
+
+    /**
+     * Queue budgets for each page protocol runtime.
+     */
+    private final ProtocolLimits protocolLimits;
+
+    /**
      * Whether browser and server debug logging is enabled.
      */
     private final boolean debug;
@@ -133,6 +158,7 @@ public final class Options {
      */
     private Options(final Builder builder) {
         this.title = builder.title;
+        this.publicOrigin = builder.publicOrigin;
         this.faviconUrl = builder.faviconUrl;
         this.description = builder.description;
         this.robots = builder.robots;
@@ -145,9 +171,23 @@ public final class Options {
         this.sslOptions = builder.sslOptions;
         this.chunkSize = builder.chunkSize;
         this.maxFileSize = builder.maxFileSize;
+        this.uploadLimits = builder.uploadLimits;
+        this.uploadWorkers = builder.uploadWorkers;
+        this.protocolLimits = builder.protocolLimits;
+        this.uploadQueueCapacity = builder.uploadQueueCapacity == 0
+            ? Math.min(1024, builder.uploadLimits.filesPerApplication())
+            : builder.uploadQueueCapacity;
         this.debug = builder.debug;
         this.webFonts = List.copyOf(builder.webFonts);
         this.staticSources = List.copyOf(builder.staticSources);
+    }
+
+    /**
+     * Returns the trusted origin used for protocol requests and session cookies.
+     * @return configured external origin, or empty for the direct listener origin
+     */
+    public String getPublicOrigin() {
+        return this.publicOrigin;
     }
 
     /**
@@ -220,6 +260,36 @@ public final class Options {
      */
     public int getMaxFileSize() {
         return this.maxFileSize;
+    }
+
+    /**
+     * Returns upload resource budgets shared by application clients.
+     * @return upload resource budgets shared by application clients
+     */
+    public com.kniazkov.widgets.common.UploadLimits getUploadLimits() {
+        return this.uploadLimits;
+    }
+
+
+    /**
+     * @return maximum concurrently executing upload callbacks
+     */
+    public int getUploadWorkers() {
+        return this.uploadWorkers;
+    }
+
+    /**
+     * @return maximum pending upload callbacks
+     */
+    public int getUploadQueueCapacity() {
+        return this.uploadQueueCapacity;
+    }
+
+    /**
+     * @return per-runtime transport and retention budgets
+     */
+    public ProtocolLimits getProtocolLimits() {
+        return this.protocolLimits;
     }
 
     /**
@@ -304,6 +374,11 @@ public final class Options {
         private String title = "";
 
         /**
+         * Explicit external origin; forwarding headers are never trusted implicitly.
+         */
+        private String publicOrigin = "";
+
+        /**
          * Public favicon URL.
          */
         private String faviconUrl = "";
@@ -364,6 +439,54 @@ public final class Options {
         private int maxFileSize = DEFAULT_MAX_FILE_SIZE;
 
         /**
+         * Upload storage and resource budgets.
+         */
+        private com.kniazkov.widgets.common.UploadLimits uploadLimits =
+            com.kniazkov.widgets.common.UploadLimits.defaults();
+
+        /**
+         * Concurrent processing callbacks per application.
+         */
+        private int uploadWorkers = 4;
+
+        /**
+         * Explicit queue cap, or zero to retain the existing upload reservation cap.
+         */
+        private int uploadQueueCapacity;
+
+        /**
+         * Queue budgets for each page runtime.
+         */
+        private ProtocolLimits protocolLimits = ProtocolLimits.defaults();
+
+        /**
+         * Configures limits for protocol backpressure and replay.
+         *
+         * @param limits per-runtime budgets
+         * @return this builder
+         */
+        public Builder setProtocolLimits(final ProtocolLimits limits) {
+            this.protocolLimits = java.util.Objects.requireNonNull(limits);
+            return this;
+        }
+
+        /**
+         * Sets bounded background file processing capacity independently of upload reservations.
+         *
+         * @param workers concurrent callbacks, 1 to 32
+         * @param queued queued callbacks, 1 to 1024
+         * @return this builder
+         */
+        public Builder setUploadProcessing(final int workers, final int queued) {
+            if (workers < 1 || workers > 32 || queued < 1 || queued > 1024) {
+                throw new IllegalArgumentException("Invalid upload processing capacity");
+            }
+            this.uploadWorkers = workers;
+            this.uploadQueueCapacity = queued;
+            return this;
+        }
+
+        /**
          * Whether browser and server debug logging is enabled.
          */
         private boolean debug = true;
@@ -377,6 +500,22 @@ public final class Options {
          * Public static resource mounts.
          */
         private final List<StaticSource> staticSources = new ArrayList<>();
+
+        /**
+         * Sets the external origin used by CSRF checks and Secure session cookies.
+         * Configure this explicitly behind a reverse proxy; forwarded headers are ignored.
+         * @param value absolute HTTP(S) origin, without a path, query or credentials
+         * @return this builder
+         */
+        public Builder setPublicOrigin(final String value) {
+            Objects.requireNonNull(value, "Public origin must not be null");
+            final String normalized = SecurityPrimitives.origin(value);
+            if (normalized == null) {
+                throw new IllegalArgumentException("Public origin must be an HTTP(S) origin");
+            }
+            this.publicOrigin = normalized;
+            return this;
+        }
 
         /**
          * Sets the browser tab title on every application page.
@@ -551,7 +690,8 @@ public final class Options {
         }
 
         /**
-         * Sets the binary upload chunk size.
+         * Sets the binary upload chunk size. The HTTP server budgets the multipart envelope
+         * separately. A complete file may be smaller than the chunk size.
          *
          * @param value positive chunk size in bytes
          * @return this builder
@@ -582,6 +722,16 @@ public final class Options {
             this.maxFileSize = value;
             return this;
         }
+
+        /**
+         * @param limits immutable upload budgets and private storage directory
+         * @return this builder
+         */
+        public Builder setUploadLimits(final com.kniazkov.widgets.common.UploadLimits limits) {
+            this.uploadLimits = java.util.Objects.requireNonNull(limits);
+            return this;
+        }
+
 
         /**
          * Enables or disables browser and server debug logging.

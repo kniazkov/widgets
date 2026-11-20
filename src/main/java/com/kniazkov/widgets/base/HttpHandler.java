@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.base;
 
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonArray;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
@@ -14,6 +15,8 @@ import com.kniazkov.webserver.HttpStatus;
 import com.kniazkov.webserver.Request;
 import com.kniazkov.webserver.Response;
 import com.kniazkov.webserver.ResponseFactory;
+import com.kniazkov.webserver.ResponseCookie;
+import com.kniazkov.webserver.SameSite;
 import com.kniazkov.webserver.ServerException;
 import com.kniazkov.webserver.UploadedFile;
 import java.io.ByteArrayOutputStream;
@@ -58,11 +61,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     private final Application application;
 
     /**
-     * Registered action handlers (e.g. "new instance", "synchronize", etc.).
-     */
-    private final Map<String, ActionHandler> actionHandlers;
-
-    /**
      * Various options.
      */
     private final Options options;
@@ -75,10 +73,6 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      */
     HttpHandler(final Application application, final Options options) {
         this.application = application;
-        this.actionHandlers = new TreeMap<>();
-        this.actionHandlers.put("new instance", new CreateClient(application));
-        this.actionHandlers.put("synchronize", new Synchronize(application));
-        this.actionHandlers.put("kill", new KillClient(application));
         this.options = options;
     }
 
@@ -99,8 +93,19 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     @Override
     public Response handle(final Request request, final Environment environment)
             throws ServerException {
+        if (this.application.isClosed()) {
+            return environment.getResponseFactory().custom(HttpStatus.SERVICE_UNAVAILABLE,
+                ContentType.TEXT_PLAIN, new byte[0])
+                .setHeader("Cache-Control", "no-store").build();
+        }
         try {
             return this.route(request, environment);
+        } catch (final ProtocolAccessException denied) {
+            final JsonObject result = new JsonObject();
+            result.addBoolean(denied.sessionExpired() ? "sessionExpired" : "accessDenied", true);
+            return environment.getResponseFactory().custom(HttpStatus.FORBIDDEN,
+                ContentType.APPLICATION_JSON, result.toString().getBytes(StandardCharsets.UTF_8))
+                .setHeader("Cache-Control", "no-store").build();
         } catch (final ServerException | RuntimeException | Error failure) {
             LOGGER.log(Level.SEVERE, "Widgets HTTP request failed; "
                 + RequestDiagnostics.describe(request), failure);
@@ -141,22 +146,54 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                     .setHeader("X-Widgets-Request-Id", requestId)
                     .setHeader("Cache-Control", "no-store").build();
             }
-            if (method == HttpMethod.POST && "upload chunk".equals(action)) {
-                return responses.fromJson(
-                    this.handleUploadChunk(request, parameters).toString()
-                ).build();
+            if (method != HttpMethod.POST) {
+                return responses.custom(HttpStatus.METHOD_NOT_ALLOWED, ContentType.TEXT_PLAIN,
+                    new byte[0]).setHeader("Allow", "POST")
+                    .setHeader("Cache-Control", "no-store").build();
             }
-            if (method == HttpMethod.POST && "report error".equals(action)) {
-                this.application.reportBrowserError(parameters);
-                return responses.fromJson("{}").build();
+            final ChannelAccess access = this.authorize(request);
+            parameters.remove("updateEpoch");
+            final String updateEpoch = ProtocolSecurity.header(request, "X-Widgets-Update-Epoch");
+            if (updateEpoch != null) {
+                parameters.put("updateEpoch", updateEpoch);
             }
-            final ActionHandler handler = actionHandlers.get(action);
-            if (handler != null) {
-                return responses.fromJson(
-                    handler.process(parameters).toString()
-                ).build();
+            final JsonElement result;
+            try {
+                switch (action) {
+                    case "upload chunk":
+                        result = this.handleUploadChunk(request, parameters, access);
+                        break;
+                    case "report error":
+                        this.application.reportBrowserError(parameters, access);
+                        result = new JsonObject();
+                        break;
+                    case "new instance":
+                        result = new CreateClient(this.application, access).process(parameters);
+                        break;
+                    case "synchronize":
+                        result = new Synchronize(this.application, access).process(parameters);
+                        break;
+                    case "kill":
+                        result = new KillClient(this.application, access).process(parameters);
+                        break;
+                    default:
+                        return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN,
+                            new byte[0]).setHeader("Cache-Control", "no-store").build();
+                }
+            } catch (final ProtocolAccessException denied) {
+                throw denied;
+            } catch (final RuntimeException failure) {
+                LOGGER.log(Level.SEVERE, "Widgets HTTP request failed; "
+                    + RequestDiagnostics.describe(request), failure);
+                return responses.custom(HttpStatus.INTERNAL_SERVER_ERROR,
+                    ContentType.APPLICATION_JSON,
+                    "{\"clientError\":true}".getBytes(StandardCharsets.UTF_8))
+                    .setHeader("X-Widgets-Protocol-Error", "application")
+                    .setHeader("Cache-Control", "no-store").build();
             }
-            return responses.notFound();
+            return responses.fromJson(result.toString())
+                .setHeader("X-Widgets-Protocol-Version", ReleaseInfo.httpProtocol())
+                .setHeader("Cache-Control", "no-store").build();
         }
 
         final String address;
@@ -175,12 +212,26 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             replaceAddress = false;
         }
 
+        final BrowserSession session = replaceAddress
+            ? this.application.bootstrapSession(ProtocolSecurity.cookie(request, this.options))
+            : null;
         final int dot = address.lastIndexOf('.');
         final ContentType contentType = ContentType.fromExtension(
             dot > address.lastIndexOf('/') ? address.substring(dot + 1) : "");
         final boolean removeLogs = contentType == ContentType.TEXT_JAVASCRIPT && !options.isDebug();
 
+        final List<String> builds = request.getQuery().get("widgets-build");
+        if (!replaceAddress && isBundledWebResource(address) && builds != null
+                && (builds.size() != 1 || !ReleaseInfo.buildId().equals(builds.get(0)))) {
+            return responses.custom(HttpStatus.NOT_FOUND, ContentType.TEXT_PLAIN,
+                "Widgets bundle changed; reload the page".getBytes(StandardCharsets.UTF_8))
+                .setHeader("Cache-Control", "no-store").build();
+        }
+
         try {
+            final java.util.Optional<PublicDocument> document = replaceAddress
+                ? this.application.publicDocument(requestPath, parameters)
+                : java.util.Optional.empty();
             final URL url = isBundledWebResource(address)
                 ? getClass().getResource(address)
                 : null;
@@ -209,6 +260,8 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             }
                             code = code
                                 .replace("__SHARED_SCRIPTS__", BrowserScripts.sharedTags())
+                                .replace("__PROTOCOL_CSRF__", session.csrf())
+                                .replace("__PROTOCOL_SESSION__", session.getId().toString())
                                 .replace("{sessionId}", UUID.randomUUID().toString())
                                 .replace("{address}", requestPath)
                                 .replace("{data}", escapeInlineScriptData(obj.toString()))
@@ -234,10 +287,25 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                             );
                         }
                         if (replaceAddress) {
-                            code = code.replaceFirst("__DOCUMENT_LANGUAGE__",
-                                Matcher.quoteReplacement(this.options.getLanguage()))
-                                .replaceFirst("__DOCUMENT_HEAD__",
-                                    Matcher.quoteReplacement(documentHead(this.options)));
+                            code = code.replaceAll(
+                                "(src|href)=\"(/scripts/[^\"]+\\.js|/style\\.css)\"",
+                                "$1=\"$2?widgets-build=" + ReleaseInfo.buildId() + "\"");
+                            final String head = documentHead(this.options, document.isEmpty())
+                                + document.map(PublicDocument::head).orElse("");
+                            final String content = document.map(value ->
+                                "<div id=\"widgets-initial\" class=\"widgets-page\">"
+                                    + value.html() + "</div>").orElse("");
+                            code = java.util.regex.Pattern.compile(
+                                "__DOCUMENT_LANGUAGE__|__DOCUMENT_HEAD__|__PUBLIC_CONTENT__"
+                                    + "|__SITE_METADATA__")
+                                .matcher(code).replaceAll(match -> Matcher.quoteReplacement(
+                                    switch (match.group()) {
+                                        case "__DOCUMENT_LANGUAGE__" -> this.options.getLanguage();
+                                        case "__DOCUMENT_HEAD__" -> head;
+                                        case "__SITE_METADATA__" -> escapeInlineScriptData(
+                                            siteMetadata(this.options).toString());
+                                        default -> content;
+                                    }));
                         }
                         data = code.getBytes(StandardCharsets.UTF_8);
                     } else {
@@ -263,9 +331,18 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                  * Page bootstrap contains a new session and request-specific parameters.
                  */
                 return responses.custom(HttpStatus.OK, contentType, data)
+                    .setHeader("X-Widgets-Build", ReleaseInfo.buildId())
+                    .setHeader("X-Widgets-Release", ReleaseInfo.version())
+                    .setCookie(new ResponseCookie.Builder(ProtocolSecurity.cookieName(this.options),
+                        session.credential()).setPath("/").setHttpOnly(true)
+                        .setSecure(ProtocolSecurity.secureCookie(this.options))
+                        .setSameSite(SameSite.STRICT).build())
                     .setHeader("Cache-Control", "no-store").build();
             }
-            final String hash = StaticSource.contentHash(data);
+            final byte[] served = contentType == ContentType.TEXT_JAVASCRIPT
+                ? new String(data, StandardCharsets.UTF_8).replace("__WIDGETS_BUILD__",
+                    ReleaseInfo.buildId()).getBytes(StandardCharsets.UTF_8) : data;
+            final String hash = StaticSource.contentHash(served);
             final List<String> versions = request.getQuery().get("widgets-version");
             if (versions != null && (versions.size() != 1 || !hash.equals(versions.get(0)))) {
                 /*
@@ -277,7 +354,7 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             final String tag = "\"" + hash + "\"";
             final boolean unchanged = matchesEntityTag(request, tag);
             return responses.custom(unchanged ? HttpStatus.NOT_MODIFIED : HttpStatus.OK,
-                contentType, unchanged ? new byte[0] : data)
+                contentType, unchanged ? new byte[0] : served)
                 .setHeader("ETag", tag)
                 .setHeader("Cache-Control", versions == null ? "private, no-cache"
                     : "private, max-age=31536000, immutable")
@@ -299,6 +376,39 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
          * Resource not found
          */
         return responses.notFound();
+    }
+
+    /**
+     * Verifies common credentials before dispatch; the client owner is checked under its lock.
+     * @param request protocol POST request
+     * @return authenticated request context
+     */
+    private ChannelAccess authorize(final Request request) {
+        if (!ProtocolSecurity.sameOrigin(request, this.options)) {
+            throw new ProtocolAccessException(false);
+        }
+        final BrowserSession session = this.application.browserSession(
+            ProtocolSecurity.cookie(request, this.options));
+        if (session == null) {
+            throw new ProtocolAccessException(true);
+        }
+        final String documentSession = ProtocolSecurity.header(request, "X-Widgets-Session");
+        if (documentSession == null) {
+            throw new ProtocolAccessException(false);
+        }
+        if (!session.getId().toString().equals(documentSession)) {
+            /*
+             * Another document rotated the shared cookie after logout. Reload this document
+             * instead of treating its now-stale CSRF token as a permanently broken client.
+             */
+            throw new ProtocolAccessException(true);
+        }
+        if (!SecurityPrimitives.matches(session.csrf(), ProtocolSecurity.header(request,
+                "X-Widgets-CSRF"))) {
+            throw new ProtocolAccessException(false);
+        }
+        return new ChannelAccess(session, ProtocolSecurity.header(request, "X-Widgets-Channel"),
+            ProtocolSecurity.header(request, "X-Widgets-Epoch"));
     }
 
     /**
@@ -339,19 +449,21 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
      *
      * @param request immutable web-server request
      * @param parameters flattened multipart fields
+     * @param access verified transport credentials
      * @return serialized upload acknowledgement
      * @throws ServerException if the temporary upload data cannot be read
      */
     private JsonObject handleUploadChunk(
             final Request request,
-            final Map<String, String> parameters) throws ServerException {
+            final Map<String, String> parameters, final ChannelAccess access)
+            throws ServerException {
         final List<UploadedFile> files = request.getFiles().get("chunk");
         if (request.getFiles().size() != 1 || files == null || files.size() != 1) {
             return UploadProtocol.rejected();
         }
         final UploadedFile chunk = files.get(0);
         if (chunk.getSize() > this.options.getChunkSize()) {
-            return UploadProtocol.rejected();
+            return UploadProtocol.chunkTooLarge(this.options.getChunkSize());
         }
         final String client = parameters.get("client");
         final String widget = parameters.get("widget");
@@ -372,7 +484,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
                 fileId,
                 chunkIndex,
                 chunk.readAllBytes(),
-                parameters.get("lastUpdate")
+                parameters.get("lastUpdate"),
+                parameters.get("updateEpoch"),
+                access
             );
         } catch (final NumberFormatException | NullPointerException ignored) {
             return UploadProtocol.rejected();
@@ -403,15 +517,28 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
     }
 
     /**
+     * @param options site defaults independent of the initially requested page
+     * @return metadata used when navigating away from the bootstrap page
+     */
+    private static JsonObject siteMetadata(final Options options) {
+        final JsonObject result = new JsonObject();
+        result.addString("title", options.getTitle());
+        result.addString("description", options.getDescription());
+        result.addString("robots", options.getRobots());
+        return result;
+    }
+
+    /**
      * Builds escaped site metadata for the initial HTML response, before JavaScript runs.
      * Inserted last so template tokens and log-like text in metadata remain literal.
      *
      * @param options application options
+     * @param siteTitle whether site title and description should be emitted
      * @return document head elements
      */
-    private static String documentHead(final Options options) {
+    private static String documentHead(final Options options, final boolean siteTitle) {
         final StringBuilder result = new StringBuilder();
-        if (!options.getTitle().isEmpty()) {
+        if (siteTitle && !options.getTitle().isEmpty()) {
             result.append("<title>").append(escapeHtmlAttribute(options.getTitle()))
                 .append("</title>\n");
         }
@@ -419,7 +546,9 @@ final class HttpHandler implements com.kniazkov.webserver.Handler {
             result.append("<link rel=\"icon\" href=\"")
                 .append(escapeHtmlAttribute(options.getFaviconUrl())).append("\">\n");
         }
-        appendMeta(result, "description", options.getDescription());
+        if (siteTitle) {
+            appendMeta(result, "description", options.getDescription());
+        }
         appendMeta(result, "robots", options.getRobots());
         return result.toString();
     }

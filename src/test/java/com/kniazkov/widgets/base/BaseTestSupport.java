@@ -76,7 +76,7 @@ final class BaseTestSupport {
     }
 
     /**
-     * Replaces a client's pending-update set with an instrumented set.
+     * Replaces a client's outgoing collection set with an instrumented set.
      *
      * @param client client under test
      * @param updates replacement set
@@ -84,7 +84,7 @@ final class BaseTestSupport {
      */
     static void replaceUpdates(final Client client, final Set<Update> updates)
             throws ReflectiveOperationException {
-        final Field field = Client.class.getDeclaredField("updates");
+        final Field field = Client.class.getDeclaredField("collecting");
         field.setAccessible(true);
         field.set(client, updates);
     }

@@ -212,7 +212,7 @@ describe("modern style properties", () => {
 
         expect(widget.style.opacity).toBe("0.75");
         expect(widget.style.backgroundColor).toBe("");
-        const svg = decodeURIComponent(widget.src.substring("data:image/svg+xml,".length));
+        const svg = decodeURIComponent(widget.style.backgroundImage);
         expect(svg).toContain('fill="rgb(203,213,225)"');
         expect(svg).toContain('stroke="rgb(71,85,105)"');
         expect(svg).toContain('<circle fill="rgb(71,85,105)"/>');

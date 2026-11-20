@@ -9,6 +9,7 @@ import com.kniazkov.widgets.protocol.RemoveChild;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 
 /**
  * Represents a table row widget that contains {@link Cell} widgets.
@@ -66,6 +67,7 @@ public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
          * Construction attaches the initial cells before this instance is published.
          */
         super(style);
+        this.validateChildren(children);
         for (final Cell child : children) {
             this.appendChild(child);
         }
@@ -92,16 +94,16 @@ public class Row extends Widget<RowStyle> implements TypedContainer<Cell>,
      * @param widget the child cell
      */
     private void appendChild(final Cell widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
     @Override

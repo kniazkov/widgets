@@ -7,20 +7,22 @@ import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.common.RMId;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.view.RootWidget;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Web application executed by the {@link Server}.
+ * Web application served by {@code Server} from the {@code widgets-http} module.
  * To use this framework, you must implement and provide at least one {@link Page}
  * (the index page) and pass it to this class.
  */
-public final class Application {
+public final class Application implements AutoCloseable {
     /**
      * Logger.
      */
@@ -43,6 +45,11 @@ public final class Application {
     private Options options;
 
     /**
+     * One upload budget across all client roots in this application.
+     */
+    private com.kniazkov.widgets.view.UploadRegistry uploads;
+
+    /**
      * All active clients, keyed by unique identifier.
      */
     private final ConcurrentMap<RMId, Client> clients;
@@ -51,6 +58,11 @@ public final class Application {
      * Server-issued tab identities, cleaned after revocation or inactivity.
      */
     private final ConcurrentMap<UUID, TabContext> tabs = new ConcurrentHashMap<>();
+
+    /**
+     * Server-issued browser credentials, expired with the ordinary client idle budget.
+     */
+    private final ConcurrentMap<String, BrowserSession> browserSessions = new ConcurrentHashMap<>();
 
     /**
      * Available pages in this application, keyed by path.
@@ -63,6 +75,43 @@ public final class Application {
     private int counter;
 
     /**
+
+     * Constant-cardinality diagnostics shared by all page channels.
+
+     */
+    private final OperationMetrics metrics = new OperationMetrics();
+
+    /**
+     * Includes waiting for the client-map entry and client monitor before the root lock.
+     */
+    private final OperationMetrics channelMetrics = new OperationMetrics();
+
+    /**
+     * Guards registration and the transition to terminal shutdown, never user code.
+     */
+    private final Object lifecycle = new Object();
+
+    /**
+     * Timer owned by this application.
+     */
+    private final Watchdog watchdog = new Watchdog();
+
+    /**
+     * Application-owned resource actions to execute in reverse registration order.
+     */
+    private final List<Runnable> cleanup = new ArrayList<>();
+
+    /**
+     * Whether shutdown has begun.
+     */
+    private volatile boolean closed;
+
+    /**
+     * Whether a listener was already requested for this instance.
+     */
+    private boolean starting;
+
+    /**
      * Constructs an application with a given index page (served at path {@code "/"}).
      *
      * @param index the root page of the application
@@ -70,15 +119,297 @@ public final class Application {
     public Application(Page index) {
         this.serverId = UUID.randomUUID();
         this.clients = new ConcurrentHashMap<>();
-        this.pages = new TreeMap<>();
+        this.pages = new ConcurrentHashMap<>();
         this.pages.put("/", index);
         this.counter = 0;
 
         /*
          * Start watchdog to clean up inactive clients
          */
-        Watchdog watchdog = new Watchdog();
-        watchdog.start(WATCHDOG_PERIOD);
+        this.watchdog.start(WATCHDOG_PERIOD);
+    }
+
+    /**
+     * Samples aggregate diagnostics without exposing browser, page or widget identities.
+     * This explicit operation acquires page monitors and may wait for application handlers.
+     * Do not invoke from a page handler or hold a root lock while sampling other pages.
+     * No public HTTP endpoint is registered; applications control access to these numbers.
+     *
+     * @return immutable fixed-key numeric snapshot; JVM gauges cover the whole process
+     */
+    public Map<String, Long> getMetrics() {
+        final Map<String, Long> values = new java.util.TreeMap<>(this.metrics.snapshot());
+        this.channelMetrics.snapshot().forEach((key, value) -> values.put(
+            key.startsWith("root") ? "channel" + key.substring(4)
+                : "channel" + Character.toUpperCase(key.charAt(0)) + key.substring(1), value));
+        values.put("pages", (long) this.clients.size());
+        for (final String key : new String[]{"widgets", "pendingUpdates", "pendingUpdateBytes",
+                "bufferedUpdates", "bufferedUpdateBytes", "dirtyWidgets"}) {
+            values.put(key, 0L);
+        }
+        for (final Client client : this.clients.values()) {
+            client.diagnostics().forEach((key, value) -> values.merge(key, value, Long::sum));
+        }
+        final var registry = this.uploads;
+        values.put("uploads", registry == null ? 0L : (long) registry.getActiveCount());
+        values.put("uploadReservedBytes", registry == null ? 0L : registry.getReservedBytes());
+        values.put("uploadProcessing", registry == null ? 0L
+            : (long) registry.getProcessingCount());
+        values.put("uploadQueued", registry == null ? 0L : (long) registry.getQueuedCount());
+        values.put("heapUsedBytes", java.lang.management.ManagementFactory.getMemoryMXBean()
+            .getHeapMemoryUsage().getUsed());
+        long collections = 0;
+        long collectionTime = 0;
+        final var collectors = java.lang.management.ManagementFactory.getGarbageCollectorMXBeans();
+        for (final var collector : collectors) {
+            collections += Math.max(0L, collector.getCollectionCount());
+            collectionTime += Math.max(0L, collector.getCollectionTime());
+        }
+        values.put("gcCount", collections);
+        values.put("gcMillis", collectionTime);
+        final var os = java.lang.management.ManagementFactory.getOperatingSystemMXBean();
+        values.put("processCpuNanos", os instanceof com.sun.management.OperatingSystemMXBean bean
+            ? bean.getProcessCpuTime() : -1L);
+        return Map.copyOf(values);
+    }
+
+    /**
+     * Registers application-owned cleanup (for example cancellation of an executor).
+     *
+     * @param action cleanup action
+     * @throws IllegalStateException if shutdown has begun
+     */
+    public void onClose(final Runnable action) {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            this.cleanup.add(java.util.Objects.requireNonNull(action));
+        }
+    }
+
+    /**
+     * Reports whether shutdown has begun.
+     *
+     * @return terminal shutdown status
+     */
+    public boolean isClosed() {
+        return this.closed;
+    }
+
+    /**
+     * Revokes sessions, releases clients and stops application-owned resources once.
+     * Invoke from the server owner, outside widget event handlers.
+     */
+    @Override
+    public void close() {
+        final List<Client> active;
+        final List<Runnable> actions;
+        synchronized (this.lifecycle) {
+            if (this.closed) {
+                return;
+            }
+            this.closed = true;
+            this.watchdog.stop();
+            this.browserSessions.values().forEach(BrowserSession::revoke);
+            this.browserSessions.clear();
+            this.tabs.values().forEach(TabContext::revoke);
+            this.tabs.clear();
+            active = List.copyOf(this.clients.values());
+            actions = List.copyOf(this.cleanup).reversed();
+            this.cleanup.clear();
+            this.pages.clear();
+        }
+        try {
+            active.forEach(client -> runCleanup(client::close));
+        } finally {
+            this.clients.clear();
+            if (this.uploads != null) {
+                runCleanup(this.uploads::close);
+            }
+            actions.forEach(Application::runCleanup);
+        }
+    }
+
+    /**
+     * Runs one cleanup action independently of failures in other resources.
+     *
+     * @param action owned cleanup
+     */
+    private static void runCleanup(final Runnable action) {
+        try {
+            action.run();
+        } catch (final RuntimeException failure) {
+            LOGGER.log(Level.WARNING, "Application cleanup failed", failure);
+        }
+    }
+
+    /**
+     * Starts the once-only listener configuration.
+     *
+     * @param settings immutable configuration
+     */
+    void beginStart(final Options settings) {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            if (this.starting) {
+                throw new IllegalStateException("Application already started");
+            }
+            this.starting = true;
+            this.setOptions(settings);
+        }
+    }
+
+    /**
+     * Rejects Java-side registrations after shutdown begins.
+     */
+    private void requireOpen() {
+        if (this.closed) {
+            throw new IllegalStateException("Application is closed");
+        }
+    }
+
+    /**
+     * @param credential untrusted cookie
+     * @return active owner, or null without creating or renewing a session
+     */
+    BrowserSession browserSession(final String credential) {
+        final BrowserSession session = credential == null
+            ? null : this.browserSessions.get(credential);
+        return session != null && session.isActive() ? session : null;
+    }
+
+    /**
+     * @param credential optional cookie from a document GET
+     * @return an existing live owner or a newly issued independent owner
+     */
+    BrowserSession bootstrapSession(final String credential) {
+        final BrowserSession existing = this.browserSession(credential);
+        if (existing != null && existing.touch()) {
+            return existing;
+        }
+        synchronized (this.lifecycle) {
+            if (this.closed) {
+                throw new ProtocolAccessException(true);
+            }
+            final BrowserSession created = new BrowserSession(this.options.getClientLifetime());
+            this.browserSessions.put(created.credential(), created);
+            return created;
+        }
+    }
+
+    /**
+     * @param id newly created client
+     * @return channel secret for its initial authenticated response only
+     */
+    String channelToken(final RMId id) {
+        return this.requireClient(id).channelToken();
+    }
+
+
+    /**
+     * Returns the update epoch that was just established during channel creation.
+     *
+     * @param id created client ID
+     * @return non-secret update epoch
+     */
+    String updateEpoch(final RMId id) {
+        return this.requireClient(id).updateEpoch();
+    }
+
+    /**
+     * @return queue configuration negotiated by all page runtimes in this application
+     */
+    ProtocolLimits protocolLimits() {
+        return this.options.getProtocolLimits();
+    }
+
+    /**
+     * Returns a still-registered client for the initial response.
+     *
+     * @param id newly created client identity
+     * @return client accessible for initialization
+     */
+    private Client requireClient(final RMId id) {
+        final Client client = this.clients.get(id);
+        if (this.closed || client == null) {
+            throw new ProtocolAccessException(true);
+        }
+        return client;
+    }
+
+    /**
+     * Optional application-owned push service, advertised only after successful startup.
+     */
+    private volatile PushService push;
+
+    /**
+     * @param service unique active push owner, or null when disabling it
+     */
+    void configurePush(final PushService service) {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            if (service != null && this.push != null && !this.push.isClosed()) {
+                throw new IllegalStateException("Push already started");
+            }
+            this.push = service;
+        }
+    }
+
+    /**
+     * @param service closed owner; a concurrently installed replacement is preserved
+     */
+    void disablePush(final PushService service) {
+        synchronized (this.lifecycle) {
+            if (this.push == service) {
+                this.push = null;
+            }
+        }
+    }
+
+    /**
+     * @return live service advertised by new HTTP page channels
+     */
+    PushService pushServer() {
+        final PushService service = this.push;
+        return service != null && !service.isClosed() ? service : null;
+    }
+
+    /**
+     * @param id page channel identity
+     * @param access authenticated stream owner and per-page credentials
+     * @return existing authorized client, without creating any page state
+     */
+    Client streamClient(final RMId id, final ChannelAccess access) {
+        final Client client = this.requireClient(id);
+        ChannelAccess.require(access, client, this.serverId);
+        return client;
+    }
+
+    /**
+     * Renews an explicitly subscribed page lease without collecting updates or advancing ACKs.
+     * @param client previously authorized channel
+     * @param access immutable owner credentials, checked again on every lease
+     */
+    void renewStreamClient(final Client client, final ChannelAccess access) {
+        synchronized (client) {
+            if (this.streamClient(client.getId(), access) != client
+                    || !access.session.touch() || !client.getTabContext().touch()) {
+                throw new ProtocolAccessException(true);
+            }
+            client.timer = this.options.getClientLifetime();
+        }
+    }
+
+    /**
+     * @return started HTTP configuration for an application-owned stream adapter
+     */
+    Options streamOptions() {
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            if (!this.starting) {
+                throw new IllegalStateException("Start the HTTP server before the stream adapter");
+            }
+            return this.options;
+        }
     }
 
     /**
@@ -104,7 +435,10 @@ public final class Application {
      * @param page    the page instance to register
      */
     public void addPage(final String address, final Page page) {
-        this.pages.put("/" + address, page);
+        synchronized (this.lifecycle) {
+            this.requireOpen();
+            this.pages.put("/" + address, page);
+        }
     }
 
     /**
@@ -133,6 +467,7 @@ public final class Application {
      */
     void setOptions(Options options) {
         this.options = options;
+        this.uploads = new com.kniazkov.widgets.view.UploadRegistry(options);
     }
 
     /**
@@ -144,20 +479,58 @@ public final class Application {
      * @return context, or null for an invalid token
      */
     TabContext resolveTab(final UUID browserId, final String token) {
+        return this.resolveTab(browserId, token, null);
+    }
+
+    /**
+     * @param browserId application browser metadata
+     * @param token optional document identity
+     * @param owner verified transport owner
+     * @return owned context, or null if invalid or revoked
+     */
+    TabContext resolveTab(final UUID browserId, final String token, final BrowserSession owner) {
         if (token == null) {
-            final TabContext tab = new TabContext(browserId, this.options.getClientLifetime());
-            this.tabs.put(tab.getId(), tab);
-            return tab;
+            synchronized (this.lifecycle) {
+                if (this.closed) {
+                    return null;
+                }
+                final TabContext tab = new TabContext(
+                    owner, browserId, this.options.getClientLifetime());
+                this.tabs.put(tab.getId(), tab);
+                return tab;
+            }
         }
         try {
             final TabContext tab = this.tabs.get(UUID.fromString(token));
-            if (tab != null && tab.getBrowserId().equals(browserId) && tab.touch()) {
+            if (tab != null && tab.getBrowserSession() == owner
+                    && tab.getBrowserId().equals(browserId) && tab.touch()) {
                 return tab;
             }
         } catch (final IllegalArgumentException invalid) {
             return null;
         }
         return null;
+    }
+
+    /**
+     * @param address exact registered route
+     * @param parameters untrusted query parameters
+     * @return explicitly public content, or empty for ordinary/private pages
+     */
+    java.util.Optional<PublicDocument> publicDocument(final String address,
+            final Map<String, String> parameters) {
+        final Page page = this.pages.get(address);
+        return page instanceof PublicPage publicPage
+            ? java.util.Optional.of(publicPage.publicDocument(Map.copyOf(parameters)))
+            : java.util.Optional.empty();
+    }
+
+    /**
+     * Bounds browser idle polling below the configured client lease.
+     * @return maximum delay in milliseconds
+     */
+    long pollingMaxDelay() {
+        return Math.max(1L, Math.min(30000L, this.options.getClientLifetime() / 3L));
     }
 
     /**
@@ -171,23 +544,41 @@ public final class Application {
         this.counter++;
         if (context.tabContext == null) {
             context.tabContext = this.resolveTab(
-                context.browserId == null ? UUID.randomUUID() : context.browserId, null);
+                context.browserId == null ? UUID.randomUUID() : context.browserId, null,
+                context.browserSession);
         }
-        final Client client = new Client(this.options, context.tabContext);
-        client.timer = this.options.getClientLifetime();
-
+        final Client client;
+        final Page page;
+        synchronized (this.lifecycle) {
+            if (this.closed || context.tabContext == null) {
+                throw new ProtocolAccessException(true);
+            }
+            page = this.pages.getOrDefault(address, this.pages.get("/"));
+            client = new Client(this.options, context.tabContext, this.uploads, this.metrics);
+            client.timer = this.options.getClientLifetime();
+        }
         final RMId id = client.getId();
         final RootWidget root = client.getRootWidget();
-        final Page page = this.pages.get(this.pages.containsKey(address) ? address : "/");
         try {
+            context.publicDocument = this.publicDocument(address, context.parameters);
+            context.publicDocument.ifPresent(document -> {
+                root.setTitle(document.title());
+                root.setDescription(document.description());
+            });
             page.create(root, context);
         } catch (final RuntimeException | Error failure) {
-            client.destroy();
+            client.close();
             throw failure;
         }
 
-        this.clients.put(id, client);
-        return id;
+        synchronized (this.lifecycle) {
+            if (!this.closed) {
+                this.clients.put(id, client);
+                return id;
+            }
+        }
+        client.close();
+        throw new ProtocolAccessException(true);
     }
 
     /**
@@ -196,6 +587,14 @@ public final class Application {
      * @param data diagnostic fields, never request payloads or form values
      */
     void reportBrowserError(final Map<String, String> data) {
+        this.reportBrowserError(data, null);
+    }
+
+    /**
+     * @param data bounded diagnostic fields
+     * @param access authenticated channel credentials
+     */
+    void reportBrowserError(final Map<String, String> data, final ChannelAccess access) {
         final Client client;
         try {
             client = this.clients.get(RMId.parse(data.get("client")));
@@ -206,6 +605,10 @@ public final class Application {
             return;
         }
         synchronized (client) {
+            ChannelAccess.require(access, client, this.serverId);
+            if (!client.getTabContext().isActive()) {
+                return;
+            }
             if (client.errorReported) {
                 return;
             }
@@ -213,6 +616,10 @@ public final class Application {
             String report = data.getOrDefault("error", "Unknown browser error");
             report = report.substring(0, Math.min(8192, report.length()));
             report = report.replaceAll("[\\p{Cntrl}]", " ");
+            report = report.replace(client.channelToken(), "[redacted]");
+            if (access != null) {
+                report = access.session.redact(report);
+            }
             LOGGER.severe("Browser-reported error; client=" + client.getId()
                 + "; server=" + this.serverId + "; detail=" + report);
         }
@@ -226,15 +633,26 @@ public final class Application {
      * @return {@code true} if the client was removed
      */
     boolean killClient(final RMId clientId) {
+        return this.killClient(clientId, null);
+    }
+
+    /**
+     * @param clientId target client
+     * @param access authenticated channel credentials
+     * @return whether a live owned client was removed
+     */
+    boolean killClient(final RMId clientId, final ChannelAccess access) {
         this.counter++;
-        final Client client = this.clients.remove(clientId);
-        if (client != null) {
+        final boolean[] removed = {false};
+        this.clients.computeIfPresent(clientId, (id, client) -> {
             synchronized (client) {
-                client.destroy();
+                ChannelAccess.require(access, client, this.serverId);
+                client.close();
+                removed[0] = true;
             }
-            return true;
-        }
-        return false;
+            return null;
+        });
+        return removed[0];
     }
 
 
@@ -261,19 +679,36 @@ public final class Application {
      */
     void synchronize(final RMId clientId, final Map<String, String> request,
                         final JsonObject response) {
+        this.synchronize(clientId, request, response, null);
+    }
+
+    /**
+     * @param clientId target client
+     * @param request synchronization data
+     * @param response response destination
+     * @param access authenticated channel credentials
+     */
+    void synchronize(final RMId clientId, final Map<String, String> request,
+            final JsonObject response, final ChannelAccess access) {
         this.counter++;
-        this.clients.computeIfPresent(clientId, (id, client) -> {
+        this.withClientMetrics(clientId, (id, client) -> {
             synchronized (client) {
+                ChannelAccess.require(access, client, this.serverId);
+                if (access != null && !access.session.touch()) {
+                    throw new ProtocolAccessException(true);
+                }
                 if (!client.getTabContext().touch()) {
                     response.addBoolean("tabContextExpired", true);
                     return client;
                 }
                 client.timer = this.options.getClientLifetime();
-                client.synchronize(request, response);
+                client.synchronize(request, response, access != null);
                 if (!client.getTabContext().isActive()) {
                     response.addBoolean("tabContextExpired", true);
                 }
-                response.addBoolean("result", true);
+                if (!response.containsKey("protocolMismatch")) {
+                    response.addBoolean("result", true);
+                }
                 response.addBoolean("clientAlive", true);
             }
             return client;
@@ -298,10 +733,32 @@ public final class Application {
             final int chunkIndex,
             final byte[] data,
             final String lastUpdate) {
+        return this.uploadChunk(clientId, widgetId, fileId, chunkIndex, data, lastUpdate,
+            null, null);
+    }
+
+    /**
+     * @param clientId target client
+     * @param widgetId target file loader
+     * @param fileId browser-local file ID
+     * @param chunkIndex chunk position
+     * @param data binary data
+     * @param lastUpdate checkpoint
+     * @param updateEpoch outgoing update stream generation
+     * @param access authenticated channel credentials
+     * @return upload acknowledgement
+     */
+    JsonObject uploadChunk(final RMId clientId, final RMId widgetId, final int fileId,
+            final int chunkIndex, final byte[] data, final String lastUpdate,
+            final String updateEpoch, final ChannelAccess access) {
         this.counter++;
         final JsonObject[] result = {UploadProtocol.rejected()};
-        this.clients.computeIfPresent(clientId, (id, client) -> {
+        this.withClientMetrics(clientId, (id, client) -> {
             synchronized (client) {
+                ChannelAccess.require(access, client, this.serverId);
+                if (access != null && !access.session.touch()) {
+                    throw new ProtocolAccessException(true);
+                }
                 if (!client.getTabContext().touch()) {
                     return client;
                 }
@@ -311,12 +768,40 @@ public final class Application {
                     fileId,
                     chunkIndex,
                     data,
-                    lastUpdate
+                    lastUpdate, updateEpoch, access != null
                 );
             }
             return client;
         });
         return result[0];
+    }
+
+    /**
+     * @param id page identity, never retained in a metric label
+     * @param operation authenticated operation under the client monitor
+     */
+    private void withClientMetrics(final RMId id,
+            final java.util.function.BiFunction<RMId, Client, Client> operation) {
+        final long started = this.channelMetrics.waiting();
+        final boolean[] entered = {false};
+        try {
+            this.clients.computeIfPresent(id, (key, client) -> {
+                synchronized (client) {
+                    entered[0] = true;
+                    this.channelMetrics.acquired(started);
+                    try {
+                        return operation.apply(key, client);
+                    } finally {
+                        this.channelMetrics.completed();
+                    }
+                }
+            });
+        } finally {
+            if (!entered[0]) {
+                this.channelMetrics.acquired(started);
+                this.channelMetrics.completed();
+            }
+        }
     }
 
     /**
@@ -326,14 +811,20 @@ public final class Application {
     private class Watchdog extends Periodic {
         @Override
         protected boolean tick() {
+            if (closed) {
+                return false;
+            }
+            browserSessions.entrySet().removeIf(entry -> !entry.getValue().isActive());
             tabs.entrySet().removeIf(entry -> !entry.getValue().isActive());
             for (final Map.Entry<RMId, Client> entry : clients.entrySet()) {
                 final RMId id = entry.getKey();
                 clients.computeIfPresent(id, (key, client) -> {
                     synchronized (client) {
                         client.timer -= WATCHDOG_PERIOD;
-                        if (client.timer <= 0) {
-                            client.destroy();
+                        if (client.timer <= 0 || !client.getTabContext().isActive()
+                                || (client.getTabContext().getBrowserSession() != null
+                                && !client.getTabContext().getBrowserSession().isActive())) {
+                            client.close();
                             LOGGER.info("Client " + id + " is killed by the watchdog.");
                             return null;
                         }

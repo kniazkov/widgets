@@ -157,6 +157,29 @@ public abstract class Property<T> {
     }
 
     /**
+     * Binds a local cascade of a shared style source.
+     *
+     * @param state property state
+     * @param model shared style model
+     * @param widget receiving widget
+     * @return binding responsible for the local cascade
+     */
+    Binding<T> bindStyleModel(final State state, final Model<?> model, final Widget<?> widget) {
+        return Binding.ofStyle(
+            this.cast(model), new Widget.PropertyListener<>(widget, state, this));
+    }
+
+    /**
+     * Replaces the binding with a locally owned cascade.
+     *
+     * @param binding target binding
+     * @param model shared style model
+     */
+    void rebindStyleModel(final Binding<?> binding, final Model<?> model) {
+        this.cast(binding).setStyleModel(this.cast(model));
+    }
+
+    /**
      * Safely casts a generic {@link Binding} to a typed {@link Binding}.
      *
      * @param binding the binding to cast
@@ -378,6 +401,92 @@ public abstract class Property<T> {
     public static final Property<Boolean> DISABLED = boolProperty("disabled");
 
     /**
+
+     * Whether a text field is read-only.
+
+     */
+    static final Property<Boolean> READ_ONLY = boolProperty("read only");
+
+    /**
+     * Native label target widget.
+     */
+    static final Property<String> LABEL_TARGET = stringProperty("label target");
+    /**
+     * Native editor field name.
+     */
+    static final Property<String> FORM_NAME = stringProperty("form name");
+    /**
+     * Native autocomplete hint.
+     */
+    static final Property<String> AUTOCOMPLETE = stringProperty("autocomplete");
+    /**
+     * Native and server required field flag.
+     */
+    static final Property<Boolean> REQUIRED = boolProperty("required");
+    /**
+     * UTF-16 limit for an editor in a form.
+     */
+    static final Property<Integer> MAX_LENGTH = of(
+        "max length", Integer.class, () -> new IntegerModel(-1), JsonNumber::of
+    );
+    /**
+     * Form error flag independent of the editor model validity.
+     */
+    static final Property<Boolean> FORM_ERROR = boolProperty("form error");
+    /**
+     * Whether a form is awaiting a submission result.
+     */
+    static final Property<Boolean> FORM_BUSY = boolProperty("form busy");
+
+    /**
+     * Turns a text widget into a polite form-result live region.
+     */
+    static final Property<Boolean> FORM_STATUS = boolProperty("form status");
+
+    /**
+     * Common spacing for adaptive layout widgets.
+     */
+    static final Property<Integer> LAYOUT_GAP = of(
+        "layout gap", Integer.class, () -> new IntegerModel(12), JsonNumber::of
+    );
+    /**
+     * Main direction of a Stack.
+     */
+    static final Property<String> STACK_DIRECTION = of(
+        "stack direction", String.class, () -> new StringModel("vertical"), JsonString::new
+    );
+    /**
+     * Cross-axis alignment of a Stack.
+     */
+    static final Property<String> STACK_ALIGNMENT = of(
+        "stack alignment", String.class, () -> new StringModel("stretch"), JsonString::new
+    );
+    /**
+     * Wrapping policy of a horizontal Stack.
+     */
+    static final Property<Boolean> STACK_WRAP = of(
+        "stack wrap", Boolean.class, () -> new BooleanModel(true), JsonBoolean::of
+    );
+    /**
+     * Preferred minimum track size of a ResponsiveGrid.
+     */
+    static final Property<Integer> GRID_MIN_WIDTH = of(
+        "grid min width", Integer.class, () -> new IntegerModel(160), JsonNumber::of
+    );
+    /**
+     * Maximum size of a ResponsiveGrid track, or zero for flexible tracks.
+     */
+    static final Property<Integer> GRID_MAX_WIDTH = of(
+        "grid max width", Integer.class, () -> new IntegerModel(0), JsonNumber::of
+    );
+    /**
+     * Width at which FormLayout aligns labels and controls in two columns.
+     */
+    static final Property<Integer> FORM_BREAKPOINT = of(
+        "form breakpoint", Integer.class, () -> new IntegerModel(520), JsonNumber::of
+    );
+
+    /**
      * Property controlling whether the widget is hidden.
      */
     public static final Property<Boolean> HIDDEN = boolProperty("hidden");
@@ -387,6 +496,51 @@ public abstract class Property<T> {
      */
     public static final Property<Boolean> CLOSE_ON_OUTSIDE_CLICK =
         boolProperty("close on outside click");
+
+    /**
+     * Whether Escape dismisses the active modal.
+     */
+    public static final Property<Boolean> CLOSE_ON_ESCAPE = boolProperty("close on escape");
+
+    /**
+     * Optional plain-text description of a modal dialog.
+     */
+    public static final Property<String> ACCESSIBLE_DESCRIPTION =
+        stringProperty("accessible description");
+
+    /**
+     * Stable ID of the visible label or empty when unset.
+     */
+    static final Property<String> ACCESSIBLE_LABEL = stringProperty("accessible label");
+
+    /**
+     * Stable ID of the help widget or empty when unset.
+     */
+    static final Property<String> ACCESSIBLE_DESCRIPTION_WIDGET =
+        stringProperty("accessible description widget");
+
+    /**
+     * Stable ID of the error widget or empty when unset.
+     */
+    static final Property<String> ACCESSIBLE_ERROR = stringProperty("accessible error");
+
+    /**
+     * Alternative text for an informative image.
+     */
+    public static final Property<String> ALTERNATIVE_TEXT = stringProperty("alternative text");
+
+    /**
+     * Whether the image is excluded from the accessible tree.
+     */
+    public static final Property<Boolean> DECORATIVE_IMAGE = boolProperty("decorative image");
+
+    /**
+     * Heading level, with zero representing ordinary inline text.
+     */
+    static final Property<Integer> HEADING_LEVEL = of(
+        "heading level", Integer.class, () -> new IntegerModel(0),
+        value -> JsonNumber.of(value.doubleValue())
+    );
 
     /**
      * Sizes an overlay stack from its first child only.
@@ -745,6 +899,16 @@ public abstract class Property<T> {
      * Property controlling whether the widget (checkbox) is checked.
      */
     public static final Property<Boolean> CHECKED = boolProperty("checked");
+
+    /**
+     * Explicit accessible name of a control or dialog.
+     */
+    public static final Property<String> ACCESSIBLE_NAME = stringProperty("accessible name");
+
+    /**
+     * Internal identity of the primary native radio group.
+     */
+    static final Property<String> RADIO_GROUP = stringProperty("radio group");
 
     /**
      * Property controlling whether a widget accepts multiple selections.

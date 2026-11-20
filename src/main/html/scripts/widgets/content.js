@@ -11,6 +11,10 @@ function setText(data) {
         } else {
             widget.innerHTML = escapeHtml(data.text);
         }
+        const label = widget.closest?.("label");
+        if (label?._choiceLabelElement) {
+            widgets[label._choiceWidgetId]?._refreshChoiceName?.();
+        }
         if (flag) {
             log('The text "' + data.text + '" has been set to the widget ' + data.widget + ".");
         }
@@ -192,12 +196,36 @@ function setCheckedFlag(data) {
     const widget = widgets[data.widget];
     const flag = data.checked;
     if (widget && typeof flag == "boolean") {
-        widget._selected = flag;
-        refreshWidget(widget);
+        if (widget._choiceType) {
+            widget.checked = flag;
+            refreshChoiceGroup(widget);
+        } else {
+            widget._selected = flag;
+            refreshWidget(widget);
+        }
         log("The widget " + data.widget + " has been " + (flag ? "checked" : "unchecked") + ".");
         return true;
     }
     return false;
+}
+
+function setChoiceAccessibleName(data) {
+    const widget = widgets[data.widget];
+    const name = data["accessible name"];
+    if (!widget?._choiceType || typeof name !== "string") return false;
+    widget._choiceName = name;
+    widget._refreshChoiceName();
+    return true;
+}
+
+function setRadioGroupName(data) {
+    const widget = widgets[data.widget];
+    const name = data["radio group"];
+    if (widget?._choiceType !== "radio" || typeof name !== "string") return false;
+    if (name) widget.name = "widgets-radio-" + name;
+    else widget.removeAttribute("name");
+    refreshChoiceGroup(widget);
+    return true;
 }
 
 function replaceColorsInSvg(svg, color, bgColor) {

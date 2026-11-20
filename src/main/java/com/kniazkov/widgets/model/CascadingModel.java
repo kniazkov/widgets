@@ -29,7 +29,8 @@ import com.kniazkov.widgets.common.Listener;
  *
  * @param <T> the type of the data managed by this model
  */
-public final class CascadingModel<T> extends SingleThreadModel<T> implements Listener<T> {
+public final class CascadingModel<T> extends SingleThreadModel<T>
+        implements Listener<T>, AutoCloseable {
 
     /**
      * The currently active model — initially the shared base model, and later
@@ -44,6 +45,11 @@ public final class CascadingModel<T> extends SingleThreadModel<T> implements Lis
      * {@code true} means a local model has been created and is now active.
      */
     private boolean flag;
+
+    /**
+     * Whether the active model's subscription has been released.
+     */
+    private boolean closed;
 
     /**
      * Creates a new cascading model that initially delegates all operations
@@ -69,6 +75,9 @@ public final class CascadingModel<T> extends SingleThreadModel<T> implements Lis
 
     @Override
     public boolean setData(final T data) {
+        if (this.closed) {
+            throw new IllegalStateException("Cascading model is closed");
+        }
         if (this.flag) {
             return this.model.setData(data);
         }
@@ -87,6 +96,19 @@ public final class CascadingModel<T> extends SingleThreadModel<T> implements Lis
 
     @Override
     public void accept(final T data) {
-        this.notifyListeners();
+        if (!this.closed) {
+            this.notifyListeners();
+        }
+    }
+
+    /**
+     * Detaches this wrapper from its upstream model without closing the supplied model.
+     */
+    @Override
+    public void close() {
+        if (!this.closed) {
+            this.closed = true;
+            this.model.removeListener(this);
+        }
     }
 }

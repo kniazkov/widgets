@@ -1,15 +1,21 @@
-import { readScriptGroup } from "./helpers/scripts.js";
+import { readScript, readScriptGroup } from "./helpers/scripts.js";
 
 import { JSDOM } from "jsdom";
 import { afterEach, describe, expect, it } from "vitest";
 
-const source = readScriptGroup("client");
+const source =
+    readScript("shared/transport-channel.js") +
+    "\n" +
+    readScript("shared/transport.js") +
+    "\n" +
+    readScriptGroup("client");
 
 const handlerNames = [
     "log",
     "setCountdownDeadline",
     "sampleCountdownClock",
     "disposeCountdowns",
+    "disposeQrScanners",
     "createWidget",
     "reset",
     "goToPage",
@@ -20,6 +26,9 @@ const handlerNames = [
     "appendChildWidget",
     "insertChildWidget",
     "removeChildWidget",
+    "disposeWidget",
+    "disposeAllWidgets",
+    "trimDetachedWidgets",
     "setValidFlag",
     "setDisabledFlag",
     "setHiddenFlag",
@@ -28,7 +37,25 @@ const handlerNames = [
     "setPlaceholderColor",
     "setInputMode",
     "setSuggestions",
+    "setChoiceState",
+    "setDataTable",
+    "setTreeView",
+    "setSplitPane",
+    "setSlider",
+    "setFeedback",
+    "setTemporalInput",
+    "setNavigation",
+    "setAnchoredOverlay",
     "setSuggestionSeparator",
+    "setKeyboardShortcuts",
+    "setInputReadOnly",
+    "setFormEditorAttribute",
+    "setFormEditorError",
+    "setFormBusy",
+    "setAdaptiveLayout",
+    "setFormStatus",
+    "focusFormEditor",
+    "setAccessibleReference",
     "setOptions",
     "setOption",
     "setCarouselSources",
@@ -45,6 +72,12 @@ const handlerNames = [
     "setBgColor",
     "setBackdropColor",
     "setCloseOnOutsideClick",
+    "setCloseOnEscape",
+    "setWidgetAccessibleDescription",
+    "setHeadingLevel",
+    "setAlternativeText",
+    "setDecorativeImage",
+    "refreshModalStack",
     "setOpacity",
     "setWidth",
     "setMaxWidth",
@@ -76,7 +109,12 @@ const handlerNames = [
     "setStickySide",
     "setCellSpacing",
     "setCheckedFlag",
+    "setWidgetAccessibleName",
+    "setRadioGroupName",
     "setMultipleInput",
+    "setUploadManager",
+    "setInputDebounce",
+    "flushTextInputs",
     "setAcceptedFiles"
 ];
 
@@ -94,18 +132,30 @@ function createHarness() {
     const handlers = handlerNames.map(name => `function ${name}() { return true; }`).join("\n");
     dom.window.eval(`const widgets = {};\n${handlers}\n
         window.__requests = [];
+        Math.random = () => 0.5;
         window.__scheduledTasks = [];
-        function sendRequest(request, callback) {
+        function captureRequest(request, callback) {
             window.__requests.push({ request, callback });
         }
         function isMobileDevice() {
             return false;
         }
-        window.setTimeout = function (callback) {
-            window.__scheduledTasks.push(callback);
-            return window.__scheduledTasks.length;
+        window.setTimeout = function (callback, delay) {
+            const task = function () {
+                if (!task.active) return;
+                task.active = false;
+                callback();
+            };
+            task.delay = delay;
+            task.active = true;
+            window.__scheduledTasks.push(task);
+            return task;
         };
-        ${source}\n
+        window.clearTimeout = function (task) {
+            if (task) task.active = false;
+        };
+        ${source}\n${readScript("widgets/local-actions.js")}\n
+        sendRequest = captureRequest;
         window.__reloadCount = 0;
         window.__openedTabs = [];
         window.open = function (...args) {
@@ -119,15 +169,23 @@ function createHarness() {
             succeed: recordRequestSuccess,
             reportClientError: responseHasClientError,
             showClientError,
-            setClientId: value => { clientId = value; },
+            setClientId: value => { clientId = value; updateEpoch = "test-stream"; },
             startClient,
             requests: window.__requests,
             scheduledTasks: window.__scheduledTasks,
             setServerId: function (value) { serverId = value; },
+            processUpdates,
+            checkpoint: () => lastAppliedUpdateSequence,
+            useAction: (name, handler) => { actionHandlers[name] = handler; },
             serverStateIsCurrent: serverStateIsCurrent,
             reconcileTextInputs,
             openPageInNewTab,
             sendEventToServer,
+            createEvent,
+            configureEventBatches,
+            sendSynchronizeRequest,
+            mainCycle,
+            disposeClient,
             openedTabs: window.__openedTabs,
             events,
             widgets
@@ -196,6 +254,54 @@ describe("connection recovery", () => {
 
         harness.succeed();
         expect(dom.window.document.getElementById("client-error-overlay")).toBe(overlay);
+    });
+
+    it.each([
+        [{ protocolMismatch: true }, "protocol"],
+        [{ accessDenied: true }, "access"],
+        [{ sessionExpired: true }, "session"]
+    ])("stops synchronization on a terminal response: %o", (response, reason) => {
+        const harness = createHarness();
+        if (response.sessionExpired) {
+            dom.window.sessionStorage.setItem("widgetsSessionRefreshAttempted", "3");
+        }
+        harness.setClientId("#123");
+        harness.sendSynchronizeRequest();
+        harness.requests[0].callback(JSON.stringify(response));
+        expect(dom.window.document.getElementById("client-error-overlay")?.dataset.reason).toBe(
+            reason
+        );
+        dom.window.dispatchEvent(new dom.window.Event("online"));
+        harness.mainCycle();
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.scheduledTasks).toHaveLength(0);
+    });
+
+    it("retries a second cookie rotation with a bounded delayed reload", () => {
+        const harness = createHarness();
+        dom.window.sessionStorage.setItem("widgetsSessionRefreshAttempted", "1");
+        harness.reportClientError({ sessionExpired: true });
+        expect(dom.window.sessionStorage.getItem("widgetsSessionRefreshAttempted")).toBe("2");
+        expect(harness.scheduledTasks.filter(task => task.active)).toHaveLength(1);
+        expect(harness.scheduledTasks.at(-1).delay).toBe(750);
+        expect(dom.window.document.getElementById("client-error-overlay")).toBeNull();
+        harness.reportClientError({ sessionExpired: true });
+        expect(harness.scheduledTasks.filter(task => task.active)).toHaveLength(1);
+    });
+
+    it("does not send offline and wakes the existing gate when back online", () => {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        Object.defineProperty(dom.window.navigator, "onLine", { configurable: true, value: false });
+        harness.sendSynchronizeRequest();
+        harness.sendSynchronizeRequest();
+        expect(harness.requests).toHaveLength(0);
+        expect(harness.scheduledTasks).toHaveLength(1);
+        Object.defineProperty(dom.window.navigator, "onLine", { configurable: true, value: true });
+        dom.window.dispatchEvent(new dom.window.Event("online"));
+        expect(harness.requests).toHaveLength(1);
+        harness.scheduledTasks[0]();
+        expect(harness.requests).toHaveLength(1);
     });
 
     it("reloads when the server instance changes", () => {
@@ -284,5 +390,313 @@ describe("new tab navigation", () => {
 
         expect(harness.openPageInNewTab({ href: 42 })).toBe(true);
         expect(harness.openedTabs).toEqual([]);
+    });
+});
+
+describe("event delivery acknowledgements", () => {
+    function deliveryHarness() {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        harness.setServerId("server");
+        harness.enqueue = () => harness.createEvent({ _id: "#7" }, "click");
+        harness.sync = harness.sendSynchronizeRequest;
+        harness.respond = (lastEvent, extra = {}) => {
+            harness.requests.at(-1).callback(
+                JSON.stringify({
+                    result: true,
+                    clientAlive: true,
+                    serverId: "server",
+                    lastEvent,
+                    updateEpoch: "test-stream",
+                    updateBase: 0,
+                    updateThrough: 0,
+                    snapshot: true,
+                    updates: [],
+                    ...extra
+                })
+            );
+        };
+        return harness;
+    }
+
+    it("batches input under negotiated limits and does not approve a later upload early", () => {
+        const harness = deliveryHarness();
+        const status = [];
+        harness.configureEventBatches(2, 1024);
+        harness.enqueue();
+        harness.enqueue();
+        harness.enqueue();
+        harness.sync(answer => status.push(answer));
+
+        expect(harness.requests[0].request.events.map(event => event.id)).toEqual(["#1", "#2"]);
+        harness.respond("#2");
+        expect(status).toEqual([]);
+        expect(harness.requests[1].request.events.map(event => event.id)).toEqual(["#3"]);
+        harness.respond("#3", { moreUpdates: true });
+        expect(status).toEqual([true]);
+        expect(harness.requests[2].request.events).toHaveLength(0);
+    });
+
+    it("caps offline input without attempting to replay any of it", () => {
+        const harness = deliveryHarness();
+        for (let index = 0; index < 256; index++) {
+            expect(harness.enqueue()).toBe(true);
+        }
+        expect(harness.enqueue()).toBe(false);
+        expect(harness.events).toHaveLength(0);
+        harness.sync();
+        expect(harness.requests).toHaveLength(0);
+        expect(
+            dom.window.document.querySelector('[data-reason="backpressure"]')?.textContent
+        ).toContain("unsent actions are not replayed");
+    });
+
+    it("consumes rejected/obsolete events and leaves subsequent in-flight input queued", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        harness.enqueue();
+        expect(harness.requests[0].request.events).toHaveLength(1);
+        harness.respond("#1", { eventResults: [{ id: "#1", status: "obsolete" }] });
+        expect(harness.events.map(event => event.id)).toEqual(["#2"]);
+        expect(harness.requests).toHaveLength(2);
+        harness.respond("#2", { eventResults: [{ id: "#2", status: "rejected" }] });
+        expect(harness.events).toHaveLength(0);
+        expect(harness.requests).toHaveLength(2);
+        expect(harness.scheduledTasks).toHaveLength(0);
+    });
+
+    it("bounds unchanged ACKs and gates polling, new input and recursive callbacks", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        const results = [];
+        const again = accepted => {
+            results.push(accepted);
+            harness.sync(again);
+        };
+        harness.sync(again);
+        harness.respond("#?");
+        expect(results).toEqual([false]);
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.scheduledTasks[0].delay).toBe(250);
+        harness.enqueue();
+        harness.mainCycle();
+        harness.sync();
+        expect(harness.requests).toHaveLength(1);
+        harness.scheduledTasks[0]();
+        harness.respond("#?");
+        expect(harness.scheduledTasks[1].delay).toBe(500);
+        harness.scheduledTasks[1]();
+        harness.respond("#?");
+        expect(harness.requests).toHaveLength(3);
+        expect(dom.window.__reloadCount).toBe(1);
+        harness.sync();
+        harness.mainCycle();
+        for (const task of harness.scheduledTasks) task();
+        expect(harness.requests).toHaveLength(3);
+        expect(results.every(value => !value)).toBe(true);
+    });
+
+    it("resets the stall budget after partial cumulative progress", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.enqueue();
+        harness.sync();
+        harness.respond("#?");
+        harness.scheduledTasks[0]();
+        harness.respond("#1");
+        expect(harness.events.map(event => event.id)).toEqual(["#2"]);
+        harness.respond("#1");
+        expect(harness.scheduledTasks[1].delay).toBe(250);
+        harness.scheduledTasks[1]();
+        harness.respond("#2");
+        expect(harness.events).toHaveLength(0);
+        expect(dom.window.__reloadCount).toBe(0);
+    });
+
+    it("retries a lost reply with the same IDs through the backoff gate", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        harness.requests[0].callback(null);
+        harness.enqueue();
+        harness.sync();
+        expect(harness.requests).toHaveLength(1);
+        expect(harness.scheduledTasks[0].delay).toBe(500);
+        harness.scheduledTasks[0]();
+        expect(harness.requests[1].request.events.map(event => event.id)).toEqual(["#1", "#2"]);
+        harness.respond("#2");
+        expect(harness.events).toHaveLength(0);
+        expect(dom.window.__reloadCount).toBe(0);
+    });
+
+    it.each([undefined, "broken", "#", "#01", "#1.0", "#2", "#9007199254740992"])(
+        "resynchronizes an invalid or unsent ACK %s without dropping pending input",
+        ack => {
+            const harness = deliveryHarness();
+            harness.enqueue();
+            harness.sync();
+            harness.enqueue();
+            harness.respond(ack);
+            expect(dom.window.__reloadCount).toBe(1);
+            expect(harness.events).toHaveLength(2);
+            expect(harness.requests).toHaveLength(1);
+        }
+    );
+
+    it("resynchronizes a regressing ACK even on an empty poll", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        harness.respond("#1");
+        harness.sync();
+        harness.respond("#?");
+        expect(dom.window.__reloadCount).toBe(1);
+        expect(harness.requests).toHaveLength(2);
+    });
+
+    it("honors server resync and closes the gate before invoking callbacks", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync(() => harness.sync());
+        harness.respond("#?", { eventResyncRequired: true });
+        expect(dom.window.__reloadCount).toBe(1);
+        expect(harness.requests).toHaveLength(1);
+    });
+
+    it("cancels retry timers and ignores late replies after disposal", () => {
+        const harness = deliveryHarness();
+        harness.enqueue();
+        harness.sync();
+        const reply = harness.requests[0].callback;
+        harness.respond("#?");
+        harness.disposeClient();
+        harness.scheduledTasks[0]();
+        reply(
+            JSON.stringify({
+                result: true,
+                serverId: "server",
+                clientAlive: true,
+                lastEvent: "#1",
+                updateEpoch: "test-stream",
+                updateBase: 0,
+                updateThrough: 0,
+                snapshot: true,
+                updates: []
+            })
+        );
+        expect(harness.requests.map(entry => entry.request.action)).toEqual([
+            "synchronize",
+            "kill"
+        ]);
+        expect(dom.window.__reloadCount).toBe(0);
+        expect(harness.events).toHaveLength(1);
+    });
+});
+
+describe("versioned update stream", () => {
+    function frame(base, updates) {
+        return {
+            updateEpoch: "test-stream",
+            updateBase: base,
+            updateThrough: base + updates.length,
+            snapshot: base === 0,
+            updates
+        };
+    }
+
+    function command(sequence, action = "set text", id = "#" + sequence * 101) {
+        return { sequence, action, id, widget: "#9" };
+    }
+
+    function ready() {
+        const harness = createHarness();
+        harness.setClientId("#123");
+        return harness;
+    }
+
+    it("uses a channel sequence, ignores replays and advances for an intentional no-op", () => {
+        const harness = ready();
+        let calls = 0;
+        harness.useAction("set text", () => {
+            calls++;
+            return true;
+        });
+        const snapshot = frame(0, [command(1, "set text", "#2"), command(2, "set text", "#92")]);
+        expect(harness.processUpdates(snapshot)).toBe(true);
+        expect(harness.processUpdates(snapshot)).toBe(true);
+        expect(harness.processUpdates(frame(2, [command(3, "dispose widget")]))).toBe(true);
+        expect(harness.checkpoint()).toBe(3);
+        expect(calls).toBe(2);
+        expect(dom.window.document.getElementById("client-error-overlay")).toBeNull();
+    });
+
+    it.each(["unknown command", "set text", "set hidden"])(
+        "never accepts a failed %s or a later command in its frame",
+        action => {
+            const harness = ready();
+            let laterCalls = 0;
+            harness.useAction("set text", () => false);
+            harness.useAction("set hidden", () => {
+                throw new Error("fixture handler failed");
+            });
+            harness.useAction("set width", () => {
+                laterCalls++;
+                return true;
+            });
+            expect(
+                harness.processUpdates(
+                    frame(0, [command(1, "set width"), command(2, action), command(3, "set width")])
+                )
+            ).toBe(false);
+            expect(harness.checkpoint()).toBe(1);
+            expect(laterCalls).toBe(1);
+            const requestsBefore = harness.requests.length;
+            harness.sendSynchronizeRequest();
+            expect(harness.requests).toHaveLength(requestsBefore);
+            expect(dom.window.document.getElementById("client-error-overlay").dataset.reason).toBe(
+                "protocol"
+            );
+        }
+    );
+
+    it("rejects gaps, duplicate or reordered positions, incomplete frames and expired epochs up front", () => {
+        for (const receipt of [
+            frame(0, [command(1), command(3)]),
+            frame(0, [command(2), command(1)]),
+            frame(0, [command(1), command(1)]),
+            { ...frame(0, [command(1)]), updateThrough: 2 },
+            { ...frame(0, [command(1)]), updateEpoch: "expired-stream" }
+        ]) {
+            const harness = ready();
+            let calls = 0;
+            harness.useAction("set text", () => {
+                calls++;
+                return true;
+            });
+            expect(harness.processUpdates(receipt)).toBe(false);
+            expect(harness.checkpoint()).toBe(0);
+            expect(calls).toBe(0);
+            dom.window.close();
+        }
+    });
+
+    it("does not fall back to an old update server after bootstrap negotiation", () => {
+        const harness = createHarness();
+        harness.startClient("/catalog", {});
+        expect(harness.requests[0].request.updateVersion).toBe("2");
+        expect(harness.requests[0].request.updateCapability).toBe("sequenced-updates");
+        harness.requests[0].callback(
+            JSON.stringify({
+                id: "#1",
+                serverId: "test-server",
+                channelToken: "test-channel",
+                updateVersion: "1"
+            })
+        );
+        expect(harness.requests).toHaveLength(1);
+        expect(dom.window.document.getElementById("client-error-overlay").dataset.reason).toBe(
+            "protocol"
+        );
     });
 });

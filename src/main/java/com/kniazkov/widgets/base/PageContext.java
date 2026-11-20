@@ -15,6 +15,11 @@ import java.util.UUID;
  */
 public class PageContext {
     /**
+     * Public snapshot evaluated once for this interactive creation.
+     */
+    java.util.Optional<PublicDocument> publicDocument = java.util.Optional.empty();
+
+    /**
      * Creates an empty page context.
      */
     public PageContext() {
@@ -25,9 +30,17 @@ public class PageContext {
      * <p>
      * This UUID is generated once per browser installation and persists across sessions
      * and page reloads, as long as the browser's local storage is not cleared.
-     * It can be used to maintain anonymous state or preferences for the client.
+     * It can be used for non-sensitive preferences, but is untrusted client input.
+     * Never use it alone to identify an authenticated user or authorize private data.
      */
     public UUID browserId;
+
+    /**
+     * Server-authenticated transport session. Set for HTTP-created pages; may be null
+     * for manually constructed contexts. Revoke on authentication changes. This is not
+     * the application user, and browserId remains untrusted client-provided metadata.
+     */
+    public BrowserSession browserSession;
 
     /**
      * Server-owned, revocable identity for this tab's live document. Shared by internal

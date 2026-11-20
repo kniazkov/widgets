@@ -1,537 +1,70 @@
 # Widget catalog
 
-The `com.kniazkov.widgets.view` package contains the server-side view tree. Every actual UI
-widget extends `Widget`, owns a unique ID and a style, binds reactive models to properties, and
-queues protocol updates for the browser. A widget may also expose controllers for browser events.
+[Web Widgets](../README.md) · [Русский](WIDGET_GALLERY.ru.md)
 
-This document covers every widget class currently present in the package. Styles, property
-mixins, and upload helper objects are summarized separately because they are not widgets.
+Choose a task below, or [look up a Java class](#classes). Each entry includes a Java fragment and a real screenshot from the AllWidgets application.
 
-## Class hierarchy
-
-The arrows below represent Java inheritance, not parent-child containment in a rendered UI.
-
-```mermaid
-classDiagram
-    direction TB
-    class Widget {
-        <<abstract>>
-    }
-    class BlockWidget {
-        <<abstract>>
-    }
-    class InlineWidget {
-        <<abstract>>
-    }
-    Widget <|-- RootWidget
-    Widget <|-- BlockWidget
-    Widget <|-- InlineWidget
-    Widget <|-- Row
-    Widget <|-- Cell
-```
-
-Block widgets:
-
-```mermaid
-classDiagram
-    direction TB
-    BlockWidget <|-- Section
-    BlockWidget <|-- SortableSection
-    BlockWidget <|-- HorizontalLine
-    BlockWidget <|-- Panel
-    Panel <|-- StickyPanel
-    BlockWidget <|-- Popup
-    Popup <|-- ModalPopup
-    ModalPopup <|-- MessagePopup
-    BlockWidget <|-- Table
-```
-
-Inline text and action widgets:
-
-```mermaid
-classDiagram
-    direction TB
-    InlineWidget <|-- TextWidget
-    InlineWidget <|-- ActiveText
-    InlineWidget <|-- Link
-    InlineWidget <|-- Button
-    Button <|-- FileLoader
-```
-
-Inline input widgets:
-
-```mermaid
-classDiagram
-    direction TB
-    InlineWidget <|-- InputField
-    InlineBlock <|-- LabeledChoice
-    LabeledChoice <|-- CheckBoxWithText
-    LabeledChoice <|-- RadioButtonWithText
-    InlineWidget <|-- CheckBox
-    InlineWidget <|-- RadioButton
-    InlineWidget <|-- DropDownList
-    InputField <|-- SuggestionField
-    InputField <|-- PasswordInput
-    InputField <|-- TextArea
-```
-
-Inline containers and decorators:
-
-```mermaid
-classDiagram
-    direction TB
-    InlineWidget <|-- InlineBlock
-    InlineWidget <|-- MarginDecorator
-    InlineWidget <|-- ZoomDecorator
-```
-
-Inline image widgets:
-
-```mermaid
-classDiagram
-    direction TB
-    class BaseImageWidget {
-        <<abstract>>
-    }
-    InlineWidget <|-- BaseImageWidget
-    BaseImageWidget <|-- ImageWidget
-    BaseImageWidget <|-- ActiveImage
-    BaseImageWidget <|-- Carousel
-```
-
-`RootWidget`, `Row`, and `Cell` extend `Widget` directly because their placement is governed by
-the root and table structures rather than the general block/inline distinction.
-
-## Abstract widget classes
-
-| Class | Purpose |
+| Task | How to choose |
 | --- | --- |
-| `Widget<S extends Style>` | Base of the entire view hierarchy. Owns identity, parent linkage, style bindings, event controllers, and pending browser updates. |
-| `BlockWidget<S extends Style>` | Marker base for widgets that participate in block-level layout. |
-| `InlineWidget<S extends Style>` | Marker base for widgets that participate in inline layout. |
-| `BaseImageWidget<S extends Style>` | Shared inline base for images, including border, margin, absolute size, and opacity properties. |
+| [Show text, images and actions](en/widgets/display.md) | Use TextWidget for a single piece of live text, Markdown for formatted blocks, Link for a destination and Button for a command. |
+| [Enter text and submit a form](en/widgets/forms.md) | Start with InputField for a single line. Add a FormField for a label, help and errors, then a Form when several values must be submitted together. |
+| [Enter a number, date or time](en/widgets/numbers.md) | Choose NumberField for exact decimal input, QuantityField for step buttons or Slider to pick a position on a bounded scale. |
+| [Choose one or more values](en/widgets/choices.md) | Select is a native single-choice list. ComboBox adds a search field and can accept free text. MultiSelect keeps a set of chosen options. A checkbox fits an independent on/off setting. |
+| [Arrange blocks and inline content](en/widgets/layout.md) | Use Section for a row of inline widgets, Panel for a group of blocks and ResponsiveGrid for columns that adapt to the available width. |
+| [Navigate sections and hierarchies](en/widgets/navigation.md) | Tabs and Accordion select content within the current page. Breadcrumbs link to other pages, while TreeView loads a hierarchy as branches open. |
+| [Show a table or browse records](en/widgets/tables.md) | Choose Table when cells contain widgets. Choose DataTable when rows come from a provider and the reader needs to filter, sort or page through records. |
+| <a id="temporarily-hiding-a-modal"></a>[Open a window, menu or dialog](en/widgets/dialogs.md) | Use ModalPopup for a custom blocking window, Dialog to await a result and Popover for controls that stay beside their trigger. |
+| [Report progress, errors and outcomes](en/widgets/feedback.md) | Keep FieldError beside the editor it describes. Use an Alert for a persistent page message and a Toast for a short notification. |
+| [Select and upload files](en/widgets/files.md) | FileLoader exposes each transfer to your handler. UploadManager and UploadList provide progress, cancellation and retry controls together. |
 
-## Root and layout widgets
+## Run AllWidgets
 
-| Widget | Client type | Allowed children | Purpose |
-| --- | --- | --- | --- |
-| `RootWidget` | `root` | `BlockWidget` | Top-level UI root created for a client. It cannot have a parent, can reset the client, and can request navigation to another page. |
-| `Section` | `section` | `InlineWidget` | Block-level horizontal flow, similar to a paragraph or generic HTML block containing inline content. Supports alignment, margin, padding, and hidden state. |
-| `HorizontalLine` | `horizontal line` | None | Semantic horizontal separator. Reactive color, thickness (absolute height), width/max width, margins, opacity and hidden state. |
-| `Panel` | `panel` | `BlockWidget` | General-purpose block container for composing nested page regions. Supports background, border, size, spacing, and pointer events. |
-| `StickyPanel` | `sticky panel` | `BlockWidget` | Block container that remains in normal document flow, then sticks to the configured top or bottom viewport edge during scrolling. Its sticky side is reactive. |
-| `InlineBlock` | `inline block` | `BlockWidget` | Inline-positioned container for block-level content. Supports background, border, size, spacing, and pointer events. |
-| `Popup` | `popup` | `BlockWidget` | Non-modal window fixed to the viewport. Its width, height, horizontal alignment, and vertical alignment are reactive. |
-| `ModalPopup` | `modal popup` | `BlockWidget` | Popup with a full-screen interaction-blocking backdrop. The backdrop color and optional outside-click dismissal are exposed through models. Outside dismissal is disabled by default and supports mouse clicks and touch taps. |
-| `MessagePopup` | `modal popup` | `BlockWidget` | Ready-to-use modal message composed from a string or caller-supplied `TextWidget` and one or two buttons. The text widget is exposed for later style and model changes. |
-| `MarginDecorator` | `margin decorator` | One `InlineWidget` | Wraps a single inline widget to add margin support without changing the wrapped widget. Removing its child installs an empty `TextWidget`. |
+In the [quick-start Maven project](en/quick-start.md), replace the dependency `com.kniazkov:widgets-http:0.2.0` with `com.kniazkov:widgets:0.2.0`. The full artifact includes the example. Set `<mainClass>` to `com.kniazkov.widgets.example.AllWidgets`. For the house photo and the favicon, save [house.png](../www/house.png) and [widgets-icon.svg](../www/widgets-icon.svg) in a `www` directory next to your POM.
 
-All multi-child containers provide varargs constructors for declarative tree construction. Style
-overloads accept the style first and children after it; `TypedContainer.addAll(Iterable)` handles
-dynamic collections while preserving iteration order.
-
-## Text, input, and action widgets
-
-| Widget | Client type | Purpose |
-| --- | --- | --- |
-| `TextWidget` | `text` | Displays styled text backed by a string value or `Model<String>`. |
-| `ActiveText` | `active text` | Interactive styled text with normal, hovered, and active visual states plus pointer events. |
-| `Link` | `link` | Text hyperlink rendered as an HTML `a` element. Its reactive `href` model defaults to `#`; it supports pointer and focus events. |
-| `Button` | `button` | Clickable decorator around one `InlineWidget`; text constructors create a `TextWidget` child, while widget constructors accept any inline child. Supports disabled and hidden states. |
-| `FileLoader` | `file loader` | Specialized `Button` that accepts one or multiple files, receives uploads in chunks, filters accepted file types, and reports each selected `UploadingFile`. |
-| `InputField` | `input field` | Single-line editable text input. Binding a text model also binds the field's invalid state to the model's validity flag. Implements `HasHorizontalAlignment`, so its text can be aligned left, center, right, or justified. |
-| `SuggestionField` | `suggestion field` | Editable text with a reactive list of optional suggestions, substring filtering, touch selection and keyboard navigation. Arbitrary new values are allowed. |
-| `PasswordInput` | `password input` | `InputField` variant rendered as a password input while retaining the same model and style API. |
-| `TextArea` | `text area` | Multi-line `InputField` variant for longer text. |
-| `CheckBox` | `checkbox` | Boolean selection control rendered from configurable selected and unselected images. Supports pointer and disabled states. |
-| `RadioButton` | `radio button` | Boolean selection control that can be selected, but cannot be cleared by another user click. Application code can clear it through its checked-state model; `RadioGroup` provides mutual exclusion. |
-| `CheckBoxWithText` | `inline block` | Checkbox with an interactive right-hand caption and shared disabled-state model. |
-| `RadioButtonWithText` | `inline block` | Radio button with an interactive caption; exposes its button for `RadioGroup` membership. |
-| `DropDownList` | `drop down list` | Native HTML selection control with a fixed number of ordered `Model<String>` option labels, a reactive selected-index model, keyboard focus, and disabled state. |
-
-## Image widgets
-
-| Widget | Client type | Purpose |
-| --- | --- | --- |
-| `ImageWidget` | `image` | Displays an `ImageSource` or hyperlink through a reactive image-source model. Supports independent maximum width and height. |
-| `ActiveImage` | `active image` | Interactive image with separate source models for normal, hovered, and active states. A shared source may be applied to all states. |
-| `Carousel` | `carousel` | Non-circular, swipeable image sequence backed by a fixed non-empty array of reactive `ImageSource` models. It reports clicks and successful selection changes. |
-
-`Carousel` starts at index zero and exposes its position through `getSelectedIndexModel()`.
-Applications may observe successful swipes with `onSelect(...)` and taps with `onClick(...)`.
-At either end, an outward swipe is resisted and returns to the same image instead of wrapping.
-The source count and order are fixed; `setSource(...)` and `setSourceModel(...)` update an existing
-position reactively.
-
-## Table widgets
-
-| Widget | Client type | Allowed children | Purpose |
-| --- | --- | --- | --- |
-| `Table` | `table` | `Row` | Block-level table. Missing rows and cells can be created on demand through `getRow` and `getCell`; `insertRow` inserts a new or unattached row at any valid position, and `removeRow` removes a row by index. Default row and cell styles apply to newly created elements. |
-| `Row` | `row` | `Cell` | Table row with pointer-aware visual states. `getCell` grows the row on demand and uses the parent table's column-specific defaults when available. |
-| `Cell` | `cell` | `BlockWidget` | Table cell that hosts block content and supports background, border, size, padding, alignment, and pointer events. |
-
-## Sortable and zoomable inline content
-
-| Widget | Client type | Allowed children | Purpose |
-| --- | --- | --- | --- |
-| `SortableSection` | `sortable section` | `InlineWidget` | Wrapping block container with mouse/touch dragging, Alt+Left/Right reordering, versioned server synchronization and `onReorder` callbacks. The dragged child follows the pointer above its siblings; on release, children animate to their new positions. |
-| `ZoomDecorator` | `zoom decorator` | One `InlineWidget` | Clips arbitrary inline content and provides wheel/pinch zoom, bounded panning, a configurable scale limit and reset. Removing the child installs an empty `TextWidget`. |
-
-`SortableSection.setAnimationDuration(milliseconds)` controls settling animations: the default is
-250 ms; 0 disables them. Pointer tracking has no animation delay. Keyboard and programmatic moves
-use the same duration. Browsers requesting reduced motion settle immediately.
-
-`SortableSectionStyle.DEFAULT` stores `Property.ANIMATION_DURATION` (250 ms), and
-`ZoomDecoratorStyle.DEFAULT` stores `Property.MAX_SCALE` (8.0). Both are reactive models at
-`State.ANY`, accessible through value and model getters/setters on the widget and its style.
-Derived styles inherit changes until locally overridden; replacing models or calling `setStyle`
-uses the standard framework bindings.
-
-`ZoomDecorator.setFitContent(true)` optionally fits and centers the whole child in its viewport,
-including after image loading or viewport resizing. Zoom limits then apply relative to the fitted
-view. The setting is model-backed and defaults to false; see [gesture widgets](GESTURE-WIDGETS.md).
-
-See [gesture widgets](GESTURE-WIDGETS.md) for API examples, interaction details, and the two
-standalone demonstrations. Both widgets also appear in `AllWidgets`.
-
-## Containment rules
-
-Inheritance determines layout category, while container interfaces determine which children are
-legal. The supported tree shapes are:
-
-- `RootWidget` -> `BlockWidget`
-- `Section` and `SortableSection` -> `InlineWidget`
-- `Panel`, `StickyPanel`, `InlineBlock`, `Popup`, `ModalPopup`, `MessagePopup`, and `Cell`
-  -> `BlockWidget`
-- `Button`, `MarginDecorator`, and `ZoomDecorator` -> exactly one `InlineWidget`
-- `Table` -> `Row` -> `Cell`
-
-Adding a widget to a new container updates its parent and queues the corresponding protocol
-operation. Removing it detaches it from the tree. A detached subtree keeps its state and is
-re-emitted with fresh update IDs when attached again.
-
-## Styles and reactive properties
-
-Each concrete widget has a matching style type or reuses its parent's style. Default styles are
-available through `getDefaultStyle()`, and derived styles inherit reactive property models from
-their parent. Properties are exposed by capability interfaces such as `HasColor`, `HasBorder`,
-`HasStyledText`, and `HasDisabledState`; setters can bind either a value or a `Model` so later model
-changes are synchronized to the browser automatically.
-
-## Related view types that are not widgets
-
-| Type | Role |
-| --- | --- |
-| `Container`, `TypedContainer`, `BlockContainer` | Define ownership, traversal, and child-type constraints for widget containers. |
-| `Decorator` | Defines a container that owns exactly one decorated child. |
-| `Style`, `Property`, `State` | Describe reactive appearance and state-dependent behavior. They do not create view-tree nodes. |
-| `Column` | Logical view over cells at one table column index. It is not present in the widget or browser hierarchy. |
-| `UploadingFile` | Tracks chunk assembly, metadata, completion, and progress for a file selected through `FileLoader`. |
-| `RadioGroup` | Observes the checked-state models of its `RadioButton` members and ensures that selecting one clears all others. It is `AutoCloseable`; closing it removes its model subscriptions. |
-
-## Selection controls
-
-`CheckBoxWithText` and `RadioButtonWithText` are inline composites with an icon on the left
-and a clickable caption on the right. They implement `HasText`, `HasCheckedState` and
-`HasDisabledState`, forwarding model access to their children. No values are copied when
-existing models are supplied:
-
-```java
-final CheckBoxWithText news = new CheckBoxWithText(captionModel, subscribedModel);
-news.setDisabledStateModel(disabledModel);
-final RadioButtonWithText delivery = new RadioButtonWithText("Delivery");
-final RadioButtonWithText pickup = new RadioButtonWithText("Pickup");
-new RadioGroup(delivery.getRadioButton(), pickup.getRadioButton());
+```sh
+mvn compile exec:java
 ```
 
-Caption clicks toggle checkboxes and select radio buttons. Disabled captions turn gray and
-ignore clicks; re-enabling restores their normal style. The disabled color is a separate
-`State.DISABLED` style value, so custom normal colors are retained. Caption typography follows
-`TextWidget` defaults. `getCheckBox()` / `getRadioButton()`, `getTextWidget()` and `getSection()`
-expose the inner controls, caption and layout for customization. Use the composite's setters
-when replacing disabled models so both children remain bound to the same model. Direct changes
-to model data remain reactive in either direction. `RadioGroup` membership uses the inner radio
-buttons and remains correct when the composite's checked model is replaced.
+Open [localhost:8080](http://localhost:8080/) and try the controls pictured in the catalog. The [AllWidgets source](../src/main/java/com/kniazkov/widgets/example/AllWidgets.java) shows the complete pages and event handlers. Short fragments in the catalog go inside a page factory. `root` is its RootWidget. Add a block to `root` or put an inline widget in a `Section` first.
 
-Both composites use the existing `inline block`, `section`, image-control and `active text`
-protocol primitives; no new browser widget type is required. See their shared `AllWidgets` card
-for editable captions, shared checkbox values and model-driven disabling.
+<a id="classes"></a>
 
+## Java classes A–Z
 
-`RadioButton` uses the same reactive checked-state model as `CheckBox`, but a browser click can
-only select it. Clearing remains available to application code through `uncheck()` or the model.
-Place related buttons in a `RadioGroup`; selecting any member then clears the other members.
+**A** · [Accordion](en/widgets/navigation.md#accordion) · [ActiveImage](en/widgets/display.md#activeimage) · [ActiveText](en/widgets/display.md#activetext) · [Alert](en/widgets/feedback.md#alert)
 
-`DropDownList` wraps the browser's native `select` element. Each option position contains a
-`Model<String>` that controls its visible text. The number and order of positions are fixed by the
-constructor: application code may change a model's value with `setOptionText(...)`, or replace the
-model at an existing position with `setOptionModel(...)`, but cannot insert or remove positions.
-The string and string-collection constructors remain available and create independent
-`StringModel` instances automatically.
+**B** · [Breadcrumbs](en/widgets/navigation.md#breadcrumbs) · [Busy](en/widgets/feedback.md#busy) · [Button](en/widgets/display.md#button)
 
-`getSelectedIndexModel()` exposes the selected position. Index `-1` means that no option is
-selected; every non-negative value refers to the same position for the lifetime of the widget.
-`onSelect(...)` receives that index after the model has been updated. This deliberate fixed-size
-contract prevents a selection from silently changing meaning because options were inserted,
-removed, or reordered.
+**C** · [Carousel](en/widgets/display.md#carousel) · [Cell](en/widgets/tables.md#cell) · [CheckBox](en/widgets/choices.md#checkbox) · [CheckBoxWithText](en/widgets/choices.md#checkboxwithtext) · [ComboBox](en/widgets/choices.md#combobox) · [Countdown](en/widgets/display.md#countdown)
 
-The drop-down list is intentionally not a widget container. Native options are text choices and
-provide standard keyboard and accessibility behavior. A popup that hosts arbitrary inline widgets
-would require a separate composite control with its own focus and navigation rules.
+**D** · [DataTable](en/widgets/tables.md#datatable) · [DateField](en/widgets/numbers.md#datefield) · [DateRange](en/widgets/numbers.md#daterange) · [Dialog](en/widgets/dialogs.md#dialog) · [DropDownList](en/widgets/choices.md#dropdownlist)
 
+**E** · [EmptyState](en/widgets/feedback.md#emptystate)
 
-### Maximum width
+**F** · [FieldError](en/widgets/feedback.md#fielderror) · [FileLoader](en/widgets/files.md#fileloader) · [Form](en/widgets/forms.md#form) · [FormField](en/widgets/forms.md#formfield) · [FormLayout](en/widgets/layout.md#formlayout)
 
-Widgets and styles with `HasWidth` or `HasAbsoluteWidth` also expose `HasMaxWidth`.
-Use `input.setMaxWidth("100%")` to keep a preferred fixed width inside its container.
-`setMaxWidth("")` clears the limit. The limit has its own reactive model and does not
-change the preferred width. Use border-box sizing and account for external margins.
+**H** · [HorizontalLine](en/widgets/display.md#horizontalline)
 
-## Bounding images without changing their proportions
+**I** · [ImageWidget](en/widgets/display.md#imagewidget) · [InlineBlock](en/widgets/layout.md#inlineblock) · [InputField](en/widgets/forms.md#inputfield)
 
-`HasHeight` and `HasAbsoluteHeight` inherit `HasMaxHeight`, just as width interfaces
-inherit `HasMaxWidth`. Widgets and styles expose `setMaxHeight(int)`,
-`setMaxHeight(String)`, `setMaxHeight(WidgetSize)` and a reactive maximum-height model.
-The limit is independent of the preferred height; an empty string clears it.
-No maximum is imposed by default. Protocol updates use `set max height`.
+**L** · [Label](en/widgets/forms.md#label) · [Link](en/widgets/display.md#link)
 
-For a logo, leave both preferred dimensions undefined and set upper bounds:
+**M** · [MarginDecorator](en/widgets/layout.md#margindecorator) · [Markdown](en/widgets/display.md#markdown) · [Menu](en/widgets/dialogs.md#menu) · [MessagePopup](en/widgets/dialogs.md#messagepopup) · [ModalPopup](en/widgets/dialogs.md#modalpopup) · [MultiSelect](en/widgets/choices.md#multiselect)
 
-```java
-final ImageWidget logo = new ImageWidget("logo/brand.svg");
-logo.setMaxWidth(480);
-logo.setMaxHeight(180);
-```
+**N** · [NoWrap](en/widgets/layout.md#nowrap) · [NumberField](en/widgets/numbers.md#numberfield)
 
-The browser preserves the intrinsic image ratio and fits the image within 480 × 180
-CSS pixels. This works for PNG and SVG with intrinsic proportions (for SVG, supply a
-valid `viewBox`). Limits do not force a smaller raster image to grow. Setting both
-preferred width and height explicitly is a different operation and may distort an image.
+**O** · [OverlayStack](en/widgets/layout.md#overlaystack)
 
-For a narrow parent, use a container with preferred width 480 and maximum width `100%`,
-then set the image maximum width to `100%` and maximum height to 180. This lets it shrink
-with the available space. Percentage maximum heights need a definite parent height;
-use pixels when the parent height follows its contents. Existing fixed-size images keep
-their behavior until a limit is explicitly set.
+**P** · [Panel](en/widgets/layout.md#panel) · [PasswordInput](en/widgets/forms.md#passwordinput) · [Popover](en/widgets/dialogs.md#popover) · [Popup](en/widgets/dialogs.md#popup) · [Progress](en/widgets/feedback.md#progress)
 
-### Closing a modal by clicking or tapping outside
+**Q** · [QuantityField](en/widgets/numbers.md#quantityfield)
 
-`ModalPopup` and `MessagePopup` can remove themselves from the widget tree when their backdrop
-is clicked or tapped. Clicks inside the popup leave it open. The setting defaults to `false`
-in `ModalPopupStyle.DEFAULT`, preserving explicit button-based closing.
+**R** · [RadioButton](en/widgets/choices.md#radiobutton) · [RadioButtonWithText](en/widgets/choices.md#radiobuttonwithtext) · [ResponsiveGrid](en/widgets/layout.md#responsivegrid) · [RootWidget](en/widgets/layout.md#rootwidget) · [Row](en/widgets/tables.md#row)
 
-```java
-final Button ok = new Button("OK");
-final MessagePopup popup = new MessagePopup("Click or tap outside to close", ok);
-ok.onClick(event -> popup.remove());
-popup.setCloseOnOutsideClick(true);
-root.add(popup);
-```
+**S** · [Section](en/widgets/layout.md#section) · [Select](en/widgets/choices.md#select) · [Slider](en/widgets/numbers.md#slider) · [SortableSection](en/widgets/layout.md#sortablesection) · [SplitPane](en/widgets/layout.md#splitpane) · [Stack](en/widgets/layout.md#stack) · [StickyPanel](en/widgets/layout.md#stickypanel) · [SuggestionField](en/widgets/forms.md#suggestionfield)
 
-Use `getCloseOnOutsideClickModel()` or `setCloseOnOutsideClickModel(Model<Boolean>)` to bind the
-setting to application state; changes take effect while the popup is open. The dedicated
-`Property.CLOSE_ON_OUTSIDE_CLICK` also supports configuration through `ModalPopupStyle`.
-The server checks the current setting before removing the popup and its backdrop.
-`AllWidgets` demonstrates a dismissible message with a checkbox bound to this model.
+**T** · [Table](en/widgets/tables.md#table) · [Tabs](en/widgets/navigation.md#tabs) · [TextArea](en/widgets/forms.md#textarea) · [TextFlow](en/widgets/layout.md#textflow) · [TextWidget](en/widgets/display.md#textwidget) · [TimeField](en/widgets/numbers.md#timefield) · [Toast](en/widgets/feedback.md#toast) · [Tooltip](en/widgets/dialogs.md#tooltip) · [TreeView](en/widgets/navigation.md#treeview)
 
-## Editable suggestions
+**U** · [UploadList](en/widgets/files.md#uploadlist) · [UploadManager](en/widgets/files.md#uploadmanager)
 
-`SuggestionField` extends `InputField`. It preserves text binding, validation, disabled state,
-focus and text-input events. `SuggestionFieldStyle` inherits standard input styling; the list
-uses the field's font, colors and border.
-
-Like `DropDownList`, it accepts **existing `Model<String>` instances**, including models
-provided by database records. Each suggestion retains its original model reference and
-subscribes to changes; no intermediate list-value model or text copies are needed in the API.
-
-```java
-final SuggestionField field = new SuggestionField(List.of(
-    firstProperty.getTextModel(), secondProperty.getTextModel()
-));
-field.setTextModel(productValue);
-```
-
-The constructor accepts `Iterable<Model<String>>`, optionally after a `SuggestionFieldStyle`.
-Convenience constructors accepting strings create `StringModel` instances, like `DropDownList`.
-`getSuggestionModels()` returns an immutable snapshot of the model references;
-`getSuggestionModel(index)` and `setSuggestionModel(index, model)` expose individual bindings.
-`setSuggestionModels(models)` replaces the list, for example after querying newly saved records.
-It copies only the collection structure and detaches listeners from old models. Later structural
-changes to the supplied collection require another call; changes to the models update the UI
-automatically. Empty lists are allowed; null models are rejected.
-
-After selecting a suggestion by touch, mouse or keyboard, the field keeps focus and places
-its caret immediately after the inserted value. Long values are scrolled to the end when
-appended; editing a middle token preserves the following values. Touch scrolling the
-suggestion list does not select a value.
-
-The editable `Property.TEXT` model is independent of the source suggestion models. Choosing a
-suggestion copies its current text into that model; it does not rebind the field or write back
-to a source record. Read-only suggestion models are supported. Updating, reordering or removing
-suggestions never changes already entered text.
-
-Focus or click opens matching suggestions. An empty field shows all values; typing filters
-by case-insensitive substring. Blank entries and exact duplicates are omitted from the
-visible list without modifying the model. Arrow keys move the highlight; Enter chooses it;
-Escape dismisses the list and Tab leaves the field without choosing. Mouse clicks and
-finger taps select an entry; the selected text remains editable. No match leaves a normal
-text input. Matching is local, while text and list changes use the normal model protocol.
-
-### Multiple values
-
-Set `Property.SUGGESTION_SEPARATOR` through `setSuggestionSeparator(",")` or bind an
-application-owned `Model<String>` with `setSuggestionSeparatorModel(model)`. The property
-is also available on `SuggestionFieldStyle`. Its default is `""` (whole-field suggestions).
-A nonempty separator is a **literal string**, not a regular expression; `";"` and `"||"`
-are supported too. Changes to the model update filtering without modifying the entered text.
-
-```java
-final SuggestionField colors = new SuggestionField(List.of(blackModel, whiteModel, blueModel));
-colors.setTextModel(productColorsModel);
-colors.setSuggestionSeparatorModel(new StringModel(","));
-```
-
-For `Black, Wh, Blue`, placing the caret in `Wh` and selecting `White` yields
-`Black, White, Blue`. Filtering uses the entire current token, trimmed and case-insensitive.
-Choosing replaces that token only, preserves surrounding whitespace and other tokens, and
-places the caret after the inserted value. An empty token offers all unused suggestions. Clicking
-or moving the caret with Left/Right/Home/End refreshes the list. A selection spanning a
-separator (or a caret inside a multi-character separator) offers no replacement.
-Suggestions containing the separator are omitted in this mode. Quoting and escaping are
-not supported; choose a separator that cannot occur within an individual value.
-
-The text model still holds the **complete string**. Splitting it for persistence, validating
-values, normalizing spelling and remembering saved values are application responsibilities.
-In separated mode, suggestions already used in another token are hidden (trimmed,
-case-insensitive comparison). Manually typed or pasted duplicates are removed on blur,
-keeping the first spelling and order and sending the complete result to the text model.
-Typing and IME composition are not interrupted. Empty tokens are left for application validation.
-Applications should still enforce uniqueness when persisting data from any source. The widget does not append separators or save tokens automatically.
-`AllWidgets` includes a comma-separated color example alongside the ordinary fields.
-
-The widget never remembers unsaved input automatically. After successfully saving a product,
-the application can query the corresponding record models again and pass them to
-`setSuggestionModels`. Keep separate suggestion lists for separate product properties.
-The `AllWidgets` example demonstrates two fields sharing existing string models, a separate
-input editing one source model, and an explicit save button adding another model.
-
-## Mobile form control sizing
-
-Default `InputField` and `DropDownList` styles use a 16 CSS pixel font in every state.
-`PasswordInput`, `TextArea` and `SuggestionField` inherit that input size. This avoids
-Safari's focus enlargement for the standard controls on iPhone. Custom styles remain
-configurable; keep editable controls at least 16 CSS pixels to avoid reintroducing it.
-The default size applies on desktop too.
-
-Form controls and buttons (including `FileLoader`) use `touch-action: manipulation`.
-This prevents double-tap zoom on those controls while allowing scrolling and pinch zoom.
-The viewport does not disable user scaling, and custom carousel/zoom gesture rules remain
-unchanged. Mobile browser automation checks the rendered defaults and tapping; actual
-Safari keyboard/focus zoom should also be checked on an iPhone.
-
-Default body text and active text use 16 CSS pixels, matching form controls. Standard
-button labels use 15 CSS pixels, preserving their slightly more compact typography.
-Links inherit the active-text size. Applications can still override these styles.
-
-### Text flow
-
-`TextFlow` is a `Section` with normal inline text layout. Text widgets and links
-continue on the same line and wrap naturally, including long unbroken words.
-Add spaces explicitly between children. It defaults to left and baseline
-alignment and supports the same models and child operations as `Section`.
-Unlike a flex section, a long text child can start after the preceding label
-and continue on subsequent lines.
-
-Labeled checkboxes and radio buttons keep the selection control and caption on
-one row. Long captions wrap inside the remaining width (including unbroken
-words), without moving below or shrinking the selection control. The composite
-is capped at its parent width; `getSection()` still controls row alignment.
-
-## Editable input hints
-
-`InputField` (including `SuggestionField`) and `InputFieldStyle` implement
-`HasPlaceholder` and `HasInputMode`. Both properties accept reactive models:
-
-```java
-final InputField field = new InputField();
-field.setPlaceholderModel(new StringModel("0.00"));
-field.setInputModeModel(new InputModeModel(InputMode.DECIMAL));
-field.setTextModel(new RealToStringModel(new RealNumberModel(0.0), true));
-```
-
-`Property.PLACEHOLDER` defaults to an empty string. The browser displays the hint
-in an empty field; it is never part of the entered value and does not replace a label.
-`Property.INPUT_MODE` defaults to `InputMode.TEXT`. Available hints are `TEXT`,
-`NUMERIC`, `DECIMAL`, `TEL`, `EMAIL`, `URL`, `SEARCH`, and `NONE`. This requests a
-keyboard layout, not validation or an HTML input type. Actual keyboard keys depend
-on the device and locale; the existing numeric adapters parse a decimal point.
-
-The AllWidgets **Numeric input hints** section demonstrates integer and decimal
-fields with empty-zero adapters and a separate view of the underlying number.
-
-`HasPlaceholder` also provides `getPlaceholderColorModel`, `setPlaceholderColorModel`,
-`getPlaceholderColor`, and `setPlaceholderColor`, backed by `Property.PLACEHOLDER_COLOR`.
-The default input style uses the theme's muted gray (`#475569`). Styles inherit the
-color model, and rebinding or updating it changes the hint without changing entered
-text. The renderer applies the color through `::placeholder` with `opacity: 1` so
-browser defaults do not add extra transparency. AllWidgets includes a custom color:
-
-```java
-field.setPlaceholderColorModel(new ColorModel(new Color(100, 116, 139)));
-```
-
-### Content-sized overlay layers
-
-`OverlayStack` normally takes the maximum dimensions of all layers. With
-`setFitToFirstChild(true)` only the first layer participates in intrinsic sizing;
-upper layers are positioned absolutely over its area. Relative width/height on
-upper-layer content follows text, font and viewport changes automatically.
-Use `getFitToFirstChildModel` / `setFitToFirstChildModel` for reactive configuration.
-The default remains false. Children inserted or removed update their first/upper-layer
-role through CSS, without a ResizeObserver or pixel measurements.
-
-### Horizontal separator
-
-`HorizontalLine` renders an HTML `hr`, without the browser's default border.
-It defaults to a 1 px grey line, 100% width and 8 px vertical margins.
-Use `setHeight` / `setHeightModel` for thickness (px, pt or other absolute units),
-`setColor` / `setColorModel` for color, and the standard width, max-width,
-margin, opacity and hidden-state APIs. Derived `HorizontalLineStyle` instances
-can be reused without modifying the shared default.
-
-```java
-final HorizontalLine line = new HorizontalLine();
-line.setColor(Color.fromString("#cccccc"));
-line.setHeight(2);
-line.setWidth("80%");
-line.setVerticalMargin(12);
-panel.add(line);
-```
-
-## NoWrap
-
-`NoWrap` is an inline container for `InlineWidget<?>` children. Use it inside a
-`Section` to keep a phrase, link, punctuation or a price and currency together:
-
-```java
-new Section(
-    new TextWidget("Read "),
-    new NoWrap(new TextWidget("our "),
-        new Link("privacy policy", "/info?text=privacy"), new TextWidget("."))
-);
-```
-
-The complete group can move to the next line, but automatic line wrapping inside
-it is disabled. Ordinary spaces between text children are preserved at the
-boundary; the container does not insert spaces on its own. Children keep their
-styles, reactive models and events, and can be added or removed normally.
-`NoWrapStyle` supports margins, padding and visibility. Groups can be nested.
-
-An oversized group overflows its parent instead of wrapping or shrinking its
-text. Avoid wrapping a whole long paragraph. Explicit line breaks and the internal
-layout of composite children (for example, an `InlineBlock` containing blocks)
-are not overridden.
-
-Run `com.kniazkov.widgets.example.NoWrapExample` for a live width/price demo.
-A compact example is also included in `AllWidgets`.
+**Z** · [ZoomDecorator](en/widgets/display.md#zoomdecorator)

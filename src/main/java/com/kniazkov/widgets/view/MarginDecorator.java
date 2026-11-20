@@ -4,6 +4,7 @@
 package com.kniazkov.widgets.view;
 
 import com.kniazkov.widgets.protocol.SetChild;
+import java.util.Objects;
 
 /**
  * A decorator widget that adds margin properties to inline widgets that don't
@@ -32,9 +33,9 @@ public class MarginDecorator extends InlineWidget<EmptyStyle>
          * Construction establishes the required parent link before this instance is published.
          */
         super(EmptyStyle.INSTANCE);
+        Objects.requireNonNull(child, "widget").validateAttachment(this);
         this.child = child;
-        child.setParent(this);
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
+        child.attachTo(this, () -> new SetChild(child.getId(), this.getId()));
     }
 
     @Override
@@ -44,26 +45,23 @@ public class MarginDecorator extends InlineWidget<EmptyStyle>
 
     @Override
     public void put(final InlineWidget<?> widget) {
-        if (this.child == widget) {
+        if (this.child == widget && widget != null) {
             return;
         }
-        this.child.setParent(null);
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
+        final InlineWidget<?> old = this.child;
+        if (old != null) {
+            old.detachFrom(this);
+        }
         this.child = widget;
-        widget.setParent(this);
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
+        widget.attachTo(this, () -> new SetChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
-        if (widget != this.child) {
-            return;
+        if (widget != null && widget == this.child) {
+            this.put(new TextWidget());
         }
-        final InlineWidget<?> old = this.child;
-        this.child = null;
-        old.setParent(null);
-        this.child = new TextWidget();
-        this.child.setParent(this);
-        this.pushUpdate(new SetChild(this.child.getId(), this.getId()));
     }
 
     @Override

@@ -71,6 +71,29 @@ public final class PopupTest {
     }
 
     /**
+     * Verifies the modal's reactive hidden state and matching protocol updates.
+     */
+    @Test
+    public void modalPopupVisibilityIsReactive() {
+        final ModalPopupStyle style = ModalPopupStyle.DEFAULT.derive();
+        style.hide();
+        final ModalPopup popup = new ModalPopup(style);
+        assertTrue(popup.isHidden());
+        final WidgetSandbox<ModalPopup> sandbox = WidgetSandbox.open(popup);
+
+        sandbox.clearUpdates();
+        popup.show();
+        popup.hide();
+        final List<JsonObject> updates = WidgetSandbox.findUpdates(
+            sandbox.drainUpdates(), "set hidden", popup
+        );
+        assertEquals(2, updates.size());
+        assertFalse(updates.get(0).get("hidden").booleanValue());
+        assertTrue(updates.get(1).get("hidden").booleanValue());
+        assertTrue(style.isHidden());
+    }
+
+    /**
      * Verifies the one- and two-button message layouts.
      */
     @Test
@@ -172,6 +195,37 @@ public final class PopupTest {
         ordinary.getModel(State.ANY, Property.CLOSE_ON_OUTSIDE_CLICK).setData(true);
         other.fire(Event.DISMISS, new JsonObject());
         assertTrue(ordinary.getParent().isPresent());
+    }
+
+    /**
+     * Dialog metadata is reactive and Escape policy is independent of backdrop policy.
+     */
+    @Test
+    public void modalAccessibilityAndEscapeUseDedicatedProperties() {
+        final ModalPopup popup = new ModalPopup();
+        final WidgetSandbox<ModalPopup> sandbox = WidgetSandbox.open(popup);
+        assertFalse(popup.isCloseOnEscape());
+        popup.setCloseOnOutsideClick(true);
+        sandbox.fire(Event.DISMISS_BY_ESCAPE, new JsonObject());
+        assertTrue(popup.getParent().isPresent());
+
+        sandbox.clearUpdates();
+        popup.setAccessibleName("Address");
+        popup.setAccessibleDescription("Confirm before sending.");
+        popup.setCloseOnEscape(true);
+        final List<JsonObject> updates = sandbox.drainUpdates();
+        assertEquals("Address", WidgetSandbox.findUpdates(updates, "set accessible name", popup)
+            .getLast().get("accessible name").stringValue());
+        assertEquals("Confirm before sending.", WidgetSandbox.findUpdates(
+            updates, "set accessible description", popup
+        ).getLast().get("accessible description").stringValue());
+        assertTrue(WidgetSandbox.findUpdates(updates, "set close on escape", popup)
+            .getLast().get("close on escape").booleanValue());
+        assertSame(Event.DISMISS_BY_ESCAPE, Event.getByName("dismiss by escape"));
+
+        popup.setCloseOnOutsideClick(false);
+        sandbox.fire(Event.DISMISS_BY_ESCAPE, new JsonObject());
+        assertTrue(popup.getParent().isEmpty());
     }
 
 }

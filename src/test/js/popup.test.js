@@ -29,6 +29,7 @@ function createHarness() {
             removeChildWidget,
             setBackdropColor,
             setCloseOnOutsideClick,
+            refreshModalStack,
             events,
             setHorzAlignment,
             setVertAlignment,
@@ -98,6 +99,9 @@ describe("outside dismissal", () => {
         h.appendChildWidget({ widget: "#2", container: "#1" });
         const popup = h.widgets["#2"],
             backdrop = popup._backdrop;
+        // jsdom has no layout engine; mark this connected test dialog as rendered.
+        popup.getClientRects = () => [{}];
+        h.refreshModalStack();
         backdropPress(backdrop);
         backdropClick(backdrop);
         expect(h.events).toHaveLength(0);

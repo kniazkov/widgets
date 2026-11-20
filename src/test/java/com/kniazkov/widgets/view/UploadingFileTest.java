@@ -5,7 +5,6 @@ package com.kniazkov.widgets.view;
 
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.base.Options;
-import com.kniazkov.widgets.common.UploadedFile;
 import com.kniazkov.widgets.common.UploadProtocol;
 import com.kniazkov.widgets.controller.Event;
 import java.util.Arrays;
@@ -71,9 +70,9 @@ public final class UploadingFileTest {
 
         final UploadingFile descriptor = selected.get();
         final CountDownLatch loaded = new CountDownLatch(1);
-        final AtomicReference<UploadedFile> result = new AtomicReference<>();
+        final AtomicReference<byte[]> result = new AtomicReference<>();
         descriptor.onLoad(file -> {
-            result.set(file);
+            result.set(file.getContent());
             loaded.countDown();
         });
         final byte[] first = bytes(chunkSize, (byte) 1);
@@ -92,7 +91,7 @@ public final class UploadingFileTest {
         System.arraycopy(first, 0, expected, 0, first.length);
         System.arraycopy(second, 0, expected, first.length, second.length);
         System.arraycopy(third, 0, expected, first.length + second.length, third.length);
-        assertArrayEquals(expected, result.get().getContent());
+        assertArrayEquals(expected, result.get());
         assertEquals(Integer.valueOf(100), descriptor.getLoadingPercentageModel().getData());
         assertReceipt(loader.handleUploadChunk(17, 1, second), 3, true);
     }

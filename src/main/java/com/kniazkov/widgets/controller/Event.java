@@ -3,12 +3,20 @@
  */
 package com.kniazkov.widgets.controller;
 
+import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
+import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.DataTable;
+import com.kniazkov.widgets.view.SplitPane;
+import com.kniazkov.widgets.view.Slider;
+import com.kniazkov.widgets.view.TypedChoice;
+import java.util.List;
 import com.kniazkov.widgets.view.FileLoader;
+import com.kniazkov.widgets.view.InputField;
 import com.kniazkov.widgets.view.ModalPopup;
 import com.kniazkov.widgets.view.HasCheckedState;
 import com.kniazkov.widgets.view.HasSelectedIndex;
-import com.kniazkov.widgets.view.HasText;
+import com.kniazkov.widgets.view.HasTextInput;
 import com.kniazkov.widgets.view.RadioButton;
 import com.kniazkov.widgets.view.SortableSection;
 import com.kniazkov.widgets.view.Widget;
@@ -71,6 +79,17 @@ public abstract class Event<T> {
          */
     }
 
+    /**
+     * Validates an untrusted event without updating models or invoking controllers.
+     * @param widget target widget
+     * @param object payload
+     * @return stable protocol rejection code, or empty for an admissible event
+     */
+    public java.util.Optional<String> rejectionReason(final Widget<?> widget,
+            final JsonObject object) {
+        return EventValidation.rejection(this, widget, object);
+    }
+
     @Override
     public String toString() {
         return this.getName();
@@ -83,6 +102,9 @@ public abstract class Event<T> {
      * @param object the serialized event data
      */
     public void process(final Widget<?> widget, final JsonObject object) {
+        if (this.rejectionReason(widget, object).isPresent()) {
+            return;
+        }
         final Controller<T> controller = widget.getController(this);
         final T data = this.parseData(object);
         this.updateWidget(widget, data);
@@ -121,8 +143,33 @@ public abstract class Event<T> {
 
         @Override
         public void updateWidget(final Widget<?> widget, final String data) {
-            if (widget instanceof HasText) {
-                ((HasText) widget).getTextModel().setData(data);
+            if (widget instanceof HasTextInput) {
+                ((HasTextInput) widget).getTextModel().setData(data);
+            }
+        }
+    };
+
+    /**
+
+     * An explicitly subscribed press or release from an editable field.
+
+     */
+    public static final Event<KeyboardEvent> KEYBOARD = new Event<KeyboardEvent>() {
+        @Override
+        public String getName() {
+            return "keyboard";
+        }
+
+        @Override
+        public KeyboardEvent parseData(final JsonObject object) {
+            return KeyboardEvent.parse(object);
+        }
+
+        @Override
+        public void process(final Widget<?> widget, final JsonObject object) {
+            if (widget instanceof InputField input
+                    && this.rejectionReason(widget, object).isEmpty()) {
+                input.dispatchKeyboardEvent(this.parseData(object));
             }
         }
     };
@@ -173,6 +220,189 @@ public abstract class Event<T> {
     };
 
     /**
+     * Stable selection keys for typed widgets. Typed values are only looked up server-side.
+     */
+    public static final Event<JsonObject> CHOOSE_KEYS = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "choose keys";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof TypedChoice<?> choice) {
+                choice.choose(choiceKeys(data));
+            }
+        }
+    };
+
+    /**
+     * Search, cancel or fetch the next page of one dated combo-box query.
+     */
+    public static final Event<JsonObject> CHOICE_SEARCH = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "choice search";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof ComboBox<?> combo) {
+                combo.search(data.get("action").stringValue(), data.get("text").stringValue(),
+                    data.get("serial").intValue());
+            }
+        }
+    };
+
+    /**
+     * @param data validated selection payload
+     * @return immutable key list
+     */
+    static List<String> choiceKeys(final JsonObject data) {
+        return data.get("keys").toJsonArray().orElseThrow().stream()
+            .map(JsonElement::stringValue).toList();
+    }
+
+    /**
+     * Generation-checked commands for anchored overlays.
+     */
+    public static final Event<JsonObject> OVERLAY_COMMAND = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "overlay command";
+        }
+        @Override
+        public JsonObject parseData(final JsonObject data) {
+            return data;
+        }
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof com.kniazkov.widgets.view.AnchoredOverlay overlay) {
+                overlay.processOverlayCommand(data);
+            }
+        }
+    };
+
+    /**
+     * Explicit dismissal of a retained notification owned by one outlet.
+     */
+    public static final Event<JsonObject> TOAST_DISMISS = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "toast dismiss";
+        }
+        @Override
+        public JsonObject parseData(final JsonObject data) {
+            return data;
+        }
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof com.kniazkov.widgets.view.Toast toast) {
+                toast.dismiss(data.get("id").stringValue());
+            }
+        }
+    };
+
+    /**
+     * Final tick from a completed range edit.
+     */
+    public static final Event<Integer> SLIDER_COMMIT = new Event<Integer>() {
+        @Override
+        public String getName() {
+            return "slider commit";
+        }
+
+        @Override
+        public Integer parseData(final JsonObject object) {
+            return object.get("index").intValue();
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Integer index) {
+            if (widget instanceof Slider slider) {
+                slider.getValueModel().select(index);
+            }
+        }
+    };
+
+    /**
+     * Committed percentage from a pointer or keyboard resize.
+     */
+    public static final Event<Integer> SPLIT_RESIZE = new Event<Integer>() {
+        @Override
+        public String getName() {
+            return "split resize";
+        }
+
+        @Override
+        public Integer parseData(final JsonObject object) {
+            return object.get("position").intValue();
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Integer position) {
+            if (widget instanceof SplitPane pane) {
+                pane.setPosition(position);
+            }
+        }
+    };
+
+    /**
+     * Scoped commands from the lazy tree, not arbitrary application input.
+     */
+    public static final Event<JsonObject> TREE_VIEW = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "tree command";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof com.kniazkov.widgets.view.TreeView tree) {
+                tree.command(data.get("action").stringValue(), data.get("key").stringValue());
+            }
+        }
+    };
+
+    /**
+     * Scoped commands from the provider-backed table, not arbitrary application input.
+     */
+    public static final Event<JsonObject> DATA_TABLE = new Event<JsonObject>() {
+        @Override
+        public String getName() {
+            return "data table command";
+        }
+
+        @Override
+        public JsonObject parseData(final JsonObject object) {
+            return object;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final JsonObject data) {
+            if (widget instanceof DataTable table) {
+                table.command(data.get("action").stringValue(), data.get("value").stringValue(),
+                    data.get("checked").booleanValue());
+            }
+        }
+    };
+
+    /**
      * Versioned child move. Invalid requests must not invoke application controllers.
      */
     public static final Event<ReorderEvent> REORDER = new Event<ReorderEvent>() {
@@ -188,6 +418,9 @@ public abstract class Event<T> {
 
         @Override
         public void process(final Widget<?> widget, final JsonObject object) {
+            if (this.rejectionReason(widget, object).isPresent()) {
+                return;
+            }
             final ReorderEvent data = this.parseData(object);
             if (widget instanceof SortableSection section && section.acceptReorder(data)) {
                 widget.getController(this).handleEvent(data);
@@ -213,7 +446,29 @@ public abstract class Event<T> {
         @Override
         public void updateWidget(final Widget<?> widget, final Void data) {
             if (widget instanceof ModalPopup popup && popup.isCloseOnOutsideClick()) {
-                popup.remove();
+                popup.dismiss();
+            }
+        }
+    };
+
+    /**
+     * Escape activation requesting dismissal of a modal that allows keyboard closing.
+     */
+    public static final Event<Void> DISMISS_BY_ESCAPE = new Event<Void>() {
+        @Override
+        public String getName() {
+            return "dismiss by escape";
+        }
+
+        @Override
+        public Void parseData(final JsonObject object) {
+            return null;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Void data) {
+            if (widget instanceof ModalPopup popup && popup.isCloseOnEscape()) {
+                popup.dismiss();
             }
         }
     };
@@ -245,6 +500,13 @@ public abstract class Event<T> {
         @Override
         public Void parseData(final JsonObject object) {
             return null;
+        }
+
+        @Override
+        public void updateWidget(final Widget<?> widget, final Void data) {
+            if (widget instanceof InputField editor) {
+                editor.markFormEditorTouched();
+            }
         }
     };
 
@@ -346,16 +608,48 @@ public abstract class Event<T> {
     };
 
     /**
-     * Global immutable registry of all known events, keyed by their unique names.
+     * Managed upload cancellation, removal and retry requests.
+     */
+    public static final Event<UploadCommand> UPLOAD_COMMAND = new Event<UploadCommand>() {
+        @Override
+        public String getName() {
+            return "upload command";
+        }
+        @Override
+        public UploadCommand parseData(final JsonObject object) {
+            return object.toJavaObject(UploadCommand.class);
+        }
+        @Override
+        public void updateWidget(final Widget<?> widget, final UploadCommand data) {
+            if (widget instanceof com.kniazkov.widgets.view.UploadManager manager) {
+                manager.command(data);
+            }
+        }
+    };
+
+    /**
+
+     * Global event registry.
+
      */
     private static final Map<String, Event<?>> REGISTRY =
         Collections.unmodifiableMap(
             Stream.of(
                 TEXT_INPUT,
+                KEYBOARD,
                 CHECK,
                 SELECT,
+                CHOOSE_KEYS,
+                CHOICE_SEARCH,
+                DATA_TABLE,
+                TREE_VIEW,
+                SPLIT_RESIZE,
+                SLIDER_COMMIT,
+                TOAST_DISMISS,
+                OVERLAY_COMMAND,
                 REORDER,
                 DISMISS,
+                DISMISS_BY_ESCAPE,
                 FOCUS,
                 BLUR,
                 CLICK,
@@ -363,7 +657,8 @@ public abstract class Event<T> {
                 POINTER_LEAVE,
                 POINTER_DOWN,
                 POINTER_UP,
-                UPLOAD
+                UPLOAD,
+                UPLOAD_COMMAND
             ).collect(Collectors.toMap(Event::getName, e -> e))
         );
 

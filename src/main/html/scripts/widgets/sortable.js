@@ -132,7 +132,7 @@ function createSortableSection() {
         clearGesture();
         stopAnimations();
     };
-    widget.addEventListener("pointerdown", event => {
+    listenWidget(widget, "pointerdown", event => {
         if (gesture) {
             finish(true);
             return;
@@ -215,19 +215,19 @@ function createSortableSection() {
                 event.clientX > targetRect.left + targetRect.width / 2);
         current.before = after ? nearest.nextElementSibling : nearest;
     }
-    widget.addEventListener("pointermove", move);
-    widget.addEventListener("pointerup", event => {
+    listenWidget(widget, "pointermove", move);
+    listenWidget(widget, "pointerup", event => {
         if (event.pointerId === gesture?.id) {
             move(event);
             finish(false);
         }
     });
     for (const type of ["pointercancel", "lostpointercapture"]) {
-        widget.addEventListener(type, event => {
+        listenWidget(widget, type, event => {
             if (event.pointerId === gesture?.id) finish(true);
         });
     }
-    widget.addEventListener("keydown", event => {
+    listenWidget(widget, "keydown", event => {
         if (event.key === "Escape") {
             finish(true);
             return;

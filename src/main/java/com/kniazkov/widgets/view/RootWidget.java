@@ -14,9 +14,12 @@ import com.kniazkov.widgets.protocol.ResetClient;
 import com.kniazkov.widgets.protocol.ClearPageCache;
 import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.WeakHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The root widget of a user interface hierarchy.
@@ -47,6 +50,194 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     private final Options options;
 
     /**
+     * Server-owned budget shared by all roots of one Application.
+     */
+    private final UploadRegistry uploadRegistry;
+
+    /**
+     * Terminal upload disposal flag, visible to the resource sweeper.
+     */
+    private volatile boolean uploadsClosed;
+
+    /**
+     * Client-owned widget instances, including detached subtrees still in application use.
+     */
+    private final Set<Widget<?>> owned = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * Shared budget lock does not hold model or page monitors.
+     */
+    private final Object bufferBudget = new Object();
+
+    /**
+     * Coalesced push invalidation generation; reading it never acquires a widget monitor.
+     */
+    private final java.util.concurrent.atomic.AtomicLong changeRevision =
+        new java.util.concurrent.atomic.AtomicLong();
+
+    /**
+     * @return monotonic invalidation generation, not an update ACK or replay checkpoint
+     */
+    public long getChangeRevision() {
+        return this.changeRevision.get();
+    }
+
+    /**
+     * Mounted widgets with pending changes; guarded by bufferBudget, never a widget lock.
+     */
+    private final Set<Widget<?>> dirty = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /**
+     * @param widget mounted widget with pending changes
+     */
+    void markDirty(final Widget<?> widget) {
+        synchronized (this.bufferBudget) {
+            this.dirty.add(widget);
+            this.changeRevision.incrementAndGet();
+        }
+    }
+
+    /**
+     * @param widget widget whose mounted queue is no longer pending
+     */
+    void clearDirty(final Widget<?> widget) {
+        synchronized (this.bufferBudget) {
+            this.dirty.remove(widget);
+        }
+    }
+
+    /**
+     * Counts pending raw updates before collection.
+     */
+    private int bufferedCount;
+
+    /**
+     * Charged bytes awaiting collection.
+     */
+    private long bufferedSize;
+
+    /**
+     * An update was dropped; partial replay is no longer safe.
+     */
+    private boolean bufferOverflow;
+
+    /**
+     * @param updates additional raw updates
+     * @param bytes their budget cost
+     * @return whether the budget accepted the additions
+     */
+    boolean retainBuffered(final int updates, final long bytes) {
+        synchronized (this.bufferBudget) {
+            final var limits = this.options.getProtocolLimits();
+            if (this.bufferOverflow
+                    || updates > limits.pendingUpdates() - this.bufferedCount
+                    || bytes > limits.pendingBytes() - this.bufferedSize) {
+                this.bufferOverflow = true;
+            this.changeRevision.incrementAndGet();
+                return false;
+            }
+            this.bufferedCount += updates;
+            this.bufferedSize += bytes;
+            return true;
+        }
+    }
+
+    /**
+     * @param updates removed raw updates
+     * @param bytes removed budget cost
+     */
+    void releaseBuffered(final int updates, final long bytes) {
+        synchronized (this.bufferBudget) {
+            this.bufferedCount -= updates;
+            this.bufferedSize -= bytes;
+        }
+    }
+
+    /**
+     * Includes overflow that occurred while a subtree had no root.
+     */
+    void markBufferOverflow() {
+        synchronized (this.bufferBudget) {
+            this.bufferOverflow = true;
+            this.changeRevision.incrementAndGet();
+        }
+    }
+
+    /**
+     * @return whether the raw buffer needs a fresh page snapshot
+     */
+    public boolean hasBufferOverflow() {
+        synchronized (this.bufferBudget) {
+            return this.bufferOverflow;
+        }
+    }
+
+    /**
+     * Records ownership of an attached widget without prolonging its lifetime.
+     *
+     * @param widget owned widget
+     */
+    synchronized void trackOwned(final Widget<?> widget) {
+        this.owned.add(widget);
+        widget.setLifecycleOwner(this);
+    }
+
+    /**
+     * Registers a page-owned cleanup, also run if the page fails during creation.
+     *
+     * @param action operation that releases a page resource
+     */
+    public void onClose(final Runnable action) {
+        this.onRetire(action);
+    }
+
+    /**
+     * Samples fixed numeric gauges. May walk owned widgets; do not call per HTTP request.
+     * @return immutable widget and raw queue counts, without identities or model values
+     */
+    public synchronized java.util.Map<String, Long> getDiagnostics() {
+        final long widgets = this.owned.stream().filter(widget -> !widget.isRetired()
+            && widget.getRootWidget().orElse(null) == this).count();
+        synchronized (this.bufferBudget) {
+            return java.util.Map.of("widgets", widgets + (this.isRetired() ? 0 : 1),
+                "bufferedUpdates", (long) this.bufferedCount,
+                "bufferedUpdateBytes", this.bufferedSize, "dirtyWidgets", (long) this.dirty.size());
+        }
+    }
+
+    /**
+     * Applies a short UI update in the same page context as browser synchronization.
+     * Do not block, decode files or wait for another worker inside this action.
+     *
+     * @param action update of page-owned widgets or models
+     * @return false if the page is already closing
+     */
+    public synchronized boolean execute(final Runnable action) {
+        Objects.requireNonNull(action, "action");
+        if (this.uploadsClosed) {
+            return false;
+        }
+        action.run();
+        return true;
+    }
+
+    /**
+     * Ends this page's subscriptions, queued updates and uploads.
+     */
+    public void closePage() {
+        final List<Widget<?>> widgets;
+        synchronized (this) {
+            this.uploadsClosed = true;
+            widgets = List.copyOf(this.owned);
+            this.owned.clear();
+            this.children.clear();
+        }
+        this.closeUploads();
+        this.retire();
+        widgets.stream().filter(widget -> widget.belongsTo(this)).forEach(Widget::retire);
+    }
+
+    /**
      * Constructor.
      *
      */
@@ -60,9 +251,44 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * @param options immutable application configuration
      */
     public RootWidget(final Options options) {
+        this(options, new UploadRegistry(options));
+    }
+
+    /**
+     * Creates a root with an application-wide upload budget.
+     * @param options immutable configuration
+     * @param registry shared server upload resources
+     */
+    public RootWidget(final Options options, final UploadRegistry registry) {
         super(getDefaultStyle());
+        this.uploadRegistry = Objects.requireNonNull(registry);
         this.options = Objects.requireNonNull(options, "Options must not be null");
+        this.setLifecycleOwner(this);
         this.resetMetadata();
+    }
+
+    /**
+     * Returns server-owned resource registry for this root.
+     * @return server-owned resource registry for this root
+     */
+    public UploadRegistry getUploadRegistry() {
+        return this.uploadRegistry;
+    }
+
+    /**
+     * Permanently disposes all upload data belonging to this client, even detached widgets.
+     */
+    public void closeUploads() {
+        this.uploadsClosed = true;
+        this.uploadRegistry.closeRoot(this);
+    }
+
+    /**
+     * Returns whether this client's upload resources have been disposed.
+     * @return whether this client's upload resources have been disposed
+     */
+    boolean areUploadsClosed() {
+        return this.uploadsClosed;
     }
 
     /**
@@ -72,6 +298,7 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      */
     public RootWidget(final BlockWidget<?>... children) {
         this();
+        this.validateChildren(children);
         for (final BlockWidget<?> child : children) {
             this.appendChild(child);
         }
@@ -224,16 +451,25 @@ public final class RootWidget extends Widget<RootWidgetStyle>
         this.resetRobots();
     }
 
-    @Override
-    public Optional<RootWidget> getRootWidget() {
-        return Optional.of(this);
+    /**
+     * Collects outgoing updates and records that this runtime owns every exported widget.
+     *
+     * @param pending destination for updates, in protocol order
+     */
+    public void collectBrowserUpdates(final Set<Update> pending) {
+        final List<Widget<?>> changed;
+        synchronized (this.bufferBudget) {
+            changed = List.copyOf(this.dirty);
+            this.dirty.clear();
+        }
+        for (final Widget<?> widget : changed) {
+            widget.collectMountedUpdates(this, pending);
+        }
     }
 
     @Override
-    void setParent(final Container container) {
-        if (container != null) {
-            throw new IllegalArgumentException("The root widget cannot have a parent");
-        }
+    public Optional<RootWidget> getRootWidget() {
+        return Optional.of(this);
     }
 
     @Override
@@ -257,16 +493,16 @@ public final class RootWidget extends Widget<RootWidgetStyle>
      * @param widget the child widget
      */
     private void appendChild(final BlockWidget<?> widget) {
+        Objects.requireNonNull(widget, "widget").validateAttachment(this);
         this.children.add(widget);
-        widget.setParent(this);
-        pushUpdate(new AppendChild(widget.getId(), this.getId()));
+        widget.attachTo(this, () -> new AppendChild(widget.getId(), this.getId()));
     }
 
     @Override
     public void remove(final Widget<?> widget) {
         if (this.children.remove(widget)) {
             this.pushUpdate(new RemoveChild(widget.getId(), this.getId()));
-            widget.setParent(null);
+            widget.detachFrom(this);
         }
     }
 
@@ -319,14 +555,14 @@ public final class RootWidget extends Widget<RootWidgetStyle>
     }
 
     /**
-     * Передаёт небольшой файл текущему браузеру без публичного HTTP-адреса.
-     * Приложение проверяет права перед вызовом; файл не сохраняется на сервере.
-     * Браузер может потребовать разрешение пользователя на скачивание.
+     * Sends a small file to the current browser without a public HTTP URL.
+     * The application must check permissions before calling; the file is not stored on the server.
+     * The browser may require the user's permission to download the file.
      *
-     * @param name безопасное имя файла без пути
-     * @param contentType MIME-тип без параметров
-     * @param content содержимое размером от 1 байта до 5 МиБ
-     * @throws IllegalArgumentException если параметры не удовлетворяют ограничениям
+     * @param name safe file name without a path
+     * @param contentType MIME type without parameters
+     * @param content content between 1 byte and 5 MiB
+     * @throws IllegalArgumentException if the arguments do not satisfy the constraints
      */
     public void downloadFile(final String name, final String contentType, final byte[] content) {
         this.pushUpdate(new com.kniazkov.widgets.protocol.DownloadFile(name, contentType, content));

@@ -13,7 +13,7 @@ import com.kniazkov.widgets.controller.HandlesEvents;
 import com.kniazkov.widgets.model.Binding;
 import com.kniazkov.widgets.model.Model;
 import com.kniazkov.widgets.protocol.CreateWidget;
-import com.kniazkov.widgets.protocol.RemoveChild;
+import com.kniazkov.widgets.protocol.DisposeWidget;
 import com.kniazkov.widgets.protocol.SetClientEventAction;
 import com.kniazkov.widgets.protocol.SetProperty;
 import com.kniazkov.widgets.protocol.Subscribe;
@@ -21,11 +21,19 @@ import com.kniazkov.widgets.protocol.Update;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.TreeMap;
+import java.lang.ref.WeakReference;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Abstract base class for all UI widgets. A widget represents a single element in the view tree.
@@ -35,7 +43,7 @@ import java.util.TreeSet;
  *
  * @param <S> Widget style
  */
-public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
+public abstract class Widget<S extends Style> implements Entity, HandlesEvents, HasAccessibleName {
     /**
      * Widget unique Id.
      */
@@ -52,9 +60,112 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     private List<Update> updates;
 
     /**
+     * Size charged for this widget's pending updates.
+     */
+    private long bufferedBytes;
+
+    /**
+     * Whether some changes were dropped before collection.
+     */
+    private boolean bufferOverflow;
+
+    /**
+     * Default per-widget budget before the widget is attached to a page.
+     */
+    private static final com.kniazkov.widgets.base.ProtocolLimits DETACHED_LIMITS =
+        com.kniazkov.widgets.base.ProtocolLimits.defaults();
+
+    /**
      * The parent container that contains this widget.
      */
     private Container parent;
+
+    /**
+     * Identity of the first browser root to which this widget was exported.
+     */
+    private RMId ownerRootId;
+
+    /**
+     * Most recent lifecycle owner, without retaining an abandoned page.
+     */
+    private WeakReference<RootWidget> lifecycleOwner;
+
+    /**
+     * Tracks cleanup independently from browser export/reparent validation.
+     *
+     * @param root owning page
+     */
+    final synchronized void setLifecycleOwner(final RootWidget root) {
+        if (!this.belongsTo(root)) {
+            this.lifecycleOwner = new WeakReference<>(root);
+        }
+        this.setBufferOwner(root);
+    }
+
+    /**
+     * Root charged for these updates only while physically mounted.
+     */
+    private WeakReference<RootWidget> bufferOwner;
+
+    /**
+     * Transfers the raw buffer's charge without retaining detached widgets.
+     *
+     * @param root mounted owner, null on detach
+     */
+    private synchronized void setBufferOwner(final RootWidget root) {
+        final RootWidget old = this.bufferOwner == null ? null : this.bufferOwner.get();
+        if (old == root) {
+            return;
+        }
+        this.releaseBudget();
+        if (old != null) {
+            old.clearDirty(this);
+        }
+        this.bufferOwner = root == null ? null : new WeakReference<>(root);
+        if (root != null && (this.bufferOverflow || this.updates != null
+                && !root.retainBuffered(this.updates.size(), this.bufferedBytes))) {
+            root.markBufferOverflow();
+            this.updates = null;
+            this.bufferedBytes = 0;
+        }
+        if (root != null && this.updates != null) {
+            root.markDirty(this);
+        }
+    }
+
+    /**
+     * Returns this widget's pending charge to its mounted owner.
+     */
+    private void releaseBudget() {
+        final RootWidget owner = this.bufferOwner == null ? null : this.bufferOwner.get();
+        if (owner != null && this.updates != null) {
+            owner.releaseBuffered(this.updates.size(), this.bufferedBytes);
+            owner.clearDirty(this);
+        }
+    }
+
+    /**
+     * @param root proposed owner
+     * @return whether the page still owns this widget's cleanup
+     */
+    final boolean belongsTo(final RootWidget root) {
+        return this.lifecycleOwner != null && this.lifecycleOwner.get() == root;
+    }
+
+    /**
+     * Whether this widget is permanently retired.
+     */
+    private volatile boolean retired;
+
+    /**
+     * Server-side cleanup diagnostics.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Widget.class.getName());
+
+    /**
+     * Resource actions owned exclusively by this widget.
+     */
+    private final List<Runnable> cleanup = new ArrayList<>();
 
     /**
      * Two-dimensional mapping: {@link State} → ({@link Property} → {@link Binding}).
@@ -83,8 +194,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     public Widget(final S style) {
         this.id = RMId.create();
         this.style = style;
-        this.updates = new ArrayList<>();
-        this.updates.add(new CreateWidget(this.id, this.getType()));
+        this.pushUpdate(new CreateWidget(this.id, this.getType()));
         this.bindings = new EnumMap<>(State.class);
         this.controllers = new HashMap<>();
 
@@ -93,11 +203,7 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
                 this.bindings.computeIfAbsent(state, s -> new HashMap<>());
             subset.put(
                 property,
-                property.bindModel(
-                    state,
-                    model.asCascading(),
-                    this
-                )
+                property.bindStyleModel(state, model, this)
             );
         });
     }
@@ -124,6 +230,87 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
         binding.setModel(model);
     }
 
+    /**
+     * Returns the widget supplying semantics for this control or composite.
+     * @return this widget or a native control owned by it
+     */
+    protected Widget<?> accessibleTarget() {
+        return this;
+    }
+
+    @Override
+    public Model<String> getAccessibleNameModel() {
+        return this.accessibleTarget().getModel(State.ANY, Property.ACCESSIBLE_NAME);
+    }
+
+    @Override
+    public void setAccessibleNameModel(final Model<String> model) {
+        this.accessibleTarget().setModel(State.ANY, Property.ACCESSIBLE_NAME, model);
+    }
+
+    /**
+     * Returns the model storing the optional plain-text accessible description.
+     * @return description model
+     */
+    public final Model<String> getAccessibleDescriptionModel() {
+        return this.accessibleTarget().getModel(State.ANY, Property.ACCESSIBLE_DESCRIPTION);
+    }
+
+    /**
+     * Binds the accessible description to application state.
+     * @param model description model
+     */
+    public final void setAccessibleDescriptionModel(final Model<String> model) {
+        this.accessibleTarget().setModel(State.ANY, Property.ACCESSIBLE_DESCRIPTION, model);
+    }
+
+    /**
+     * Sets the plain-text description, or clears it with an empty string.
+     * @param description accessible description
+     */
+    public final void setAccessibleDescription(final String description) {
+        this.getAccessibleDescriptionModel().setData(description);
+    }
+
+    /**
+     * Names this widget from another widget on the same page.
+     * @param label label widget, or null to restore the explicit or native name
+     */
+    public final void setAccessibleLabel(final Widget<?> label) {
+        this.setAccessibleReference(Property.ACCESSIBLE_LABEL, label);
+    }
+
+    /**
+     * Associates a help widget with this widget's accessible description.
+     * @param description description widget, or null to clear the relationship
+     */
+    public final void setAccessibleDescriptionWidget(final Widget<?> description) {
+        this.setAccessibleReference(Property.ACCESSIBLE_DESCRIPTION_WIDGET, description);
+    }
+
+    /**
+     * Associates a message with this widget while it is invalid.
+     * @param error error message widget, or null to clear the relationship
+     */
+    public final void setAccessibleError(final Widget<?> error) {
+        this.setAccessibleReference(Property.ACCESSIBLE_ERROR, error);
+    }
+
+    /**
+     * Serializes the stable identity without retaining the target as a Java object.
+     * @param property relationship property
+     * @param target referenced widget, or null
+     */
+    final void setAccessibleReference(final Property<String> property, final Widget<?> target) {
+        final Widget<?> source = this.accessibleTarget();
+        if (target == this || target == source) {
+            throw new IllegalArgumentException("The label target cannot be its own source");
+        }
+        source.getModel(State.ANY, property).setData(
+            target == null ? "" : target.getId().toString()
+        );
+    }
+
     @Override
     public <T> Controller<T> getController(final Event<T> event) {
         final Controller<?> ctrl = this.controllers.get(event);
@@ -141,6 +328,25 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     @Override
     public <T> void setController(final Event<T> event, final Controller<T> controller) {
         this.controllers.put(event, controller);
+    }
+
+    /**
+     * Checks server-side hidden/disabled flags on this widget and its current ancestors.
+     * This read does not create property bindings or enqueue updates.
+     * @return whether interaction is currently allowed
+     */
+    public final boolean isInteractionEnabled() {
+        final Map<Property<?>, Binding<?>> values = this.bindings.get(State.ANY);
+        if (values != null) {
+            for (final Property<Boolean> flag : java.util.List.of(Property.HIDDEN,
+                    Property.DISABLED)) {
+                final Binding<?> binding = values.get(flag);
+                if (binding != null && Boolean.TRUE.equals(binding.getModel().getData())) {
+                    return false;
+                }
+            }
+        }
+        return !(this.parent instanceof Widget<?> ancestor) || ancestor.isInteractionEnabled();
     }
 
     @Override
@@ -190,25 +396,123 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * is considered "detached" - it will no longer receive updates or events from the client.
      */
     public void remove() {
-        this.setParent(null);
+        if (this.parent != null) {
+            this.parent.remove(this);
+        }
     }
 
     /**
-     * Collects and clears all pending updates from this widget, adding them
-     * to the given set. This effectively drains the update queues.
-     *
-     * @param set the set to which updates are added
+     * Removes and permanently releases this attached widget's browser subtree.
+     * The retired instance and its descendants must not be reattached. Use
+     * {@link #remove()} instead when the application will reuse the same instance.
+     * This method does not close application-owned model subscriptions.
      */
-    public void getUpdates(final Set<Update> set) {
-        final List<Update> pending;
+    public final void dispose() {
+        if (this instanceof RootWidget) {
+            throw new IllegalStateException("The page owns its root widget lifecycle");
+        }
+        if (!this.retired) {
+            final Optional<RootWidget> root = this.getRootWidget();
+            this.remove();
+            this.visitSubtree(Widget::retire);
+            root.ifPresent(owner -> owner.pushUpdate(new DisposeWidget(this.id)));
+        }
+    }
+
+    /**
+     * Adds cleanup for one subscription or resource owned by this widget.
+     *
+     * @param action cleanup action
+     */
+    protected final synchronized void onRetire(final Runnable action) {
+        this.requireUsable();
+        this.cleanup.add(Objects.requireNonNull(action));
+    }
+
+    /**
+     * @return whether this widget is no longer active
+     */
+    protected final boolean isRetired() {
+        return this.retired;
+    }
+
+    /**
+     * Rejects configuration that would reopen a retired widget's resources.
+     */
+    protected final void requireUsable() {
+        if (this.retired) {
+            throw new IllegalStateException("Widget is disposed");
+        }
+    }
+
+    /**
+     * Closes owned model listeners exactly once, without holding the widget monitor
+     * when calling custom resource closers.
+     */
+    final void retire() {
+        final List<Runnable> actions;
         synchronized (this) {
-            if (this.updates == null) {
+            if (this.retired) {
                 return;
             }
-            pending = this.updates;
+            this.retired = true;
+            this.controllers.clear();
+            this.releaseBudget();
             this.updates = null;
+            this.bufferedBytes = 0;
+            actions = new ArrayList<>(this.cleanup);
+            this.cleanup.clear();
+            this.bindings.values().forEach(properties -> {
+                properties.values().forEach(binding -> actions.add(binding::close));
+                properties.clear();
+            });
         }
-        set.addAll(pending);
+        for (final Runnable action : actions) {
+            try {
+                action.run();
+            } catch (final RuntimeException failure) {
+                LOGGER.log(Level.WARNING, "Widget cleanup failed", failure);
+            }
+        }
+    }
+
+    /**
+     * Drains changes only if this widget still belongs to the collecting root.
+     * @param root collecting root
+     * @param destination protocol-ordered destination
+     */
+    final void collectMountedUpdates(final RootWidget root, final Set<Update> destination) {
+        final List<Update> pending;
+        synchronized (this) {
+            if (this.bufferOwner == null || this.bufferOwner.get() != root || this.retired) {
+                return;
+            }
+            this.markExported(root.getId());
+            pending = this.drainUpdates();
+        }
+        destination.addAll(pending);
+    }
+
+    /**
+     * Drains this widget's queue without holding its monitor while calling external code.
+     * @param set destination
+     */
+    public void getUpdates(final Set<Update> set) {
+        set.addAll(this.drainUpdates());
+    }
+
+    /**
+     * @return queued changes, detached from the mutable buffer
+     */
+    private synchronized List<Update> drainUpdates() {
+        if (this.updates == null) {
+            return List.of();
+        }
+        final List<Update> pending = this.updates;
+        this.releaseBudget();
+        this.updates = null;
+        this.bufferedBytes = 0;
+        return pending;
     }
 
     /**
@@ -235,72 +539,128 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
     }
 
     /**
-     * Sets the parent container of this widget.
-     * <p>
-     * If the widget was previously attached to another container, a {@link RemoveChild}
-     * update is queued to notify the client about the removal of that relationship.
-     * Afterward, the parent reference is updated to the new container.
-     * </p>
+     * Validates a destination before it modifies a collection, replacement slot or update queue.
      *
-     * <b>Handling pending updates</b>
-     * <p>
-     * When a widget (or an entire subtree of widgets) has been detached from the hierarchy,
-     * it may still have accumulated updates — for example, content changes or style updates.
-     * Such updates are not sent to the client immediately because the widget is not part
-     * of the active UI tree at that time.
-     * </p>
-     *
-     * <p>
-     * However, when reattaching that widget later, all previously accumulated updates
-     * become <em>stale</em>: their {@link RMId} values are older than those already processed
-     * by the client. The client will reject them to preserve strict chronological consistency,
-     * which would lead to a desynchronized state.
-     * </p>
-     *
-     * <b>Solution</b>
-     * <p>
-     * To prevent this inconsistency, this method performs the following steps:
-     * </p>
-     * <ol>
-     *   <li>Collects all pending updates from this widget and all its descendants
-     *       (if it is a {@link Container}) using a depth-first traversal;</li>
-     *   <li>Clones each update using {@link Update#clone()} to assign
-     *       a fresh unique identifier;</li>
-     *   <li>Adds these newly cloned updates to the outgoing update queue.</li>
-     * </ol>
-     *
-     * <p>
-     * As a result, the client receives a valid, up-to-date sequence of updates:
-     * the widget (and its subtree) are created and displayed as if they had just
-     * been constructed on the server at the time of attachment.
-     * </p>
-     *
-     * @param container the new parent container (may be {@code null})
+     * @param destination destination container widget
      */
-    void setParent(final Container container) {
-        if (container == null) {
-            if (this.parent != null) {
-                final Container exParent = this.parent;
-                this.parent = null;
-                exParent.remove(this);
-            }
-            return;
+    final void validateAttachment(final Widget<?> destination) {
+        if (this instanceof RootWidget || this.parent == destination) {
+            throw new IllegalArgumentException("A root or duplicate child cannot be attached");
         }
-        Set<Update> pending = new TreeSet<>();
-        if (this instanceof Container) {
-            for (final Widget<?> child : (Container) this) {
-                child.getUpdates(pending);
+        for (Widget<?> ancestor = destination; ancestor != null;
+                ancestor = ancestor.parent instanceof Widget<?> node ? node : null) {
+            if (ancestor == this) {
+                throw new IllegalArgumentException("A widget cannot contain itself or an ancestor");
+            }
+            if (ancestor.retired) {
+                throw new IllegalArgumentException("The destination has been disposed");
+            }
+        }
+        this.validateSubtreeOwner(destination.attachmentRootId());
+    }
+
+    /**
+     * Returns the actual or previously acquired root identity for accepting children.
+     *
+     * @return root identity, or null for an unused container
+     */
+    private RMId attachmentRootId() {
+        return this.getRootWidget().map(RootWidget::getId).orElse(this.ownerRootId);
+    }
+
+    /**
+     * Before batch construction, validates all arguments without changing their current parents.
+     *
+     * @param children children in constructor order
+     */
+    final void validateChildren(final Widget<?>[] children) {
+        final Set<RMId> seen = new HashSet<>();
+        for (final Widget<?> child : children) {
+            Objects.requireNonNull(child, "widget").validateAttachment(this);
+            if (!seen.add(child.getId())) {
+                throw new IllegalArgumentException("Duplicate child in constructor");
+            }
+        }
+    }
+
+    /**
+     * Checks that this subtree is available for the specified browser runtime.
+     *
+     * @param rootId required root identity, or null if not yet known
+     */
+    private void validateSubtreeOwner(final RMId rootId) {
+        this.visitSubtree(widget -> {
+            if (widget.retired || rootId != null
+                    && widget.ownerRootId != null && !rootId.equals(widget.ownerRootId)) {
+                throw new IllegalArgumentException("A disposed or foreign-root widget cannot move");
+            }
+        });
+    }
+
+    /**
+     * Adds the destination update before the former owner removes the child. A same-root
+     * browser first moves the existing element and then ignores removal from its old host.
+     * A detached subtree's buffered updates are refreshed before attachment.
+     *
+     * @param destination destination container widget
+     * @param attachment destination attachment update factory
+     * @param <C> structural destination widget type
+     */
+    final <C extends Widget<?> & Container> void attachTo(final C destination,
+            final Supplier<Update> attachment) {
+        final Container previous = this.parent;
+        final Optional<RootWidget> oldRoot = this.getRootWidget();
+        if (oldRoot.isEmpty() || !oldRoot.equals(destination.getRootWidget())) {
+            final Map<Update, Widget<?>> pending = new TreeMap<>();
+            this.visitSubtree(widget -> {
+                final Set<Update> updates = new TreeSet<>();
+                widget.getUpdates(updates);
+                updates.forEach(update -> pending.put(update, widget));
+            });
+            pending.forEach((update, widget) -> widget.pushUpdate(update.clone()));
+        }
+        destination.pushUpdate(attachment.get());
+        if (previous != null) {
+            previous.remove(this);
+        }
+        this.parent = destination;
+        this.getRootWidget().ifPresent(root -> this.visitSubtree(root::trackOwned));
+    }
+
+    /**
+     * Records the runtime to which the first widget creation is published.
+     *
+     * @param owner browser root identity
+     */
+    final void markExported(final RMId owner) {
+        this.ownerRootId = owner;
+    }
+
+    /**
+     * Clears the backlink after the current owner has removed the child from its storage.
+     *
+     * @param owner container doing the removal
+     */
+    final void detachFrom(final Container owner) {
+        if (this.parent == owner) {
+            this.parent = null;
+            this.visitSubtree(widget -> widget.setBufferOwner(null));
+        }
+    }
+
+    /**
+     * Visits this widget and its structural descendants exactly once.
+     *
+     * @param visitor operation to apply
+     */
+    private void visitSubtree(final Consumer<Widget<?>> visitor) {
+        if (this instanceof Container container) {
+            for (final Widget<?> widget : container) {
+                visitor.accept(widget);
             }
         } else {
-            this.getUpdates(pending);
+            visitor.accept(this);
         }
-        if (this.parent != null) {
-            this.pushUpdate(new RemoveChild(this.id, this.parent.getId()));
-        }
-        for (Update update : pending) {
-            this.pushUpdate(update.clone());
-        }
-        this.parent = container;
     }
 
     /**
@@ -309,16 +669,16 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * @param style new widget style
      */
     public void setStyle(final S style) {
+        this.requireUsable();
         this.style = style;
         style.forEachModel((state, property, model) -> {
             final Map<Property<?>, Binding<?>> subset =
                 this.bindings.computeIfAbsent(state, s -> new HashMap<>());
-            final Model<?> fork = model.asCascading();
             final Binding<?> binding = subset.get(property);
             if (binding == null) {
-                subset.put(property, property.bindModel(state, fork, this));
+                subset.put(property, property.bindStyleModel(state, model, this));
             } else {
-                property.rebindModel(binding, fork);
+                property.rebindStyleModel(binding, model);
             }
         });
     }
@@ -329,10 +689,29 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * @param update the update to add
      */
     protected synchronized void pushUpdate(final Update update) {
+        if (this.retired || this.bufferOverflow) {
+            return;
+        }
+        final RootWidget owner = this.bufferOwner == null ? null : this.bufferOwner.get();
+        final long bytes = update.encodedBytes();
+        final int count = this.updates == null ? 0 : this.updates.size();
+        if (owner != null ? !owner.retainBuffered(1, bytes)
+                : count >= DETACHED_LIMITS.pendingUpdates()
+                    || this.bufferedBytes + bytes > DETACHED_LIMITS.pendingBytes()) {
+            this.releaseBudget();
+            this.bufferOverflow = true;
+            this.updates = null;
+            this.bufferedBytes = 0;
+            return;
+        }
         if (this.updates == null) {
             this.updates = new ArrayList<>();
         }
         this.updates.add(update);
+        this.bufferedBytes += bytes;
+        if (owner != null) {
+            owner.markDirty(this);
+        }
     }
 
     /**
@@ -345,7 +724,9 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents {
      * @return an existing or newly created {@link Binding} for the given property and state
      * @throws IllegalArgumentException if the existing binding has an incompatible model type
      */
-    private <T> Binding<T> getBinding(final State state, final Property<T> property) {
+    private synchronized <T> Binding<T> getBinding(
+            final State state, final Property<T> property) {
+        this.requireUsable();
         Map<Property<?>, Binding<?>> subset
             = this.bindings.computeIfAbsent(state, k -> new HashMap<>());
         final Binding<?> existingBinding = subset.get(property);
