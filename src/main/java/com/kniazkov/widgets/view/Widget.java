@@ -612,10 +612,17 @@ public abstract class Widget<S extends Style> implements Entity, HandlesEvents, 
         final Optional<RootWidget> oldRoot = this.getRootWidget();
         if (oldRoot.isEmpty() || !oldRoot.equals(destination.getRootWidget())) {
             final Map<Update, Widget<?>> pending = new TreeMap<>();
+            final Set<RMId> members = new HashSet<>();
+            this.visitSubtree(widget -> members.add(widget.getId()));
             this.visitSubtree(widget -> {
                 final Set<Update> updates = new TreeSet<>();
                 widget.getUpdates(updates);
-                updates.forEach(update -> pending.put(update, widget));
+                /*
+                 * До первой публикации заменённые дети ещё неизвестны браузеру.
+                 */
+                updates.stream().filter(update -> widget.ownerRootId != null
+                    || members.contains(update.getWidgetId()))
+                    .forEach(update -> pending.put(update, widget));
             });
             pending.forEach((update, widget) -> widget.pushUpdate(update.clone()));
         }
