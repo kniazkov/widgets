@@ -10,6 +10,8 @@
         <version>0.2.0</version>
     </parent>
     <artifactId>widgets-images</artifactId>
+    <name>Widgets Images</name>
+    <description>Image decoding, metadata and processing for Widgets applications.</description>
     <repositories>
         <repository>
             <id>AsposeJavaAPI</id>
@@ -60,19 +62,35 @@
         </dependency>
     </dependencies>
     <build>
-        <sourceDirectory>${project.basedir}/../../src/main/java</sourceDirectory>
+        <sourceDirectory>${project.build.directory}/module-sources</sourceDirectory>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <includes>
-                        <include>com/kniazkov/widgets/images/ImageLoader.java</include>
-                        <include>com/kniazkov/widgets/images/ImageProcessor.java</include>
-                        <include>com/kniazkov/widgets/images/ImageDecodeLimits.java</include>
-                        <include>com/kniazkov/widgets/images/ImageDimensions.java</include>
-                    </includes>
-                </configuration>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>select-module-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../../src/main/java</directory>
+                                    <includes>
+                                        <include>com/kniazkov/widgets/images/ImageLoader.java</include>
+                                        <include>com/kniazkov/widgets/images/ImageProcessor.java</include>
+                                        <include>com/kniazkov/widgets/images/ImageDecodeLimits.java</include>
+                                        <include>com/kniazkov/widgets/images/ImageDimensions.java</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

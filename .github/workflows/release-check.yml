@@ -25,15 +25,21 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '22'
-      - name: Build and install candidate from clean checkout
-        run: mvn -B -ntp clean install
+      - name: Build and verify a signed Central bundle locally
+        shell: bash
+        run: |
+          export GNUPGHOME="$(mktemp -d)"
+          trap 'gpgconf --kill gpg-agent; rm -rf "$GNUPGHOME"' EXIT
+          gpg --batch --pinentry-mode loopback --passphrase '' --quick-generate-key \
+            'Widgets CI <ci@example.invalid>' rsa2048 sign 1d
+          mvn -B -ntp clean deploy -DskipUpload=true
+          python3 scripts/check-central-bundle.py
       - name: Compile independent Maven consumer
         run: mvn -B -ntp -f src/test/consumer/pom.xml clean verify
       - name: Validate release, resources and consumer
         run: node scripts/check-release.mjs
-      - name: Build independent modules and resolve consumer classpaths
+      - name: Resolve independent consumer classpaths
         run: |
-          mvn -B -ntp -f modules/pom.xml clean install
           for consumer in minimal consumer; do
             mvn -B -ntp -f src/test/$consumer/pom.xml verify dependency:build-classpath -Dmdep.outputFile=target/classpath.txt -DincludeScope=runtime
           done

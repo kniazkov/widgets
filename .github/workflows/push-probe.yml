@@ -8,6 +8,8 @@ on:
       - src/main/java/com/kniazkov/widgets/view/RootWidget.java
       - src/main/html/scripts/**
       - pom.xml
+      - widgets.xml
+      - modules/pom.xml
       - src/test/java/com/kniazkov/widgets/e2e/PushTestServer.java
       - .github/workflows/push-probe.yml
   workflow_dispatch:

@@ -5,8 +5,10 @@ import { resolve, join, delimiter } from "node:path";
 import { createHash } from "node:crypto";
 import process from "node:process";
 
-const pom = await readFile("pom.xml", "utf8");
-const version = pom.match(/<artifactId>widgets<\/artifactId>\s*<version>([^<]+)<\/version>/)?.[1];
+const pom = await readFile("modules/pom.xml", "utf8");
+const version = pom.match(
+    /<artifactId>widgets-modules<\/artifactId>\s*<version>([^<]+)<\/version>/
+)?.[1];
 assert.match(
     version || "",
     /^\d+\.\d+\.\d+$/,

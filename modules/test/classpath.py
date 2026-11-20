@@ -11,6 +11,12 @@ def contents(path):
         return set(archive.namelist())
 
 
+def binary_jar(component):
+    jars = Path(f"modules/{component}/target").glob(f"widgets-{component}-*.jar")
+    jar, = [p for p in jars if not p.name.endswith(("-sources.jar", "-javadoc.jar"))]
+    return jar
+
+
 def classpath(consumer):
     paths = Path(f"src/test/{consumer}/target/classpath.txt").read_text().strip()
     jars = [Path(name) for name in paths.split(pathsep)]
@@ -30,7 +36,7 @@ for prefix in ("com/kniazkov/widgets/db/", "com/kniazkov/widgets/images/ImageLoa
 assert sum(j.stat().st_size for j in minimal) < sum(j.stat().st_size for j in full)
 all_classes = set()
 for component in ("core", "http", "db", "images"):
-    jar, = Path(f"modules/{component}/target").glob("widgets-*.jar")
+    jar = binary_jar(component)
     classes = {name for name in contents(jar) if name.endswith(".class")}
     assert classes and classes.isdisjoint(all_classes), component
     all_classes.update(classes)
@@ -57,7 +63,7 @@ with TemporaryDirectory() as temporary:
 
     original = build_id(minimal)
     assert original == build_id(reversed(minimal))
-    db, = Path("modules/db/target").glob("widgets-db-*.jar")
+    db = binary_jar("db")
     assert build_id([*minimal, db]) != original
     expanded = directory / "expanded"
     for jar in web_modules:

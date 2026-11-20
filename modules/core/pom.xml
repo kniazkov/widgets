@@ -10,6 +10,8 @@
         <version>0.2.0</version>
     </parent>
     <artifactId>widgets-core</artifactId>
+    <name>Widgets Core</name>
+    <description>Widget tree, models and browser resources for Widgets applications.</description>
     <dependencies>
         <dependency>
             <groupId>com.kniazkov</groupId>
@@ -23,7 +25,7 @@
         </dependency>
     </dependencies>
     <build>
-        <sourceDirectory>${project.basedir}/../../src/main/java</sourceDirectory>
+        <sourceDirectory>${project.build.directory}/module-sources</sourceDirectory>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -39,25 +41,41 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>com/kniazkov/widgets/example/**</exclude>
-                        <exclude>com/kniazkov/widgets/db/**</exclude>
-                        <exclude>com/kniazkov/widgets/base/Server.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/CreateClient.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/HttpHandler.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/StreamEndpoint.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/StreamServer.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/PushServer.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/ProtocolSecurity.java</exclude>
-                        <exclude>com/kniazkov/widgets/base/RequestDiagnostics.java</exclude>
-                        <exclude>com/kniazkov/widgets/images/ImageLoader.java</exclude>
-                        <exclude>com/kniazkov/widgets/images/ImageProcessor.java</exclude>
-                        <exclude>com/kniazkov/widgets/images/ImageDecodeLimits.java</exclude>
-                        <exclude>com/kniazkov/widgets/images/ImageDimensions.java</exclude>
-                    </excludes>
-                </configuration>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>select-module-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.sourceDirectory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>../../src/main/java</directory>
+                                    <excludes>
+                                        <exclude>com/kniazkov/widgets/example/**</exclude>
+                                        <exclude>com/kniazkov/widgets/db/**</exclude>
+                                        <exclude>com/kniazkov/widgets/base/Server.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/CreateClient.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/HttpHandler.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/StreamEndpoint.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/StreamServer.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/PushServer.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/ProtocolSecurity.java</exclude>
+                                        <exclude>com/kniazkov/widgets/base/RequestDiagnostics.java</exclude>
+                                        <exclude>com/kniazkov/widgets/images/ImageLoader.java</exclude>
+                                        <exclude>com/kniazkov/widgets/images/ImageProcessor.java</exclude>
+                                        <exclude>com/kniazkov/widgets/images/ImageDecodeLimits.java</exclude>
+                                        <exclude>com/kniazkov/widgets/images/ImageDimensions.java</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
