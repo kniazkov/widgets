@@ -1,4 +1,4 @@
-// Состояние предъявления отделено от камеры для детерминированной проверки повторов.
+// Keep presentation state separate from camera ownership and decoding.
 class QrPresentationGate {
     constructor() {
         this.code = null;
@@ -24,7 +24,7 @@ class QrPresentationGate {
     }
 }
 
-// Никаких переходов и запросов по содержимому QR: принимается только точная ссылка магазина.
+// Return data only; an optional prefix enables the application-specific UUID filter.
 function qrProductCode(value, prefix) {
     if (typeof value !== "string" || !value.length) return null;
     if (prefix === "") return value;
@@ -34,7 +34,7 @@ function qrProductCode(value, prefix) {
         ? value
         : null;
 }
-// Инвертируем также исходные пиксели: цветной фон требует повторной адаптивной бинаризации.
+// Invert source pixels too: colored backgrounds need another adaptive binarization pass.
 function decodeQrFrame(pixels, width, height) {
     const normal = window.jsQR(pixels, width, height, { inversionAttempts: "attemptBoth" });
     if (normal) return normal;
@@ -58,46 +58,60 @@ function createQrScanner() {
     video.playsInline = true;
     video.setAttribute("playsinline", "");
     video.style.cssText = "width:100%;max-height:50vh;object-fit:contain";
-    const status = document.createElement("p");
-    status.setAttribute("role", "status");
-    const start = document.createElement("button");
-    start.type = "button";
-    widget.append(video, status, start);
+    widget.append(video);
     const canvas = document.createElement("canvas"),
         ctx = canvas.getContext("2d", { willReadFrequently: true });
     const gate = new QrPresentationGate();
     let config = null,
         stream = null,
         timer = null,
-        stopped = false,
+        disabled = true,
+        disposed = false,
+        suspended = false,
         acquiring = false,
+        generation = 0,
+        lastStatus = null,
         sequence = 0,
         ack = 0;
-    const message = key => {
-        status.textContent = config?.messages[key] || "";
+    const report = status => {
+        if (disabled || disposed || status === lastStatus) return;
+        lastStatus = status;
+        sendEventToServer(widget, "text input", { text: "status\n" + status });
     };
-    const stop = () => {
-        stopped = true;
+    const visible = () =>
+        widget.isConnected && !document.hidden && widget.getClientRects().length > 0;
+    const release = () => {
+        generation++;
+        acquiring = false;
         clearTimeout(timer);
         stream?.getTracks().forEach(track => track.stop());
         stream = null;
         video.srcObject = null;
+    };
+    const stop = () => {
+        release();
+        disposed = true;
         observer.disconnect();
         document.removeEventListener("visibilitychange", visibility);
-        window.removeEventListener("pagehide", stop);
+        window.removeEventListener("pagehide", suspend);
         qrScanners.delete(scanner);
     };
+    const suspend = () => {
+        if (!stream && !acquiring) return;
+        release();
+        suspended = true;
+        report("CLOSED");
+    };
     const visibility = () => {
-        if (document.hidden) {
-            stop();
-            message("closed");
-        }
+        if (document.hidden) suspend();
     };
     const scanner = { stop };
     qrScanners.add(scanner);
-    // Сохранённые страницы могут оставаться в DOM, но камера у скрытой страницы выключается.
+    // Cached pages can remain attached while hidden. Release pending requests as well.
     const observer = new MutationObserver(() => {
-        if (!widget.isConnected || (stream && widget.getClientRects().length === 0)) stop();
+        if (!widget.isConnected) stop();
+        else if (!visible()) suspend();
+        else start();
     });
     observer.observe(document.documentElement, {
         subtree: true,
@@ -106,35 +120,51 @@ function createQrScanner() {
         attributeFilter: ["style", "hidden"]
     });
     document.addEventListener("visibilitychange", visibility);
-    window.addEventListener("pagehide", stop);
+    window.addEventListener("pagehide", suspend);
+    Object.defineProperty(widget, "disabled", {
+        get: () => disabled,
+        set: flag => {
+            disabled = Boolean(flag);
+            if (disabled) {
+                release();
+                sequence = ack;
+                gate.code = null;
+                gate.resume();
+                lastStatus = null;
+            } else {
+                suspended = false;
+                queueMicrotask(start);
+            }
+        }
+    });
     widget.setText = text => {
-        // Начальное пустое значение модели приходит перед конфигурацией сканера.
+        // An empty model value precedes the initial scanner configuration.
         if (!text) return false;
-        const next = JSON.parse(text);
-        config = next;
-        start.textContent = config.messages.start;
-        if (next.ack > ack) {
-            ack = next.ack;
+        config = JSON.parse(text);
+        if (config.ack > ack) {
+            ack = config.ack;
+            sequence = Math.max(sequence, ack);
             gate.resume();
         }
-        if (next.paused) gate.busy = true;
+        if (config.paused) gate.busy = true;
         else if (ack === sequence) gate.resume();
-        if (stream) message(next.paused ? "waiting" : "ready");
-        else if (!acquiring && !stopped) message("idle");
+        if (stream) report(config.paused ? "WAITING" : "READY");
+        queueMicrotask(start);
         return true;
     };
     function frame() {
         try {
             readFrame();
         } catch {
-            stop();
-            message("unavailable");
+            release();
+            suspended = true;
+            report("UNAVAILABLE");
         }
     }
     function readFrame() {
-        if (stopped) return;
-        if (!widget.isConnected || document.hidden || widget.getClientRects().length === 0) {
-            stop();
+        if (disabled || disposed || !stream) return;
+        if (!visible()) {
+            suspend();
             return;
         }
         if (!gate.busy && !config.paused && video.readyState >= 2 && video.videoWidth) {
@@ -145,52 +175,59 @@ function createQrScanner() {
             const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const decoded = decodeQrFrame(pixels.data, pixels.width, pixels.height);
             const code = decoded ? qrProductCode(decoded.data, config.prefix) : null;
-            if (decoded && !code) message("invalid");
+            if (decoded && !code) report("INVALID");
             if (gate.frame(code, performance.now())) {
                 sequence++;
-                message("waiting");
+                report("WAITING");
                 sendEventToServer(widget, "text input", { text: sequence + "\n" + code });
             }
         }
         timer = setTimeout(frame, 120);
     }
-    start.addEventListener("click", async () => {
-        if (stopped || acquiring || stream || !config) return;
+    async function start() {
+        if (disabled || disposed || suspended || acquiring || stream || !config || !visible())
+            return;
         if (!window.isSecureContext) {
-            message("https");
+            suspended = true;
+            report("HTTPS_REQUIRED");
             return;
         }
         if (!navigator.mediaDevices?.getUserMedia || !ctx || !window.jsQR) {
-            message("unavailable");
+            suspended = true;
+            report("UNAVAILABLE");
             return;
         }
+        const request = ++generation;
         acquiring = true;
-        start.disabled = true;
-        message("opening");
+        report("OPENING");
         try {
             const acquired = await navigator.mediaDevices.getUserMedia({
                 audio: false,
                 video: { facingMode: { ideal: "environment" } }
             });
-            if (stopped || !widget.isConnected) {
+            if (request !== generation || disabled || disposed || !visible()) {
                 acquired.getTracks().forEach(track => track.stop());
+                if (request === generation) suspend();
                 return;
             }
             stream = acquired;
             video.srcObject = stream;
             await video.play();
-            if (stopped) return;
-            message("ready");
+            if (request !== generation) return;
+            if (!visible()) {
+                suspend();
+                return;
+            }
+            report(config.paused ? "WAITING" : "READY");
             frame();
         } catch (error) {
-            stream?.getTracks().forEach(track => track.stop());
-            stream = null;
-            video.srcObject = null;
-            message(error.name === "NotAllowedError" ? "denied" : "unavailable");
+            if (request !== generation) return;
+            release();
+            suspended = true;
+            report(error.name === "NotAllowedError" ? "DENIED" : "UNAVAILABLE");
         } finally {
-            acquiring = false;
-            start.disabled = false;
+            if (request === generation) acquiring = false;
         }
-    });
+    }
     return widget;
 }

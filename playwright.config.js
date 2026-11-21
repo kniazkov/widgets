@@ -47,6 +47,7 @@ export default defineConfig({
                 "tree-view.spec.js",
                 "split-pane.spec.js",
                 "slider.spec.js",
+                "qr-demo.spec.js",
                 "public-document.spec.js",
                 "release-compatibility.spec.js"
             ],
