@@ -6,7 +6,7 @@
 
     <groupId>com.kniazkov</groupId>
     <artifactId>widgets-build</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
     <packaging>pom</packaging>
     <name>Widgets release build</name>
 

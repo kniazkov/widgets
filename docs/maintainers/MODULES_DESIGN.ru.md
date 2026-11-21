@@ -6,7 +6,7 @@
 <dependency>
     <groupId>com.kniazkov</groupId>
     <artifactId>widgets-http</artifactId>
-    <version>0.2.0</version>
+    <version>0.2.1</version>
 </dependency>
 ```
 

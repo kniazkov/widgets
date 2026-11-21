@@ -116,7 +116,8 @@ function processUpdates(receipt, modalActivation = null) {
             lastAppliedUpdateSequence = update.sequence;
         }
         if (!clientDisposed) {
-            trimDetachedWidgets();
+            // Незавершённая порция может содержать элементы для присоединения в следующей.
+            if (!receipt.moreUpdates) trimDetachedWidgets();
             if (receipt.updates.length || modalActivation) refreshModalStack(modalActivation);
         }
         return !clientDisposed;

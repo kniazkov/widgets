@@ -6,6 +6,7 @@ package com.kniazkov.widgets.controller;
 import com.kniazkov.json.JsonElement;
 import com.kniazkov.json.JsonObject;
 import com.kniazkov.widgets.view.ComboBox;
+import com.kniazkov.widgets.view.QrScanner;
 import com.kniazkov.widgets.view.DataTable;
 import com.kniazkov.widgets.view.SplitPane;
 import com.kniazkov.widgets.view.Slider;
@@ -74,7 +75,7 @@ final class EventValidation {
             return widget instanceof com.kniazkov.widgets.view.UploadManager;
         }
         if (event == Event.TEXT_INPUT) {
-            return widget instanceof HasTextInput
+            return widget instanceof QrScanner || widget instanceof HasTextInput
                 && (!(widget instanceof InputField input) || !input.isReadOnly());
         }
         if (event == Event.CHECK) {
@@ -132,7 +133,8 @@ final class EventValidation {
             final JsonObject data) {
         if (event == Event.TEXT_INPUT) {
             return fields(data, "text")
-                && text(data.get("text"), ((HasTextInput) widget).getMaxInputLength());
+                && text(data.get("text"), widget instanceof QrScanner
+                    ? 2048 : ((HasTextInput) widget).getMaxInputLength());
         }
         if (event == Event.CHECK) {
             return fields(data, "state") && data.get("state").isBoolean()

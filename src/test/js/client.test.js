@@ -15,6 +15,7 @@ const handlerNames = [
     "setCountdownDeadline",
     "sampleCountdownClock",
     "disposeCountdowns",
+    "disposeQrScanners",
     "createWidget",
     "reset",
     "goToPage",
@@ -613,6 +614,21 @@ describe("versioned update stream", () => {
         harness.setClientId("#123");
         return harness;
     }
+
+    it("retains incomplete page subtrees until the last update batch", () => {
+        const harness = ready();
+        dom.window.eval(`window.__trimCount = 0;
+            trimDetachedWidgets = () => window.__trimCount++;`);
+        expect(harness.processUpdates({ ...frame(0, [command(1)]), moreUpdates: true })).toBe(true);
+        expect(dom.window.__trimCount).toBe(0);
+        expect(harness.processUpdates({ ...frame(1, [command(2)]), moreUpdates: true })).toBe(true);
+        expect(dom.window.__trimCount).toBe(0);
+        expect(harness.processUpdates({ ...frame(2, [command(3)]), moreUpdates: false })).toBe(
+            true
+        );
+        expect(dom.window.__trimCount).toBe(1);
+        expect(harness.checkpoint()).toBe(3);
+    });
 
     it("uses a channel sequence, ignores replays and advances for an intentional no-op", () => {
         const harness = ready();

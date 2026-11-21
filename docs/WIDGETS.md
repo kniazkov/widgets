@@ -17,9 +17,11 @@ Choose a task below, or [look up a Java class](#classes). Each entry includes a 
 | [Report progress, errors and outcomes](en/widgets/feedback.md) | Keep FieldError beside the editor it describes. Use an Alert for a persistent page message and a Toast for a short notification. |
 | [Select and upload files](en/widgets/files.md) | FileLoader exposes each transfer to your handler. UploadManager and UploadList provide progress, cancellation and retry controls together. |
 
+| [Scan product QR codes](en/widgets/camera.md) | QrScanner |
+
 ## Run AllWidgets
 
-In the [quick-start Maven project](en/quick-start.md), replace the dependency `com.kniazkov:widgets-http:0.2.0` with `com.kniazkov:widgets:0.2.0`. The full artifact includes the example. Set `<mainClass>` to `com.kniazkov.widgets.example.AllWidgets`. For the house photo and the favicon, save [house.png](../www/house.png) and [widgets-icon.svg](../www/widgets-icon.svg) in a `www` directory next to your POM.
+In the [quick-start Maven project](en/quick-start.md), replace the dependency `com.kniazkov:widgets-http:0.2.1` with `com.kniazkov:widgets:0.2.1`. The full artifact includes the example. Set `<mainClass>` to `com.kniazkov.widgets.example.AllWidgets`. For the house photo and the favicon, save [house.png](../www/house.png) and [widgets-icon.svg](../www/widgets-icon.svg) in a `www` directory next to your POM.
 
 ```sh
 mvn compile exec:java
@@ -57,7 +59,7 @@ Open [localhost:8080](http://localhost:8080/) and try the controls pictured in t
 
 **P** · [Panel](en/widgets/layout.md#panel) · [PasswordInput](en/widgets/forms.md#passwordinput) · [Popover](en/widgets/dialogs.md#popover) · [Popup](en/widgets/dialogs.md#popup) · [Progress](en/widgets/feedback.md#progress)
 
-**Q** · [QuantityField](en/widgets/numbers.md#quantityfield)
+**Q** · [QrScanner](en/widgets/camera.md#qrscanner) · [QuantityField](en/widgets/numbers.md#quantityfield)
 
 **R** · [RadioButton](en/widgets/choices.md#radiobutton) · [RadioButtonWithText](en/widgets/choices.md#radiobuttonwithtext) · [ResponsiveGrid](en/widgets/layout.md#responsivegrid) · [RootWidget](en/widgets/layout.md#rootwidget) · [Row](en/widgets/tables.md#row)
 

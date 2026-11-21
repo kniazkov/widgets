@@ -1,6 +1,6 @@
 export default [
     {
-        ignores: ["node_modules/**", "target/**"]
+        ignores: ["node_modules/**", "target/**", "src/main/html/scripts/shared/jsqr.js"]
     },
     {
         files: ["**/*.js", "**/*.mjs"],

@@ -15,7 +15,7 @@ mkdir -p hello-widgets/src/main/java/example
 cd hello-widgets
 ```
 
-Save this as `pom.xml`. Maven downloads `com.kniazkov:widgets-http:0.2.0` and its dependencies from Maven Central on the first build.
+Save this as `pom.xml`. Maven downloads `com.kniazkov:widgets-http:0.2.1` and its dependencies from Maven Central on the first build.
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -33,7 +33,7 @@ Save this as `pom.xml`. Maven downloads `com.kniazkov:widgets-http:0.2.0` and it
         <dependency>
             <groupId>com.kniazkov</groupId>
             <artifactId>widgets-http</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.1</version>
         </dependency>
     </dependencies>
     <build>

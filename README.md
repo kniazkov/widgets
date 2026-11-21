@@ -28,6 +28,6 @@ is the handler passed to `onClick`. A click increments the model. The text follo
 
 ## Run the counter
 
-Use JDK 21 and Maven 3.9. Add `com.kniazkov:widgets-http:0.2.0` to your POM. The [Maven quick start](docs/en/quick-start.md) includes the complete POM, the Java file and the command to run it.
+Use JDK 21 and Maven 3.9. Add `com.kniazkov:widgets-http:0.2.1` to your POM. The [Maven quick start](docs/en/quick-start.md) includes the complete POM, the Java file and the command to run it.
 
 [Examples](src/main/java/com/kniazkov/widgets/example) · [MIT license](LICENSE)

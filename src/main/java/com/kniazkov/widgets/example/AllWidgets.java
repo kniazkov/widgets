@@ -84,6 +84,7 @@ import java.time.Instant;
 import com.kniazkov.widgets.view.OverlayStack;
 import com.kniazkov.widgets.view.HorizontalLine;
 import com.kniazkov.widgets.view.Panel;
+import com.kniazkov.widgets.view.QrScanner;
 import com.kniazkov.widgets.view.PanelStyle;
 import com.kniazkov.widgets.view.PasswordInput;
 import com.kniazkov.widgets.view.RadioButton;
@@ -249,6 +250,7 @@ public class AllWidgets {
         addAccessibleSemantics(root);
         addPopups(root);
         addFileLoaders(root);
+        addQrScanner(root);
         addImages(root);
         addActiveImages(root);
         addOverlayStacks(root);
@@ -259,6 +261,34 @@ public class AllWidgets {
         addAdaptiveForm(root);
         addCountdown(root);
         addCarousel(root);
+    }
+
+    /**
+     * Демонстрирует локальное чтение QR без изменения данных приложения.
+     * @param root корневой виджет
+     */
+    private static void addQrScanner(final RootWidget root) {
+        final Panel card = addCard(root, "QrScanner",
+            "Local QR recognition; the camera starts only when you enable it.");
+        final TextWidget result = new TextWidget("No QR received");
+        final Map<String, String> messages = Map.of(
+            "start", "Enable camera",
+            "idle", "Allow camera access to scan a product QR.",
+            "opening", "Opening camera…",
+            "ready", "Show a QR. Remove it for two seconds before scanning it again.",
+            "waiting", "Processing QR…",
+            "https", "Camera access requires HTTPS.",
+            "denied", "Camera permission was denied.",
+            "unavailable", "Camera unavailable.",
+            "invalid", "Not a product QR from this example.",
+            "closed", "Camera stopped. Reload to start again.");
+        final QrScanner[] scanner = new QrScanner[1];
+        scanner[0] = new QrScanner("https://shop.example/product?id=", messages, code -> {
+            result.setText(code);
+            scanner[0].setPaused(false);
+        });
+        card.add(scanner[0]);
+        card.add(new Section(result));
     }
 
     /**

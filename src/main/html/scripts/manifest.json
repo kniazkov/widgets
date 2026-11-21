@@ -5,7 +5,8 @@
         "shared/push-transport.js",
         "shared/dom.js",
         "shared/document.js",
-        "shared/polling.js"
+        "shared/polling.js",
+        "shared/jsqr.js"
     ],
     "widgets": [
         "widgets/core.js",
@@ -34,7 +35,8 @@
         "widgets/feedback.js",
         "widgets/sortable.js",
         "widgets/zoom.js",
-        "widgets/markdown.js"
+        "widgets/markdown.js",
+        "widgets/qr-scanner.js"
     ],
     "client": [
         "client/lifecycle.js",

@@ -15,7 +15,7 @@ mkdir -p hello-widgets/src/main/java/example
 cd hello-widgets
 ```
 
-Сохрани этот файл под именем `pom.xml`. При первой сборке Maven скачает `com.kniazkov:widgets-http:0.2.0` и его зависимости из Maven Central.
+Сохрани этот файл под именем `pom.xml`. При первой сборке Maven скачает `com.kniazkov:widgets-http:0.2.1` и его зависимости из Maven Central.
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -33,7 +33,7 @@ cd hello-widgets
         <dependency>
             <groupId>com.kniazkov</groupId>
             <artifactId>widgets-http</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.1</version>
         </dependency>
     </dependencies>
     <build>

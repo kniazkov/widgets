@@ -252,6 +252,7 @@ function disposeClient() {
     clientDisposed = true;
     stopClientRecovery();
     disposeCountdowns();
+    disposeQrScanners();
     disposeAllWidgets();
     mainCycleTask?.dispose();
     mainCycleTask = null;
