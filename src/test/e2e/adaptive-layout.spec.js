@@ -5,11 +5,11 @@ function field(page, name) {
 }
 
 function form(page) {
-    return page.getByRole("form", { name: "Адаптивная учебная заявка" });
+    return page.getByRole("form", { name: "Adaptive sample request" });
 }
 
-const title = "Полное описание учебного предмета для проверки переноса подписи";
-const longWord = "ДлинноесловобезпробеловДляПроверкиПереносаСетки";
+const title = "Full sample item description for testing label wrapping";
+const longWord = "LongWordWithoutSpacesToTestGridWrapping";
 
 async function placement(first, second) {
     const a = await first.boundingBox();
@@ -22,12 +22,12 @@ test("stack direction and nested grids follow their own width, not the device", 
 }) => {
     await page.setViewportSize({ width: 1280, height: 780 });
     await page.goto("/all-widgets");
-    const alpha = page.getByText("Альфа · Stack", { exact: true });
-    const beta = page.getByText("Бета · Stack", { exact: true });
-    const wideA = page.getByText("Широкая сетка А", { exact: true });
-    const wideB = page.getByText("Широкая сетка Б", { exact: true });
-    const innerA = page.getByText("Узкая сетка А", { exact: true });
-    const innerB = page.getByText("Узкая сетка Б", { exact: true });
+    const alpha = page.getByText("Alpha · Stack", { exact: true });
+    const beta = page.getByText("Beta · Stack", { exact: true });
+    const wideA = page.getByText("Wide grid A", { exact: true });
+    const wideB = page.getByText("Wide grid B", { exact: true });
+    const innerA = page.getByText("Narrow grid A", { exact: true });
+    const innerB = page.getByText("Narrow grid B", { exact: true });
     await expect(beta).toBeVisible();
     expect(await placement(alpha, beta)).toMatchObject({
         dx: expect.any(Number),
@@ -36,7 +36,7 @@ test("stack direction and nested grids follow their own width, not the device", 
     expect((await placement(alpha, beta)).dx).toBeGreaterThan(0);
     expect((await placement(wideA, wideB)).dx).toBeGreaterThan(0);
     expect((await placement(innerA, innerB)).dy).toBeGreaterThan(0);
-    await page.getByRole("button", { name: "Сменить направление Stack" }).click();
+    await page.getByRole("button", { name: "Switch Stack direction" }).click();
     await expect.poll(async () => (await placement(alpha, beta)).dy).toBeGreaterThan(0);
     await page.setViewportSize({ width: 320, height: 780 });
     await expect.poll(async () => (await placement(wideA, wideB)).dy).toBeGreaterThan(0);
@@ -64,7 +64,7 @@ test("form columns become rows on resize and retain input DOM identity, selectio
     expect((await placement(label, editor)).dx).toBeGreaterThan(100);
     await label.click();
     await expect(editor).toBeFocused();
-    await editor.fill("Бумага");
+    await editor.fill("Paper");
     await editor.evaluate(node => {
         node.setSelectionRange(2, 4);
         node.dataset.resizeProbe = "original";
@@ -73,16 +73,16 @@ test("form columns become rows on resize and retain input DOM identity, selectio
     await expect(layout).not.toHaveAttribute("data-label-columns", "");
     expect((await placement(label, editor)).dy).toBeGreaterThan(10);
     await expect(editor).toBeFocused();
-    await expect(editor).toHaveValue("Бумага");
+    await expect(editor).toHaveValue("Paper");
     await expect(editor).toHaveAttribute("data-resize-probe", "original");
     expect(await editor.evaluate(node => [node.selectionStart, node.selectionEnd])).toEqual([2, 4]);
     await page.setViewportSize({ width: 1280, height: 780 });
     await expect(layout).toHaveAttribute("data-label-columns", "");
     await expect(editor).toBeFocused();
-    await page.getByRole("button", { name: "Сменить порог формы" }).click();
+    await page.getByRole("button", { name: "Switch form breakpoint" }).click();
     await expect(layout).not.toHaveAttribute("data-label-columns", "");
     await expect(editor).toHaveAttribute("data-resize-probe", "original");
-    await expect(editor).toHaveValue("Бумага");
+    await expect(editor).toHaveValue("Paper");
 });
 
 test("200% layout zoom stacks labels and keeps normal Tab / Enter validation", async ({ page }) => {
@@ -91,7 +91,7 @@ test("200% layout zoom stacks labels and keeps normal Tab / Enter validation", a
     const group = form(page);
     const layout = group.locator(".widgets-form-layout");
     const editor = field(page, title);
-    const note = field(page, "Дополнительный комментарий");
+    const note = field(page, "Additional note");
     await expect(layout).toHaveAttribute("data-label-columns", "");
     await page.locator("body").evaluate(node => (node.style.zoom = "2"));
     await expect(layout).not.toHaveAttribute("data-label-columns", "");
@@ -99,9 +99,9 @@ test("200% layout zoom stacks labels and keeps normal Tab / Enter validation", a
     await editor.press("Tab");
     await expect(note).toBeFocused();
     await note.press("Enter");
-    await expect(group.getByRole("status")).toHaveText("Заполните выделенное поле.");
+    await expect(group.getByRole("status")).toHaveText("Complete the highlighted field.");
     await expect(editor).toBeFocused();
-    await expect(editor).toHaveAccessibleDescription(/Заполните описание/);
+    await expect(editor).toHaveAccessibleDescription(/Enter a description/);
 });
 
 test.describe("adaptive controls on a touch viewport", () => {
@@ -116,9 +116,9 @@ test.describe("adaptive controls on a touch viewport", () => {
         );
         await group.locator("label").filter({ hasText: title }).tap();
         await expect(editor).toBeFocused();
-        await editor.fill("Бумага");
-        await group.getByRole("button", { name: "Проверить макет" }).tap();
-        await expect(group.getByRole("status")).toHaveText("Макет проверен.");
+        await editor.fill("Paper");
+        await group.getByRole("button", { name: "Validate layout" }).tap();
+        await expect(group.getByRole("status")).toHaveText("Layout validated.");
     });
 });
 
@@ -140,7 +140,7 @@ for (const mode of ["during", "before"]) {
                 data.updates?.some(
                     u =>
                         u.action === "set data table" &&
-                        u.snapshot?.caption === "Архив учебных заказов" &&
+                        u.snapshot?.caption === "Sample order archive" &&
                         u.snapshot.state === "ready"
                 )
             ) {
@@ -152,12 +152,12 @@ for (const mode of ["during", "before"]) {
         await page.setViewportSize({ width: 1280, height: 780 });
         await page.goto("/all-widgets");
         await page
-            .getByRole("region", { name: "Архив учебных заказов", exact: true })
+            .getByRole("region", { name: "Sample order archive", exact: true })
             .scrollIntoViewIfNeeded();
         await ready;
-        const button = page.getByRole("button", { name: "Сменить порог формы", exact: true });
+        const button = page.getByRole("button", { name: "Switch form breakpoint", exact: true });
         const layout = form(page).locator(".widgets-form-layout");
-        await field(page, title).fill("Бумага");
+        await field(page, title).fill("Paper");
         await button.scrollIntoViewIfNeeded();
         await page.evaluate(() => {
             window.probe = [];
@@ -184,7 +184,7 @@ for (const mode of ["during", "before"]) {
         }
         release();
         await expect(
-            page.getByRole("cell", { name: "Учебный заказ №1", exact: true })
+            page.getByRole("cell", { name: "Sample order #1", exact: true })
         ).toBeAttached();
         const after = await button.boundingBox();
         if (mode === "during") await page.mouse.up();
@@ -197,7 +197,7 @@ for (const mode of ["during", "before"]) {
         });
         expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
         expect(
-            events.filter(e => e.type === "click" && e.text === "Сменить порог формы")
+            events.filter(e => e.type === "click" && e.text === "Switch form breakpoint")
         ).toHaveLength(1);
         await expect(layout).not.toHaveAttribute("data-label-columns", "");
     });

@@ -12,45 +12,42 @@ for (const width of [1280, 390]) {
         await expect(page.locator(".widgets-feedback").first()).toBeVisible();
         const accessibility = await new AxeBuilder({ page }).include(".widgets-feedback").analyze();
         expect(accessibility.violations).toEqual([]);
-        const cancel = page.getByRole("button", { name: "Отменить загрузку", exact: true });
+        const cancel = page.getByRole("button", { name: "Cancel upload", exact: true });
         await expect(cancel).toBeVisible();
         const region = cancel.locator("xpath=ancestor::*[contains(@class,'widgets-feedback')][1]");
         await expect(region.getByRole("progressbar")).toHaveAttribute("value", "40");
         if (width === 390) await cancel.tap();
         else await cancel.click();
-        await expect(region.getByText("Загрузка отменена", { exact: true })).toBeVisible();
+        await expect(region.getByText("Upload cancelled", { exact: true })).toBeVisible();
         await expect(cancel).toBeDisabled();
         await expect(region.getByRole("progressbar")).toHaveCount(0);
-        await page.getByRole("button", { name: "Показать пустой результат", exact: true }).click();
+        await page.getByRole("button", { name: "Show empty result", exact: true }).click();
+        await expect(page.getByText("Check complete: no orders", { exact: true })).toBeVisible();
+        await page.getByRole("button", { name: "Start check", exact: true }).click();
         await expect(
-            page.getByText("Проверка завершена: заказов нет", { exact: true })
+            page.getByRole("progressbar", { name: "Checking item availability…" })
         ).toBeVisible();
-        await page.getByRole("button", { name: "Начать проверку", exact: true }).click();
+        await page.getByRole("button", { name: "Check failed", exact: true }).click();
         await expect(
-            page.getByRole("progressbar", { name: "Проверяем наличие изделий…" })
+            page.getByText("Check failed. Please try again.", { exact: true })
         ).toBeVisible();
-        await page.getByRole("button", { name: "Ошибка проверки", exact: true }).click();
-        await expect(
-            page.getByText("Проверка не удалась. Попробуйте ещё раз.", { exact: true })
-        ).toBeVisible();
-        const retry = page.getByRole("button", { name: "Загрузить ещё раз", exact: true });
+        const retry = page.getByRole("button", { name: "Load again", exact: true });
         await retry.click();
-        await expect(page.getByText("Найдено изделий: 2", { exact: true })).toBeVisible();
-        await expect(page.getByText("Проверка завершена", { exact: true })).toBeVisible();
-        const notify = page.getByRole("button", { name: "Показать уведомление", exact: true });
+        await expect(page.getByText("Items found: 2", { exact: true })).toBeVisible();
+        await expect(page.getByText("Check complete", { exact: true })).toBeVisible();
+        const notify = page.getByRole("button", { name: "Show notification", exact: true });
         await notify.focus();
         await notify.press("Enter");
-        await expect(page.getByText("Изделие добавлено в список.", { exact: true })).toBeVisible();
+        await expect(page.getByText("Item added to the list.", { exact: true })).toBeVisible();
         await expect(notify).toBeFocused();
-        await expect(page.getByText("Изделие добавлено в список.", { exact: true })).toHaveCount(
-            0,
-            { timeout: 9000 }
-        );
-        const error = page.getByText("Не удалось связаться с сервером. Повторите попытку.", {
+        await expect(page.getByText("Item added to the list.", { exact: true })).toHaveCount(0, {
+            timeout: 9000
+        });
+        const error = page.getByText("Could not reach the server. Please retry.", {
             exact: true
         });
         await expect(error).toBeVisible();
-        await error.locator("..").getByRole("button", { name: "Закрыть уведомление" }).click();
+        await error.locator("..").getByRole("button", { name: "Dismiss notification" }).click();
         await expect(error).toHaveCount(0);
         const overflows = await page
             .locator(".widgets-feedback")

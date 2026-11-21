@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-const outerName = "Размер списка коллекций";
-const innerName = "Высота карточки";
+const outerName = "Collection list size";
+const innerName = "Card height";
 
 async function middle(handle) {
     await handle.scrollIntoViewIfNeeded();
@@ -27,10 +27,10 @@ test("nested separators support keys, container resize and shared reset", async 
     await expect(outer).toBeFocused();
     await outer.press("ArrowDown");
     await expect(outer).toHaveAttribute("aria-valuenow", "21");
-    await page.getByRole("button", { name: "Сбросить размеры" }).click();
+    await page.getByRole("button", { name: "Reset sizes" }).click();
     await expect(outer).toHaveAttribute("aria-valuenow", "38");
     await expect(inner).toHaveAttribute("aria-valuenow", "55");
-    await page.getByText("Зафиксировать размеры", { exact: true }).click();
+    await page.getByText("Lock sizes", { exact: true }).click();
     await expect(outer).toHaveAttribute("aria-disabled", "true");
 });
 

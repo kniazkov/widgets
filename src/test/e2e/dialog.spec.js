@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 const button = (scope, name) => scope.getByRole("button", { name, exact: true });
-const dialog = (page, name = "Учебная заявка") => page.getByRole("dialog", { name, exact: true });
+const dialog = (page, name = "Sample request") => page.getByRole("dialog", { name, exact: true });
 test.use({ hasTouch: true });
 
 for (const width of [1280, 390]) {
@@ -11,35 +11,33 @@ for (const width of [1280, 390]) {
     }) => {
         await page.setViewportSize({ width, height: 800 });
         await page.goto("/all-widgets");
-        const open = button(page, "Открыть длинную форму");
+        const open = button(page, "Open long form");
         if (width === 390) await open.tap();
         else await open.click();
         const modal = dialog(page);
-        const field = modal.getByRole("textbox", { name: "Название образца", exact: true });
+        const field = modal.getByRole("textbox", { name: "Sample name", exact: true });
         await field.press("Enter");
-        await expect(modal.getByText("Введите название образца.", { exact: true })).toBeVisible();
+        await expect(modal.getByText("Enter a sample name.", { exact: true })).toBeVisible();
         await expect(field).toBeFocused();
-        await expect(modal.getByText("Попыток сохранения: 0")).toBeAttached();
-        await field.fill("Бумага");
+        await expect(modal.getByText("Save attempts: 0")).toBeAttached();
+        await field.fill("Paper");
         await field.press("Enter");
         await field.press("Enter");
-        await expect(button(modal, "Подтвердить")).toBeDisabled();
-        await expect(button(modal, "Отменить")).toBeDisabled();
-        await expect(button(modal, "Закрыть диалог")).toBeDisabled();
+        await expect(button(modal, "Confirm")).toBeDisabled();
+        await expect(button(modal, "Cancel")).toBeDisabled();
+        await expect(button(modal, "Close dialog")).toBeDisabled();
         await page.keyboard.press("Escape");
         await page.mouse.click(2, 2);
         await expect(modal).toBeVisible();
         await expect(
-            modal.getByText("Не удалось сохранить. Повторите попытку.", { exact: true })
+            modal.getByText("Could not save. Please retry.", { exact: true })
         ).toBeAttached();
-        await expect(modal.getByText("Попыток сохранения: 1")).toBeAttached();
-        await expect(field).toHaveValue("Бумага");
-        await expect(button(modal, "Подтвердить")).toBeEnabled();
-        await button(modal, "Подтвердить").dblclick();
+        await expect(modal.getByText("Save attempts: 1")).toBeAttached();
+        await expect(field).toHaveValue("Paper");
+        await expect(button(modal, "Confirm")).toBeEnabled();
+        await button(modal, "Confirm").dblclick();
         await expect(modal).toHaveCount(0);
-        await expect(
-            page.getByText("Результат: CONFIRMED · Бумага", { exact: true })
-        ).toBeVisible();
+        await expect(page.getByText("Result: CONFIRMED · Paper", { exact: true })).toBeVisible();
         await expect(open).toBeFocused();
     });
 }
@@ -48,18 +46,18 @@ test("confirmation distinguishes cancel and close, supports Escape and backdrop"
     page
 }) => {
     await page.goto("/all-widgets");
-    const open = button(page, "Открыть подтверждение");
+    const open = button(page, "Open confirmation");
     await open.click();
-    const modal = dialog(page, "Подтверждение действия");
+    const modal = dialog(page, "Confirm action");
     await expect(modal).toBeVisible();
     const audit = await new AxeBuilder({ page }).include(".widgets-dialog").analyze();
     expect(audit.violations).toEqual([]);
-    await button(modal, "Отменить").click();
-    await expect(page.getByText("Результат: CANCELLED", { exact: true })).toBeVisible();
+    await button(modal, "Cancel").click();
+    await expect(page.getByText("Result: CANCELLED", { exact: true })).toBeVisible();
     await expect(open).toBeFocused();
     await open.press("Enter");
-    await button(modal, "Закрыть диалог").click();
-    await expect(page.getByText("Результат: CLOSED", { exact: true })).toBeVisible();
+    await button(modal, "Close dialog").click();
+    await expect(page.getByText("Result: CLOSED", { exact: true })).toBeVisible();
     await open.click();
     await expect(modal).toBeVisible();
     await page.keyboard.press("Escape");
@@ -70,24 +68,24 @@ test("confirmation distinguishes cancel and close, supports Escape and backdrop"
     await page.mouse.click(2, 2);
     await expect(modal).toHaveCount(0);
     await open.click();
-    await button(modal, "Подтвердить").press("Enter");
-    await expect(page.getByText("Результат: CONFIRMED", { exact: true })).toBeVisible();
+    await button(modal, "Confirm").press("Enter");
+    await expect(page.getByText("Result: CONFIRMED", { exact: true })).toBeVisible();
 });
 
 test("nested dialog returns focus to its launcher then to the original page", async ({ page }) => {
     await page.goto("/all-widgets");
-    const open = button(page, "Открыть длинную форму");
+    const open = button(page, "Open long form");
     await open.click();
     const outer = dialog(page);
-    const nested = button(outer, "Открыть вложенное подтверждение");
+    const nested = button(outer, "Open nested confirmation");
     await nested.click();
-    const inner = dialog(page, "Вложенное подтверждение");
+    const inner = dialog(page, "Nested confirmation");
     await expect(inner).toBeVisible();
     await expect(page.getByRole("dialog")).toHaveCount(1);
     await page.keyboard.press("Escape");
     await expect(inner).toHaveCount(0);
     await expect(nested).toBeFocused();
-    await button(outer, "Отменить").click();
+    await button(outer, "Cancel").click();
     await expect(outer).toHaveCount(0);
     await expect(open).toBeFocused();
 });
@@ -97,10 +95,10 @@ test("long form remains scrollable and focused controls stay inside a panned key
 }) => {
     await page.setViewportSize({ width: 390, height: 700 });
     await page.goto("/all-widgets");
-    await button(page, "Открыть длинную форму").tap();
+    await button(page, "Open long form").tap();
     const modal = dialog(page);
     await expect(modal).toBeVisible();
-    const captionFits = await button(modal, "Открыть вложенное подтверждение").evaluate(el => {
+    const captionFits = await button(modal, "Open nested confirmation").evaluate(el => {
         const button = el.getBoundingClientRect();
         const range = document.createRange();
         range.selectNodeContents(el);

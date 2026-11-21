@@ -3,6 +3,7 @@ name: Polling comparison
 on:
   pull_request:
     paths:
+      - scripts/build-test-fixture.sh
       - scripts/measure-polling-http.mjs
       - .github/workflows/polling-benchmark.yml
   workflow_dispatch:
@@ -44,8 +45,8 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Build both test servers
         run: |
-          mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
-          mvn -B -ntp -f .polling-baseline/pom.xml -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+          bash scripts/build-test-fixture.sh
+          bash scripts/build-test-fixture.sh -f .polling-baseline/pom.xml
       - name: Compare HTTP and event-to-DOM under load
         shell: bash
         run: |

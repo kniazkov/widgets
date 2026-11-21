@@ -2,36 +2,36 @@ import { test, expect } from "@playwright/test";
 
 test("tree focus, selection, lazy states and navigation", async ({ page }) => {
     await page.goto("/all-widgets");
-    const tree = page.getByRole("tree", { name: "Категории украшений" });
+    const tree = page.getByRole("tree", { name: "Item categories" });
     const row = name => tree.getByRole("treeitem", { name, exact: true });
     const active = async name =>
         expect(tree).toHaveAttribute("aria-activedescendant", await row(name).getAttribute("id"));
     await tree.focus();
-    await active("Витражное стекло");
+    await active("Stained glass");
     await tree.press("ArrowRight");
-    await expect(tree.getByRole("status")).toHaveText("Загрузка…");
-    await expect(row("Подвески")).toBeVisible();
+    await expect(tree.getByRole("status")).toHaveText("Loading…");
+    await expect(row("Pendants")).toBeVisible();
     await tree.press("ArrowRight");
-    await active("Подвески");
+    await active("Pendants");
     await tree.press("Space");
-    await expect(row("Подвески")).toHaveAttribute("aria-selected", "true");
+    await expect(row("Pendants")).toHaveAttribute("aria-selected", "true");
     await tree.press("ArrowDown");
-    await active("Серьги из цветного стекла");
+    await active("Colored glass earrings");
     await tree.press("ArrowUp");
     await tree.press("ArrowLeft");
-    await active("Витражное стекло");
+    await active("Stained glass");
     await tree.press("ArrowLeft");
-    await expect(row("Подвески")).toHaveCount(0);
+    await expect(row("Pendants")).toHaveCount(0);
     await tree.press("End");
-    await active("Недоступный архив");
+    await active("Disabled archive");
     await tree.press("ArrowRight");
-    await expect(tree.getByText("Ошибка загрузки")).toBeVisible();
+    await expect(tree.getByText("Loading failed")).toBeVisible();
     await tree.press("ArrowUp");
     await tree.press("ArrowRight");
-    await expect(tree.getByText("Пока пусто")).toBeVisible();
+    await expect(tree.getByText("Nothing here yet")).toBeVisible();
     await tree.press("Home");
-    await active("Витражное стекло");
-    await page.getByRole("button", { name: "Отключить дерево" }).click();
+    await active("Stained glass");
+    await page.getByRole("button", { name: "Disable tree" }).click();
     await expect(tree).toHaveAttribute("aria-disabled", "true");
 });
 
@@ -53,14 +53,14 @@ test.describe("touch layout", () => {
     test("nested Russian labels wrap and remain selectable", async ({ page }) => {
         await page.goto("/all-widgets");
         const tree = page.getByRole("tree");
-        for (const name of ["Витражное стекло", "Подвески"]) {
+        for (const name of ["Stained glass", "Pendants"]) {
             await tree
                 .getByRole("treeitem", { name, exact: true })
                 .locator("[data-toggle]")
                 .first()
                 .tap();
         }
-        const leaf = tree.getByRole("treeitem", { name: /^Коллекция длинных/ });
+        const leaf = tree.getByRole("treeitem", { name: /^A collection of long/ });
         await leaf.tap();
         await expect(leaf).toHaveAttribute("aria-selected", "true");
         expect(await tree.evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);

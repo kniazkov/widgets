@@ -3,6 +3,7 @@ name: Load profiles
 on:
   pull_request:
     paths:
+      - scripts/build-test-fixture.sh
       - scripts/run-load.mjs
       - scripts/load/**
       - src/test/java/com/kniazkov/widgets/e2e/LoadTestServer.java
@@ -36,7 +37,7 @@ jobs:
         timeout-minutes: 5
         run: npx playwright install --with-deps chromium
       - name: Build load fixture
-        run: mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+        run: bash scripts/build-test-fixture.sh
       - name: Run repeated profiles and browser observer
         run: node scripts/run-load.mjs --browser --clients=1,100,1000 --repeats=2 --dom-samples=100
       - uses: actions/upload-artifact@v4

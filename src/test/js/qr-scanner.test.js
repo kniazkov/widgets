@@ -142,3 +142,19 @@ it("показывает отказ в разрешении и HTTP без за�
     expect(get).toHaveBeenCalledTimes(1);
     w.api.disposeQrScanners();
 });
+
+it("accepts arbitrary QR text in general mode without executing it", () => {
+    const w = harness();
+    for (const value of [
+        "https://food.example/buckwheat",
+        "WIFI:T:WPA;S:Guest;P:test;;",
+        "plain text",
+        "Привет 🌍",
+        "<script>alert(1)</script>",
+        "7".repeat(7089)
+    ]) {
+        expect(w.api.qrProductCode(value, "")).toBe(value);
+    }
+    expect(w.api.qrProductCode("", "")).toBeNull();
+    expect(w.send).not.toHaveBeenCalled();
+});

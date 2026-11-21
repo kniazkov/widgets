@@ -26,7 +26,9 @@ class QrPresentationGate {
 
 // Никаких переходов и запросов по содержимому QR: принимается только точная ссылка магазина.
 function qrProductCode(value, prefix) {
-    if (typeof value !== "string" || !value.startsWith(prefix)) return null;
+    if (typeof value !== "string" || !value.length) return null;
+    if (prefix === "") return value;
+    if (!value.startsWith(prefix)) return null;
     const id = value.slice(prefix.length);
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
         ? value

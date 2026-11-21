@@ -2,6 +2,7 @@ name: Stream adapter
 on:
   pull_request:
     paths:
+      - scripts/build-test-fixture.sh
       - scripts/run-stream-probe.mjs
       - src/main/java/com/kniazkov/widgets/base/**
       - pom.xml
@@ -35,7 +36,7 @@ jobs:
         timeout-minutes: 5
         run: npx playwright install --with-deps chromium
       - name: Build shared Java fixture
-        run: mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+        run: bash scripts/build-test-fixture.sh
       - name: Verify native Java WSS behind a TLS reverse proxy
         run: node scripts/run-stream-probe.mjs
       - uses: actions/upload-artifact@v4

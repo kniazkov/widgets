@@ -10,12 +10,12 @@ for (const locale of ["ru-RU", "en-US"]) {
             }) => {
                 await page.setViewportSize({ width, height: 850 });
                 await page.goto("/all-widgets");
-                const form = page.getByRole("form", { name: "Учебная доставка", exact: true });
-                const date = form.getByLabel("Дата доставки", { exact: true });
-                const time = form.getByLabel("Время доставки", { exact: true });
-                const start = form.getByLabel("Начало периода", { exact: true });
-                const end = form.getByLabel("Конец периода", { exact: true });
-                const submit = form.getByRole("button", { name: "Проверить даты", exact: true });
+                const form = page.getByRole("form", { name: "Sample delivery", exact: true });
+                const date = form.getByLabel("Delivery date", { exact: true });
+                const time = form.getByLabel("Delivery time", { exact: true });
+                const start = form.getByLabel("Start date", { exact: true });
+                const end = form.getByLabel("End date", { exact: true });
+                const submit = form.getByRole("button", { name: "Validate dates", exact: true });
                 await expect(date).toHaveAttribute("type", "date");
                 await expect(time).toHaveAttribute("type", "time");
                 await expect(time).toHaveAttribute("step", "60");
@@ -23,22 +23,22 @@ for (const locale of ["ru-RU", "en-US"]) {
                 await expect(date).toHaveValue("");
                 await submit.click();
                 await expect(date).toBeFocused();
-                await expect(date).toHaveAccessibleDescription(/Укажите дату доставки/);
+                await expect(date).toHaveAccessibleDescription(/Enter a delivery date/);
                 await date.fill("2028-02-29");
                 await time.fill("08:59");
                 await submit.click();
                 await expect(time).toBeFocused();
-                await expect(time).toHaveAccessibleDescription(/от 09:00 до 18:00/);
+                await expect(time).toHaveAccessibleDescription(/between 09:00 and 18:00/);
                 await time.fill("09:00");
                 await start.fill("2028-03-02");
                 await end.fill("2028-03-01");
                 await end.press("Enter");
                 await expect(start).toBeFocused();
-                await expect(start).toHaveAccessibleDescription(/начало не позже конца/);
+                await expect(start).toHaveAccessibleDescription(/start no later than the end/);
                 await end.fill("2028-03-02");
                 await end.press("Enter");
                 await expect(
-                    page.getByText("Принято: 2028-02-29 / 09:00 / 2028-03-02 — 2028-03-02", {
+                    page.getByText("Accepted: 2028-02-29 / 09:00 / 2028-03-02 — 2028-03-02", {
                         exact: true
                     })
                 ).toBeVisible();
@@ -46,24 +46,24 @@ for (const locale of ["ru-RU", "en-US"]) {
                 await date.fill("2027-12-31");
                 await submit.click();
                 await expect(date).toBeFocused();
-                await expect(date).toHaveAccessibleDescription(/в пределах 2028 года/);
+                await expect(date).toHaveAccessibleDescription(/in 2028/);
                 await date.fill("2028-02-29");
                 await start.fill("");
                 await end.fill("");
                 if (width === 390) await submit.tap();
                 else await submit.click();
                 await expect(
-                    page.getByText("Принято: 2028-02-29 / 09:00 / нет", { exact: true })
+                    page.getByText("Accepted: 2028-02-29 / 09:00 / none", { exact: true })
                 ).toBeVisible();
                 await page
-                    .getByRole("button", { name: "Сменить локаль ru/en", exact: true })
+                    .getByRole("button", { name: "Switch locale: US / UK", exact: true })
                     .click();
-                await expect(date).toHaveAttribute("lang", "en-US");
+                await expect(date).toHaveAttribute("lang", "en-GB");
                 await expect(
-                    page.getByText("Локаль: en-US; отображение: 2/29/28 / 9:00 AM", { exact: true })
+                    page.getByText("Locale: en-GB; display: 29/02/2028 / 09:00", { exact: true })
                 ).toBeVisible();
                 await expect(date).toHaveValue("2028-02-29");
-                await expect(page.getByLabel("Недоступная дата", { exact: true })).toBeDisabled();
+                await expect(page.getByLabel("Disabled date", { exact: true })).toBeDisabled();
                 const bounds = await form.evaluate(el => ({
                     width: el.clientWidth,
                     scroll: el.scrollWidth

@@ -2,6 +2,7 @@ name: Deployment model
 on:
   pull_request:
     paths:
+      - scripts/build-test-fixture.sh
       - scripts/run-deployment-probe.mjs
       - src/test/java/com/kniazkov/widgets/e2e/DeploymentLedger.java
       - src/main/java/com/kniazkov/widgets/base/**
@@ -38,7 +39,7 @@ jobs:
         timeout-minutes: 5
         run: npx playwright install --with-deps chromium
       - name: Build shared Java fixture
-        run: mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+        run: bash scripts/build-test-fixture.sh
       - name: Verify two independent owners and durable recovery
         run: node scripts/run-deployment-probe.mjs
       - uses: actions/upload-artifact@v4
