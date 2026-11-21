@@ -2,6 +2,7 @@ name: Transport prototype
 on:
   pull_request:
     paths:
+      - scripts/build-test-fixture.sh
       - scripts/transport/**
       - scripts/run-transport-probe.mjs
       - src/main/html/scripts/shared/transport*.js
@@ -33,7 +34,7 @@ jobs:
         timeout-minutes: 5
         run: npx playwright install --with-deps chromium
       - name: Build shared Java fixture
-        run: mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+        run: bash scripts/build-test-fixture.sh
       - name: Compare HTTP and WebSocket prototype in Chromium
         run: node scripts/run-transport-probe.mjs
       - uses: actions/upload-artifact@v4

@@ -2,6 +2,7 @@ name: Push transport
 on:
   pull_request:
     paths:
+      - scripts/build-test-fixture.sh
       - scripts/run-push-probe.mjs
       - src/test/e2e/connection-recovery.spec.js
       - src/main/java/com/kniazkov/widgets/base/**
@@ -38,7 +39,7 @@ jobs:
         timeout-minutes: 5
         run: npx playwright install --with-deps chromium
       - name: Build shared Java fixture
-        run: mvn -B -ntp -DskipTests test-compile dependency:build-classpath -Dmdep.outputFile=target/runtime-classpath.txt
+        run: bash scripts/build-test-fixture.sh
       - name: Verify multiplexed push, recovery and comparative load
         run: node scripts/run-push-probe.mjs
       - uses: actions/upload-artifact@v4
