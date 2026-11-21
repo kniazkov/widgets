@@ -1343,15 +1343,15 @@
     "qr-scanner": {
       "file": "qr-scanner.png",
       "title": "QrScanner",
-      "states": "Idle camera before explicit permission request",
-      "sourceScreenshot": "AllWidgets QrScanner element screenshot, Chromium 158.0.8127.36, 1280x900, 2026-11-20",
+      "states": "Disabled video-only scanner with application-owned controls and status",
+      "sourceScreenshot": "AllWidgets QrScanner element screenshot, Chromium 134.0.6998.35, 1280x900, 2026-11-21",
       "crop": [
         0,
         0,
         1216,
-        334
+        625
       ],
-      "sha256": "20e3f455761a155f4119eedc0bfc67e3bd2fdc1ebed9e9b7077ea4bc568d5911"
+      "sha256": "9f6eb638deed81d9f66f9e869274968c2e16e4363392b3e84688e9c64bb8f12e"
     }
   },
   "widgets": {

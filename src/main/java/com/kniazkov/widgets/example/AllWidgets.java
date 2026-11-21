@@ -271,23 +271,43 @@ public class AllWidgets {
         final Panel card = addCard(root, "QrScanner",
             "Scan any QR: packaging, a link, Wi-Fi details or plain text. Results stay text.");
         final TextWidget result = new TextWidget("No QR received");
-        final Map<String, String> messages = Map.of(
-            "start", "Enable camera",
-            "idle", "Allow camera access to scan any QR code.",
-            "opening", "Opening camera…",
-            "ready", "Show a QR. Remove it for two seconds before scanning it again.",
-            "waiting", "Processing QR…",
-            "https", "Camera access requires HTTPS.",
-            "denied", "Camera permission was denied.",
-            "unavailable", "Camera unavailable.",
-            "invalid", "No readable QR text. Try better lighting or move the code.",
-            "closed", "Camera stopped. Reload to start again.");
+        final TextWidget status = new TextWidget("Camera is disabled.");
+        final TextWidget toggleText = new TextWidget(
+            Button.getDefaultStyle().getDefaultTextStyle(), "Enable camera");
+        final Button toggle = new Button(toggleText);
         final QrScanner[] scanner = new QrScanner[1];
-        scanner[0] = new QrScanner(messages, code -> {
+        scanner[0] = new QrScanner(code -> {
             result.setText(code);
             scanner[0].setPaused(false);
         });
+        scanner[0].onStatus(state -> {
+            final String message = switch (state) {
+                case OPENING -> "Opening camera…";
+                case READY -> "Show a QR. Remove it for two seconds before scanning it again.";
+                case WAITING -> "Processing QR…";
+                case HTTPS_REQUIRED -> "Camera access requires HTTPS.";
+                case DENIED -> "Camera permission was denied.";
+                case UNAVAILABLE -> "Camera unavailable.";
+                case INVALID -> "This QR does not match the configured filter.";
+                case CLOSED -> "Camera stopped.";
+            };
+            status.setText(message);
+            switch (state) {
+                case HTTPS_REQUIRED, DENIED, UNAVAILABLE, CLOSED -> {
+                    scanner[0].disable();
+                    toggleText.setText("Enable camera");
+                }
+                default -> { }
+            }
+        });
+        toggle.onClick(event -> {
+            scanner[0].setDisabledFlag(!scanner[0].isDisabled());
+            toggleText.setText(scanner[0].isDisabled() ? "Enable camera" : "Disable camera");
+            status.setText(scanner[0].isDisabled() ? "Camera is disabled." : "Opening camera…");
+        });
         card.add(scanner[0]);
+        card.add(new Section(toggle));
+        card.add(new Section(status));
         card.add(new Section(result));
     }
 
